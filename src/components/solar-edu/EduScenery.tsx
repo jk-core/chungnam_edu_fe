@@ -320,7 +320,10 @@ export const GridArt = (props: ArtProps) => (
   </Base>
 );
 
-/** 여정 단계 id 별 삽화 */
+/**
+ * 여정 단계 id 별 삽화.
+ * `overview` 는 지금 이 순간의 값을 그림 위에 얹으므로 여기 두지 않고 호출부에서 따로 그린다.
+ */
 export const JOURNEY_ART: Record<string, ReactNode> = {
   sun: <SunlightArt />,
   panel: <PanelArt />,

@@ -2,33 +2,27 @@
 @use "@/styles/utils/media" as media;
 
 /**
- * 씬이 갈리는 자리.
- * 무대는 부모가 잡은 높이를 그대로 쓰고, 제목과 본문이 한 덩어리로 미끄러져 들어온다.
- *
- * 들어오는 쪽만 움직인다. 나가는 씬을 기다리면 문서가 가려져 rAF 가 멈춘 사이
- * 전환이 끝나지 않아 무대가 빈 채로 굳는다. CSS 애니메이션은 그 상황에서도 돈다.
+ * 한 화면에 담는 배치.
+ * 왼쪽은 오늘 무슨 일이 있었는지(해가 지나간 길과 발전 곡선 → 그 의미),
+ * 오른쪽은 전기가 되는 과정을 계통도 한 장으로 보여 준다.
  */
-.slot {
-  position: absolute;
-  inset: 0;
+.grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.75fr) minmax(0, 1fr);
+  gap: s.$space-5;
+  height: 100%;
+  min-height: 0;
+
+  @include media.tablet {
+    grid-template-columns: 1fr;
+    height: auto;
+  }
+}
+
+.main {
   display: flex;
   flex-direction: column;
   gap: s.$space-4;
-  animation: scene-in 0.42s cubic-bezier(0.22, 0.68, 0.32, 1) both;
-
-  @include media.reduced-motion {
-    animation: none;
-  }
+  min-height: 0;
 }
 
-@keyframes scene-in {
-  from {
-    opacity: 0;
-    transform: translateX(72px);
-  }
-
-  to {
-    opacity: 1;
-    transform: translateX(0);
-  }
-}

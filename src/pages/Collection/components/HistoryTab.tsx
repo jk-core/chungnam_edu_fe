@@ -10,14 +10,14 @@ import { ExcelIcon } from '@/components/common/Icon';
 import { getInverters, INVERTER_TYPE_LABEL } from '@/mocks/equipment';
 import { getMonthDays, getYearMonths } from '@/mocks/weather';
 import { getPredictionSeries } from '@/mocks/prediction';
-import { isAbnormal, OPERATION_LABEL, OPERATION_TONE, RTU_LABEL, RTU_TONE } from '@/mocks/status';
+import { OPERATION_LABEL, OPERATION_TONE, RTU_LABEL, RTU_TONE } from '@/mocks/status';
 import { MSG } from '@/configs/messages';
 import { Reveal } from '@/components/common/Reveal';
 import { SegmentedControl } from '@/components/common/SegmentedControl';
 import { AXIS_NAME_GAP, LEGEND_GRID_TOP, topLegend } from '@/utils/chart';
 import { cn } from '@/utils/cn';
 import { exportCsv } from '@/utils/export';
-import { formatNumber, formatPercent } from '@/utils/format';
+import { formatNumber } from '@/utils/format';
 import { toast } from '@/stores/toastStore';
 import { useChartPalette } from '@/hooks/useChartPalette';
 import { useCollectionDate } from '@/stores/filterStore';
@@ -30,6 +30,9 @@ import styles from './HistoryTab.module.scss';
 import type { EChartsOption } from 'echarts';
 
 type ViewMode = 'chart' | 'table';
+
+/** 이 온도를 넘으면 과열을 의심한다 (℃) */
+const HOT_TEMPERATURE = 62;
 
 /**
  * 인버터별 통신주기 운전이력 (SFR-009, SFR-010).
@@ -215,9 +218,9 @@ export function HistoryTab() {
                       </dd>
                     </div>
                     <div>
-                      <dt>PR</dt>
-                      <dd className={isAbnormal(inverter.status) ? shared.deltaDown : undefined}>
-                        {formatPercent(inverter.pr, 1)}
+                      <dt>내부온도</dt>
+                      <dd className={inverter.temperature > HOT_TEMPERATURE ? shared.deltaDown : undefined}>
+                        {formatNumber(inverter.temperature, 1)}
                       </dd>
                     </div>
                   </dl>

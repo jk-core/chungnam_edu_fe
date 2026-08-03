@@ -1,5 +1,5 @@
 import { cn } from '@/utils/cn';
-import styles from './Kiosk.module.scss';
+import styles from './SolarEdu.module.scss';
 
 interface GrowingTreeProps {
   /** 발전량 단계 0~4 */
@@ -17,8 +17,9 @@ const LEAVES = [
 ];
 
 /**
- * 발전량에 따라 자라는 나무 (SFR-005-05).
+ * 발전량에 따라 자라는 나무 (SFR-005-05/06).
  * 단계 변화는 애니메이션이 아니라 클래스로 표현한다 — rAF 없이도 값이 바뀌면 바로 반영된다.
+ * 잎이 흔들리는 것만 CSS 애니메이션이라, 문서가 가려져 있어도 계속 돈다.
  */
 export function GrowingTree({ stage, trees }: GrowingTreeProps) {
   return (
@@ -26,7 +27,7 @@ export function GrowingTree({ stage, trees }: GrowingTreeProps) {
       className={styles.tree}
       viewBox="0 0 200 200"
       role="img"
-      aria-label={`오늘 발전량은 나무 ${trees}그루를 심은 효과입니다. 성장 단계 ${stage} 단계 중 4 단계.`}
+      aria-label={`오늘 만든 전기는 나무 ${trees}그루를 심은 효과예요. 자란 정도는 4단계 중 ${stage}단계예요.`}
     >
       <path className={styles.tree__trunk} d="M92 190h16l-3-74h-10z" />
       <path className={styles.tree__trunk} d="M99 152l-24-16 3-6 23 14zM101 134l22-14 3 6-23 14z" />

@@ -4,8 +4,13 @@ import { Badge } from '@/components/common/Badge';
 import { SegmentedControl } from '@/components/common/SegmentedControl';
 import { currentOutputOf } from '@/mocks/schoolOutput';
 import { formatNumber, formatPercent } from '@/utils/format';
+import { useAutoPager } from '@/hooks/useAutoPager';
 import type { School } from '@/interface/energy';
+import { PagerBar } from './PagerBar';
 import styles from './AggregationPanel.module.scss';
+
+/** 한 쪽이 머무는 시간 — 표를 읽어 내려갈 만큼은 준다 */
+const PAGE_MS = 7000;
 
 /**
  * 집계 축 (SFR-004-03).
@@ -91,6 +96,14 @@ export function AggregationPanel({ schools, selectedId, onSelect }: AggregationP
   const best = rows[0]?.todayKwh ?? 1;
   const totalKwh = rows.reduce((sum, row) => sum + row.todayKwh, 0);
 
+  // 벽면 모니터에는 스크롤을 굴려 줄 사람이 없다. 칸에 담기는 만큼만 두고 나머지는 저절로 넘긴다.
+  const { frameRef, itemRef, from, to, page, pageCount, turnKey } = useAutoPager<
+    HTMLDivElement,
+    HTMLTableRowElement
+  >({ total: rows.length, intervalMs: PAGE_MS });
+
+  const visibleRows = rows.slice(from, to);
+
   return (
     <div className={styles.agg}>
       <div className={styles.agg__head}>
@@ -107,7 +120,10 @@ export function AggregationPanel({ schools, selectedId, onSelect }: AggregationP
         </p>
       </div>
 
-      <div className={styles.agg__scroll}>
+      <div
+        ref={frameRef}
+        className={styles.agg__frame}
+      >
         <table className={styles.table}>
           <caption className={styles.table__caption}>
             {AXIS_OPTIONS.find((option) => option.value === axis)?.label} 금일 발전 현황
@@ -122,9 +138,10 @@ export function AggregationPanel({ schools, selectedId, onSelect }: AggregationP
             </tr>
           </thead>
           <tbody>
-            {rows.map((row) => (
+            {visibleRows.map((row, index) => (
               <tr
                 key={row.key}
+                ref={index === 0 ? itemRef : undefined}
                 className={row.school && row.school.id === selectedId ? styles['table__row--selected'] : undefined}
               >
                 <th scope="row" className={styles.table__name}>
@@ -163,6 +180,8 @@ export function AggregationPanel({ schools, selectedId, onSelect }: AggregationP
           </tbody>
         </table>
       </div>
+
+      <PagerBar page={page} pageCount={pageCount} turnKey={turnKey} intervalMs={PAGE_MS} total={rows.length} />
     </div>
   );
 }

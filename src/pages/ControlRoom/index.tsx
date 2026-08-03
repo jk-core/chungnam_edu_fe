@@ -19,31 +19,22 @@ import { OutputGauge } from './components/OutputGauge';
 import { RankingStrip } from './components/RankingStrip';
 import { LiveTrendChart } from './components/LiveTrendChart';
 import { CumulativeKpi } from './components/CumulativeKpi';
-import { ControlFilterBar, FILTER_ALL } from './components/ControlFilterBar';
+import { ControlSummaryBanner } from './components/ControlSummaryBanner';
 import styles from './ControlRoom.module.scss';
-import type { ControlFilter } from './components/ControlFilterBar';
 
 /** 자동 갱신 주기 — 실제 서비스에서는 이 틱에 최신 수집값을 다시 읽는다. */
 const REFRESH_MS = 60_000;
 
-const EMPTY_FILTER: ControlFilter = {
-  keyword: '',
-  region: FILTER_ALL,
-  level: FILTER_ALL,
-  status: FILTER_ALL,
-};
-
 /**
  * 통합관제 상황판 (SFR-004).
- * 검색·필터로 좁힌 하나의 목록을 지도·우선목록·순위·총출력이 함께 나눠 쓰고,
- * 이상 설비가 항상 위로 올라오도록 상태 우선으로 정렬한다.
+ * 지켜보는 화면이라 조작 장치를 두지 않는다. 하나의 목록을 지도·우선목록·순위·총출력이
+ * 함께 나눠 쓰고, 이상 설비가 항상 위로 올라오도록 상태 우선으로 정렬한다.
  */
 function ControlRoomPage() {
   const { node, plant, plantLabel } = usePlantScope();
   const selectNode = useSelectNode();
   useAutoRefresh(REFRESH_MS);
 
-  const [filter, setFilter] = useState<ControlFilter>(EMPTY_FILTER);
   const [selectedId, setSelectedId] = useState<string | null>(null);
 
   // 수집 현황은 최근 수집 시각·미수신 표시에 쓴다 (SFR-004-04/05).
@@ -56,24 +47,14 @@ function ControlRoomPage() {
   }, []);
 
   // 발전소를 골라 두면 그 학교만, 아니면 도 전체를 대상으로 한다.
-  const scoped = useMemo(() => (plant ? SCHOOLS.filter((school) => school.id === plant.id) : SCHOOLS), [plant]);
-
+  // 이상 설비를 앞세운다 (SFR-004-13).
   const rows = useMemo(() => {
-    const query = filter.keyword.trim().toLowerCase();
+    const scoped = plant ? SCHOOLS.filter((school) => school.id === plant.id) : SCHOOLS;
 
-    return scoped
-      .filter((school) => {
-        if (filter.region !== FILTER_ALL && school.regionCode !== filter.region) return false;
-        if (filter.level !== FILTER_ALL && school.level !== filter.level) return false;
-        if (filter.status !== FILTER_ALL && school.status !== filter.status) return false;
-        if (!query) return true;
-
-        return [school.name, school.regionName, school.address]
-          .some((field) => field.toLowerCase().includes(query));
-      })
-      // 이상 설비를 앞세운다 (SFR-004-13).
-      .sort((a, b) => OPERATION_RANK[a.status] - OPERATION_RANK[b.status] || b.capacityKw - a.capacityKw);
-  }, [scoped, filter]);
+    return [...scoped].sort(
+      (a, b) => OPERATION_RANK[a.status] - OPERATION_RANK[b.status] || b.capacityKw - a.capacityKw,
+    );
+  }, [plant]);
 
   const totals = useMemo(() => ({
     outputKw: liveTotalOutput(rows),
@@ -123,14 +104,8 @@ function ControlRoomPage() {
 
         {/* 가운데 — 어느 축으로 봐도 같은 목록 */}
         <div className={styles.col}>
-          <section className={`${styles.panel} ${styles['panel--open']}`} aria-label="검색과 필터">
-            <ControlFilterBar
-              value={filter}
-              onChange={setFilter}
-              matchedCount={rows.length}
-              staleCount={collection.stale.length}
-            />
-          </section>
+          {/* 조작할 것이 없는 화면이라, 필터가 있던 자리에 지금 상황을 흘려보낸다 */}
+          <ControlSummaryBanner schools={rows} staleCount={collection.stale.length} />
 
           {/* 전체를 볼 때는 표로 견주고, 발전소 하나를 고르면 그 아래 설비로 내려간다 */}
           <section className={`${styles.panel} ${styles.col__grow}`} aria-label="발전 현황 집계">

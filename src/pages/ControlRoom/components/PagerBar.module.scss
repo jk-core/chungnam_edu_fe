@@ -1,0 +1,68 @@
+@use "@/styles/tokens/spacing" as s;
+@use "@/styles/tokens/typography" as t;
+@use "@/styles/utils/media" as media;
+
+.pager {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: s.$space-4;
+  flex-shrink: 0;
+  padding-top: s.$space-2;
+  border-top: 1px solid var(--border-subtle);
+}
+
+.pager__count {
+  @include t.caption;
+
+  color: var(--text-faint);
+}
+
+.pager__dots {
+  display: flex;
+  align-items: center;
+  gap: s.$space-1;
+}
+
+.pager__dot {
+  display: block;
+  width: 18px;
+  height: 3px;
+  border-radius: s.$radius-full;
+  background-color: var(--border);
+}
+
+// 지금 보고 있는 쪽 — 다음으로 넘어갈 때까지 막대가 차오른다
+.pager__dot--active {
+  position: relative;
+  overflow: hidden;
+  background-color: var(--border-strong);
+
+  &::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: s.$radius-full;
+    background-color: var(--brand);
+    transform-origin: left;
+    animation: page-fill var(--page-ms, 7s) linear forwards;
+  }
+
+  @include media.reduced-motion {
+    background-color: var(--brand);
+
+    &::after {
+      animation: none;
+    }
+  }
+}
+
+@keyframes page-fill {
+  from {
+    transform: scaleX(0);
+  }
+
+  to {
+    transform: scaleX(1);
+  }
+}

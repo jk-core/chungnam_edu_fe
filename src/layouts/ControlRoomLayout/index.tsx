@@ -1,10 +1,10 @@
-import { useCallback, useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { AiOrbit } from '@/pages/AiDiagnosis/components/AiOrbit';
 import { CloseIcon, ExpandIcon } from '@/components/common/Icon';
 import { PATH } from '@/routes/routes';
 import { PlantPicker } from '@/components/plant/PlantPicker';
 import { cn } from '@/utils/cn';
+import { useFullscreen } from '@/hooks/useFullscreen';
 import { RoomClock } from './RoomClock';
 import styles from './ControlRoomLayout.module.scss';
 import type { ReactNode } from 'react';
@@ -24,27 +24,7 @@ interface ControlRoomLayoutProps {
  * 벽면 모니터에 띄우는 화면이라 헤더·LNB·푸터를 두지 않고 화면 폭을 다 쓴다.
  */
 export function ControlRoomLayout({ scopeLabel, collectedAt, isStale, children }: ControlRoomLayoutProps) {
-  const [isFullscreen, setIsFullscreen] = useState(false);
-
-  useEffect(() => {
-    const sync = () => setIsFullscreen(document.fullscreenElement !== null);
-
-    document.addEventListener('fullscreenchange', sync);
-
-    return () => document.removeEventListener('fullscreenchange', sync);
-  }, []);
-
-  const toggleFullscreen = useCallback(() => {
-    if (document.fullscreenElement) {
-      void document.exitFullscreen();
-
-      return;
-    }
-
-    void document.documentElement.requestFullscreen().catch(() => {
-      // 브라우저가 막으면 그냥 창 모드로 둔다.
-    });
-  }, []);
+  const { isFullscreen, toggle: toggleFullscreen } = useFullscreen();
 
   return (
     <div className={styles.room}>

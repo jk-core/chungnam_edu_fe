@@ -6,7 +6,7 @@ import { averagePerformance, getPerformanceSeries } from '@/mocks/equipment';
 import { getPlantHealth, HEALTH } from '@/mocks/diagnosis';
 import { Reveal } from '@/components/common/Reveal';
 import { AXIS_NAME_GAP, LEGEND_GRID_TOP, topLegend } from '@/utils/chart';
-import { formatNumber, formatPercent } from '@/utils/format';
+import { formatNumber } from '@/utils/format';
 import { useChartPalette } from '@/hooks/useChartPalette';
 import { useDiagnosisRange } from '@/stores/filterStore';
 import { usePlantScope } from '@/hooks/usePlantScope';
@@ -16,6 +16,9 @@ import { AnalysisFilter } from './AnalysisFilter';
 import { HealthGauge } from './HealthGauge';
 import { PerformancePane } from './PerformancePane';
 import type { EChartsOption } from 'echarts';
+
+/** 이 아래로 떨어진 발전시간은 주의로 본다 (h) */
+const LOW_HOURS = 3;
 
 export function SummaryTab() {
   const { plant, plantLabel: label } = usePlantScope();
@@ -35,7 +38,7 @@ export function SummaryTab() {
 
   const report = plant ? getPlantHealth(plant) : HEALTH;
   const summary = averagePerformance(points);
-  const achievement = summary.expectedKwh > 0 ? summary.actualKwh / summary.expectedKwh : 0;
+  const lowDays = points.filter((point) => point.hours < LOW_HOURS).length;
 
   const option: EChartsOption = {
     grid: { top: LEGEND_GRID_TOP, right: 24, bottom: 30, left: 56 },
@@ -46,7 +49,7 @@ export function SummaryTab() {
       borderWidth: 1,
       textStyle: { color: palette.text, fontSize: 12, fontFamily: 'Pretendard Variable, sans-serif' },
     },
-    legend: topLegend(palette, ['실측 발전량', '기대 발전량', 'PR']),
+    legend: topLegend(palette, ['실측 발전량', '기대 발전량', '발전시간']),
     xAxis: {
       type: 'category',
       data: points.map((point) => dayjs(point.date).format('M/D')),
@@ -65,10 +68,9 @@ export function SummaryTab() {
       },
       {
         type: 'value',
-        name: 'PR %',
+        name: 'h',
         nameGap: AXIS_NAME_GAP,
         nameTextStyle: { color: palette.axis, fontSize: 11 },
-        max: 100,
         splitLine: { show: false },
         axisLabel: { color: palette.axis, fontSize: 11, fontFamily: 'Space Grotesk, sans-serif' },
       },
@@ -90,7 +92,7 @@ export function SummaryTab() {
         data: points.map((point) => point.expectedKwh),
       },
       {
-        name: 'PR',
+        name: '발전시간',
         type: 'line',
         yAxisIndex: 1,
         smooth: true,
@@ -98,7 +100,7 @@ export function SummaryTab() {
         symbolSize: 4,
         lineStyle: { color: palette.irradiance, width: 2 },
         itemStyle: { color: palette.irradiance },
-        data: points.map((point) => Math.round(point.pr * 1000) / 10),
+        data: points.map((point) => point.hours),
       },
     ],
   };
@@ -115,7 +117,7 @@ export function SummaryTab() {
         <Card
           eyebrow="Health"
           title="종합 진단"
-          description={`${label} 기준. 기대 발전량 대비 ${formatPercent(achievement, 1)}를 달성했습니다.`}
+          description={`${label} 기준. 기간 평균 발전시간은 하루 ${formatNumber(summary.hours, 2)}시간입니다.`}
         >
           <HealthGauge report={report} />
         </Card>
@@ -124,12 +126,12 @@ export function SummaryTab() {
       <div className={styles.grid2}>
         <Reveal delay={0.06}>
           <PerformancePane
-            title="발전성능비 (PR)"
-            hint="기대 발전량 대비 실측 비율. 날씨보다 설비 상태를 잘 드러냅니다."
-            metric="pr"
+            title="발전시간"
+            hint="발전량을 설비용량으로 나눈 값. 용량이 다른 설비도 그대로 견줄 수 있습니다."
+            metric="hours"
             points={points}
-            previousAverage={previous.pr}
-            threshold={0.8}
+            previousAverage={previous.hours}
+            threshold={LOW_HOURS}
           />
         </Reveal>
         <Reveal delay={0.12}>
@@ -148,8 +150,8 @@ export function SummaryTab() {
         <Card
           eyebrow="Expected"
           title="기대 대비 실측"
-          description={`막대는 실측 발전량, 점선은 일사량으로 계산한 기대 발전량입니다. 두 값이 벌어진 날이 ${formatNumber(
-            points.filter((point) => point.pr < 0.8).length,
+          description={`막대는 실측 발전량, 점선은 일사량으로 계산한 기대 발전량, 선은 발전시간입니다. 발전시간이 ${LOW_HOURS}시간에 못 미친 날이 ${formatNumber(
+            lowDays,
           )}일 있습니다.`}
         >
           <EChart
@@ -158,7 +160,7 @@ export function SummaryTab() {
             summary={`${label}의 기간 내 실측 ${formatNumber(summary.actualKwh / 1000, 1)}MWh, 기대 ${formatNumber(
               summary.expectedKwh / 1000,
               1,
-            )}MWh, 평균 PR ${formatPercent(summary.pr, 1)}.`}
+            )}MWh, 평균 발전시간 ${formatNumber(summary.hours, 2)}시간.`}
           />
         </Card>
       </Reveal>

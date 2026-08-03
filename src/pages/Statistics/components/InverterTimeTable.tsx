@@ -1,5 +1,5 @@
 import { cn } from '@/utils/cn';
-import { formatNumber, formatPercent } from '@/utils/format';
+import { formatNumber } from '@/utils/format';
 import { pickEnergyUnit } from '@/mocks/generation';
 import styles from '../Statistics.module.scss';
 
@@ -9,8 +9,8 @@ interface InverterTimeTableProps {
   generation: number[];
   /** 시점별 일사량(kWh/m²) */
   irradiance: number[];
-  /** 대상 발전성능비 — 기대 발전량을 되짚는 데 쓴다. */
-  pr: number;
+  /** 기간 전체의 기대 발전량(kWh) — 시점별로 일사량에 맞춰 나눠 준다. */
+  expectedKwh: number;
   caption: string;
 }
 
@@ -18,16 +18,13 @@ interface InverterTimeTableProps {
  * 시점을 가로로 펼친 세부 데이터 표.
  * 지표가 행, 시각이 열이라 "어느 시점에 어떤 지표가 무너졌는지" 를 좌우로 훑어볼 수 있다.
  */
-export function InverterTimeTable({ labels, generation, irradiance, pr, caption }: InverterTimeTableProps) {
+export function InverterTimeTable({ labels, generation, irradiance, expectedKwh, caption }: InverterTimeTableProps) {
   const { divider, unit } = pickEnergyUnit(Math.max(...generation, 1));
 
-  // 기대 발전량은 그 시점의 일사량에 비례한다.
-  // 합계가 "총발전량 ÷ PR" 이 되도록 정규화해, 구간 전체 달성률은 PR 과 맞으면서
-  // 시점별로는 일사량 대비 실측이 얼마나 따라갔는지가 드러나게 한다.
-  const totalGeneration = generation.reduce((sum, value) => sum + value, 0);
+  // 기대 발전량은 그 시점의 일사량에 비례한다. 기간 합계를 일사량 비율대로 흩뿌려,
+  // 햇빛이 많이 든 시점일수록 기대치도 높게 잡히도록 한다.
   const totalIrradiance = irradiance.reduce((sum, value) => sum + value, 0);
-  const scale = totalIrradiance > 0 && pr > 0 ? totalGeneration / pr / totalIrradiance : 0;
-  const expected = irradiance.map((value) => value * scale);
+  const expected = irradiance.map((value) => (totalIrradiance > 0 ? (value / totalIrradiance) * expectedKwh : 0));
 
   const rows = [
     {
@@ -36,6 +33,8 @@ export function InverterTimeTable({ labels, generation, irradiance, pr, caption 
       unit,
       values: generation.map((value) => formatNumber(value / divider, 2)),
       strong: true,
+      // 기대치에 못 미친 시점을 짚어 준다 — 표를 좌우로 훑을 때 눈이 먼저 가야 할 칸이다.
+      lowAt: generation.map((value, index) => expected[index] > 0 && value < expected[index]),
     },
     {
       key: 'expected',
@@ -43,17 +42,6 @@ export function InverterTimeTable({ labels, generation, irradiance, pr, caption 
       unit,
       values: expected.map((value) => formatNumber(value / divider, 2)),
       strong: false,
-    },
-    {
-      key: 'achievement',
-      label: '달성률',
-      unit: '%',
-      values: generation.map((value, index) =>
-        expected[index] > 0 ? formatPercent(value / expected[index], 1) : '—',
-      ),
-      strong: false,
-      // 달성률이 80% 아래면 짚어 준다.
-      lowAt: generation.map((value, index) => expected[index] > 0 && value / expected[index] < 0.8),
     },
     {
       key: 'irradiance',

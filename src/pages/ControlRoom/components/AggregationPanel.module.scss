@@ -34,11 +34,11 @@
 }
 
 // 행이 많아도 패널 밖으로 밀지 않고 안에서 스크롤한다.
-.agg__scroll {
+// 스크롤 대신 쪽을 넘긴다. 칸에 담기는 만큼만 그리므로 넘칠 일이 없다.
+.agg__frame {
   flex: 1;
   min-height: 0;
-  overflow-y: auto;
-  overscroll-behavior: contain;
+  overflow: hidden;
 }
 
 // ── 집계 표 ────────────────────────────────────────────────

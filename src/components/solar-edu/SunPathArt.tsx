@@ -1,4 +1,3 @@
-import { NOW_HOUR } from '@/mocks/today';
 import { SUNRISE_HOUR, SUNSET_HOUR } from '@/mocks/generation';
 import styles from './SolarEdu.module.scss';
 import type { SVGProps } from 'react';
@@ -9,9 +8,6 @@ import type { SVGProps } from 'react';
  * 타원이면 각도를 따로 계산해 맞춰야 한다.
  */
 const ORBIT = { cx: 130, cy: 96, r: 78 };
-
-/** 지금이 하루의 어디쯤인지 (0 = 일출, 1 = 일몰) */
-const dayProgress = Math.min(1, Math.max(0, (NOW_HOUR - SUNRISE_HOUR) / (SUNSET_HOUR - SUNRISE_HOUR)));
 
 /** 궤도 위의 한 점. 각도는 일출(180°)에서 일몰(0°)로 줄어든다. */
 function orbitPoint(progress: number) {
@@ -31,16 +27,24 @@ export function clockOf(hour: number): string {
   return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`;
 }
 
-const now = orbitPoint(dayProgress);
+interface SunPathArtProps extends SVGProps<SVGSVGElement> {
+  /** 지금 시각(소수 시간). 궤도 위 표식이 이 값을 따라 움직인다. */
+  nowHour: number;
+}
 
 /**
  * 해가 하루 동안 그리는 길 (SFR-005-03).
  *
- * 옆에 붙은 해설 석 장이 말로 하는 것을 그림 하나가 대신한다 —
- * 해가 높이 뜨면 빛다발이 모듈에 수직으로 좁게 꽂히고(남중고도),
- * 낮게 뜨면 비스듬히 누워 대기층을 길게 지난다(대기 통과).
+ * 옆에 붙은 해설이 말로 하는 것을 그림 하나가 대신한다 —
+ * 해가 높이 뜨면 햇빛이 판에 수직으로 좁게 꽂히고,
+ * 낮게 뜨면 비스듬히 누워 공기층을 길게 지난다.
  */
-export function SunPathArt(props: SVGProps<SVGSVGElement>) {
+export function SunPathArt({ nowHour, ...props }: SunPathArtProps) {
+  const dayProgress = Math.min(1, Math.max(0, (nowHour - SUNRISE_HOUR) / (SUNSET_HOUR - SUNRISE_HOUR)));
+  const now = orbitPoint(dayProgress);
+  // 해가 뜨기 전이거나 진 뒤에는 궤도 위에 표식을 둘 자리가 없다.
+  const isDaytime = nowHour > SUNRISE_HOUR && nowHour < SUNSET_HOUR;
+
   return (
     <svg
       viewBox="0 0 260 120"
@@ -66,17 +70,39 @@ export function SunPathArt(props: SVGProps<SVGSVGElement>) {
       />
 
       {/* 지금 시각 표식 — 해는 계속 돌므로 지금이 어디인지는 따로 박아 둔다 */}
-      <circle cx={now.x} cy={now.y} r="5.5" stroke="var(--solar-deep)" strokeWidth="1.6" strokeDasharray="2.6 2.4" />
-      <text
-        x={now.x}
-        y={now.y - 11}
-        fill="var(--solar-deep)"
-        fontSize="9"
-        textAnchor="middle"
-        fontFamily="Space Grotesk, sans-serif"
-      >
-        {`지금 ${clockOf(NOW_HOUR)}`}
-      </text>
+      {isDaytime ? (
+        <g>
+          <circle
+            cx={now.x}
+            cy={now.y}
+            r="5.5"
+            stroke="var(--solar-deep)"
+            strokeWidth="1.6"
+            strokeDasharray="2.6 2.4"
+          />
+          <text
+            x={now.x}
+            y={now.y - 11}
+            fill="var(--solar-deep)"
+            fontSize="9"
+            textAnchor="middle"
+            fontFamily="Space Grotesk, sans-serif"
+          >
+            {`지금 ${clockOf(nowHour)}`}
+          </text>
+        </g>
+      ) : (
+        <text
+          x="130"
+          y="34"
+          fill="var(--text-faint)"
+          fontSize="10"
+          textAnchor="middle"
+          fontFamily="Pretendard Variable, sans-serif"
+        >
+          지금은 해가 뜨기 전이거나 이미 진 시각이에요
+        </text>
+      )}
 
       {/*
         해와 빛다발을 함께 태운 회전 그룹.

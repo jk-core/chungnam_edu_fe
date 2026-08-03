@@ -18,7 +18,7 @@ import {
   getInverters,
   INVERTER_TYPE_LABEL,
 } from '@/mocks/equipment';
-import { formatNumber, formatPercent } from '@/utils/format';
+import { formatNumber } from '@/utils/format';
 import { TODAY } from '@/mocks/today';
 import { useDiagnosisScope } from '@/hooks/useDiagnosisScope';
 import type { FaultCode, Inverter } from '@/interface/equipment';
@@ -26,6 +26,9 @@ import type { OperationStatus } from '@/interface/status';
 import styles from '../AiDiagnosis.module.scss';
 import { AnalysisFilter } from './AnalysisFilter';
 import { FaultCodeModal } from './FaultCodeModal';
+
+/** 이 아래로 떨어진 발전시간은 짚어 준다 (h) */
+const LOW_HOURS = 3;
 
 const schoolNameOf = (schoolId: string) => SCHOOLS.find((school) => school.id === schoolId)?.name ?? '';
 
@@ -158,6 +161,7 @@ export function EquipmentTab() {
           {inverters.map((inverter, index) => {
             const fault = getFaultCode(inverter.faultCode);
             const units = getDiagnosisUnits(inverter);
+            const todayHours = inverter.hoursTrend[inverter.hoursTrend.length - 1] ?? 0;
 
             return (
               <motion.article
@@ -199,7 +203,7 @@ export function EquipmentTab() {
                 ) : null}
 
                 <Sparkline
-                  values={inverter.prTrend}
+                  values={inverter.hoursTrend}
                   tone={isAbnormal(inverter.status) ? 'critical' : 'brand'}
                   width={240}
                   height={40}
@@ -212,8 +216,10 @@ export function EquipmentTab() {
                     <dd>{formatNumber(inverter.capacityKw, 1)} kW</dd>
                   </div>
                   <div>
-                    <dt>PR</dt>
-                    <dd className={inverter.pr < 0.8 ? styles.deltaDown : undefined}>{formatPercent(inverter.pr, 1)}</dd>
+                    <dt>발전시간</dt>
+                    <dd className={todayHours < LOW_HOURS ? styles.deltaDown : undefined}>
+                      {formatNumber(todayHours, 1)} h
+                    </dd>
                   </div>
                   <div>
                     <dt>내부온도</dt>

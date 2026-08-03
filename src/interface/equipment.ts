@@ -40,15 +40,18 @@ export interface Inverter {
   rtuStatus: RtuStatus;
   /** 검출된 고장코드. 정상이면 null */
   faultCode: string | null;
-  /** 발전성능비(0~1) */
-  pr: number;
+  /**
+   * 설비 건전도 계수(0~1) — 목업이 계층별 발전량을 깎는 데만 쓰는 내부 값이다.
+   * 화면에 직접 내보내지 않는다. 사람이 보는 지표는 발전시간·이용률 쪽이다.
+   */
+  healthFactor: number;
   /** 이용률(0~1) */
   cf: number;
   todayKwh: number;
   /** 내부 온도(℃) */
   temperature: number;
-  /** 최근 7일 PR 추이 */
-  prTrend: number[];
+  /** 최근 7일 발전시간(h) 추이 */
+  hoursTrend: number[];
   /** 스트링형일 때만 채워진다. */
   strings: StringUnit[];
   /** 센트럴형일 때만 채워진다. */
@@ -87,8 +90,8 @@ export interface FaultCode {
 /** 일자별 성능 지표 */
 export interface PerformancePoint {
   date: string;
-  /** 발전성능비(0~1) */
-  pr: number;
+  /** 등가 발전시간(h) = 발전량 ÷ 설비용량 */
+  hours: number;
   /** 이용률(0~1) */
   cf: number;
   /** 실측 발전량(kWh) */

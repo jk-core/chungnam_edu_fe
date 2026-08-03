@@ -1,38 +1,7 @@
 @use "@/styles/tokens/spacing" as s;
 @use "@/styles/tokens/typography" as t;
 @use "@/styles/utils/media" as media;
-
-// 모든 씬이 머리글 아래 남은 자리를 꽉 채운다.
-.scene {
-  display: flex;
-  flex-direction: column;
-  gap: s.$space-5;
-  flex: 1;
-  min-height: 0;
-}
-
-// ── 회전 영역 머리글 ───────────────────────────────────────
-// 씬 제목과 질문은 본문과 함께 미끄러져 들어온다. 위쪽 고정 영역에 두면 제목만 먼저
-// 바뀌어 제목과 내용이 서로 다른 씬을 가리키는 순간이 생긴다.
-.sceneHead {
-  display: flex;
-  align-items: baseline;
-  gap: s.$space-4;
-  flex-wrap: wrap;
-  flex-shrink: 0;
-}
-
-.sceneHead__title {
-  @include t.title-lg;
-
-  color: var(--text-strong);
-}
-
-.sceneHead__question {
-  @include t.title-sm;
-
-  color: var(--text-muted);
-}
+@use "@/styles/utils/mixins" as mx;
 
 // ── 위쪽 고정 수치 ─────────────────────────────────────────
 .headline {
@@ -40,6 +9,13 @@
   align-items: center;
   gap: s.$space-7;
   flex-wrap: wrap;
+}
+
+.headline__main {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  flex-shrink: 0;
 }
 
 .headline__label {
@@ -131,43 +107,342 @@
   color: var(--text-muted);
 }
 
-// ── 전기의 여정 ────────────────────────────────────────────
-// 그림이 주인공인 단이라 아래 원리 목록보다 넉넉히 가져간다. 설명 길이는 정해져 있어
-// 남는 높이는 그림 쪽으로 흘러간다.
-.journey {
-  display: flex;
-  align-items: stretch;
-  gap: s.$space-2;
-  flex: 1.9;
-  min-height: 0;
+// 단위를 몰라도 크기를 가늠하게 하는 한 줄
+.stat__note {
+  @include t.caption;
 
-  @include media.tablet {
-    flex-direction: column;
-  }
+  color: var(--text-faint);
 }
 
-.stage {
+// ── 왼쪽 패널 공통 ─────────────────────────────────────────
+.panel {
   display: flex;
   flex-direction: column;
-  gap: s.$space-2;
+  gap: s.$space-3;
   flex: 1;
-  min-width: 0;
-  padding: s.$space-4;
+  min-height: 0;
+
+  // 칸이 좁아져 내용이 넘칠 때 아래 티커를 침범하지 않게 패널 안에서 끊는다.
+  overflow: hidden;
+  padding: s.$space-4 s.$space-5;
   border: 1px solid var(--border-subtle);
-  border-radius: s.$radius-md;
+  border-radius: s.$radius-lg;
   background-color: var(--surface);
 }
 
-// 단계마다의 설명 삽화. 카드에서 글이 쓰고 남은 높이를 전부 가져간다 —
-// 그림은 뷰박스 비율을 지키며 그 안에 맞춰 들어가므로 잘리지 않는다.
-.stage__art {
-  display: block;
-  width: 100%;
+// 나무와 환산 카드를 함께 이고 있어 다른 칸보다 자리가 더 든다.
+.panel--tall {
+  flex: 1.35;
+}
+
+.panel__head {
+  @include t.title-sm;
+
+  display: flex;
+  align-items: baseline;
+  gap: s.$space-3;
+  flex-wrap: wrap;
+  color: var(--text-strong);
+}
+
+.panel__note {
+  @include t.body-sm;
+
+  color: var(--text-muted);
+}
+
+// ── 그림 + 설명 두 칸 ──────────────────────────────────────
+// 해 궤적 칸과 발전 곡선 칸이 같은 골격을 쓴다 — 왼쪽이 보이고, 오른쪽이 읽힌다.
+.split {
+  display: grid;
+  grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr);
+  gap: s.$space-5;
   flex: 1;
-  min-height: 130px;
-  margin-bottom: s.$space-1;
+  min-height: 0;
+
+  @include media.tablet {
+    grid-template-columns: 1fr;
+  }
+}
+
+.split__art {
+  min-height: 140px;
   border-radius: s.$radius-md;
   background: linear-gradient(180deg, var(--sky-top) 0%, var(--surface-sunken) 100%);
+}
+
+// 차트를 절대배치로 띄워 실측 높이가 다시 늘어나는 되먹임을 막는다.
+.split__chart {
+  position: relative;
+  min-height: 140px;
+  border-radius: s.$radius-md;
+  background-color: var(--surface-sunken);
+}
+
+.split__canvas {
+  position: absolute;
+  inset: 0;
+}
+
+.split__notes {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: s.$space-3;
+  min-height: 0;
+}
+
+.note {
+  padding-left: s.$space-3;
+  border-left: 3px solid var(--solar);
+}
+
+.note__term {
+  @include t.label-md;
+
+  color: var(--text-strong);
+}
+
+.note__body {
+  @include t.body-sm;
+
+  margin-top: 2px;
+  color: var(--text-muted);
+}
+
+// ── 숫자로 보는 의미 ───────────────────────────────────────
+.impact {
+  display: grid;
+  grid-template-columns: 168px minmax(0, 1fr);
+  gap: s.$space-5;
+  flex: 1;
+  min-height: 0;
+
+  @include media.tablet {
+    grid-template-columns: 1fr;
+  }
+}
+
+.impact__tree {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: s.$space-2;
+  min-height: 0;
+}
+
+.impact__caption {
+  @include t.caption;
+
+  flex-shrink: 0;
+  color: var(--text-muted);
+  text-align: center;
+}
+
+// 넉 장을 한 줄로 편다. 2×2 로 두면 카드가 두 줄이 되어 패널 높이를 넘긴다.
+.impact__grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: s.$space-3;
+  min-height: 0;
+
+  @include media.tablet {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+.impactCard {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: s.$space-1;
+  padding: s.$space-3 s.$space-4;
+  border: 1px solid var(--border-subtle);
+  border-radius: s.$radius-md;
+  background-color: var(--surface-sunken);
+}
+
+.impactCard__icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  border-radius: s.$radius-sm;
+  background-color: var(--ok-soft);
+  color: var(--ok-text);
+
+  svg {
+    width: 18px;
+    height: 18px;
+  }
+}
+
+.impactCard__label {
+  @include t.label-md;
+
+  color: var(--text-muted);
+}
+
+.impactCard__value {
+  @include t.data-lg;
+
+  display: flex;
+  align-items: baseline;
+  gap: s.$space-1;
+  color: var(--text-strong);
+}
+
+.impactCard__unit {
+  @include t.label-sm;
+
+  color: var(--text-muted);
+}
+
+.impactCard__basis {
+  @include t.caption;
+
+  color: var(--text-faint);
+}
+
+// ── 햇빛이 전기가 되기까지 (오른쪽) ────────────────────────
+// 넘기지 않고 한눈에 본다. 계통도가 네 단계를 한 줄로 보이고, 아래 셋이 뜻을 짚는다.
+.journey {
+  display: flex;
+  flex-direction: column;
+  gap: s.$space-4;
+  min-height: 0;
+  overflow: hidden;
+  padding: s.$space-4 s.$space-5;
+  border: 1px solid var(--border-subtle);
+  border-radius: s.$radius-lg;
+  background-color: var(--surface);
+}
+
+.journey__head {
+  @include t.title-sm;
+
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  flex-shrink: 0;
+  color: var(--text-strong);
+}
+
+.journey__note {
+  @include t.body-sm;
+
+  color: var(--text-muted);
+}
+
+.journey__art {
+  flex: 1;
+  min-height: 180px;
+  border-radius: s.$radius-md;
+  background: linear-gradient(180deg, var(--sky-top) 0%, var(--surface-sunken) 100%);
+}
+
+// 지금 흐르는 전기 — 출력이 높을수록 빠르게 흐른다
+.journey__flow {
+  display: block;
+  height: 3px;
+  flex-shrink: 0;
+  border-radius: s.$radius-full;
+  background: repeating-linear-gradient(
+    90deg,
+    var(--solar) 0 8px,
+    transparent 8px 18px
+  );
+  animation: flow-move var(--flow-ms, 900ms) linear infinite;
+
+  @include media.reduced-motion {
+    animation: none;
+  }
+}
+
+// 멈춰 있으면 흐르지 않는다는 뜻이다
+.journey__flow--idle {
+  background: repeating-linear-gradient(
+    90deg,
+    var(--border) 0 8px,
+    transparent 8px 18px
+  );
+  animation: none;
+}
+
+.journey__topics {
+  display: flex;
+  flex-direction: column;
+  gap: s.$space-3;
+  flex-shrink: 0;
+}
+
+.topic {
+  padding: s.$space-3 s.$space-4;
+  border-left: 3px solid var(--brand);
+  border-radius: s.$radius-sm;
+  background-color: var(--surface-sunken);
+}
+
+.topic__head {
+  @include t.label-md;
+
+  display: flex;
+  align-items: center;
+  gap: s.$space-2;
+  color: var(--text-strong);
+}
+
+.topic__icon {
+  display: inline-flex;
+  color: var(--brand-contrast);
+
+  svg {
+    width: 17px;
+    height: 17px;
+  }
+}
+
+.topic__body {
+  @include t.body-sm;
+
+  margin-top: 3px;
+  color: var(--text-muted);
+}
+
+// ── 자라는 나무 ────────────────────────────────────────────
+.tree {
+  display: block;
+  width: 100%;
+  max-width: 158px;
+  min-height: 0;
+  height: auto;
+}
+
+.tree__trunk {
+  fill: #8a6244;
+}
+
+.tree__leaf {
+  fill: var(--ok);
+  transform-box: fill-box;
+  transform-origin: center bottom;
+  animation: sway 5.4s ease-in-out infinite;
+}
+
+.tree__leaf--2 {
+  animation-delay: 0.5s;
+}
+
+.tree__leaf--3 {
+  animation-delay: 1s;
+}
+
+// 아직 그만큼 자라지 않은 잎
+.tree__leaf--dim {
+  opacity: 0.18;
+  animation: none;
 }
 
 // ── 삽화 속 움직임 ─────────────────────────────────────────
@@ -197,7 +472,6 @@
   animation: panel-sweep 5.5s ease-in-out infinite;
 }
 
-// 접속함에서 케이블을 타고 빠져나가는 전기 — 끝에서 흐려지며 사라진다
 // 경로는 삽화의 케이블·전선과 같은 d 값이어야 한다. 그림을 고치면 여기도 함께 고친다.
 .artSpark {
   offset-path: path("M148 86q12 6 14 18");
@@ -248,6 +522,46 @@
   animation: sun-sway 7s ease-in-out infinite;
 }
 
+// ── 전체 흐름 계통도 ───────────────────────────────────────
+// 케이블마다 경로가 다르다. 경로 문자열은 그림의 d 값과 같아야 한다.
+// 해 언저리의 번짐은 `artSunGlow` 를 함께 쓸 수 없다. 그쪽 transform-origin 은
+// 단계별 삽화의 해 좌표(146,40)라, 해가 (44,40)에 있는 이 그림에서는 엉뚱한 점을 기준으로
+// 부풀어 해가 튀어 다닌다. 좌표가 다르면 클래스도 따로 둔다.
+.overviewGlow {
+  transform-box: view-box;
+  transform-origin: 44px 40px;
+  animation: sun-breathe 5s ease-in-out infinite;
+}
+
+.overviewRays {
+  transform-box: view-box;
+  transform-origin: 44px 40px;
+  animation: sun-sway 9s ease-in-out infinite;
+}
+
+.overviewLight {
+  offset-path: path("M50 58 72 142");
+  offset-rotate: 0deg;
+  animation: spark-run 2.4s linear infinite;
+}
+
+.overviewDc {
+  offset-path: path("M122 172 176 145 176 116 196 106");
+  offset-rotate: 0deg;
+  animation: spark-run 2.6s linear infinite;
+}
+
+.overviewAc {
+  offset-path: path("M262 112 262 162 284 162");
+  offset-rotate: 0deg;
+  animation: spark-run 2.4s linear infinite;
+}
+
+.overviewGrid {
+  offset-path: path("M333 166q11 -4 16 -12");
+  offset-rotate: 0deg;
+  animation: spark-run 2.2s linear infinite;
+}
 
 // 조작 없이 도는 화면이라도 움직임을 원치 않는 설정은 따른다
 @include media.reduced-motion {
@@ -263,18 +577,42 @@
   .artBlink,
   .sunOrbit,
   .sunOrbit__rays,
-  .ladder__fill,
-  .ladder__spark {
-    animation: none;
-  }
+  .overviewGlow,
+  .overviewRays,
+  .overviewLight,
+  .overviewDc,
+  .overviewAc,
+  .overviewGrid,
+  .tree__leaf,
 
   .artSweep {
     opacity: 0.18;
   }
 
-  // 해가 멈춰 서면 일출 자리에 얼어붙는다. 하루의 한복판에 세워 둔다.
+  // 해가 멈춰 서면 하루의 한복판에 세워 둔다.
   .sunOrbit {
     transform: rotate(90deg);
+  }
+}
+
+@keyframes flow-move {
+  from {
+    background-position-x: 0;
+  }
+
+  to {
+    background-position-x: 18px;
+  }
+}
+
+@keyframes sway {
+  0%,
+  100% {
+    transform: rotate(-1.6deg);
+  }
+
+  50% {
+    transform: rotate(1.6deg);
   }
 }
 
@@ -371,33 +709,6 @@
   }
 }
 
-@keyframes ladder-fill {
-  from {
-    transform: scaleX(0);
-  }
-
-  to {
-    transform: scaleX(1);
-  }
-}
-
-@keyframes ladder-run {
-  0% {
-    left: -6px;
-    opacity: 0;
-  }
-
-  18%,
-  70% {
-    opacity: 0.9;
-  }
-
-  100% {
-    left: 100%;
-    opacity: 0;
-  }
-}
-
 @keyframes art-blink {
   0%,
   100% {
@@ -407,417 +718,4 @@
   50% {
     opacity: 0.35;
   }
-}
-
-.stage__body {
-  display: flex;
-  flex-direction: column;
-  gap: s.$space-2;
-  min-width: 0;
-}
-
-.stage__head {
-  display: flex;
-  align-items: center;
-  gap: s.$space-2;
-}
-
-// 단계마다 한눈에 구분되는 그림 하나 — 글을 읽기 전에 무슨 단계인지 잡히게 한다
-.stage__icon {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 34px;
-  height: 34px;
-  flex-shrink: 0;
-  border-radius: s.$radius-full;
-  background-color: var(--solar-soft);
-  color: var(--solar-text);
-}
-
-.stage__label {
-  @include t.label-md;
-
-  color: var(--text-strong);
-}
-
-.stage__state {
-  @include t.label-sm;
-
-  width: fit-content;
-  padding: 2px s.$space-2;
-  border-radius: s.$radius-full;
-  background-color: var(--brand-soft);
-  color: var(--brand-contrast);
-}
-
-.stage__detail {
-  @include t.body-md;
-
-  color: var(--text-muted);
-}
-
-// 단계 사이를 흐르는 전기 — 발전량이 많을수록 빠르고 촘촘하다
-.flow {
-  position: relative;
-  display: flex;
-  align-items: center;
-  width: 26px;
-  flex-shrink: 0;
-  overflow: hidden;
-
-  @include media.tablet {
-    width: auto;
-    height: 22px;
-  }
-}
-
-.flow__line {
-  width: 100%;
-  height: 2px;
-  background: repeating-linear-gradient(
-    90deg,
-    var(--solar) 0 6px,
-    transparent 6px 14px
-  );
-  animation: flow-move var(--flow-ms, 900ms) linear infinite;
-
-  @include media.reduced-motion {
-    animation: none;
-  }
-}
-
-// 멈춰 있으면 흐르지 않는다는 뜻이다
-.flow__line--idle {
-  background: repeating-linear-gradient(
-    90deg,
-    var(--border) 0 6px,
-    transparent 6px 14px
-  );
-  animation: none;
-}
-
-@keyframes flow-move {
-  from {
-    background-position-x: 0;
-  }
-
-  to {
-    background-position-x: 14px;
-  }
-}
-
-// ── 하루의 곡선 (씬 3) ─────────────────────────────────────
-.curve {
-  display: grid;
-  grid-template-columns: minmax(0, 1.6fr) minmax(0, 1fr);
-  gap: s.$space-5;
-  flex: 1;
-  min-height: 0;
-
-  @include media.tablet {
-    grid-template-columns: 1fr;
-  }
-}
-
-// 해 궤적 배너와 차트가 왼쪽 열을 나눠 쓴다. 오른쪽 해설 열은 건드리지 않는다 —
-// 배너를 해설 쪽에 얹으면 애써 키운 글이 다시 눌린다.
-.curve__main {
-  display: flex;
-  flex-direction: column;
-  gap: s.$space-3;
-  min-height: 0;
-}
-
-// 곡선이 왜 종 모양인지 답하는 그림이라 차트와 비슷한 무게를 준다.
-.curve__sky {
-  flex: 1;
-  min-height: 220px;
-  border: 1px solid var(--border-subtle);
-  border-radius: s.$radius-lg;
-  background: linear-gradient(180deg, var(--sky-top) 0%, var(--surface) 100%);
-}
-
-// 차트를 절대배치로 띄워 실측 높이가 다시 늘어나는 되먹임을 막는다.
-.curve__chart {
-  position: relative;
-  flex: 1.4;
-  min-height: 240px;
-  border: 1px solid var(--border-subtle);
-  border-radius: s.$radius-lg;
-  background-color: var(--surface);
-}
-
-.curve__canvas {
-  position: absolute;
-  inset: 0;
-}
-
-.curve__side {
-  display: flex;
-  flex-direction: column;
-  gap: s.$space-3;
-  min-height: 0;
-  overflow-y: auto;
-
-  // 해설 석 장이 차트 높이를 나눠 가져 오른쪽이 비지 않게 한다.
-  .term {
-    flex: 1;
-  }
-}
-
-.curve__note {
-  @include t.body-sm;
-
-  color: var(--text-faint);
-}
-
-// ── 목록형 (원리) ──────────────────────────────────────────
-// 위쪽 여정 네 칸과 열을 맞춰 네 칸으로 편다. 2×2 로 두면 설명이 길어질 때 아랫줄이 잘린다.
-.list {
-  display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: s.$space-4;
-  flex: 1;
-  min-height: 0;
-
-  @include media.tablet {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-}
-
-.term {
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  gap: s.$space-1;
-
-  // 칸이 좁아져 글이 넘칠 때 이웃 카드를 덮지 않게 카드 안에서 끊는다.
-  overflow: hidden;
-  padding: s.$space-4;
-  border: 1px solid var(--border-subtle);
-  border-left: 3px solid var(--brand);
-  border-radius: s.$radius-md;
-  background-color: var(--surface);
-}
-
-.term__name {
-  @include t.title-sm;
-
-  display: flex;
-  align-items: center;
-  gap: s.$space-2;
-  color: var(--text-strong);
-}
-
-.term__icon {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 28px;
-  height: 28px;
-  flex-shrink: 0;
-  border-radius: s.$radius-sm;
-  background-color: var(--brand-soft);
-  color: var(--brand-contrast);
-
-  svg {
-    width: 17px;
-    height: 17px;
-  }
-}
-
-.term__summary {
-  @include t.label-md;
-
-  color: var(--brand-contrast);
-}
-
-.term__formula {
-  @include t.body-md;
-
-  padding: s.$space-2 s.$space-3;
-  border-radius: s.$radius-sm;
-  background-color: var(--surface-sunken);
-  color: var(--text);
-  font-family: var(--font-data);
-}
-
-.term__body {
-  @include t.body-md;
-
-  color: var(--text-muted);
-}
-
-// 지표의 오늘 값
-.term__value {
-  @include t.data-lg;
-
-  color: var(--solar-text);
-}
-
-// ── 두 단으로 나뉘는 씬 (효율과 의미) ──────────────────────
-.band {
-  display: flex;
-  flex-direction: column;
-  gap: s.$space-3;
-  flex: 1;
-  min-height: 0;
-}
-
-// 위 단은 사다리와 계산식 카드를 함께 이고 있어 아래 단보다 자리가 더 든다.
-.band--tall {
-  flex: 1.55;
-}
-
-.band__head {
-  @include t.title-sm;
-
-  color: var(--text-muted);
-}
-
-// ── 효율 사다리 ────────────────────────────────────────────
-// 아래 카드 넉 장이 서로 무엇을 나누는 비율인지 한 줄로 잇는 그림.
-.ladder {
-  display: flex;
-  flex-direction: column;
-  gap: s.$space-1;
-  flex-shrink: 0;
-  padding: s.$space-3 s.$space-5;
-  border: 1px solid var(--border-subtle);
-  border-radius: s.$radius-md;
-  background-color: var(--surface);
-}
-
-.ladder__row {
-  display: flex;
-  align-items: center;
-  gap: s.$space-4;
-}
-
-// 폭을 고정해야 아래 사다리꼴이 막대와 같은 자리에서 시작한다.
-.ladder__name {
-  @include t.label-md;
-
-  width: 96px;
-  flex-shrink: 0;
-  color: var(--text-muted);
-  text-align: right;
-}
-
-.ladder__track {
-  position: relative;
-  display: flex;
-  align-items: center;
-  height: 24px;
-  flex: 1;
-  min-width: 0;
-  border-radius: s.$radius-sm;
-  background-color: var(--surface-sunken);
-  box-shadow: inset 0 0 0 1px var(--border-subtle);
-}
-
-.ladder__fill {
-  position: relative;
-  height: 100%;
-  border-radius: s.$radius-sm;
-  transform-origin: left;
-  overflow: hidden;
-  animation: ladder-fill 1.1s cubic-bezier(0.22, 0.68, 0.32, 1) both;
-}
-
-.ladder__fill--brand {
-  background-color: var(--brand);
-}
-
-.ladder__fill--ok {
-  background-color: var(--ok);
-}
-
-// 남은 몫 위를 왼쪽에서 오른쪽으로 흘러가는 전기
-.ladder__spark {
-  position: absolute;
-  top: 50%;
-  width: 6px;
-  height: 6px;
-  border-radius: s.$radius-full;
-  background-color: var(--paper);
-  animation: ladder-run 2.4s linear infinite;
-}
-
-.ladder__value {
-  @include t.data-md;
-
-  padding-left: s.$space-3;
-  color: var(--text-strong);
-}
-
-
-.band__grid {
-  display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: s.$space-4;
-  flex: 1;
-  min-height: 0;
-
-  @include media.tablet {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-}
-
-.impact {
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  gap: s.$space-2;
-  padding: s.$space-5;
-  border: 1px solid var(--border-subtle);
-  border-radius: s.$radius-lg;
-  background-color: var(--surface);
-}
-
-.impact__icon {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 44px;
-  height: 44px;
-  border-radius: s.$radius-md;
-  background-color: var(--ok-soft);
-  color: var(--ok-text);
-
-  svg {
-    width: 24px;
-    height: 24px;
-  }
-}
-
-.impact__label {
-  @include t.label-md;
-
-  color: var(--text-muted);
-}
-
-.impact__value {
-  @include t.data-xl;
-
-  display: flex;
-  align-items: baseline;
-  gap: s.$space-1;
-  font-size: clamp(1.75rem, 3vw, 2.75rem);
-  color: var(--text-strong);
-}
-
-.impact__unit {
-  @include t.label-md;
-
-  color: var(--text-muted);
-}
-
-.impact__basis {
-  @include t.body-sm;
-
-  padding-top: s.$space-2;
-  border-top: 1px dashed var(--border);
-  color: var(--text-faint);
 }

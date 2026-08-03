@@ -104,11 +104,13 @@ function buildInverters(): Inverter[] {
       const candidates = FAULT_BY_STATUS[status];
       const faultCode = candidates.length > 0 ? candidates[Math.floor(next() * candidates.length) % candidates.length] : null;
       const capacityKw = Math.round((school.capacityKw / school.inverterCount) * 10) / 10;
-      const pr = !isProducing(status)
+      const healthFactor = !isProducing(status)
         ? 0
         : status === 'running'
           ? pickNumber(next, 0.82, 0.94, 3)
           : pickNumber(next, 0.58, 0.79, 3);
+      // 하루 발전시간은 건전도에 비례한다 — 맑은 날 정상 설비가 4시간 안팎이 되도록 잡았다.
+      const todayHours = Math.round(healthFactor * 4.6 * 10) / 10;
       // 셋 중 하나쯤은 접속반을 거쳐 채널이 물리는 센트럴형으로 둔다.
       // 용량으로 가르면 목업 분포상 한쪽으로 쏠려 계층이 한 종류만 나온다.
       const type: Inverter['type'] = next() > 0.68 ? 'central' : 'string';
@@ -123,11 +125,14 @@ function buildInverters(): Inverter[] {
         ownStatus,
         rtuStatus,
         faultCode,
-        pr,
+        healthFactor,
         cf: !isProducing(status) ? 0 : pickNumber(next, 0.108, 0.176, 4),
         todayKwh: !isProducing(status) ? 0 : Math.round((school.todayKwh / school.inverterCount) * 10) / 10,
         temperature: faultCode === 'F-201' ? pickNumber(next, 64, 72, 1) : pickNumber(next, 38, 56, 1),
-        prTrend: Array.from({ length: 7 }, (_, day) => Math.round((pr + (day - 6) * 0.008 + pickNumber(next, -0.02, 0.02, 3)) * 1000) / 10),
+        hoursTrend: Array.from(
+          { length: 7 },
+          (_, day) => Math.round((todayHours + (day - 6) * 0.04 + pickNumber(next, -0.1, 0.1, 2)) * 10) / 10,
+        ),
         strings: type === 'string'
           ? buildUnits(next, id, 'str', 'String', 2 + Math.floor(next() * 3), status, capacityKw)
           : [],
@@ -181,7 +186,7 @@ export function countRtuStatus(inverters: Inverter[]): Record<RtuStatus, number>
 
 /**
  * 진단 효율 = 실측 DC 전력 / 모델 예측 DC 전력.
- * PR 은 날씨에 따라 크게 흔들려 추이 판단이 어려워, 진단에서는 이 값을 본다.
+ * 발전량은 날씨에 따라 크게 흔들려 추이 판단이 어려워, 진단에서는 이 값을 본다.
  */
 export const DIAG_EFFICIENCY_WARN = 85;
 export const DIAG_EFFICIENCY_CRITICAL = 50;
@@ -232,8 +237,8 @@ export function countStringStatus(inverters: Inverter[]): Record<OperationStatus
 
 const performanceCache = new Map<string, PerformancePoint[]>();
 
-/** 상태가 나쁜 설비는 PR 기준선 자체가 낮다. */
-const BASE_PR: Record<OperationStatus, number> = {
+/** 상태가 나쁜 설비는 건전도 기준선 자체가 낮다. */
+const BASE_HEALTH: Record<OperationStatus, number> = {
   running: 0.87,
   ready: 0.05,
   degraded: 0.78,
@@ -243,7 +248,7 @@ const BASE_PR: Record<OperationStatus, number> = {
 
 /**
  * 기간 안의 일자별 성능 지표.
- * PR 은 기대 발전량 대비 실측 비율이라 날씨보다 설비 상태를 잘 드러낸다.
+ * 발전시간은 설비용량으로 나눈 값이라, 용량이 다른 설비를 그대로 견줄 수 있다.
  */
 export function getPerformanceSeries(schoolId: string | null, start: Date, end: Date): PerformancePoint[] {
   const key = `${schoolId ?? 'all'}-${dayjs(start).format('YYYYMMDD')}-${dayjs(end).format('YYYYMMDD')}`;
@@ -255,19 +260,21 @@ export function getPerformanceSeries(schoolId: string | null, start: Date, end: 
   const next = createRandom(hashSeed(key));
   const capacityKw = school ? school.capacityKw : REGION_TOTAL.capacityKw;
   const days = Math.max(1, dayjs(end).diff(dayjs(start), 'day') + 1);
-  const basePr = school ? BASE_PR[school.status] : BASE_PR.running;
+  const baseFactor = school ? BASE_HEALTH[school.status] : BASE_HEALTH.running;
 
   const points = Array.from({ length: days }, (_, index) => {
     const date = dayjs(start).add(index, 'day');
     const weather = pickNumber(next, 0.55, 1.05, 3);
-    const pr = Math.min(0.98, Math.max(0.05, basePr + pickNumber(next, -0.07, 0.05, 3)));
+    // 설비가 얼마나 성한지 — 실측 발전량을 만들 때만 쓰고 밖으로 내보내지 않는다.
+    const factor = Math.min(0.98, Math.max(0.05, baseFactor + pickNumber(next, -0.07, 0.05, 3)));
     const expectedKwh = Math.round(capacityKw * 4.2 * weather);
+    const actualKwh = Math.round(expectedKwh * factor);
 
     return {
       date: date.format('YYYY-MM-DD'),
-      pr,
-      cf: Math.min(0.24, Math.max(0.01, pr * pickNumber(next, 0.15, 0.2, 4))),
-      actualKwh: Math.round(expectedKwh * pr),
+      hours: capacityKw > 0 ? Math.round((actualKwh / capacityKw) * 100) / 100 : 0,
+      cf: Math.min(0.24, Math.max(0.01, factor * pickNumber(next, 0.15, 0.2, 4))),
+      actualKwh,
       expectedKwh,
     };
   });
@@ -278,19 +285,19 @@ export function getPerformanceSeries(schoolId: string | null, start: Date, end: 
 }
 
 export function averagePerformance(points: PerformancePoint[]) {
-  if (points.length === 0) return { pr: 0, cf: 0, actualKwh: 0, expectedKwh: 0 };
+  if (points.length === 0) return { hours: 0, cf: 0, actualKwh: 0, expectedKwh: 0 };
 
   return points.reduce(
     (acc, point, index) => {
       const count = index + 1;
 
       return {
-        pr: acc.pr + (point.pr - acc.pr) / count,
+        hours: acc.hours + (point.hours - acc.hours) / count,
         cf: acc.cf + (point.cf - acc.cf) / count,
         actualKwh: acc.actualKwh + point.actualKwh,
         expectedKwh: acc.expectedKwh + point.expectedKwh,
       };
     },
-    { pr: 0, cf: 0, actualKwh: 0, expectedKwh: 0 },
+    { hours: 0, cf: 0, actualKwh: 0, expectedKwh: 0 },
   );
 }

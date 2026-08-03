@@ -3,14 +3,22 @@
 @use "@/styles/utils/media" as media;
 @use "@/styles/utils/mixins" as mx;
 
+.wrap {
+  display: flex;
+  flex-direction: column;
+  gap: s.$space-2;
+  height: 100%;
+  min-height: 0;
+}
+
+// 스크롤 대신 쪽을 넘긴다. 칸에 담기는 만큼만 그리므로 넘칠 일이 없다.
 .cards {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(268px, 1fr));
   gap: s.$space-3;
-  height: 100%;
+  flex: 1;
   min-height: 0;
-  overflow-y: auto;
-  overscroll-behavior: contain;
+  overflow: hidden;
   align-content: start;
 }
 

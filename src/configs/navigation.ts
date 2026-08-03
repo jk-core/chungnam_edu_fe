@@ -103,7 +103,7 @@ export const NAVIGATION: NavSection[] = [
       {
         label: '진단 요약',
         path: PATH.AI_DIAGNOSIS_SUMMARY,
-        description: '발전성능비와 이용률로 설비 상태를 읽고 AI 고장분석을 실행합니다.',
+        description: '발전시간과 이용률로 설비 상태를 읽고 AI 고장분석을 실행합니다.',
         needsScope: true,
         requirements: ['SFR-011-03', 'SFR-011-04', 'SFR-013-01'],
       },

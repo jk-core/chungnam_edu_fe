@@ -82,6 +82,34 @@
   color: var(--text-muted);
 }
 
+// 통합관제 상황판과 같은 모양 — 모니터에 거는 두 화면이 같은 자리에서 같게 동작한다
+.bar__action {
+  @include t.label-sm;
+
+  display: inline-flex;
+  align-items: center;
+  gap: s.$space-2;
+  height: 36px;
+  padding: 0 s.$space-4;
+  border: 1px solid var(--border);
+  border-radius: s.$radius-full;
+  background: none;
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: color 0.16s ease, background-color 0.16s ease, border-color 0.16s ease;
+
+  &:hover {
+    border-color: var(--border-strong);
+    background-color: var(--surface-hover);
+    color: var(--text-strong);
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--brand);
+    outline-offset: 2px;
+  }
+}
+
 .bar__clock {
   @include t.data-lg;
 
@@ -111,117 +139,62 @@
   color: var(--caution-text);
 }
 
-// ── 씬 무대 ────────────────────────────────────────────────
-// 씬이 옆으로 미끄러져 들어오고 나가므로, 무대 밖으로 나간 부분은 잘라 낸다.
-.stage {
-  position: relative;
-  flex: 1;
-  min-height: 0;
-  margin: s.$space-5 0;
-  overflow: hidden;
-
-  @include media.tablet {
-    min-height: 560px;
-  }
-}
-
-// ── 하단 진행 표시 + 티커 ──────────────────────────────────
-.foot {
+// ── 알고 계셨나요 한 줄 ────────────────────────────────────
+// 위쪽 수치 바로 아래에 놓는 롤링 배너. 일정 시간마다 문구가 밀려 올라오며 갈린다.
+.ticker {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  gap: s.$space-5;
-  flex-wrap: wrap;
-}
-
-.dots {
-  display: flex;
-  align-items: center;
-  gap: s.$space-2;
+  gap: s.$space-4;
   flex-shrink: 0;
-}
-
-// 눌러서 그 단계로 건너뛰는 칩. 아래 얇은 줄이 남은 시간을 알린다.
-.dot {
-  @include t.label-md;
-
-  position: relative;
-  display: block;
-  padding: s.$space-2 s.$space-4 s.$space-3;
-  border: 1px solid transparent;
-  border-radius: s.$radius-full;
-  background-color: transparent;
-  color: var(--text-faint);
-  cursor: pointer;
-  transition: color 0.16s ease, background-color 0.16s ease;
-
-  &::before {
-    content: "";
-    position: absolute;
-    right: s.$space-4;
-    bottom: s.$space-2;
-    left: s.$space-4;
-    height: 3px;
-    border-radius: s.$radius-full;
-    background-color: var(--border);
-  }
-
-  &:hover {
-    background-color: var(--surface-sunken);
-    color: var(--text);
-  }
-
-  &:focus-visible {
-    outline: 2px solid var(--brand);
-    outline-offset: 2px;
-  }
-}
-
-// 지금 보고 있는 씬 — 남은 시간을 막대가 차오르며 알린다
-.dot--active {
-  border-color: var(--border-subtle);
+  height: 48px;
+  margin-top: s.$space-4;
+  overflow: hidden;
+  padding: 0 s.$space-5;
+  border: 1px solid var(--border-subtle);
+  border-radius: s.$radius-md;
   background-color: var(--surface);
-  color: var(--text-strong);
+}
 
-  &::after {
-    content: "";
-    position: absolute;
-    bottom: s.$space-2;
-    left: s.$space-4;
-    width: calc(100% - #{s.$space-8});
-    height: 3px;
-    border-radius: s.$radius-full;
-    background-color: var(--solar);
-    transform-origin: left;
-    animation: dot-fill var(--scene-ms, 14s) linear forwards;
-  }
+.ticker__label {
+  @include t.eyebrow;
+
+  flex-shrink: 0;
+  padding-right: s.$space-4;
+  border-right: 1px solid var(--border);
+  color: var(--solar-text);
+}
+
+.ticker__text {
+  @include t.body-md;
+
+  min-width: 0;
+  color: var(--text);
+  animation: ticker-roll 0.55s cubic-bezier(0.22, 0.68, 0.32, 1) both;
 
   @include media.reduced-motion {
-    &::after {
-      animation: none;
-    }
+    animation: none;
   }
 }
 
-.dot__title {
-  white-space: nowrap;
-}
-
-@keyframes dot-fill {
+@keyframes ticker-roll {
   from {
-    transform: scaleX(0);
+    opacity: 0;
+    transform: translateY(28px);
   }
 
   to {
-    transform: scaleX(1);
+    opacity: 1;
+    transform: translateY(0);
   }
 }
 
-.ticker {
-  @include t.body-sm;
-
+// ── 본문 ───────────────────────────────────────────────────
+.body {
   flex: 1;
-  min-width: 0;
-  color: var(--text-muted);
-  text-align: right;
+  min-height: 0;
+  margin-top: s.$space-4;
+
+  @include media.tablet {
+    min-height: 640px;
+  }
 }

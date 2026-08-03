@@ -7,7 +7,7 @@
 export const CO2_PER_KWH = 0.4594;
 
 /** 소나무 한 그루가 1년에 흡수하는 CO₂(kg) */
-const CO2_PER_TREE_YEAR = 6.6;
+export const CO2_PER_TREE_YEAR = 6.6;
 
 /** 4인 가구 한 달 평균 전력 사용량(kWh) */
 const HOUSEHOLD_MONTH_KWH = 350;

@@ -31,6 +31,8 @@ export function ChildGrid({ stats, selectedId, dateLabel, emptyLabel }: ChildGri
 
   const maxGeneration = Math.max(...stats.map((stat) => stat.generationKwh), 1);
   const { divider, unit } = pickEnergyUnit(maxGeneration);
+  // 형제 설비를 다 더한 값 — 이 카드가 그중 얼마를 맡았는지 보여 준다.
+  const siblingTotal = stats.reduce((sum, stat) => sum + stat.generationKwh, 0);
 
   return (
     <div className={styles.inverterCards}>
@@ -100,8 +102,8 @@ export function ChildGrid({ stats, selectedId, dateLabel, emptyLabel }: ChildGri
                 {formatNumber(stat.hours, 1)} h
               </span>
               <span>
-                <span className={styles.inverterCard__metricLabel}>PR</span>
-                <span className={stat.pr < 0.8 ? styles.deltaDown : undefined}>{formatPercent(stat.pr, 1)}</span>
+                <span className={styles.inverterCard__metricLabel}>점유율</span>
+                {formatPercent(siblingTotal > 0 ? stat.generationKwh / siblingTotal : 0, 1)}
               </span>
             </span>
           </motion.button>

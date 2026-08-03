@@ -1,4 +1,4 @@
-import { BoltIcon, ClockIcon, LeafIcon, SunIcon, WeatherCloudyIcon } from '@/components/common/Icon';
+import { BoltIcon, ClockIcon, LeafIcon, SchoolIcon, SunIcon, WeatherCloudyIcon } from '@/components/common/Icon';
 import type { ReactNode, SVGProps } from 'react';
 
 type IconProps = SVGProps<SVGSVGElement>;
@@ -105,7 +105,7 @@ export const ConversionIcon = (props: IconProps) => (
   </Base>
 );
 
-/** 성능비 — 기준을 가리키는 계기 바늘 */
+/** 계기 — 기준을 가리키는 바늘 */
 export const GaugeIcon = (props: IconProps) => (
   <Base {...props}>
     <path d="M3.4 18.4a8.6 8.6 0 1 1 17.2 0" />
@@ -193,6 +193,15 @@ export const EvIcon = (props: IconProps) => (
   </Base>
 );
 
+/** 나무 — 식재 효과 환산 */
+export const TreeIcon = (props: IconProps) => (
+  <Base {...props}>
+    <path d="M12 21v-6.4" />
+    <path d="M12 17.4 8.6 15M12 15l3.4-2.4" strokeWidth="1.2" />
+    <path d="M12 2.6 5.8 11h3.2L5.2 15.6h13.6L15 11h3.2L12 2.6Z" />
+  </Base>
+);
+
 /** 가정 — 가구 사용일 환산 */
 export const HouseIcon = (props: IconProps) => (
   <Base {...props}>
@@ -202,6 +211,24 @@ export const HouseIcon = (props: IconProps) => (
     <path d="M16.4 6.6V4.6h2.2v3.8" strokeWidth="1.2" />
   </Base>
 );
+
+/** 전체 흐름 — 네 단계가 한 줄로 이어진다 */
+export const FlowIcon = (props: IconProps) => (
+  <Base {...props}>
+    <circle cx="4.6" cy="12" r="2.4" />
+    <circle cx="12" cy="12" r="2.4" />
+    <circle cx="19.4" cy="12" r="2.4" />
+    <path d="M7.4 12h1.8M14.8 12h1.8" />
+    <path d="M9.2 12 8 10.6M9.2 12 8 13.4M16.6 12l-1.2-1.4M16.6 12l-1.2 1.4" strokeWidth="1.2" />
+  </Base>
+);
+
+/** 계통도 아래 세 가지 이야기 */
+export const TOPIC_ICONS: Record<string, ReactNode> = {
+  meaning: <SchoolIcon />,
+  principle: <FlowIcon />,
+  effect: <LeafIcon />,
+};
 
 /** 전기가 되기까지의 단계 */
 export const JOURNEY_ICONS: Record<string, ReactNode> = {
@@ -222,7 +249,6 @@ export const PRINCIPLE_ICONS: Record<string, ReactNode> = {
 /** 효율 지표 */
 export const EFFICIENCY_ICONS: Record<string, ReactNode> = {
   conversion: <ConversionIcon />,
-  pr: <GaugeIcon />,
   cf: <RatioIcon />,
   hours: <ClockIcon />,
 };
@@ -230,9 +256,9 @@ export const EFFICIENCY_ICONS: Record<string, ReactNode> = {
 /** 환산 카드 */
 export const IMPACT_ICONS: Record<string, ReactNode> = {
   co2: <LeafIcon />,
-  led: <BulbIcon />,
-  ev: <EvIcon />,
+  tree: <TreeIcon />,
   household: <HouseIcon />,
+  led: <BulbIcon />,
 };
 
 /** 지금 이 순간의 수치들 */

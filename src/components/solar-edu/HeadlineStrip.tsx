@@ -1,21 +1,66 @@
 import { CountUp } from '@/components/common/CountUp';
 import { formatNumber, formatPercent } from '@/utils/format';
+import { kwhToHouseholdDays } from '@/utils/eco';
 import type { EduStats } from '@/mocks/solarEdu';
 import { STAT_ICONS } from './EduIcons';
 import styles from './SolarEdu.module.scss';
 
-/** 늘 떠 있는 보조 지표. id 는 STAT_ICONS 의 키와 같다. */
-const STATS: {
+/** 표준 교실 한 칸의 넓이(m²) — 넓이를 몸으로 아는 단위로 바꿔 준다. */
+const CLASSROOM_M2 = 66;
+
+/** 맑은 날 정오의 일사강도(W/m²). 햇빛 세기를 100점 만점으로 환산하는 기준이다. */
+const FULL_SUN_WM2 = 1000;
+
+interface StatItem {
   id: string;
   label: string;
+  value: (stats: EduStats) => number;
   unit: string;
   fractionDigits: number;
-  value: (stats: EduStats) => number;
-}[] = [
-  { id: 'today', label: '오늘 지금까지', unit: 'kWh', fractionDigits: 0, value: (s) => s.todayKwh },
-  { id: 'irradiance', label: '지금 일사강도', unit: 'W/m²', fractionDigits: 0, value: (s) => s.irradianceNow },
-  { id: 'insolation', label: '오늘 적산 일사', unit: 'kWh/m²', fractionDigits: 2, value: (s) => s.insolation },
-  { id: 'area', label: '모듈 설치 면적', unit: 'm²', fractionDigits: 0, value: (s) => s.moduleArea },
+  /** 단위를 몰라도 크기를 가늠할 수 있게 하는 한 줄 */
+  note: (stats: EduStats) => string;
+}
+
+/**
+ * 늘 떠 있는 보조 지표.
+ *
+ * 학생이 보는 화면이라 물리 단위만 덩그러니 두지 않는다. 값은 그대로 보이되
+ * 그 크기가 얼마만 한지 아는 것으로 바꿔 한 줄 덧붙인다 — 단위를 배우는 것과
+ * 크기를 느끼는 것을 함께 가져간다.
+ */
+const STATS: StatItem[] = [
+  {
+    id: 'today',
+    label: '오늘 만든 전기',
+    value: (stats) => stats.todayKwh,
+    unit: 'kWh',
+    fractionDigits: 0,
+    note: (stats) => `네 식구 사는 집 ${formatNumber(kwhToHouseholdDays(stats.todayKwh))}곳이 하루 쓸 양이에요`,
+  },
+  {
+    id: 'irradiance',
+    label: '지금 햇빛 세기',
+    value: (stats) => (stats.irradianceNow / FULL_SUN_WM2) * 100,
+    unit: '점',
+    fractionDigits: 0,
+    note: (stats) => `맑은 날 정오가 100점이에요 (${formatNumber(stats.irradianceNow)} W/m²)`,
+  },
+  {
+    id: 'insolation',
+    label: '해를 모은 시간',
+    value: (stats) => stats.equivalentHours,
+    unit: '시간',
+    fractionDigits: 1,
+    note: () => '가장 셀 때로 치면 이만큼 돌린 셈이에요',
+  },
+  {
+    id: 'area',
+    label: '햇빛 받는 넓이',
+    value: (stats) => stats.moduleArea,
+    unit: 'm²',
+    fractionDigits: 0,
+    note: (stats) => `교실 ${formatNumber(stats.moduleArea / CLASSROOM_M2)}칸만 한 넓이예요`,
+  },
 ];
 
 interface HeadlineStripProps {
@@ -24,13 +69,13 @@ interface HeadlineStripProps {
 
 /**
  * 화면 위쪽에 고정되는 지금 이 순간의 수치 (SFR-005-01).
- * 뒤쪽 씬이 무엇으로 넘어가든 "지금 얼마나 만들고 있는가" 는 계속 보여야 해서 회전에서 뺐다.
+ * 아래 그림이 무엇으로 바뀌든 "지금 얼마나 만들고 있는가" 는 계속 보여야 한다.
  */
 export function HeadlineStrip({ stats }: HeadlineStripProps) {
   return (
     <div className={styles.headline}>
       <div className={styles.headline__main}>
-        <p className={styles.headline__label}>현재 출력</p>
+        <p className={styles.headline__label}>지금 만들고 있는 전기</p>
         <p className={styles.headline__figure}>
           <CountUp
             className={styles.headline__value}
@@ -41,7 +86,7 @@ export function HeadlineStrip({ stats }: HeadlineStripProps) {
           <span className={styles.headline__unit}>kW</span>
         </p>
         <p className={styles.headline__note}>
-          설비용량 {formatNumber(stats.capacityKw)}kW 의 {formatPercent(stats.loadRatio)}
+          가장 셀 때({formatNumber(stats.capacityKw)}kW)의 {formatPercent(stats.loadRatio)}만큼 만들고 있어요
         </p>
       </div>
 
@@ -56,6 +101,7 @@ export function HeadlineStrip({ stats }: HeadlineStripProps) {
               {formatNumber(item.value(stats), item.fractionDigits)}
               <span className={styles.stat__unit}>{item.unit}</span>
             </span>
+            <span className={styles.stat__note}>{item.note(stats)}</span>
           </li>
         ))}
       </ul>

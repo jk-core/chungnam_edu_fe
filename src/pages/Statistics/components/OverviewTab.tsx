@@ -13,7 +13,7 @@ import { childKindOf, getNodePath, KIND_LABEL } from '@/mocks/tree';
 import { Reveal } from '@/components/common/Reveal';
 import { SegmentedControl } from '@/components/common/SegmentedControl';
 import { AXIS_NAME_GAP, LEGEND_GRID_TOP, topLegend } from '@/utils/chart';
-import { formatCapacity, formatNumber, formatPercent } from '@/utils/format';
+import { formatCapacity, formatNumber } from '@/utils/format';
 import { formatShort } from '@/utils/date';
 import { getChildStats, getNodeStat } from '@/mocks/nodeStats';
 import { useChartPalette } from '@/hooks/useChartPalette';
@@ -58,6 +58,8 @@ export function OverviewTab() {
   const hourlyTotal = stat.hourly.reduce((sum, value) => sum + value, 0);
   const hourlyUnit = pickEnergyUnit(Math.max(...stat.hourly, 1));
   const detailUnit = pickEnergyUnit(Math.max(...stat.series, 1));
+  // 발전량이 왜 많고 적었는지는 그날 들어온 햇빛의 양이 답한다.
+  const totalIrradiance = detail.reduce((sum, point) => sum + point.irradiance, 0);
 
   /** 발전량 막대 + 일사량 선을 겹친 차트. 시간대별과 시점별이 같은 모양을 공유한다. */
   const comboOption = (
@@ -179,8 +181,11 @@ export function OverviewTab() {
               </dd>
             </div>
             <div>
-              <dt>기대 대비 달성률</dt>
-              <dd className={stat.pr < 0.8 ? styles.deltaDown : styles.deltaUp}>{formatPercent(stat.pr, 1)}</dd>
+              <dt>일사량</dt>
+              <dd>
+                {formatNumber(totalIrradiance, 2)}
+                <span className={styles.infoGrid__unit}>kWh/m²</span>
+              </dd>
             </div>
             <div>
               <dt>등가 발전시간</dt>
@@ -296,8 +301,8 @@ export function OverviewTab() {
               labels={detail.map((point) => point.label)}
               generation={stat.series}
               irradiance={detail.map((point) => point.irradiance)}
-              pr={stat.pr}
-              caption={`${label}의 ${DETAIL_UNIT[period]}별 발전량, 기대 발전량, 달성률, 일사량 표`}
+              expectedKwh={stat.expectedKwh}
+              caption={`${label}의 ${DETAIL_UNIT[period]}별 발전량, 기대 발전량, 일사량 표`}
             />
           )}
         </Card>

@@ -1,10 +1,11 @@
-import { Navigate } from 'react-router-dom';
+import { Navigate, useParams } from 'react-router-dom';
 import { lazy } from 'react';
 import AuthLayout from '@/layouts/AuthLayout';
 import RootLayout from '@/layouts/RootLayout';
 import SubPageLayout from '@/layouts/SubPageLayout';
 import HomePage from '@/pages/Home';
 import { RequireAuth } from './guards/RequireAuth';
+import { buildPath } from './buildPath';
 import { PATH } from './routes';
 import type { RouteObject } from 'react-router-dom';
 
@@ -16,11 +17,17 @@ const AlertsPage = lazy(() => import('@/pages/Alerts'));
 const ReportsPage = lazy(() => import('@/pages/Reports'));
 const MyPage = lazy(() => import('@/pages/MyPage'));
 const LoginPage = lazy(() => import('@/pages/Login'));
-const KioskPage = lazy(() => import('@/pages/Kiosk'));
 const SolarEduPage = lazy(() => import('@/pages/SolarEdu'));
 const ControlRoomPage = lazy(() => import('@/pages/ControlRoom'));
 const AdminLayout = lazy(() => import('@/layouts/AdminLayout'));
 const AdminPage = lazy(() => import('@/pages/Admin'));
+
+/** 옛 `/kiosk/:orgId` 를 같은 학교의 `/solar-edu/:orgId` 로 넘긴다. */
+function KioskRedirect() {
+  const { orgId } = useParams<{ orgId: string }>();
+
+  return <Navigate to={orgId ? buildPath.solarEdu(orgId) : PATH.SOLAR_EDU} replace />;
+}
 
 export const routes: RouteObject[] = [
   {
@@ -29,10 +36,11 @@ export const routes: RouteObject[] = [
   },
   // 교육용 대시보드는 모니터에 걸어 두고 조작 없이 돌리는 화면이라 로그인을 요구하지 않는다 (SFR-005-08).
   // 세션이 만료됐다고 복도 모니터가 로그인 화면으로 튕기면 안 된다.
-  { path: PATH.KIOSK, element: <KioskPage /> },
-  { path: `${PATH.KIOSK}/:orgId`, element: <KioskPage /> },
   { path: PATH.SOLAR_EDU, element: <SolarEduPage /> },
   { path: `${PATH.SOLAR_EDU}/:orgId`, element: <SolarEduPage /> },
+  // 교육용 화면을 하나로 합치기 전 주소. 모니터에 이미 걸린 URL 이 있을 수 있어 넘겨만 준다.
+  { path: PATH.KIOSK, element: <Navigate to={PATH.SOLAR_EDU} replace /> },
+  { path: `${PATH.KIOSK}/:orgId`, element: <KioskRedirect /> },
   {
     // 로그인하지 않으면 아래 화면 전부 막힌다.
     element: <RequireAuth />,
