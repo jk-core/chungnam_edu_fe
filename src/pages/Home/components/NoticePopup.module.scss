@@ -1,0 +1,35 @@
+@use "@/styles/tokens/spacing" as s;
+@use "@/styles/tokens/typography" as t;
+
+.popup {
+  display: flex;
+  flex-direction: column;
+  gap: s.$space-4;
+}
+
+.popup__body {
+  @include t.body-md;
+
+  color: var(--text);
+  white-space: pre-line;
+}
+
+.popup__files {
+  display: flex;
+  flex-direction: column;
+  gap: s.$space-2;
+}
+
+.popup__file {
+  @include t.body-sm;
+
+  display: inline-flex;
+  align-items: center;
+  gap: s.$space-2;
+  width: fit-content;
+  padding: s.$space-2 s.$space-3;
+  border: 1px solid var(--border-subtle);
+  border-radius: s.$radius-sm;
+  background-color: var(--surface-sunken);
+  color: var(--text);
+}

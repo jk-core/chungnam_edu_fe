@@ -1,0 +1,227 @@
+@use "@/styles/tokens/spacing" as s;
+@use "@/styles/tokens/typography" as t;
+@use "@/styles/utils/media" as media;
+
+/**
+ * 교육용 대시보드 골격 (SFR-005).
+ * 복도·강당 모니터에 걸어 두고 조작 없이 돌리는 화면이라 헤더·LNB·푸터를 두지 않고,
+ * KRDS 좌우 여백 대신 화면을 다 쓴다.
+ *
+ * 높이는 1080px 아래로 내려가지 않는다 — 그보다 낮으면 삽화와 카드가 함께 눌려
+ * 글이 잘린다. 낮은 화면에서는 화면을 채우는 대신 문서가 스크롤된다.
+ */
+.edu {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  height: max(100vh, 1080px);
+  padding: s.$space-5 s.$space-6;
+  overflow: hidden;
+  background:
+    radial-gradient(70% 50% at 78% -10%, var(--sky-glow) 0%, transparent 62%),
+    linear-gradient(180deg, var(--sky-top) 0%, var(--paper) 58%);
+
+  @include media.kiosk {
+    padding: s.$space-6 s.$space-8;
+  }
+
+  @include media.tablet {
+    height: auto;
+    min-height: 1080px;
+    overflow: visible;
+    padding: s.$space-5;
+  }
+}
+
+// ── 고정 영역 ──────────────────────────────────────────────
+// 대상과 지금 이 순간의 수치. 씬이 갈려도 여기는 그대로 남는다.
+.top {
+  display: flex;
+  flex-direction: column;
+  gap: s.$space-4;
+  flex-shrink: 0;
+  padding-bottom: s.$space-4;
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+// ── 상태 바 ────────────────────────────────────────────────
+.bar {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: s.$space-5;
+  flex-wrap: wrap;
+}
+
+.bar__scope {
+  @include t.eyebrow;
+
+  color: var(--text-faint);
+}
+
+.bar__title {
+  @include t.title-lg;
+
+  margin-top: 2px;
+  color: var(--text-strong);
+}
+
+.bar__right {
+  display: flex;
+  align-items: center;
+  gap: s.$space-4;
+}
+
+.bar__weather {
+  @include t.body-sm;
+
+  display: flex;
+  align-items: center;
+  gap: s.$space-2;
+  color: var(--text-muted);
+}
+
+.bar__clock {
+  @include t.data-lg;
+
+  color: var(--text-strong);
+}
+
+.bar__date {
+  @include t.caption;
+
+  display: block;
+  color: var(--text-faint);
+  text-align: right;
+}
+
+// 통신이 끊겼을 때 (SFR-005-10)
+.offline {
+  @include t.body-sm;
+
+  display: flex;
+  align-items: center;
+  gap: s.$space-2;
+  margin-top: s.$space-3;
+  padding: s.$space-2 s.$space-4;
+  border: 1px solid var(--caution);
+  border-radius: s.$radius-full;
+  background-color: var(--caution-soft);
+  color: var(--caution-text);
+}
+
+// ── 씬 무대 ────────────────────────────────────────────────
+// 씬이 옆으로 미끄러져 들어오고 나가므로, 무대 밖으로 나간 부분은 잘라 낸다.
+.stage {
+  position: relative;
+  flex: 1;
+  min-height: 0;
+  margin: s.$space-5 0;
+  overflow: hidden;
+
+  @include media.tablet {
+    min-height: 560px;
+  }
+}
+
+// ── 하단 진행 표시 + 티커 ──────────────────────────────────
+.foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: s.$space-5;
+  flex-wrap: wrap;
+}
+
+.dots {
+  display: flex;
+  align-items: center;
+  gap: s.$space-2;
+  flex-shrink: 0;
+}
+
+// 눌러서 그 단계로 건너뛰는 칩. 아래 얇은 줄이 남은 시간을 알린다.
+.dot {
+  @include t.label-md;
+
+  position: relative;
+  display: block;
+  padding: s.$space-2 s.$space-4 s.$space-3;
+  border: 1px solid transparent;
+  border-radius: s.$radius-full;
+  background-color: transparent;
+  color: var(--text-faint);
+  cursor: pointer;
+  transition: color 0.16s ease, background-color 0.16s ease;
+
+  &::before {
+    content: "";
+    position: absolute;
+    right: s.$space-4;
+    bottom: s.$space-2;
+    left: s.$space-4;
+    height: 3px;
+    border-radius: s.$radius-full;
+    background-color: var(--border);
+  }
+
+  &:hover {
+    background-color: var(--surface-sunken);
+    color: var(--text);
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--brand);
+    outline-offset: 2px;
+  }
+}
+
+// 지금 보고 있는 씬 — 남은 시간을 막대가 차오르며 알린다
+.dot--active {
+  border-color: var(--border-subtle);
+  background-color: var(--surface);
+  color: var(--text-strong);
+
+  &::after {
+    content: "";
+    position: absolute;
+    bottom: s.$space-2;
+    left: s.$space-4;
+    width: calc(100% - #{s.$space-8});
+    height: 3px;
+    border-radius: s.$radius-full;
+    background-color: var(--solar);
+    transform-origin: left;
+    animation: dot-fill var(--scene-ms, 14s) linear forwards;
+  }
+
+  @include media.reduced-motion {
+    &::after {
+      animation: none;
+    }
+  }
+}
+
+.dot__title {
+  white-space: nowrap;
+}
+
+@keyframes dot-fill {
+  from {
+    transform: scaleX(0);
+  }
+
+  to {
+    transform: scaleX(1);
+  }
+}
+
+.ticker {
+  @include t.body-sm;
+
+  flex: 1;
+  min-width: 0;
+  color: var(--text-muted);
+  text-align: right;
+}

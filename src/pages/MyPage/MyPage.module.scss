@@ -1,0 +1,62 @@
+@use "@/styles/tokens/spacing" as s;
+@use "@/styles/tokens/typography" as t;
+@use "@/styles/utils/media" as media;
+@use "@/styles/utils/mixins" as mx;
+
+.grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1.2fr);
+  gap: s.$space-5;
+  align-items: start;
+
+  @include media.tablet {
+    grid-template-columns: 1fr;
+  }
+}
+
+.info {
+  display: flex;
+  flex-direction: column;
+  gap: s.$space-4;
+  margin: 0;
+  padding-top: s.$space-2;
+
+  dt {
+    @include t.label-sm;
+
+    margin-bottom: 2px;
+    color: var(--text-faint);
+  }
+
+  dd {
+    @include t.body-md;
+
+    margin: 0;
+    color: var(--text-strong);
+  }
+}
+
+.info__role {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: s.$space-2;
+}
+
+.info__note {
+  @include t.body-sm;
+
+  color: var(--text-muted);
+}
+
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: s.$space-5;
+  padding-top: s.$space-2;
+}
+
+.form__actions {
+  display: flex;
+  justify-content: flex-end;
+}

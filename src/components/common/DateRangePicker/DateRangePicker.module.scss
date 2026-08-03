@@ -1,0 +1,108 @@
+@use "@/styles/tokens/spacing" as s;
+@use "@/styles/tokens/typography" as t;
+@use "@/styles/utils/media" as media;
+
+.trigger {
+  display: inline-flex;
+  align-items: center;
+  gap: s.$space-2;
+  height: 36px;
+  padding-inline: s.$space-4 s.$space-3;
+  background-color: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: s.$radius-full;
+  color: var(--text-strong);
+  transition: border-color 0.16s ease, background-color 0.16s ease, box-shadow 0.2s ease;
+
+  &:hover {
+    border-color: var(--brand);
+    box-shadow: var(--shadow-sm);
+
+    .trigger__icon {
+      color: var(--brand);
+    }
+  }
+}
+
+.trigger__icon {
+  width: 16px;
+  height: 16px;
+  color: var(--text-faint);
+  transition: color 0.16s ease;
+}
+
+.trigger__value {
+  display: inline-flex;
+  align-items: center;
+  gap: s.$space-1;
+  white-space: nowrap;
+
+  @include t.data-sm;
+}
+
+.trigger__tilde {
+  color: var(--text-faint);
+}
+
+.trigger__chevron {
+  width: 14px;
+  height: 14px;
+  color: var(--text-faint);
+}
+
+.presets {
+  display: flex;
+  flex-wrap: wrap;
+  gap: s.$space-2;
+  margin-bottom: s.$space-4;
+}
+
+.preset {
+  height: 30px;
+  padding-inline: s.$space-3;
+  background-color: var(--surface-sunken);
+  border: 1px solid var(--border-subtle);
+  border-radius: s.$radius-full;
+  color: var(--text-muted);
+  transition: border-color 0.14s ease, color 0.14s ease, background-color 0.14s ease;
+
+  @include t.label-sm;
+
+  &:hover {
+    border-color: var(--brand);
+    background-color: var(--brand-soft);
+    color: var(--brand-contrast);
+  }
+}
+
+.footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: s.$space-4;
+
+  @include media.mobile {
+    flex-direction: column;
+    align-items: stretch;
+    gap: s.$space-3;
+  }
+}
+
+.footer__draft {
+  color: var(--text-strong);
+
+  @include t.data-sm;
+}
+
+.footer__draft--pending {
+  color: var(--text-faint);
+}
+
+.footer__actions {
+  display: flex;
+  gap: s.$space-2;
+
+  @include media.mobile {
+    justify-content: flex-end;
+  }
+}

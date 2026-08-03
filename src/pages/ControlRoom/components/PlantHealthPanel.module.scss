@@ -1,0 +1,165 @@
+@use "@/styles/tokens/spacing" as s;
+@use "@/styles/tokens/typography" as t;
+@use "@/styles/utils/media" as media;
+
+.health {
+  display: flex;
+  flex-direction: column;
+  gap: s.$space-3;
+  height: 100%;
+  min-height: 0;
+}
+
+// ── 상단 요약 ──────────────────────────────────────────────
+.summary {
+  display: flex;
+  align-items: center;
+  gap: s.$space-4;
+  flex-wrap: wrap;
+}
+
+.summary__stat {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
+.summary__label {
+  @include t.caption;
+
+  color: var(--text-faint);
+}
+
+.summary__value {
+  @include t.data-md;
+
+  display: flex;
+  align-items: baseline;
+  gap: 1px;
+  color: var(--text-strong);
+}
+
+.summary__value--warn {
+  color: var(--critical-text);
+}
+
+.summary__unit {
+  @include t.caption;
+
+  color: var(--text-muted);
+}
+
+// ── 15분 96칸 타임라인 ─────────────────────────────────────
+.timeline {
+  display: flex;
+  flex-direction: column;
+  gap: s.$space-1;
+}
+
+.timeline__track {
+  display: flex;
+  gap: 1px;
+  height: 26px;
+  border-radius: s.$radius-xs;
+  overflow: hidden;
+}
+
+.slot {
+  flex: 1;
+  min-width: 0;
+  background-color: var(--ok);
+}
+
+.slot--missing {
+  background-color: var(--critical);
+  animation: slot-blink 2.4s ease-in-out infinite;
+
+  @include media.reduced-motion {
+    animation: none;
+  }
+}
+
+// 아직 오지 않은 시간대 — 결측이 아니다
+.slot--future {
+  background-color: var(--surface-sunken);
+}
+
+@keyframes slot-blink {
+  0%,
+  100% {
+    opacity: 1;
+  }
+
+  50% {
+    opacity: 0.5;
+  }
+}
+
+.timeline__axis {
+  @include t.caption;
+
+  display: flex;
+  justify-content: space-between;
+  color: var(--text-faint);
+  font-family: var(--font-data);
+}
+
+// ── 고장 내역 ──────────────────────────────────────────────
+.faults {
+  display: flex;
+  flex-direction: column;
+  gap: s.$space-2;
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+
+.fault {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: s.$space-2 s.$space-3;
+  border: 1px solid var(--critical-soft);
+  border-left: 3px solid var(--critical);
+  border-radius: s.$radius-sm;
+  background-color: var(--critical-soft);
+}
+
+.fault__head {
+  display: flex;
+  align-items: center;
+  gap: s.$space-2;
+  flex-wrap: wrap;
+}
+
+.fault__name {
+  @include t.label-sm;
+
+  color: var(--text-strong);
+}
+
+.fault__code {
+  @include t.caption;
+
+  color: var(--critical-text);
+  font-family: var(--font-data);
+}
+
+.fault__label {
+  @include t.body-sm;
+
+  color: var(--text-strong);
+}
+
+.fault__action {
+  @include t.caption;
+
+  color: var(--text-muted);
+}
+
+.faults__empty {
+  @include t.body-sm;
+
+  color: var(--text-muted);
+}

@@ -1,0 +1,142 @@
+@use "@/styles/tokens/spacing" as s;
+@use "@/styles/tokens/typography" as t;
+@use "@/styles/utils/media" as media;
+@use "@/styles/utils/mixins" as mx;
+
+.panel {
+  background-color: var(--surface);
+  border: 1px solid var(--border-subtle);
+  border-radius: s.$radius-lg;
+  box-shadow: var(--shadow-sm);
+}
+
+// ── 여닫는 머리글 ──────────────────────────────────────────
+.panel__heading {
+  margin: 0;
+}
+
+.panel__toggle {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: s.$space-3;
+  width: 100%;
+  padding: s.$space-4 s.$space-5;
+  background: none;
+  border: 0;
+  border-radius: s.$radius-lg;
+  text-align: left;
+  transition: background-color 0.16s ease;
+
+  &:hover {
+    background-color: var(--brand-soft);
+  }
+}
+
+.panel__current {
+  display: block;
+  min-width: 0;
+}
+
+.panel__label {
+  @include t.eyebrow;
+
+  display: block;
+  margin-bottom: 2px;
+  color: var(--text-faint);
+}
+
+.panel__name {
+  @include t.label-md;
+  @include mx.truncate;
+
+  display: block;
+  color: var(--text-strong);
+}
+
+.panel__meta {
+  @include t.caption;
+
+  display: flex;
+  align-items: center;
+  gap: s.$space-2;
+  margin-top: 2px;
+  color: var(--text-muted);
+  font-family: var(--font-data);
+}
+
+.panel__chevron {
+  color: var(--text-faint);
+  transition: transform 0.24s cubic-bezier(0.2, 0.8, 0.3, 1);
+
+  @include media.reduced-motion {
+    transition: none;
+  }
+}
+
+.panel__chevron--open {
+  transform: rotate(180deg);
+}
+
+// ── 접히는 본문 ────────────────────────────────────────────
+// grid-template-rows 0fr↔1fr 은 높이를 몰라도 되는 유일한 순수 CSS 전환이다.
+.panel__collapse {
+  display: grid;
+  grid-template-rows: 0fr;
+  transition: grid-template-rows 0.28s cubic-bezier(0.2, 0.8, 0.3, 1);
+
+  &[data-open="true"] {
+    grid-template-rows: 1fr;
+  }
+
+  @include media.reduced-motion {
+    transition: none;
+  }
+}
+
+// 높이를 잘라 내는 칸. 여백은 이 안쪽이 갖는다.
+.panel__clip {
+  min-height: 0;
+  overflow: hidden;
+}
+
+.panel__inner {
+  display: flex;
+  flex-direction: column;
+  gap: s.$space-5;
+  padding: s.$space-1 s.$space-5 s.$space-5;
+
+  // 좌측 컬럼이 가로로 펴지는 구간에서는 선택 영역과 구조 트리를 나란히 둔다.
+  @include media.tablet {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    align-items: start;
+    gap: s.$space-6;
+    padding: s.$space-1 s.$space-5 s.$space-5;
+  }
+
+  @include media.mobile {
+    grid-template-columns: 1fr;
+    gap: s.$space-5;
+  }
+}
+
+.panel__pick {
+  display: flex;
+  flex-direction: column;
+  gap: s.$space-4;
+  padding-bottom: s.$space-5;
+  border-bottom: 1px solid var(--border-subtle);
+
+  @include media.tablet {
+    padding-bottom: 0;
+    border-bottom: 0;
+  }
+}
+
+// 주소·용량·상태 요약 — 테두리 대신 은은한 바탕으로 묶는다.
+.panel__summary {
+  padding: s.$space-4;
+  background-color: var(--surface-sunken);
+  border-radius: s.$radius-md;
+}

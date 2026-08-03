@@ -1,0 +1,42 @@
+@use "@/styles/tokens/spacing" as s;
+@use "@/styles/tokens/typography" as t;
+
+.breadcrumb__list {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: s.$space-1;
+}
+
+.breadcrumb__item {
+  display: inline-flex;
+  align-items: center;
+  gap: s.$space-1;
+}
+
+.breadcrumb__separator {
+  width: 13px;
+  height: 13px;
+  color: var(--text-faint);
+}
+
+.breadcrumb__link {
+  color: var(--text-muted);
+  transition: color 0.14s ease;
+
+  @include t.caption;
+
+  &:hover {
+    color: var(--brand-contrast);
+    text-decoration: underline;
+    text-underline-offset: 3px;
+  }
+}
+
+.breadcrumb__current {
+  color: var(--text-strong);
+
+  @include t.caption;
+
+  font-weight: 600;
+}

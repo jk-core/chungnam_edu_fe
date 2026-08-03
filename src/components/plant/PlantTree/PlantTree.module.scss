@@ -1,0 +1,189 @@
+@use "@/styles/tokens/spacing" as s;
+@use "@/styles/tokens/typography" as t;
+@use "@/styles/utils/media" as media;
+@use "@/styles/utils/mixins" as mx;
+
+.tree {
+  display: flex;
+  flex-direction: column;
+  gap: s.$space-3;
+}
+
+.tree__title {
+  color: var(--text-faint);
+
+  @include t.eyebrow;
+}
+
+.tree__root {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  max-height: 320px;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+
+  @include media.tablet {
+    max-height: 260px;
+  }
+}
+
+.tree__children {
+  overflow: hidden;
+}
+
+.tree__item {
+  display: flex;
+  flex-direction: column;
+}
+
+.tree__hint {
+  margin-top: s.$space-1;
+  padding-top: s.$space-3;
+  border-top: 1px solid var(--border-subtle);
+  color: var(--text-faint);
+
+  @include t.caption;
+}
+
+.empty {
+  color: var(--text-muted);
+
+  @include t.body-sm;
+}
+
+// ── 한 줄 ──────────────────────────────────────────────────
+.row {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  border-radius: s.$radius-sm;
+  transition: background-color 0.14s ease;
+
+  &:hover {
+    background-color: var(--surface-hover);
+  }
+}
+
+// 이 화면이 다루지 않는 계층 — 구조는 보여 주되 고를 수 없게 한다.
+.row--disabled {
+  .row__label {
+    cursor: not-allowed;
+  }
+
+  .row__name,
+  .row__capacity {
+    color: var(--text-faint);
+  }
+
+  .row__dot {
+    opacity: 0.45;
+  }
+
+  &:hover {
+    background-color: transparent;
+  }
+}
+
+.row--selected {
+  background-color: var(--brand-soft);
+
+  .row__name {
+    color: var(--brand-contrast);
+    font-weight: 700;
+  }
+}
+
+// 계층이 깊어질수록 이름을 살짝 작게 해 위계를 드러낸다.
+.row--plant .row__name {
+  @include t.label-md;
+}
+
+.row--inverter .row__name,
+.row--junctionBox .row__name {
+  @include t.body-sm;
+}
+
+.row--string .row__name,
+.row--channel .row__name {
+  @include t.caption;
+}
+
+.row__toggle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 20px;
+  height: 28px;
+  padding: 0;
+  background: none;
+  border: 0;
+  color: var(--text-faint);
+
+  &:hover {
+    color: var(--text-strong);
+  }
+}
+
+.row__chevron {
+  width: 13px;
+  height: 13px;
+  transition: transform 0.18s ease;
+}
+
+.row__chevron--open {
+  transform: rotate(90deg);
+}
+
+.row__label {
+  display: flex;
+  align-items: center;
+  gap: s.$space-2;
+  flex: 1;
+  min-width: 0;
+  padding: s.$space-1 s.$space-2 s.$space-1 0;
+  background: none;
+  border: 0;
+  text-align: left;
+}
+
+.row__dot {
+  flex-shrink: 0;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+}
+
+.row__dot--normal {
+  background-color: var(--ok);
+}
+
+.row__dot--caution {
+  background-color: var(--caution);
+}
+
+.row__dot--critical {
+  background-color: var(--critical);
+}
+
+.row__dot--offline {
+  background-color: var(--offline);
+}
+
+.row__name {
+  flex: 1;
+  min-width: 0;
+  color: var(--text);
+
+  @include mx.truncate;
+}
+
+.row__capacity {
+  flex-shrink: 0;
+  color: var(--text-faint);
+
+  @include t.data-sm;
+
+  font-size: 0.6875rem;
+}

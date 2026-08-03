@@ -1,0 +1,47 @@
+// KRDS 기준 반응형 브레이크포인트
+// Desktop : 901px 이상 (기본)
+// Tablet  : 900px 이하
+// Mobile  : 600px 이하
+
+$bp-mobile: 600px;
+$bp-tablet: 900px;
+
+@mixin mobile {
+  @media (width <= $bp-mobile) {
+    @content;
+  }
+}
+
+@mixin tablet {
+  @media (width <= $bp-tablet) {
+    @content;
+  }
+}
+
+@mixin desktop {
+  @media (width > $bp-tablet) {
+    @content;
+  }
+}
+
+// 교육용 대시보드를 걸어 두는 대형 모니터 (SFR-005-08)
+$bp-kiosk: 1600px;
+
+@mixin kiosk {
+  @media (width >= $bp-kiosk) {
+    @content;
+  }
+}
+
+// 600px 초과 ~ 900px 이하 구간만
+@mixin tablet-only {
+  @media (width > $bp-mobile) and (width <= $bp-tablet) {
+    @content;
+  }
+}
+
+@mixin reduced-motion {
+  @media (prefers-reduced-motion: reduce) {
+    @content;
+  }
+}

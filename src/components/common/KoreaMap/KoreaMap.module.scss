@@ -1,0 +1,220 @@
+@use "@/styles/tokens/spacing" as s;
+@use "@/styles/tokens/typography" as t;
+@use "@/styles/utils/media" as media;
+
+.koreaMap {
+  display: flex;
+  gap: s.$space-6;
+  align-items: stretch;
+
+  @include media.tablet {
+    flex-direction: column;
+    gap: s.$space-5;
+  }
+}
+
+.mapWrap {
+  position: relative;
+  flex: 0 0 auto;
+  width: 340px;
+  padding: s.$space-3;
+  border: 1px solid var(--map-border);
+  border-radius: s.$radius-md;
+  background:
+    radial-gradient(70% 60% at 50% 0%, var(--brand-soft) 0%, transparent 62%),
+    var(--map-surface);
+
+  @include media.tablet {
+    width: 100%;
+    max-width: 340px;
+    align-self: center;
+  }
+}
+
+.svg {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+.province {
+  cursor: pointer;
+  transition: opacity 0.16s ease;
+
+  &:hover {
+    opacity: 0.82;
+  }
+}
+
+// 강조 지역은 테두리를 한 번 더 둘러 색만으로 구분하지 않게 한다.
+// 경로에 stroke 속성이 붙어 있어 CSS 로 덮어써야 먹는다.
+.province--active path {
+  stroke: var(--solar);
+  stroke-width: 1.4;
+}
+
+// 어느 색 칸 위에서도 읽히도록 라벨 뒤에 밝은 판을 깐다.
+.labelPlate {
+  fill: var(--surface);
+  opacity: 0.9;
+}
+
+.label {
+  fill: var(--text-strong);
+  font-family: var(--font-data);
+  font-size: 11px;
+  font-weight: 600;
+  text-anchor: middle;
+  pointer-events: none;
+}
+
+.labelName {
+  fill: var(--text-muted);
+  font-family: var(--font-sans);
+  font-size: 8.5px;
+  text-anchor: middle;
+  pointer-events: none;
+}
+
+// ── 옆 패널 ─────────────────────────────────────────────────
+.side {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: s.$space-4;
+}
+
+.legend {
+  display: flex;
+  flex-direction: column;
+  gap: s.$space-2;
+}
+
+.legend__title {
+  @include t.label-sm;
+
+  color: var(--text-strong);
+}
+
+.legend__scale {
+  display: flex;
+  align-items: center;
+  gap: s.$space-1;
+}
+
+.legend__step {
+  display: block;
+  flex: 1;
+  height: 10px;
+  border: 1px solid var(--map-border);
+  border-radius: 2px;
+}
+
+.legend__bounds {
+  @include t.caption;
+
+  display: flex;
+  justify-content: space-between;
+  color: var(--text-faint);
+  font-family: var(--font-data);
+}
+
+.rank {
+  display: flex;
+  flex-direction: column;
+  gap: s.$space-2;
+}
+
+.rank__title {
+  @include t.label-sm;
+
+  color: var(--text-strong);
+}
+
+.rank__list {
+  display: flex;
+  flex-direction: column;
+  gap: s.$space-1 + 2px;
+}
+
+.rank__item {
+  display: flex;
+  align-items: center;
+  gap: s.$space-2;
+  width: 100%;
+  padding: 2px s.$space-1;
+  border: none;
+  border-radius: s.$radius-xs;
+  background: none;
+  text-align: left;
+  transition: background-color 0.14s ease;
+
+  &:hover {
+    background-color: var(--surface-hover);
+  }
+}
+
+.rank__item--self {
+  background-color: var(--solar-soft);
+}
+
+.rank__item--self .rank__name {
+  color: var(--solar-text);
+  font-weight: 600;
+}
+
+.rank__order {
+  @include t.caption;
+
+  width: 16px;
+  flex-shrink: 0;
+  color: var(--text-faint);
+  font-family: var(--font-data);
+  text-align: right;
+}
+
+.rank__name {
+  @include t.body-sm;
+
+  width: 62px;
+  flex-shrink: 0;
+  color: var(--text);
+}
+
+.rank__barTrack {
+  display: block;
+  flex: 1;
+  height: 8px;
+  min-width: 0;
+  border-radius: s.$radius-full;
+  background-color: var(--surface-sunken);
+  overflow: hidden;
+}
+
+.rank__bar {
+  display: block;
+  height: 100%;
+  border-radius: s.$radius-full;
+  background-color: var(--brand);
+}
+
+.rank__item--self .rank__bar {
+  background-color: var(--solar);
+}
+
+.rank__value {
+  @include t.data-sm;
+
+  width: 50px;
+  flex-shrink: 0;
+  color: var(--text-muted);
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+}
+
+.note {
+  @include t.caption;
+
+  color: var(--text-faint);
+}

@@ -1,0 +1,299 @@
+@use "@/styles/tokens/spacing" as s;
+@use "@/styles/tokens/typography" as t;
+@use "@/styles/utils/media" as media;
+
+// ── 하늘 장면 (해·구름·패널) ────────────────────────────────
+.scene {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 16 / 7;
+  border-radius: s.$radius-xl;
+  overflow: hidden;
+  background: linear-gradient(180deg, var(--sky-top) 0%, var(--sky-bottom) 100%);
+}
+
+.scene__svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.sun {
+  fill: var(--solar);
+}
+
+.sun__glow {
+  fill: var(--solar);
+  opacity: 0.22;
+  animation: sun-pulse 4.2s ease-in-out infinite;
+}
+
+.sun__ray {
+  stroke: var(--solar);
+  stroke-width: 2.4;
+  stroke-linecap: round;
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: sun-spin 26s linear infinite;
+}
+
+.cloud {
+  fill: var(--surface);
+  stroke: var(--border);
+  stroke-width: 1.2;
+  opacity: 0.94;
+}
+
+.cloud--a {
+  animation: drift-a 34s linear infinite;
+}
+
+.cloud--b {
+  animation: drift-b 48s linear infinite;
+}
+
+.ground {
+  fill: var(--leaf-ground, var(--ok-soft));
+}
+
+.panel__frame {
+  fill: var(--brand-contrast);
+}
+
+.panel__glass {
+  fill: var(--brand);
+}
+
+.panel__grid {
+  stroke: var(--surface);
+  stroke-width: 1.2;
+  opacity: 0.5;
+}
+
+.panel__leg {
+  stroke: var(--brand-contrast);
+  stroke-width: 3;
+  stroke-linecap: round;
+}
+
+// 발전 중일 때만 패널 위로 빛이 흐른다.
+.panel__shine {
+  fill: var(--surface);
+  opacity: 0;
+  animation: shine 3.6s ease-in-out infinite;
+}
+
+@keyframes sun-pulse {
+  0%,
+  100% {
+    opacity: 0.16;
+    transform: scale(1);
+  }
+
+  50% {
+    opacity: 0.3;
+    transform: scale(1.08);
+  }
+}
+
+@keyframes sun-spin {
+  from {
+    transform: rotate(0deg);
+  }
+
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+// SVG 안에서는 % 이동이 요소 크기 기준이라 화면을 벗어난다. px 왕복으로 살랑거리게 둔다.
+@keyframes drift-a {
+  0%,
+  100% {
+    transform: translateX(-16px);
+  }
+
+  50% {
+    transform: translateX(30px);
+  }
+}
+
+@keyframes drift-b {
+  0%,
+  100% {
+    transform: translateX(22px);
+  }
+
+  50% {
+    transform: translateX(-24px);
+  }
+}
+
+@keyframes shine {
+  0%,
+  100% {
+    opacity: 0;
+  }
+
+  45% {
+    opacity: 0.34;
+  }
+}
+
+// ── 나무 성장 ───────────────────────────────────────────────
+.tree {
+  display: block;
+  width: 100%;
+  max-width: 240px;
+  height: auto;
+}
+
+.tree__trunk {
+  fill: #8a6244;
+}
+
+.tree__leaf {
+  fill: var(--ok);
+  transform-box: fill-box;
+  transform-origin: center bottom;
+  animation: sway 5.4s ease-in-out infinite;
+}
+
+.tree__leaf--2 {
+  animation-delay: 0.5s;
+}
+
+.tree__leaf--3 {
+  animation-delay: 1s;
+}
+
+.tree__leaf--dim {
+  opacity: 0.18;
+  animation: none;
+}
+
+@keyframes sway {
+  0%,
+  100% {
+    transform: rotate(-1.6deg);
+  }
+
+  50% {
+    transform: rotate(1.6deg);
+  }
+}
+
+// ── 환산 카드 ───────────────────────────────────────────────
+.eco {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: s.$space-4;
+
+  @include media.mobile {
+    grid-template-columns: 1fr;
+  }
+}
+
+.ecoCard {
+  display: flex;
+  flex-direction: column;
+  gap: s.$space-1;
+  padding: s.$space-5;
+  border: 1px solid var(--border-subtle);
+  border-radius: s.$radius-lg;
+  background-color: color-mix(in srgb, var(--surface) 82%, transparent);
+  box-shadow: var(--shadow-sm);
+}
+
+.ecoCard__label {
+  @include t.label-md;
+
+  color: var(--text-muted);
+}
+
+.ecoCard__value {
+  @include t.display-lg;
+
+  color: var(--text-strong);
+  font-variant-numeric: tabular-nums;
+}
+
+.ecoCard__unit {
+  @include t.title-sm;
+
+  margin-left: s.$space-1 + 2px;
+  color: var(--text-muted);
+}
+
+.ecoCard__note {
+  @include t.body-sm;
+
+  color: var(--text-faint);
+}
+
+// ── 설명 패널 순환 ──────────────────────────────────────────
+.rotator {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: s.$space-3;
+  padding: s.$space-6;
+  border: 1px solid var(--brand-soft-border);
+  border-radius: s.$radius-lg;
+  background-color: var(--brand-soft);
+}
+
+.rotator__title {
+  @include t.title-lg;
+
+  color: var(--text-strong);
+}
+
+.rotator__body {
+  @include t.body-lg;
+
+  color: var(--text);
+}
+
+.rotator__dots {
+  display: flex;
+  gap: s.$space-2;
+  margin-top: s.$space-2;
+}
+
+.rotator__dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background-color: var(--border-strong);
+  transition: background-color 0.3s ease, width 0.3s ease;
+}
+
+.rotator__dot--active {
+  width: 24px;
+  border-radius: s.$radius-full;
+  background-color: var(--brand);
+}
+
+.tip {
+  @include t.body-lg;
+
+  display: flex;
+  align-items: center;
+  gap: s.$space-3;
+  padding: s.$space-4 s.$space-5;
+  border-radius: s.$radius-lg;
+  background-color: var(--solar-soft);
+  color: var(--solar-text);
+}
+
+@include media.reduced-motion {
+  .sun__glow,
+  .sun__ray,
+  .cloud--a,
+  .cloud--b,
+  .panel__shine,
+  .tree__leaf {
+    animation: none;
+  }
+}

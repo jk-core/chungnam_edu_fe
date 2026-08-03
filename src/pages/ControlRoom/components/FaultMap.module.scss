@@ -1,0 +1,126 @@
+@use "@/styles/tokens/spacing" as s;
+@use "@/styles/tokens/typography" as t;
+@use "@/styles/utils/media" as media;
+
+.map {
+  display: flex;
+  flex-direction: column;
+  gap: s.$space-2;
+  height: 100%;
+  min-height: 0;
+}
+
+.map__svg {
+  flex: 1;
+  width: 100%;
+  min-height: 0;
+}
+
+.map__province path {
+  stroke-width: 0.6;
+}
+
+// ── 장애 지점 ──────────────────────────────────────────────
+.dot {
+  stroke: var(--surface);
+  stroke-width: 1.5;
+}
+
+// 값이 계속 나쁜 상태라는 신호로 천천히 번진다.
+.dot__halo {
+  opacity: 0.25;
+  animation: dot-ping 2.6s ease-out infinite;
+
+  @include media.reduced-motion {
+    animation: none;
+    opacity: 0.18;
+  }
+}
+
+@keyframes dot-ping {
+  0% {
+    transform: scale(0.5);
+    opacity: 0.45;
+  }
+
+  70% {
+    transform: scale(1.25);
+    opacity: 0;
+  }
+
+  100% {
+    transform: scale(1.25);
+    opacity: 0;
+  }
+}
+
+.dot--caution {
+  fill: var(--caution);
+}
+
+.dot--critical {
+  fill: var(--critical);
+}
+
+.dot--offline {
+  fill: var(--offline);
+}
+
+.dot--ok {
+  fill: var(--ok);
+}
+
+.dot--brand {
+  fill: var(--brand);
+}
+
+// ── 범례 ───────────────────────────────────────────────────
+.legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: s.$space-1 s.$space-3;
+  padding-top: s.$space-2;
+  border-top: 1px solid var(--border-subtle);
+}
+
+.legend__item {
+  @include t.caption;
+
+  display: flex;
+  align-items: center;
+  gap: s.$space-1;
+  color: var(--text-muted);
+}
+
+// SVG 점은 fill, 범례 점은 background-color 라 따로 둔다.
+.legend__dot {
+  display: block;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+}
+
+.legend__dot--caution {
+  background-color: var(--caution);
+}
+
+.legend__dot--critical {
+  background-color: var(--critical);
+}
+
+.legend__dot--offline {
+  background-color: var(--offline);
+}
+
+.legend__dot--ok {
+  background-color: var(--ok);
+}
+
+.legend__dot--brand {
+  background-color: var(--brand);
+}
+
+.legend__count {
+  color: var(--text-strong);
+  font-family: var(--font-data);
+}

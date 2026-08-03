@@ -1,0 +1,149 @@
+@use "@/styles/tokens/spacing" as s;
+@use "@/styles/tokens/typography" as t;
+@use "@/styles/utils/mixins" as mx;
+
+.agg {
+  display: flex;
+  flex-direction: column;
+  gap: s.$space-3;
+  min-height: 0;
+  height: 100%;
+}
+
+.agg__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: s.$space-3;
+  flex-wrap: wrap;
+}
+
+.agg__total {
+  @include t.data-sm;
+
+  display: flex;
+  align-items: baseline;
+  gap: 2px;
+  color: var(--text-strong);
+}
+
+.agg__unit {
+  @include t.caption;
+
+  color: var(--text-muted);
+}
+
+// 행이 많아도 패널 밖으로 밀지 않고 안에서 스크롤한다.
+.agg__scroll {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+
+// ── 집계 표 ────────────────────────────────────────────────
+.table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.table__caption {
+  @include mx.sr-only;
+}
+
+.table thead th {
+  @include t.caption;
+
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  padding: s.$space-2 s.$space-2;
+  background-color: var(--surface);
+  border-bottom: 1px solid var(--border);
+  color: var(--text-faint);
+  text-align: left;
+  font-weight: 500;
+}
+
+.table tbody th,
+.table tbody td {
+  padding: s.$space-2;
+  border-bottom: 1px solid var(--border-subtle);
+  vertical-align: middle;
+}
+
+.table__row--selected {
+  background-color: var(--brand-soft);
+}
+
+.table__name {
+  @include t.body-sm;
+
+  display: flex;
+  align-items: center;
+  gap: s.$space-2;
+  color: var(--text-strong);
+  text-align: left;
+  font-weight: 500;
+}
+
+.table__link {
+  @include t.body-sm;
+  @include mx.truncate;
+
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--text-strong);
+  text-align: left;
+
+  &:hover {
+    color: var(--brand);
+    text-decoration: underline;
+  }
+}
+
+.table__count {
+  @include t.caption;
+
+  color: var(--text-faint);
+}
+
+.table__num {
+  @include t.data-sm;
+
+  width: 96px;
+  color: var(--text);
+  text-align: right;
+}
+
+.table__share {
+  width: 150px;
+}
+
+// ── 비중 막대 ──────────────────────────────────────────────
+.bar {
+  display: block;
+  height: 6px;
+  border-radius: s.$radius-full;
+  background-color: var(--surface-sunken);
+  overflow: hidden;
+}
+
+.bar__fill {
+  display: block;
+  height: 100%;
+  border-radius: s.$radius-full;
+  background: linear-gradient(90deg, var(--brand), var(--solar));
+  transition: width 0.5s cubic-bezier(0.22, 0.68, 0.32, 1);
+}
+
+.bar__value {
+  @include t.caption;
+
+  display: block;
+  margin-top: 2px;
+  color: var(--text-muted);
+  text-align: right;
+  font-family: var(--font-data);
+}

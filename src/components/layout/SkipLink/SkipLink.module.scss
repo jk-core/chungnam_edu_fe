@@ -1,0 +1,22 @@
+@use "@/styles/tokens/spacing" as s;
+@use "@/styles/tokens/typography" as t;
+
+.skip {
+  position: fixed;
+  top: s.$space-3;
+  left: 50%;
+  z-index: 100;
+  padding: s.$space-3 s.$space-5;
+  background-color: var(--brand);
+  border-radius: s.$radius-full;
+  color: var(--text-on-brand);
+  box-shadow: var(--shadow-lg);
+  transform: translate(-50%, -200%);
+  transition: transform 0.24s cubic-bezier(0.2, 0.8, 0.3, 1);
+
+  @include t.label-md;
+
+  &:focus-visible {
+    transform: translate(-50%, 0);
+  }
+}

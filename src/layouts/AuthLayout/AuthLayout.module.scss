@@ -1,0 +1,78 @@
+@use "@/styles/tokens/spacing" as s;
+@use "@/styles/tokens/typography" as t;
+@use "@/styles/utils/media" as media;
+
+.auth {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  padding: s.$space-8 s.$gutter-mobile;
+  overflow: hidden;
+  background:
+    radial-gradient(90% 70% at 50% -10%, var(--sky-glow) 0%, transparent 58%),
+    linear-gradient(180deg, var(--sky-top) 0%, var(--sky-bottom) 100%);
+
+  @include media.mobile {
+    justify-content: flex-start;
+    padding-top: s.$space-9;
+  }
+}
+
+// 지평선 위로 뜨는 해 — 홈 히어로와 같은 시그니처를 로그인에도 얹는다.
+.auth__sun {
+  position: absolute;
+  top: -120px;
+  left: 50%;
+  width: 420px;
+  height: 420px;
+  border-radius: 50%;
+  background: radial-gradient(circle, var(--solar-soft) 0%, transparent 68%);
+  transform: translateX(-50%);
+  pointer-events: none;
+}
+
+.auth__inner {
+  position: relative;
+  width: 100%;
+  max-width: 420px;
+  display: flex;
+  flex-direction: column;
+  gap: s.$space-6;
+}
+
+.auth__head {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: s.$space-3;
+  text-align: center;
+}
+
+.auth__title {
+  @include t.title-lg;
+
+  color: var(--text-strong);
+}
+
+.auth__lead {
+  @include t.body-sm;
+
+  color: var(--text-muted);
+}
+
+.auth__utils {
+  position: absolute;
+  top: s.$space-5;
+  right: s.$gutter-mobile;
+}
+
+.auth__foot {
+  @include t.caption;
+
+  margin-top: s.$space-2;
+  text-align: center;
+  color: var(--text-faint);
+}

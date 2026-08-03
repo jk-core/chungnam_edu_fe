@@ -1,0 +1,155 @@
+@use "@/styles/tokens/spacing" as s;
+@use "@/styles/tokens/typography" as t;
+@use "@/styles/utils/media" as media;
+@use "@/styles/utils/mixins" as mx;
+
+.hero {
+  position: relative;
+  overflow: hidden;
+  background:
+    radial-gradient(90% 120% at 78% -14%, var(--sky-glow), transparent 58%),
+    linear-gradient(180deg, var(--sky-top), var(--paper) 82%);
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+.hero__inner {
+  display: grid;
+  grid-template-columns: minmax(0, 0.86fr) minmax(0, 1.14fr);
+  align-items: center;
+  gap: s.$space-10;
+  padding-block: s.$space-11 s.$space-10;
+
+  @include mx.container;
+
+  @include media.tablet {
+    grid-template-columns: 1fr;
+    gap: s.$space-8;
+    padding-block: s.$space-9 s.$space-8;
+  }
+}
+
+.hero__copy {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: s.$space-4;
+  min-width: 0;
+}
+
+.hero__eyebrow {
+  color: var(--text-faint);
+
+  @include t.eyebrow;
+}
+
+.hero__title {
+  color: var(--text-strong);
+
+  @include t.display-lg;
+}
+
+.hero__lead {
+  max-width: 44ch;
+  color: var(--text-muted);
+
+  @include t.body-lg;
+}
+
+.hero__readout {
+  display: flex;
+  flex-direction: column;
+  gap: s.$space-1;
+  margin-top: s.$space-2;
+  padding-left: s.$space-5;
+  border-left: 3px solid var(--solar);
+}
+
+.hero__figure {
+  display: flex;
+  align-items: baseline;
+  gap: s.$space-2;
+  color: var(--text-strong);
+
+  @include t.data-xl;
+}
+
+.hero__unit {
+  color: var(--solar-text);
+
+  @include t.title-md;
+}
+
+.hero__figureLabel {
+  color: var(--text-muted);
+
+  @include t.label-md;
+}
+
+.hero__meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: s.$space-8;
+  margin-top: s.$space-2;
+}
+
+.hero__metaItem {
+  display: flex;
+  flex-direction: column;
+  gap: s.$space-1;
+
+  dt {
+    color: var(--text-faint);
+
+    @include t.label-sm;
+  }
+
+  dd {
+    display: flex;
+    align-items: center;
+    gap: s.$space-2;
+    margin: 0;
+    color: var(--text-strong);
+
+    @include t.data-md;
+  }
+}
+
+.hero__metaIcon {
+  width: 17px;
+  height: 17px;
+  color: var(--ok);
+}
+
+.hero__metaSub {
+  color: var(--text-faint);
+
+  @include t.caption;
+}
+
+.hero__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: s.$space-3;
+  margin-top: s.$space-4;
+}
+
+.hero__viz {
+  display: flex;
+  flex-direction: column;
+  gap: s.$space-4;
+  min-width: 0;
+}
+
+.hero__vizCaption {
+  max-width: 56ch;
+  margin-inline: auto;
+  color: var(--text-faint);
+  text-align: center;
+
+  @include t.caption;
+
+  @include media.tablet {
+    text-align: left;
+    margin-inline: 0;
+  }
+}

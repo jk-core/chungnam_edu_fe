@@ -1,0 +1,81 @@
+@use "../tokens/spacing" as s;
+@use "./media" as media;
+
+// KRDS 차용 — 콘텐츠 컨테이너와 좌우 여백
+@mixin container {
+  width: 100%;
+  max-width: s.$container-max;
+  margin-inline: auto;
+  padding-inline: s.$gutter-desktop;
+
+  @include media.tablet {
+    padding-inline: s.$gutter-tablet;
+  }
+
+  @include media.mobile {
+    padding-inline: s.$gutter-mobile;
+  }
+}
+
+/**
+ * 가로로 늘어선 카드들의 높이를 칸 높이에 맞춘다.
+ * 내용 길이(메터 막대·증감 표시 유무 등)에 따라 카드 키가 들쭉날쭉해지는 것을 막는다.
+ * 카드 컴포넌트 자체(.stat/.card/.pane)는 height:100% 를 갖고 있으므로,
+ * 여기서는 Reveal 같은 애니메이션 래퍼 한 겹만 늘려 주면 된다.
+ */
+@mixin stretch-cells {
+  align-items: stretch;
+
+  > * {
+    height: 100%;
+  }
+}
+
+// 스크린리더 전용
+@mixin sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
+}
+
+@mixin focus-ring($offset: 2px) {
+  outline: 2px solid var(--brand);
+  outline-offset: $offset;
+}
+
+@mixin card-surface {
+  background-color: var(--surface);
+  border: 1px solid var(--border-subtle);
+  border-radius: s.$radius-lg;
+  box-shadow: var(--shadow-sm);
+}
+
+@mixin truncate($lines: 1) {
+  @if $lines == 1 {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  } @else {
+    display: -webkit-box;
+    overflow: hidden;
+    -webkit-line-clamp: $lines;
+    -webkit-box-orient: vertical;
+  }
+}
+
+// 가로 스크롤 영역 (모바일 LNB 탭 등) — 스크롤바 숨김
+@mixin scroll-x {
+  overflow-x: auto;
+  scrollbar-width: none;
+  -webkit-overflow-scrolling: touch;
+
+  &::-webkit-scrollbar {
+    display: none;
+  }
+}

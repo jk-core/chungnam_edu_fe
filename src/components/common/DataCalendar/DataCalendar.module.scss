@@ -1,0 +1,286 @@
+@use "@/styles/tokens/spacing" as s;
+@use "@/styles/tokens/typography" as t;
+@use "@/styles/utils/media" as media;
+@use "@/styles/utils/mixins" as mx;
+
+.calendar {
+  display: flex;
+  flex-direction: column;
+  gap: s.$space-4;
+}
+
+.head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: s.$space-3;
+}
+
+.head__label {
+  @include t.title-sm;
+
+  color: var(--text-strong);
+}
+
+.head__nav {
+  display: flex;
+  align-items: center;
+  gap: s.$space-1;
+}
+
+.head__button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border: 1px solid var(--border);
+  border-radius: s.$radius-xs;
+  background-color: var(--surface);
+  color: var(--text-muted);
+  transition: color 0.16s ease, background-color 0.16s ease;
+
+  &:hover {
+    background-color: var(--surface-hover);
+    color: var(--text-strong);
+  }
+}
+
+.table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: s.$space-1;
+  table-layout: fixed;
+}
+
+.table__caption {
+  @include mx.sr-only;
+}
+
+.table__weekday {
+  @include t.caption;
+
+  padding-bottom: s.$space-1;
+  color: var(--text-faint);
+  font-weight: 500;
+  text-align: center;
+}
+
+.table__weekday--sun {
+  color: var(--critical-text);
+}
+
+.table__weekday--sat {
+  color: var(--brand-contrast);
+}
+
+.cellWrap {
+  padding: 0;
+  vertical-align: top;
+}
+
+.cell {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+  width: 100%;
+  min-height: 74px;
+  padding: s.$space-2;
+  border: 1px solid var(--border-subtle);
+  border-radius: s.$radius-sm;
+  background-color: var(--surface);
+  text-align: left;
+  transition: border-color 0.16s ease, background-color 0.16s ease, transform 0.16s ease;
+
+  &:hover {
+    border-color: var(--brand-soft-border);
+    background-color: var(--brand-soft);
+    transform: translateY(-1px);
+  }
+
+  @include media.mobile {
+    min-height: 58px;
+    padding: s.$space-1 + 2px;
+  }
+}
+
+.cell--empty {
+  min-height: 74px;
+  border: 1px dashed var(--border-subtle);
+  background-color: transparent;
+  cursor: default;
+
+  &:hover {
+    border-color: var(--border-subtle);
+    background-color: transparent;
+    transform: none;
+  }
+
+  @include media.mobile {
+    min-height: 58px;
+  }
+}
+
+.cell--selected {
+  border-color: var(--brand);
+  background-color: var(--brand-soft);
+  box-shadow: var(--shadow-focus);
+}
+
+.cell--today {
+  border-color: var(--solar);
+}
+
+.cell__top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: s.$space-1;
+  width: 100%;
+}
+
+.cell__day {
+  @include t.data-sm;
+
+  color: var(--text-strong);
+  font-variant-numeric: tabular-nums;
+}
+
+.cell__day--sun {
+  color: var(--critical-text);
+}
+
+.cell__day--sat {
+  color: var(--brand-contrast);
+}
+
+// 아이콘만으로 날씨를 구분해야 하니 종류별로 색을 확실히 갈라 둔다.
+.cell__weather {
+  flex-shrink: 0;
+  color: var(--text-muted);
+}
+
+.cell__weather--clear {
+  color: var(--solar-deep);
+}
+
+.cell__weather--partlyCloudy {
+  color: var(--caution-text);
+}
+
+.cell__weather--cloudy {
+  color: var(--text-muted);
+}
+
+.cell__weather--rain {
+  color: var(--brand);
+}
+
+.cell__weather--snow {
+  color: var(--brand-contrast);
+}
+
+.cell__hours {
+  @include t.caption;
+
+  color: var(--text);
+  font-family: var(--font-data);
+}
+
+.cell__revenue {
+  @include t.caption;
+
+  color: var(--text-faint);
+  font-family: var(--font-data);
+
+  // 칸이 좁아지면 수익금은 접는다. 날씨와 발전시간이 먼저다.
+  @include media.mobile {
+    display: none;
+  }
+}
+
+// ── 연 그리드 ──────────────────────────────────────────────
+.yearGrid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: s.$space-2;
+
+  @include media.tablet {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  @include media.mobile {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+.monthCell {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+  padding: s.$space-3;
+  border: 1px solid var(--border-subtle);
+  border-radius: s.$radius-sm;
+  background-color: var(--surface);
+  text-align: left;
+  transition: border-color 0.16s ease, background-color 0.16s ease, transform 0.16s ease;
+
+  &:hover {
+    border-color: var(--brand-soft-border);
+    background-color: var(--brand-soft);
+    transform: translateY(-1px);
+  }
+}
+
+.monthCell--selected {
+  border-color: var(--brand);
+  background-color: var(--brand-soft);
+  box-shadow: var(--shadow-focus);
+}
+
+.monthCell__top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: s.$space-2;
+  width: 100%;
+}
+
+.monthCell__label {
+  @include t.label-sm;
+
+  color: var(--text-strong);
+}
+
+.monthCell__hours {
+  @include t.data-md;
+
+  margin-top: s.$space-1;
+  color: var(--text-strong);
+  font-variant-numeric: tabular-nums;
+}
+
+.monthCell__unit {
+  @include t.caption;
+
+  margin-left: 2px;
+  color: var(--text-muted);
+}
+
+.monthCell__revenue {
+  @include t.caption;
+
+  color: var(--text-faint);
+  font-family: var(--font-data);
+}
+
+.foot {
+  @include t.caption;
+
+  display: flex;
+  flex-wrap: wrap;
+  gap: s.$space-1 s.$space-4;
+  color: var(--text-faint);
+}

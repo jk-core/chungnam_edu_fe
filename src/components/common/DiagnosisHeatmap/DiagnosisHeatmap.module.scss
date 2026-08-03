@@ -1,0 +1,123 @@
+@use "@/styles/tokens/spacing" as s;
+@use "@/styles/tokens/typography" as t;
+@use "@/styles/utils/media" as media;
+@use "@/styles/utils/mixins" as mx;
+
+.heatmap {
+  display: flex;
+  flex-direction: column;
+  gap: s.$space-3;
+}
+
+.scroll {
+  overflow-x: auto;
+
+  @include mx.scroll-x;
+}
+
+.grid {
+  display: grid;
+  gap: 3px;
+  min-width: max-content;
+}
+
+.corner {
+  position: sticky;
+  left: 0;
+  z-index: 2;
+  background-color: var(--surface);
+}
+
+.colLabel {
+  @include t.caption;
+
+  padding-bottom: s.$space-1;
+  color: var(--text-faint);
+  font-family: var(--font-data);
+  text-align: center;
+}
+
+.rowLabel {
+  @include t.caption;
+
+  position: sticky;
+  left: 0;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding-right: s.$space-3;
+  background-color: var(--surface);
+  color: var(--text);
+}
+
+.rowLabel__sub {
+  @include t.caption;
+
+  color: var(--text-faint);
+}
+
+.cell {
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 30px;
+  border: 1px solid transparent;
+  border-radius: s.$radius-xs;
+  background-color: var(--surface-sunken);
+  color: var(--text-strong);
+  font-family: var(--font-data);
+  font-size: 10px;
+  transition: transform 0.14s ease, border-color 0.14s ease;
+
+  &:hover {
+    border-color: var(--brand);
+    transform: scale(1.12);
+  }
+
+  @include media.mobile {
+    width: 28px;
+    height: 26px;
+  }
+}
+
+.cell--clickable {
+  cursor: pointer;
+}
+
+.cell--deep {
+  color: var(--text-on-brand);
+}
+
+// 색만으로 구분되지 않게 값 자체를 칸에 적는다 (COR-003).
+.cell--none {
+  background-image: repeating-linear-gradient(
+    45deg,
+    transparent 0 3px,
+    var(--border) 3px 4px
+  );
+  color: var(--text-faint);
+}
+
+.legend {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: s.$space-1 s.$space-4;
+}
+
+.legend__item {
+  @include t.caption;
+
+  display: inline-flex;
+  align-items: center;
+  gap: s.$space-1 + 2px;
+  color: var(--text-muted);
+}
+
+.legend__swatch {
+  width: 14px;
+  height: 14px;
+  border: 1px solid var(--border);
+  border-radius: 3px;
+}

@@ -1,0 +1,80 @@
+@use "@/styles/tokens/spacing" as s;
+@use "@/styles/tokens/typography" as t;
+@use "@/styles/utils/media" as media;
+
+.logo {
+  display: inline-flex;
+  align-items: center;
+  gap: s.$space-3;
+  min-width: 0;
+}
+
+.logo__mark {
+  flex-shrink: 0;
+  width: 36px;
+  height: 36px;
+  transition: transform 0.4s cubic-bezier(0.2, 0.8, 0.3, 1);
+
+  @include media.mobile {
+    width: 32px;
+    height: 32px;
+  }
+}
+
+.logo__plate {
+  fill: var(--brand);
+}
+
+.logo__arc {
+  stroke: var(--solar);
+  stroke-dasharray: 40;
+  stroke-dashoffset: 0;
+  transition: stroke-dashoffset 0.6s ease;
+}
+
+.logo__sun {
+  fill: var(--solar);
+  transform-origin: 18px 15.2px;
+  transition: transform 0.4s cubic-bezier(0.2, 0.8, 0.3, 1);
+}
+
+.logo__horizon {
+  stroke: rgb(255 255 255 / 55%);
+}
+
+// 헤더 링크에 hover 하면 해가 살짝 떠오른다.
+.logo:hover {
+  .logo__mark {
+    transform: translateY(-1px);
+  }
+
+  .logo__sun {
+    transform: translateY(-1.5px) scale(1.08);
+  }
+}
+
+.logo__text {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  min-width: 0;
+}
+
+.logo__org {
+  color: var(--text-strong);
+  letter-spacing: -0.03em;
+
+  @include t.title-sm;
+}
+
+.logo__service {
+  color: var(--text-muted);
+  letter-spacing: -0.01em;
+  white-space: nowrap;
+
+  @include t.caption;
+
+  @include media.tablet {
+    display: none;
+  }
+}

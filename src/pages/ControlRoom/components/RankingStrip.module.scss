@@ -1,0 +1,80 @@
+@use "@/styles/tokens/spacing" as s;
+@use "@/styles/tokens/typography" as t;
+@use "@/styles/utils/mixins" as mx;
+
+/* 칸에 들어가는 만큼만 그리므로 스크롤을 만들지 않는다. */
+.rank {
+  display: flex;
+  flex-direction: column;
+  gap: s.$space-2;
+  height: 100%;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.rank__row {
+  display: grid;
+  grid-template-columns: 20px minmax(0, 1fr) 64px;
+  align-items: center;
+  gap: s.$space-3;
+  width: 100%;
+  padding: s.$space-1 s.$space-2;
+  border: 0;
+  border-radius: s.$radius-sm;
+  background: none;
+  text-align: left;
+  transition: background-color 0.14s ease;
+
+  &:hover {
+    background-color: var(--surface-hover);
+  }
+}
+
+.rank__order {
+  @include t.caption;
+
+  display: grid;
+  place-items: center;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background-color: var(--brand-soft);
+  color: var(--brand-contrast);
+  font-family: var(--font-data);
+}
+
+.rank__body {
+  min-width: 0;
+}
+
+.rank__name {
+  @include t.caption;
+  @include mx.truncate;
+
+  display: block;
+  color: var(--text);
+}
+
+.rank__track {
+  display: block;
+  height: 6px;
+  margin-top: 3px;
+  border-radius: s.$radius-full;
+  background-color: var(--surface-sunken);
+  overflow: hidden;
+}
+
+.rank__bar {
+  display: block;
+  height: 100%;
+  border-radius: s.$radius-full;
+  background: linear-gradient(90deg, var(--solar-deep), var(--solar));
+  transition: width 0.6s cubic-bezier(0.22, 0.68, 0.32, 1);
+}
+
+.rank__value {
+  @include t.data-sm;
+
+  color: var(--text-strong);
+  text-align: right;
+}

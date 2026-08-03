@@ -1,0 +1,157 @@
+@use "../tokens/semantic";
+@use "../tokens/typography" as t;
+@use "../tokens/spacing" as s;
+@use "../utils/media" as media;
+
+:root {
+  // 전역 헤더 높이 — sticky offset 계산의 단일 기준값
+  --header-height: 76px;
+
+  @include media.tablet {
+    --header-height: 64px;
+  }
+
+  @include media.mobile {
+    --header-height: 56px;
+  }
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--border-strong) transparent;
+}
+
+*::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+*::-webkit-scrollbar-track {
+  background-color: transparent;
+}
+
+*::-webkit-scrollbar-thumb {
+  background-color: var(--border-strong);
+  border-radius: s.$radius-full;
+
+  &:hover {
+    background-color: var(--text-faint);
+  }
+}
+
+html {
+  scroll-behavior: smooth;
+  text-size-adjust: 100%;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+  font-family: var(--font-sans);
+  background-color: var(--paper);
+  color: var(--text);
+
+  @include t.body-md;
+}
+
+body {
+  min-height: 100dvh;
+
+  // 한국어는 어절 단위로 끊어야 읽기 좋다. 긴 영문·숫자는 예외로 넘긴다.
+  word-break: keep-all;
+  overflow-wrap: break-word;
+  transition: background-color 0.24s ease, color 0.24s ease;
+}
+
+#root {
+  display: flex;
+  flex-direction: column;
+  min-height: 100dvh;
+}
+
+::selection {
+  background-color: var(--solar-soft);
+  color: var(--text-strong);
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+  transition: color 0.15s ease;
+}
+
+button {
+  font-family: inherit;
+  cursor: pointer;
+}
+
+button,
+input,
+select,
+textarea {
+  font-family: inherit;
+  font-size: inherit;
+  color: inherit;
+}
+
+:focus-visible {
+  outline: 2px solid var(--brand);
+  outline-offset: 2px;
+  border-radius: s.$radius-xs;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6,
+p,
+figure {
+  margin: 0;
+}
+
+ul,
+ol {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+table {
+  border-collapse: collapse;
+  border-spacing: 0;
+}
+
+img,
+svg {
+  display: block;
+  max-width: 100%;
+}
+
+[hidden] {
+  display: none !important;
+}

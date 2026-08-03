@@ -1,0 +1,58 @@
+@use "@/styles/tokens/spacing" as s;
+@use "@/styles/tokens/typography" as t;
+
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: s.$space-1 + 2px;
+  height: 24px;
+  padding-inline: s.$space-2 + 2px;
+  border: 1px solid transparent;
+  border-radius: s.$radius-full;
+  white-space: nowrap;
+
+  @include t.label-sm;
+}
+
+.badge__dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background-color: currentcolor;
+}
+
+.badge--ok {
+  background-color: var(--ok-soft);
+  border-color: color-mix(in srgb, var(--ok) 26%, transparent);
+  color: var(--ok-text);
+}
+
+.badge--caution {
+  background-color: var(--caution-soft);
+  border-color: color-mix(in srgb, var(--caution) 26%, transparent);
+  color: var(--caution-text);
+}
+
+.badge--critical {
+  background-color: var(--critical-soft);
+  border-color: color-mix(in srgb, var(--critical) 26%, transparent);
+  color: var(--critical-text);
+}
+
+.badge--offline {
+  background-color: var(--offline-soft);
+  border-color: color-mix(in srgb, var(--offline) 26%, transparent);
+  color: var(--offline-text);
+}
+
+.badge--brand {
+  background-color: var(--brand-soft);
+  border-color: var(--brand-soft-border);
+  color: var(--brand-contrast);
+}
+
+.badge--neutral {
+  background-color: var(--surface-sunken);
+  border-color: var(--border-subtle);
+  color: var(--text-muted);
+}

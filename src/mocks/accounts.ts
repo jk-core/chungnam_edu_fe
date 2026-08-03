@@ -1,0 +1,111 @@
+import type { AuthUser, LoginPolicy, ManagedUser, Role } from '@/interface/account';
+import { getSchoolById, SCHOOLS } from './schools';
+import { createRandom, hashSeed, pickNumber, pickOne } from './random';
+import { stampAgo } from './today';
+
+/** 교육기관 계정이 담당하는 학교. 목업 트리의 실제 노드와 맞물려야 한다. */
+const INSTITUTION_PLANT_ID = 'cheonan-1';
+
+const institutionSchool = getSchoolById(INSTITUTION_PLANT_ID);
+
+/**
+ * 데모 계정.
+ * 실제로는 서버가 인증하지만, 목업에서는 아이디로 이 목록을 찾아 로그인한다.
+ */
+export const ACCOUNTS: AuthUser[] = [
+  {
+    id: 'cne-admin',
+    name: '김도현',
+    role: 'admin',
+    orgName: '충청남도교육청 교육과정평가정보원',
+    department: '정보인프라부',
+    email: 'admin@cne.go.kr',
+    plantIds: [],
+  },
+  {
+    id: 'cne-office',
+    name: '박세연',
+    role: 'office',
+    orgName: '충청남도교육청',
+    department: '시설과',
+    email: 'office@cne.go.kr',
+    plantIds: [],
+  },
+  {
+    id: 'school-cheonan',
+    name: '이준서',
+    role: 'institution',
+    orgName: institutionSchool?.name ?? '천안 소재 학교',
+    department: '행정실',
+    email: 'school@cne.go.kr',
+    plantIds: [INSTITUTION_PLANT_ID],
+  },
+];
+
+export const ROLE_LABEL: Record<Role, string> = {
+  admin: '교육청 관리자',
+  office: '교육청 담당자',
+  institution: '교육기관 담당자',
+};
+
+/** 역할별로 무엇까지 볼 수 있는지 — 로그인 화면과 계정 메뉴에서 그대로 쓴다. */
+export const ROLE_SCOPE_NOTE: Record<Role, string> = {
+  admin: '전체 발전소 조회와 관리자 콘솔을 씁니다.',
+  office: '전체 발전소를 조회만 합니다.',
+  institution: '담당 학교의 설비만 조회합니다.',
+};
+
+const ACCOUNT_BY_ID = new Map(ACCOUNTS.map((account) => [account.id, account]));
+
+export function getAccountById(id: string): AuthUser | null {
+  return ACCOUNT_BY_ID.get(id.trim()) ?? null;
+}
+
+// ── 사용자 관리 시드 (SFR-018) ──────────────────────────────
+const USER_SURNAME = ['김', '이', '박', '최', '정', '강', '조', '윤', '장', '임'];
+const USER_GIVEN = ['서준', '하윤', '지호', '수아', '은우', '지민', '예준', '다은', '시우', '채원'];
+const DEPARTMENTS = ['행정실', '행정실', '시설관리팀', '교무행정팀'];
+
+function buildManagedUsers(): ManagedUser[] {
+  const next = createRandom(hashSeed('cne-users-2026'));
+
+  // 교육청 계정 두 자리 + 학교 담당자. 데모 로그인 계정과 같은 인물은 그대로 싣는다.
+  const office: ManagedUser[] = ACCOUNTS.map((account) => ({
+    ...account,
+    phone: account.role === 'admin' ? '041-640-0114' : '041-640-0132',
+    lastLoginAt: stampAgo(account.role === 'institution' ? 1 : 0, `09:0${Math.round(pickNumber(next, 0, 9))}`),
+    locked: false,
+  }));
+
+  const schools: ManagedUser[] = SCHOOLS.filter((_, index) => index % 4 === 1).map((school, index) => {
+    const name = `${pickOne(next, USER_SURNAME)}${pickOne(next, USER_GIVEN)}`;
+    const neverLoggedIn = next() > 0.88;
+
+    return {
+      id: `mgr-${school.id}`,
+      name,
+      role: 'institution',
+      orgName: school.name,
+      department: pickOne(next, DEPARTMENTS),
+      email: `mgr${String(index + 11)}@school.cne.go.kr`,
+      phone: `041-${String(500 + Math.round(pickNumber(next, 0, 399)))}-${String(1000 + Math.round(pickNumber(next, 0, 8999)))}`,
+      plantIds: [school.id],
+      lastLoginAt: neverLoggedIn
+        ? null
+        : stampAgo(Math.round(pickNumber(next, 0, 20)), `1${Math.round(pickNumber(next, 0, 7))}:${10 + Math.round(pickNumber(next, 0, 49))}`),
+      locked: next() > 0.94,
+    };
+  });
+
+  return [...office, ...schools];
+}
+
+export const SEED_USERS: ManagedUser[] = buildManagedUsers();
+
+/** SFR-026 로그인 설정. 관리자는 권한이 큰 만큼 유지시간을 짧게 둔다. */
+export const LOGIN_POLICY: LoginPolicy = {
+  passwordResetDays: 90,
+  maxFailCount: 5,
+  adminSessionMinutes: 30,
+  userSessionMinutes: 60,
+};

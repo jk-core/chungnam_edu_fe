@@ -1,0 +1,343 @@
+import { useMemo, useState } from 'react';
+import { Badge } from '@/components/common/Badge';
+import { Button } from '@/components/common/Button';
+import { Card } from '@/components/common/Card';
+import { ConfirmDialog } from '@/components/common/ConfirmDialog';
+import { FormRow, FormSection, RadioGroup, TextField } from '@/components/common/Form';
+import { Modal } from '@/components/common/Modal';
+import { MaskedText } from '@/components/common/MaskedText';
+import { maskEmail } from '@/utils/mask';
+import { MSG } from '@/configs/messages';
+import { NOW } from '@/mocks/today';
+import { Pagination } from '@/components/common/Pagination';
+import { PlusIcon } from '@/components/common/Icon';
+import { Reveal } from '@/components/common/Reveal';
+import { ROLE_LABEL } from '@/mocks/accounts';
+import { Table } from '@/components/common/Table';
+import { formatNumber } from '@/utils/format';
+import { toast } from '@/stores/toastStore';
+import useAssetStore, { mergeUsers } from '@/stores/assetStore';
+import type { Column } from '@/components/common/Table';
+import type { ManagedUser, Role } from '@/interface/account';
+import styles from '../Admin.module.scss';
+
+const PAGE_SIZE = 10;
+
+interface Draft {
+  id: string | null;
+  name: string;
+  role: Role;
+  orgName: string;
+  department: string;
+  email: string;
+  phone: string;
+}
+
+const EMPTY_DRAFT: Draft = {
+  id: null,
+  name: '',
+  role: 'institution',
+  orgName: '',
+  department: '행정실',
+  email: '',
+  phone: '',
+};
+
+/** 사용자 관리 (SFR-018) — 관리자만 들어온다 (SFR-018-05). */
+export function UsersTab() {
+  const userCreated = useAssetStore((state) => state.userCreated);
+  const userPatched = useAssetStore((state) => state.userPatched);
+  const userDeleted = useAssetStore((state) => state.userDeleted);
+  const saveUser = useAssetStore((state) => state.saveUser);
+  const patchUser = useAssetStore((state) => state.patchUser);
+  const removeUser = useAssetStore((state) => state.removeUser);
+  const nextUserId = useAssetStore((state) => state.nextUserId);
+
+  const [keyword, setKeyword] = useState('');
+  const [page, setPage] = useState(1);
+  const [draft, setDraft] = useState<Draft | null>(null);
+  const [error, setError] = useState<string | undefined>(undefined);
+  const [confirming, setConfirming] = useState(false);
+  const [deleting, setDeleting] = useState<ManagedUser | null>(null);
+
+  const users = useMemo(() => {
+    const all = mergeUsers(userCreated, userPatched, userDeleted);
+    const trimmed = keyword.trim();
+
+    return trimmed
+      ? all.filter((user) => user.name.includes(trimmed) || user.orgName.includes(trimmed) || user.email.includes(trimmed))
+      : all;
+  }, [userCreated, userPatched, userDeleted, keyword]);
+
+  const pageCount = Math.max(1, Math.ceil(users.length / PAGE_SIZE));
+  const currentPage = Math.min(page, pageCount);
+  const pageRows = users.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE);
+  const lockedCount = users.filter((user) => user.locked).length;
+
+  const openEditor = (target: ManagedUser | null) => {
+    setError(undefined);
+    setDraft(
+      target
+        ? {
+          id: target.id,
+          name: target.name,
+          role: target.role,
+          orgName: target.orgName,
+          department: target.department,
+          email: target.email,
+          phone: target.phone,
+        }
+        : EMPTY_DRAFT,
+    );
+  };
+
+  const submit = () => {
+    if (!draft) return;
+
+    if (!draft.name.trim() || !draft.orgName.trim() || !draft.email.trim()) {
+      setError(MSG.requiredMissing);
+
+      return;
+    }
+
+    setError(undefined);
+    setConfirming(true);
+  };
+
+  const commit = () => {
+    if (!draft) return;
+
+    const isNew = draft.id === null;
+    const existing = isNew ? null : users.find((user) => user.id === draft.id) ?? null;
+
+    saveUser({
+      id: draft.id ?? nextUserId(),
+      name: draft.name.trim(),
+      role: draft.role,
+      orgName: draft.orgName.trim(),
+      department: draft.department.trim(),
+      email: draft.email.trim(),
+      phone: draft.phone.trim(),
+      plantIds: existing?.plantIds ?? [],
+      lastLoginAt: existing?.lastLoginAt ?? null,
+      locked: existing?.locked ?? false,
+    });
+
+    toast.success(isNew ? MSG.createSuccess('사용자') : MSG.updateSuccess(draft.name));
+    setDraft(null);
+  };
+
+  const unlock = (target: ManagedUser) => {
+    patchUser(target.id, { locked: false });
+    toast.success(`${target.name} 계정 잠금을 풀었습니다.`);
+  };
+
+  const resetPassword = (target: ManagedUser) => {
+    toast.success(`${target.name} 계정에 임시 비밀번호를 보냈습니다. (${NOW.format('HH:mm')} 기준)`);
+  };
+
+  const columns: Column<ManagedUser>[] = [
+    {
+      key: 'name',
+      header: '이름',
+      width: '140px',
+      render: (row) => (
+        <>
+          <strong>{row.name}</strong>
+          {row.locked ? <Badge tone="critical"> 잠금</Badge> : null}
+        </>
+      ),
+    },
+    { key: 'org', header: '소속', render: (row) => `${row.orgName} · ${row.department}` },
+    { key: 'role', header: '권한', width: '120px', render: (row) => <Badge tone={row.role === 'admin' ? 'brand' : 'neutral'}>{ROLE_LABEL[row.role]}</Badge> },
+    {
+      key: 'email',
+      header: '이메일',
+      hideOnTablet: true,
+      // 목록에서는 가려 두고 필요할 때만 확인한다 (SFR-018-05).
+      render: (row) => <MaskedText masked={maskEmail(row.email)} original={row.email} label={`${row.name} 이메일`} />,
+    },
+    {
+      key: 'login',
+      header: '마지막 로그인',
+      width: '140px',
+      hideOnTablet: true,
+      render: (row) => row.lastLoginAt ?? '이력 없음',
+    },
+    {
+      key: 'action',
+      header: '관리',
+      width: '210px',
+      align: 'center',
+      render: (row) => (
+        <span className={styles.toolbar__actions}>
+          <Button size="sm" variant="secondary" onClick={() => openEditor(row)}>
+            수정
+          </Button>
+          {row.locked ? (
+            <Button size="sm" variant="secondary" onClick={() => unlock(row)}>
+              잠금 해제
+            </Button>
+          ) : (
+            <Button size="sm" variant="ghost" onClick={() => resetPassword(row)}>
+              비번 초기화
+            </Button>
+          )}
+          <Button size="sm" variant="ghost" onClick={() => setDeleting(row)}>
+            삭제
+          </Button>
+        </span>
+      ),
+    },
+  ];
+
+  return (
+    <div className={styles.tab}>
+      <div className={styles.toolbar}>
+        <div className={styles.toolbar__left}>
+          <TextField
+            label="사용자 검색"
+            value={keyword}
+            onChange={(value) => {
+              setKeyword(value);
+              setPage(1);
+            }}
+            placeholder="이름·소속·이메일 검색"
+            width="md"
+          />
+          <p className={styles.toolbar__note}>
+            {formatNumber(users.length)}명{lockedCount > 0 ? ` · 잠금 ${lockedCount}건` : ''}
+          </p>
+        </div>
+        <div className={styles.toolbar__actions}>
+          <Button iconLeft={<PlusIcon />} onClick={() => openEditor(null)}>
+            사용자 등록
+          </Button>
+        </div>
+      </div>
+
+      <Reveal>
+        <Card
+          eyebrow="Users"
+          title="설비 담당자"
+          description="로그인 실패가 누적돼 잠긴 계정은 여기서 풀어 줍니다."
+        >
+          <Table
+            caption="사용자 목록"
+            columns={columns}
+            rows={pageRows}
+            getRowKey={(row) => row.id}
+            getRowClassName={(row) => (row.locked ? styles.rowAlert : undefined)}
+          />
+          <Pagination
+            page={currentPage}
+            pageCount={pageCount}
+            totalCount={users.length}
+            onChange={setPage}
+            label="사용자 목록"
+          />
+        </Card>
+      </Reveal>
+
+      <Modal
+        isOpen={draft !== null}
+        onClose={() => setDraft(null)}
+        size="lg"
+        title={draft?.id === null ? '사용자 등록' : '사용자 수정'}
+        description="교육기관 담당자는 소속 학교의 설비만 조회할 수 있습니다."
+        footer={(
+          <>
+            <Button variant="secondary" onClick={() => setDraft(null)}>
+              취소
+            </Button>
+            <Button onClick={submit}>저장</Button>
+          </>
+        )}
+      >
+        {draft ? (
+          <div className={styles.form}>
+            <FormSection legend="기본 정보">
+              <FormRow cols={2}>
+                <TextField
+                  label="이름"
+                  value={draft.name}
+                  onChange={(value) => setDraft({ ...draft, name: value })}
+                  required
+                  error={error && !draft.name.trim() ? MSG.requiredField('이름') : undefined}
+                />
+                <TextField
+                  label="소속 기관"
+                  value={draft.orgName}
+                  onChange={(value) => setDraft({ ...draft, orgName: value })}
+                  required
+                  error={error && !draft.orgName.trim() ? MSG.requiredField('소속 기관') : undefined}
+                />
+              </FormRow>
+              <FormRow cols={2}>
+                <TextField
+                  label="부서"
+                  value={draft.department}
+                  onChange={(value) => setDraft({ ...draft, department: value })}
+                />
+                <TextField
+                  label="이메일"
+                  value={draft.email}
+                  onChange={(value) => setDraft({ ...draft, email: value })}
+                  ime="latin"
+                  required
+                  error={error && !draft.email.trim() ? MSG.requiredField('이메일') : undefined}
+                />
+              </FormRow>
+              <FormRow cols={2}>
+                <TextField
+                  label="연락처"
+                  value={draft.phone}
+                  onChange={(value) => setDraft({ ...draft, phone: value })}
+                  ime="numeric"
+                />
+              </FormRow>
+            </FormSection>
+
+            <FormSection legend="권한">
+              <RadioGroup
+                legend="역할"
+                value={draft.role}
+                onChange={(value) => setDraft({ ...draft, role: value })}
+                options={[
+                  { value: 'institution', label: ROLE_LABEL.institution },
+                  { value: 'office', label: ROLE_LABEL.office },
+                  { value: 'admin', label: ROLE_LABEL.admin, tone: 'brand' },
+                ]}
+                required
+              />
+            </FormSection>
+          </div>
+        ) : null}
+      </Modal>
+
+      <ConfirmDialog
+        isOpen={confirming}
+        title={draft?.id === null ? MSG.createConfirm('사용자') : MSG.updateConfirm(draft?.name ?? '사용자')}
+        confirmLabel="저장"
+        onConfirm={commit}
+        onClose={() => setConfirming(false)}
+      />
+
+      <ConfirmDialog
+        isOpen={deleting !== null}
+        title={MSG.deleteConfirm(deleting?.name ?? '사용자')}
+        description="삭제해도 접속 로그에는 과거 기록이 남습니다."
+        confirmLabel="삭제"
+        tone="danger"
+        onConfirm={() => {
+          if (!deleting) return;
+
+          removeUser(deleting.id);
+          toast.success(MSG.deleteSuccess(deleting.name));
+          setDeleting(null);
+        }}
+        onClose={() => setDeleting(null)}
+      />
+    </div>
+  );
+}

@@ -1,0 +1,47 @@
+@use "@/styles/tokens/spacing" as s;
+@use "@/styles/tokens/typography" as t;
+@use "@/styles/utils/media" as media;
+
+.chart {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 200px;
+  gap: s.$space-4;
+  align-items: start;
+
+  @include media.tablet {
+    grid-template-columns: 1fr;
+  }
+}
+
+// 권역별 금일 발전량 — 차트 옆에 표로 붙여 수치를 그대로 읽게 한다 (SFR-004-10).
+.regions {
+  display: flex;
+  flex-direction: column;
+  gap: s.$space-1;
+  padding-top: s.$space-6;
+}
+
+.regions__item {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: s.$space-3;
+  padding: 2px s.$space-2;
+  border-radius: s.$radius-xs;
+
+  &:nth-child(odd) {
+    background-color: var(--surface-sunken);
+  }
+}
+
+.regions__name {
+  @include t.caption;
+
+  color: var(--text-muted);
+}
+
+.regions__value {
+  @include t.data-sm;
+
+  color: var(--text-strong);
+}

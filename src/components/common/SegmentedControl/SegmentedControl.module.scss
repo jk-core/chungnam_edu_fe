@@ -1,0 +1,58 @@
+@use "@/styles/tokens/spacing" as s;
+@use "@/styles/tokens/typography" as t;
+
+.segmented {
+  display: inline-flex;
+  gap: 2px;
+  padding: 3px;
+  background-color: var(--surface-sunken);
+  border: 1px solid var(--border-subtle);
+  border-radius: s.$radius-full;
+}
+
+.segmented__item {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding-inline: s.$space-4;
+  background: none;
+  border: 0;
+  border-radius: s.$radius-full;
+  color: var(--text-muted);
+  transition: color 0.18s ease;
+
+  @include t.label-md;
+
+  &:hover {
+    color: var(--text-strong);
+  }
+}
+
+.segmented__item--active {
+  color: var(--text-strong);
+}
+
+.segmented__indicator {
+  position: absolute;
+  inset: 0;
+  background-color: var(--surface);
+  border-radius: s.$radius-full;
+  box-shadow: var(--shadow-sm);
+}
+
+.segmented__label {
+  position: relative;
+  z-index: 1;
+  white-space: nowrap;
+}
+
+.segmented--sm .segmented__item {
+  height: 30px;
+  padding-inline: s.$space-3;
+  font-size: 0.8125rem;
+}
+
+.segmented--md .segmented__item {
+  height: 36px;
+}

@@ -1,0 +1,56 @@
+@use "@/styles/tokens/spacing" as s;
+@use "@/styles/utils/media" as media;
+
+.skeleton {
+  display: block;
+  background: linear-gradient(
+    90deg,
+    var(--surface-sunken) 0%,
+    var(--surface-hover) 50%,
+    var(--surface-sunken) 100%
+  );
+  background-size: 220% 100%;
+  animation: shimmer 1.4s ease-in-out infinite;
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: 120% 0;
+  }
+
+  100% {
+    background-position: -120% 0;
+  }
+}
+
+.skeleton--sm {
+  border-radius: s.$radius-sm;
+}
+
+.skeleton--md {
+  border-radius: s.$radius-md;
+}
+
+.skeleton--lg {
+  border-radius: s.$radius-lg;
+}
+
+.skeleton--full {
+  border-radius: s.$radius-full;
+}
+
+.page {
+  display: flex;
+  flex-direction: column;
+  gap: s.$space-4;
+}
+
+.page__row {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: s.$space-4;
+
+  @include media.mobile {
+    grid-template-columns: 1fr;
+  }
+}

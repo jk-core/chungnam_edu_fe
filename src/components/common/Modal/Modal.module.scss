@@ -1,0 +1,129 @@
+@use "@/styles/tokens/spacing" as s;
+@use "@/styles/tokens/typography" as t;
+@use "@/styles/utils/media" as media;
+
+.modal {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: s.$space-6;
+
+  @include media.mobile {
+    align-items: flex-end;
+    padding: 0;
+  }
+}
+
+.modal__backdrop {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  padding: 0;
+  background-color: var(--overlay);
+  border: 0;
+  backdrop-filter: blur(3px);
+}
+
+.modal__panel {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  max-height: min(84dvh, 760px);
+  background-color: var(--surface);
+  border: 1px solid var(--border-subtle);
+  border-radius: s.$radius-xl;
+  box-shadow: var(--shadow-lg);
+  overflow: hidden;
+
+  @include media.mobile {
+    max-height: 88dvh;
+    border-radius: s.$radius-xl s.$radius-xl 0 0;
+    border-bottom: 0;
+  }
+}
+
+.modal__panel--md {
+  max-width: 520px;
+}
+
+.modal__panel--lg {
+  max-width: 760px;
+}
+
+.modal__header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: s.$space-4;
+  padding: s.$space-6 s.$space-6 s.$space-4;
+  border-bottom: 1px solid var(--border-subtle);
+
+  @include media.mobile {
+    padding: s.$space-5 s.$space-5 s.$space-4;
+  }
+}
+
+.modal__heading {
+  display: flex;
+  flex-direction: column;
+  gap: s.$space-1;
+  min-width: 0;
+}
+
+.modal__title {
+  color: var(--text-strong);
+
+  @include t.title-lg;
+}
+
+.modal__description {
+  color: var(--text-muted);
+
+  @include t.body-sm;
+}
+
+.modal__close {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 36px;
+  height: 36px;
+  background: none;
+  border: 1px solid var(--border);
+  border-radius: s.$radius-full;
+  color: var(--text-muted);
+  transition: color 0.16s ease, background-color 0.16s ease, border-color 0.16s ease;
+
+  &:hover {
+    background-color: var(--surface-hover);
+    border-color: var(--border-strong);
+    color: var(--text-strong);
+  }
+}
+
+.modal__body {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  padding: s.$space-5 s.$space-6 s.$space-6;
+
+  @include media.mobile {
+    padding: s.$space-4 s.$space-5 s.$space-6;
+  }
+}
+
+.modal__footer {
+  padding: s.$space-4 s.$space-6;
+  border-top: 1px solid var(--border-subtle);
+  background-color: var(--surface-sunken);
+}
+
+// 본문이 없는 확인 대화상자에서는 머리글 아래 선만 남긴다.
+.modal__header + .modal__footer {
+  border-top: 0;
+}

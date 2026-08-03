@@ -1,0 +1,244 @@
+@use "@/styles/tokens/spacing" as s;
+@use "@/styles/tokens/typography" as t;
+@use "@/styles/utils/media" as media;
+@use "@/styles/utils/mixins" as mx;
+
+.board {
+  @include mx.container;
+}
+
+.board__inner {
+  display: flex;
+  flex-direction: column;
+  gap: s.$space-4;
+}
+
+// ── 조회 조건 (SFR-004-11/12) ──────────────────────────────
+.filters {
+  display: flex;
+  align-items: flex-end;
+  flex-wrap: wrap;
+  gap: s.$space-3;
+}
+
+.search {
+  position: relative;
+  flex: 1;
+  min-width: 220px;
+}
+
+.search__icon {
+  position: absolute;
+  top: 50%;
+  left: s.$space-3;
+  color: var(--text-faint);
+  transform: translateY(-50%);
+  pointer-events: none;
+}
+
+.search__input {
+  @include t.body-sm;
+
+  width: 100%;
+  height: 40px;
+  padding: 0 s.$space-3 0 s.$space-9;
+  border: 1px solid var(--border);
+  border-radius: s.$radius-sm;
+  background-color: var(--surface);
+  color: var(--text-strong);
+
+  &::placeholder {
+    color: var(--text-faint);
+  }
+
+  &:focus-visible {
+    outline: none;
+    border-color: var(--brand);
+    box-shadow: var(--shadow-focus);
+  }
+}
+
+.filters__select {
+  min-width: 132px;
+}
+
+.filters__meta {
+  @include t.caption;
+
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  margin-left: auto;
+  color: var(--text-faint);
+  text-align: right;
+}
+
+// SFR-004-04/05 최근 수집 시각과 미수신 설비를 늘 눈에 둔다.
+.filters__stale {
+  color: var(--critical-text);
+}
+
+.layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1.35fr) minmax(0, 1fr);
+  gap: s.$space-4;
+
+  @include mx.stretch-cells;
+
+  @include media.tablet {
+    grid-template-columns: 1fr;
+  }
+}
+
+// ── 학교 목록 ──────────────────────────────────────────────
+.list {
+  display: flex;
+  flex-direction: column;
+  gap: s.$space-2;
+  max-height: 456px;
+  padding-right: s.$space-1;
+  overflow-y: auto;
+}
+
+.row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: s.$space-3;
+  width: 100%;
+  padding: s.$space-3;
+  border: 1px solid var(--border-subtle);
+  border-radius: s.$radius-sm;
+  background-color: var(--surface);
+  text-align: left;
+  transition: border-color 0.16s ease, background-color 0.16s ease;
+
+  &:hover {
+    border-color: var(--brand-soft-border);
+    background-color: var(--brand-soft);
+  }
+}
+
+.row--abnormal {
+  border-color: var(--critical-soft);
+  background-color: var(--critical-soft);
+}
+
+.row--selected {
+  border-color: var(--brand);
+  box-shadow: var(--shadow-focus);
+}
+
+.row__body {
+  min-width: 0;
+}
+
+.row__name {
+  @include t.label-md;
+
+  display: block;
+  color: var(--text-strong);
+
+  @include mx.truncate;
+}
+
+.row__meta {
+  @include t.caption;
+
+  display: block;
+  margin-top: 2px;
+  color: var(--text-muted);
+}
+
+.row__right {
+  display: flex;
+  align-items: center;
+  gap: s.$space-3;
+  flex-shrink: 0;
+}
+
+.row__output {
+  text-align: right;
+}
+
+.row__outputValue {
+  @include t.data-md;
+
+  display: block;
+  color: var(--text-strong);
+  font-variant-numeric: tabular-nums;
+}
+
+.row__outputUnit {
+  @include t.caption;
+
+  display: block;
+  color: var(--text-faint);
+}
+
+.empty {
+  @include t.body-sm;
+
+  padding: s.$space-8 0;
+  color: var(--text-muted);
+  text-align: center;
+}
+
+// ── 마커 팝업 (SFR-007-06~08) ──────────────────────────────
+.popup__name {
+  @include t.label-md;
+
+  color: var(--text-strong);
+}
+
+.popup__meta {
+  @include t.caption;
+
+  margin-top: 2px;
+  color: var(--text-muted);
+}
+
+.popup__badges {
+  display: flex;
+  gap: s.$space-2;
+  margin-top: s.$space-2;
+}
+
+.popup__section {
+  margin-top: s.$space-3;
+}
+
+.popup__sectionTitle {
+  @include t.caption;
+
+  color: var(--text-faint);
+}
+
+.popup__spark {
+  margin-top: s.$space-1;
+}
+
+.popup__stats {
+  display: flex;
+  gap: s.$space-4;
+  margin-top: s.$space-3;
+}
+
+.popup__stat {
+  min-width: 0;
+}
+
+.popup__statLabel {
+  @include t.caption;
+
+  display: block;
+  color: var(--text-faint);
+}
+
+.popup__statValue {
+  @include t.data-sm;
+
+  display: block;
+  color: var(--text-strong);
+  font-variant-numeric: tabular-nums;
+}

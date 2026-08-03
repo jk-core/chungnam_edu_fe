@@ -1,0 +1,514 @@
+@use "@/styles/tokens/spacing" as s;
+@use "@/styles/tokens/typography" as t;
+@use "@/styles/utils/media" as media;
+@use "@/styles/utils/mixins" as mx;
+
+// ── 오빗 마크 ───────────────────────────────────────────────
+// rAF 대신 CSS 애니메이션으로 돈다. 탭이 가려져도 타임라인이 이어져
+// 다시 보일 때 어색하게 멈춘 상태로 남지 않는다.
+.orbit {
+  display: inline-block;
+  width: var(--orbit-size, 40px);
+  height: var(--orbit-size, 40px);
+  flex-shrink: 0;
+}
+
+.orbit__svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+}
+
+.orbit__ring {
+  fill: none;
+  stroke: var(--brand);
+  stroke-width: 1.4;
+  opacity: 0.45;
+}
+
+.orbit__dot {
+  fill: var(--brand);
+}
+
+.orbit__dot--solar {
+  fill: var(--solar);
+}
+
+.orbit__core {
+  fill: var(--brand);
+  opacity: 0.9;
+}
+
+.orbit__halo {
+  fill: var(--brand);
+  opacity: 0.14;
+}
+
+.orbit__groupA,
+.orbit__groupB {
+  transform-origin: 32px 32px;
+}
+
+.orbit__groupA {
+  animation: orbit-spin 7.2s linear infinite;
+}
+
+.orbit__groupB {
+  animation: orbit-spin 10.4s linear infinite reverse;
+}
+
+.orbit--active {
+  .orbit__groupA {
+    animation-duration: 2.4s;
+  }
+
+  .orbit__groupB {
+    animation-duration: 3.4s;
+  }
+
+  .orbit__halo {
+    animation: orbit-pulse 1.6s ease-in-out infinite;
+  }
+}
+
+@keyframes orbit-spin {
+  from {
+    transform: rotate(0deg);
+  }
+
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes orbit-pulse {
+  0%,
+  100% {
+    opacity: 0.1;
+    transform: scale(1);
+  }
+
+  50% {
+    opacity: 0.26;
+    transform: scale(1.16);
+  }
+}
+
+@include media.reduced-motion {
+  .orbit__groupA,
+  .orbit__groupB,
+  .orbit--active .orbit__halo {
+    animation: none;
+  }
+}
+
+// ── 분석 시작 배너 ──────────────────────────────────────────
+.banner {
+  display: flex;
+  align-items: center;
+  gap: s.$space-5;
+  padding: s.$space-5 s.$space-6;
+  border: 1px solid var(--brand-soft-border);
+  border-radius: s.$radius-lg;
+  background:
+    radial-gradient(120% 160% at 8% 0%, var(--brand-soft) 0%, transparent 62%),
+    var(--surface);
+  box-shadow: var(--shadow-sm);
+
+  @include media.mobile {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: s.$space-4;
+    padding: s.$space-4;
+  }
+}
+
+.banner__body {
+  flex: 1;
+  min-width: 0;
+}
+
+.banner__eyebrow {
+  @include t.eyebrow;
+
+  color: var(--brand-contrast);
+}
+
+.banner__title {
+  @include t.title-sm;
+
+  margin-top: s.$space-1;
+  color: var(--text-strong);
+}
+
+.banner__text {
+  @include t.body-sm;
+
+  margin-top: s.$space-2;
+  color: var(--text-muted);
+}
+
+.banner__meta {
+  @include t.caption;
+
+  display: flex;
+  flex-wrap: wrap;
+  gap: s.$space-1 s.$space-3;
+  margin-top: s.$space-3;
+  color: var(--text-faint);
+}
+
+.banner__action {
+  flex-shrink: 0;
+
+  @include media.mobile {
+    width: 100%;
+  }
+}
+
+// ── 진행 게이지 ─────────────────────────────────────────────
+.progress {
+  display: flex;
+  align-items: center;
+  gap: s.$space-7;
+  padding: s.$space-4 0 s.$space-2;
+
+  @include media.mobile {
+    flex-direction: column;
+    gap: s.$space-5;
+    text-align: center;
+  }
+}
+
+.gauge {
+  position: relative;
+  width: 148px;
+  height: 148px;
+  flex-shrink: 0;
+}
+
+.gauge__svg {
+  width: 100%;
+  height: 100%;
+  transform: rotate(-90deg);
+}
+
+.gauge__track {
+  fill: none;
+  stroke: var(--border-subtle);
+  stroke-width: 8;
+}
+
+.gauge__value {
+  fill: none;
+  stroke: var(--brand);
+  stroke-width: 8;
+  stroke-linecap: round;
+  transition: stroke-dashoffset 0.24s linear;
+}
+
+.gauge__label {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+}
+
+.gauge__percent {
+  @include t.data-xl;
+
+  color: var(--text-strong);
+  font-variant-numeric: tabular-nums;
+}
+
+.gauge__unit {
+  @include t.caption;
+
+  color: var(--text-faint);
+}
+
+.steps {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: s.$space-2;
+  width: 100%;
+}
+
+.step {
+  display: flex;
+  align-items: flex-start;
+  gap: s.$space-3;
+  padding: s.$space-2 s.$space-3;
+  border-radius: s.$radius-sm;
+  transition: background-color 0.2s ease;
+}
+
+.step--current {
+  background: var(--brand-soft);
+}
+
+.step__mark {
+  display: grid;
+  place-items: center;
+  width: 20px;
+  height: 20px;
+  margin-top: 1px;
+  flex-shrink: 0;
+  border: 1.5px solid var(--border-strong);
+  border-radius: 50%;
+  background: var(--surface);
+  color: var(--text-faint);
+  font-size: 11px;
+  line-height: 1;
+}
+
+.step--done .step__mark {
+  border-color: var(--ok);
+  background: var(--ok);
+  color: var(--text-on-brand);
+}
+
+.step--current .step__mark {
+  border-color: var(--brand);
+  color: var(--brand-contrast);
+}
+
+.step__text {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  text-align: left;
+}
+
+.step__label {
+  @include t.label-sm;
+
+  display: flex;
+  align-items: center;
+  color: var(--text-faint);
+}
+
+.step--done .step__label,
+.step--current .step__label {
+  color: var(--text-strong);
+}
+
+.step__note {
+  @include t.caption;
+
+  display: block;
+  margin-top: 1px;
+  color: var(--text-faint);
+}
+
+// 현재 단계에 붙는 말줄임 점. 오래 걸리는 추론 단계에서 살아 있음을 알린다.
+.step__dots {
+  display: inline-flex;
+  gap: 3px;
+  margin-left: s.$space-2;
+  vertical-align: middle;
+
+  span {
+    width: 3px;
+    height: 3px;
+    border-radius: 50%;
+    background: var(--brand);
+    animation: dot-blink 1.2s ease-in-out infinite;
+
+    &:nth-child(2) {
+      animation-delay: 0.18s;
+    }
+
+    &:nth-child(3) {
+      animation-delay: 0.36s;
+    }
+  }
+}
+
+@keyframes dot-blink {
+  0%,
+  100% {
+    opacity: 0.2;
+  }
+
+  50% {
+    opacity: 1;
+  }
+}
+
+@include media.reduced-motion {
+  .step__dots span {
+    animation: none;
+    opacity: 0.6;
+  }
+}
+
+// ── 결과 ───────────────────────────────────────────────────
+.report {
+  display: flex;
+  flex-direction: column;
+  gap: s.$space-5;
+}
+
+.insight {
+  padding: s.$space-4 s.$space-5;
+  border: 1px solid var(--brand-soft-border);
+  border-radius: s.$radius-md;
+  background: var(--brand-soft);
+}
+
+.insight__head {
+  display: flex;
+  align-items: center;
+  gap: s.$space-2;
+  margin-bottom: s.$space-3;
+}
+
+.insight__title {
+  @include t.label-md;
+
+  color: var(--text-strong);
+}
+
+.insight__list {
+  display: flex;
+  flex-direction: column;
+  gap: s.$space-2;
+}
+
+.insight__line {
+  @include t.body-sm;
+
+  display: flex;
+  gap: s.$space-2;
+  color: var(--text);
+  animation: line-in 0.34s ease both;
+
+  &::before {
+    content: "";
+    width: 3px;
+    flex-shrink: 0;
+    border-radius: s.$radius-full;
+    background: var(--brand);
+    opacity: 0.5;
+  }
+}
+
+@keyframes line-in {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@include media.reduced-motion {
+  .insight__line {
+    animation: none;
+  }
+}
+
+.report__meta {
+  @include t.caption;
+
+  display: flex;
+  flex-wrap: wrap;
+  gap: s.$space-1 s.$space-4;
+  color: var(--text-faint);
+}
+
+.findings {
+  display: flex;
+  flex-direction: column;
+  gap: s.$space-3;
+}
+
+.findings__title {
+  @include t.label-md;
+
+  color: var(--text-strong);
+}
+
+.finding {
+  display: flex;
+  flex-direction: column;
+  gap: s.$space-2;
+  padding: s.$space-4;
+  border: 1px solid var(--border-subtle);
+  border-radius: s.$radius-md;
+  background: var(--surface);
+}
+
+.finding--abnormal {
+  border-color: var(--critical-soft);
+  background: var(--critical-soft);
+}
+
+.finding__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: s.$space-3;
+}
+
+.finding__name {
+  @include t.label-md;
+
+  color: var(--text-strong);
+}
+
+.finding__parent {
+  @include t.caption;
+
+  color: var(--text-faint);
+}
+
+.finding__badges {
+  display: flex;
+  align-items: center;
+  gap: s.$space-2;
+  flex-shrink: 0;
+}
+
+.finding__efficiency {
+  @include t.data-sm;
+
+  color: var(--text-muted);
+  font-variant-numeric: tabular-nums;
+}
+
+.finding__efficiency--low {
+  color: var(--critical-text);
+}
+
+.finding__row {
+  @include t.body-sm;
+
+  display: flex;
+  gap: s.$space-2;
+  color: var(--text);
+}
+
+.finding__tag {
+  @include t.label-sm;
+
+  flex-shrink: 0;
+  width: 34px;
+  color: var(--text-faint);
+}
+
+.report__empty {
+  @include t.body-sm;
+
+  color: var(--text-muted);
+}

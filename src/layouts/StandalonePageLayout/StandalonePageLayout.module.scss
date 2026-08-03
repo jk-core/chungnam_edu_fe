@@ -1,0 +1,42 @@
+@use "@/styles/tokens/spacing" as s;
+@use "@/styles/tokens/typography" as t;
+@use "@/styles/utils/mixins" as mx;
+
+.page {
+  padding-bottom: s.$space-11;
+}
+
+.page__head {
+  border-bottom: 1px solid var(--border-subtle);
+  background:
+    linear-gradient(180deg, var(--surface-sunken) 0%, transparent 100%),
+    var(--paper);
+}
+
+.page__headInner {
+  display: flex;
+  flex-direction: column;
+  gap: s.$space-2;
+  padding: s.$space-7 0 s.$space-6;
+
+  @include mx.container;
+}
+
+.page__title {
+  @include t.title-xl;
+
+  color: var(--text-strong);
+}
+
+.page__description {
+  @include t.body-sm;
+
+  color: var(--text-muted);
+}
+
+.page__body {
+  max-width: 720px;
+  padding-top: s.$space-7;
+
+  @include mx.container;
+}

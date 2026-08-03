@@ -1,0 +1,117 @@
+@use "@/styles/tokens/spacing" as s;
+@use "@/styles/tokens/typography" as t;
+@use "@/styles/utils/media" as media;
+@use "@/styles/utils/mixins" as mx;
+
+// 폭과 sticky 는 좌측 컬럼(SubPageLayout 의 sub__side)이 맡는다.
+.lnb {
+  width: 100%;
+
+  @include media.tablet {
+    position: sticky;
+    top: var(--header-height);
+    z-index: 20;
+    width: auto;
+    margin-inline: calc(#{s.$gutter-tablet} * -1);
+    padding-inline: s.$gutter-tablet;
+    background-color: color-mix(in srgb, var(--paper) 92%, transparent);
+    backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--border-subtle);
+  }
+
+  @include media.mobile {
+    margin-inline: calc(#{s.$gutter-mobile} * -1);
+    padding-inline: s.$gutter-mobile;
+  }
+}
+
+.lnb__title {
+  padding: 0 s.$space-3 s.$space-3;
+  color: var(--text-strong);
+
+  @include t.title-md;
+
+  @include media.tablet {
+    display: none;
+  }
+}
+
+.lnb__list {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+
+  @include media.tablet {
+    flex-direction: row;
+    gap: s.$space-1;
+    padding-block: s.$space-2;
+
+    @include mx.scroll-x;
+  }
+}
+
+.lnb__item {
+  @include media.tablet {
+    flex-shrink: 0;
+  }
+}
+
+.lnb__link {
+  position: relative;
+  display: flex;
+  align-items: center;
+  padding: s.$space-3;
+  border-radius: s.$radius-sm;
+  color: var(--text-muted);
+  transition: color 0.16s ease, background-color 0.16s ease;
+
+  @include t.body-md;
+
+  &:hover {
+    color: var(--text-strong);
+    background-color: var(--surface-hover);
+  }
+
+  @include media.tablet {
+    height: 38px;
+    padding-inline: s.$space-4;
+    border-radius: s.$radius-full;
+    white-space: nowrap;
+  }
+}
+
+.lnb__link--active {
+  color: var(--brand-contrast);
+  font-weight: 600;
+}
+
+.lnb__marker {
+  position: absolute;
+  inset: 0;
+  background-color: var(--brand-soft);
+  border-radius: s.$radius-sm;
+
+  // 좌측 세로 강조선 — 데스크톱에서만 보인다.
+  &::before {
+    content: "";
+    position: absolute;
+    inset-block: 6px;
+    left: 0;
+    width: 3px;
+    border-radius: s.$radius-full;
+    background-color: var(--brand);
+  }
+
+  @include media.tablet {
+    border-radius: s.$radius-full;
+
+    &::before {
+      display: none;
+    }
+  }
+}
+
+.lnb__label {
+  position: relative;
+  z-index: 1;
+}

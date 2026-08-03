@@ -1,0 +1,187 @@
+@use "@/styles/tokens/spacing" as s;
+@use "@/styles/tokens/typography" as t;
+@use "@/styles/utils/media" as media;
+
+.calendar {
+  display: flex;
+  flex-direction: column;
+  border: 1px solid var(--border-subtle);
+  border-radius: s.$radius-md;
+  overflow: hidden;
+}
+
+.calendar__weekdays {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  padding: s.$space-3 s.$space-3 s.$space-2;
+  background-color: var(--surface-sunken);
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+.calendar__weekday {
+  text-align: center;
+  color: var(--text-faint);
+
+  @include t.label-sm;
+
+  &:first-child {
+    color: var(--critical-text);
+  }
+
+  &:last-child {
+    color: var(--brand-contrast);
+  }
+}
+
+// 연속 스크롤 영역 — 여기서 마우스 휠·터치로 여러 달을 한 번에 지나간다.
+.calendar__scroller {
+  height: 348px;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scroll-snap-type: y proximity;
+
+  @include media.mobile {
+    height: 42dvh;
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--brand);
+    outline-offset: -2px;
+  }
+}
+
+.calendar__section {
+  scroll-snap-align: start;
+  padding: 0 s.$space-3 s.$space-4;
+
+  &:last-child {
+    padding-bottom: s.$space-6;
+  }
+}
+
+// 스크롤 중에도 지금 보고 있는 달이 무엇인지 남겨 둔다.
+.calendar__monthTitle {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  padding: s.$space-3 s.$space-1;
+  background-color: color-mix(in srgb, var(--surface) 92%, transparent);
+  backdrop-filter: blur(6px);
+  color: var(--text-strong);
+
+  @include t.label-md;
+}
+
+.calendar__grid {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: 2px;
+}
+
+.calendar__empty {
+  aspect-ratio: 1;
+}
+
+.calendar__monthGrid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: s.$space-2;
+  padding-top: s.$space-1;
+}
+
+// ── 날짜 셀 ────────────────────────────────────────────────
+.day {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  aspect-ratio: 1;
+  min-height: 34px;
+  background: none;
+  border: 0;
+  border-radius: s.$radius-sm;
+  color: var(--text);
+  transition: background-color 0.14s ease, color 0.14s ease;
+
+  @include t.data-sm;
+
+  &:hover {
+    background-color: var(--surface-hover);
+  }
+}
+
+.day--weekend {
+  color: var(--text-muted);
+}
+
+.day--today::after {
+  content: "";
+  position: absolute;
+  bottom: 4px;
+  left: 50%;
+  width: 4px;
+  height: 4px;
+  margin-left: -2px;
+  border-radius: 50%;
+  background-color: var(--solar);
+}
+
+.day--inRange {
+  background-color: var(--brand-soft);
+  border-radius: 0;
+  color: var(--brand-contrast);
+}
+
+.day--selected {
+  background-color: var(--brand);
+  color: var(--text-on-brand);
+  font-weight: 700;
+
+  &:hover {
+    background-color: var(--brand-hover);
+  }
+
+  &::after {
+    background-color: var(--text-on-brand);
+  }
+}
+
+.day--start {
+  border-radius: s.$radius-sm 0 0 s.$radius-sm;
+}
+
+.day--end {
+  border-radius: 0 s.$radius-sm s.$radius-sm 0;
+}
+
+// 시작과 끝이 같은 날이면 양쪽 모두 둥글게
+.day--start.day--end {
+  border-radius: s.$radius-sm;
+}
+
+// ── 월·연 셀 ───────────────────────────────────────────────
+.chunk {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 42px;
+  background-color: var(--surface-sunken);
+  border: 1px solid transparent;
+  border-radius: s.$radius-sm;
+  color: var(--text);
+  transition: background-color 0.14s ease, border-color 0.14s ease, color 0.14s ease;
+
+  @include t.data-sm;
+
+  &:hover {
+    border-color: var(--border-strong);
+    color: var(--text-strong);
+  }
+}
+
+.chunk--selected {
+  background-color: var(--brand);
+  border-color: var(--brand);
+  color: var(--text-on-brand);
+  font-weight: 700;
+}

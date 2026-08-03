@@ -1,0 +1,25 @@
+@use "@/styles/tokens/spacing" as s;
+@use "@/styles/utils/media" as media;
+@use "@/styles/utils/mixins" as mx;
+
+.kpi {
+  background-color: var(--paper);
+}
+
+.kpi__inner {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: s.$space-4;
+
+  @include mx.container;
+  @include mx.stretch-cells;
+
+  @include media.tablet {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  @include media.mobile {
+    grid-template-columns: 1fr;
+    gap: s.$space-3;
+  }
+}

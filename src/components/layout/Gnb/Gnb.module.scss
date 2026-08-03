@@ -1,0 +1,101 @@
+@use "@/styles/tokens/spacing" as s;
+@use "@/styles/tokens/typography" as t;
+@use "@/styles/utils/media" as media;
+
+.gnb {
+  @include media.tablet {
+    display: none;
+  }
+}
+
+.gnb__list {
+  display: flex;
+  align-items: center;
+  gap: s.$space-2;
+}
+
+.gnb__item {
+  position: relative;
+}
+
+.gnb__link {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  height: 40px;
+  padding-inline: s.$space-4;
+  border-radius: s.$radius-sm;
+  color: var(--text-muted);
+  transition: color 0.16s ease, background-color 0.16s ease;
+
+  @include t.label-md;
+
+  font-size: 0.9375rem;
+
+  &:hover {
+    color: var(--text-strong);
+    background-color: var(--surface-hover);
+  }
+}
+
+.gnb__link--active {
+  color: var(--text-strong);
+  font-weight: 700;
+}
+
+.gnb__underline {
+  position: absolute;
+  inset-inline: s.$space-4;
+  bottom: -2px;
+  height: 2px;
+  border-radius: s.$radius-full;
+  background-color: var(--solar);
+}
+
+// 겉 상자는 투명 브릿지다 — 링크와 패널 사이 10px 을 채워,
+// 마우스를 내리는 동안 메뉴가 닫히지 않게 한다. 시각 요소는 안쪽 목록이 갖는다.
+.gnb__panel {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  z-index: 40;
+  padding-top: 10px;
+}
+
+.gnb__panelList {
+  display: flex;
+  flex-direction: column;
+  gap: s.$space-1;
+  width: 300px;
+  padding: s.$space-3;
+  background-color: var(--surface-raised);
+  border: 1px solid var(--border-subtle);
+  border-radius: s.$radius-lg;
+  box-shadow: var(--shadow-lg);
+}
+
+.gnb__panelLink {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  padding: s.$space-3 s.$space-4;
+  border-radius: s.$radius-sm;
+  transition: background-color 0.14s ease;
+
+  &:hover,
+  &:focus-visible {
+    background-color: var(--brand-soft);
+  }
+}
+
+.gnb__panelLabel {
+  color: var(--text-strong);
+
+  @include t.label-md;
+}
+
+.gnb__panelDescription {
+  color: var(--text-muted);
+
+  @include t.caption;
+}

@@ -1,0 +1,92 @@
+@use "@/styles/tokens/spacing" as s;
+@use "@/styles/tokens/typography" as t;
+@use "@/styles/utils/media" as media;
+@use "@/styles/utils/mixins" as mx;
+
+.sub {
+  display: flex;
+  flex-direction: column;
+}
+
+.sub__head {
+  position: relative;
+  background:
+    radial-gradient(120% 140% at 88% -30%, var(--sky-glow), transparent 62%),
+    linear-gradient(180deg, var(--sky-top), var(--paper) 88%);
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+.sub__headInner {
+  display: flex;
+  flex-direction: column;
+  gap: s.$space-3;
+  padding-block: s.$space-9 s.$space-8;
+
+  @include mx.container;
+
+  @include media.mobile {
+    padding-block: s.$space-7 s.$space-6;
+  }
+}
+
+.sub__title {
+  color: var(--text-strong);
+
+  @include t.title-xl;
+}
+
+.sub__description {
+  max-width: 62ch;
+  color: var(--text-muted);
+
+  @include t.body-md;
+}
+
+.sub__body {
+  display: flex;
+  align-items: flex-start;
+  gap: s.$space-8;
+  padding-block: s.$space-8 s.$space-12;
+
+  @include mx.container;
+
+  @include media.tablet {
+    flex-direction: column;
+    gap: 0;
+    padding-block: 0 s.$space-10;
+  }
+}
+
+// 좌측 컬럼 — 하위 메뉴 + 조회 대상 패널. 본문을 따라 스크롤해도 자리를 지킨다.
+.sub__side {
+  position: sticky;
+  top: calc(var(--header-height) + #{s.$space-6});
+  display: flex;
+  flex-direction: column;
+  gap: s.$space-5;
+  width: s.$lnb-width;
+  flex-shrink: 0;
+  align-self: flex-start;
+
+  @include media.tablet {
+    position: static;
+    width: 100%;
+    gap: s.$space-4;
+    padding-bottom: s.$space-2;
+
+    // 좁은 화면에서는 하위 메뉴가 가로 탭이 되므로 조회 대상보다 위에 둔다.
+    > nav {
+      order: -1;
+    }
+  }
+}
+
+.sub__content {
+  flex: 1;
+  min-width: 0;
+
+  @include media.tablet {
+    width: 100%;
+    padding-top: s.$space-6;
+  }
+}

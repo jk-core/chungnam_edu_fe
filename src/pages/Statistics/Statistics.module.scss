@@ -1,0 +1,634 @@
+@use "@/styles/tokens/spacing" as s;
+@use "@/styles/tokens/typography" as t;
+@use "@/styles/utils/media" as media;
+@use "@/styles/utils/mixins" as mx;
+
+.tab {
+  display: flex;
+  flex-direction: column;
+  gap: s.$space-4;
+}
+
+.toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: s.$space-3;
+  margin-bottom: s.$space-2;
+}
+
+.grid3 {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: s.$space-4;
+
+  @include mx.stretch-cells;
+
+  @include media.tablet {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  @include media.mobile {
+    grid-template-columns: 1fr;
+  }
+}
+
+.grid2 {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: s.$space-4;
+
+  @include mx.stretch-cells;
+
+  @include media.tablet {
+    grid-template-columns: 1fr;
+  }
+}
+
+.tableInset {
+  margin-top: s.$space-2;
+}
+
+// ── 표 셀 ──────────────────────────────────────────────────
+.cellStrong {
+  color: var(--text-strong);
+  font-weight: 600;
+}
+
+.cellSub {
+  color: var(--text-faint);
+
+  @include t.caption;
+}
+
+// 기준일에 해당하는 행의 라벨
+.cellFocus {
+  color: var(--brand-contrast);
+}
+
+.cellMuted {
+  color: var(--text-muted);
+
+  @include t.data-sm;
+}
+
+.cellData {
+  color: var(--text-strong);
+
+  @include t.data-sm;
+}
+
+.cellRank {
+  color: var(--text-faint);
+
+  @include t.data-sm;
+}
+
+.cellSchool {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
+.deltaUp,
+.deltaDown {
+  @include t.data-sm;
+}
+
+.deltaUp {
+  color: var(--ok-text);
+}
+
+.deltaDown {
+  color: var(--critical-text);
+}
+
+// 선택한 발전소 행 — 좌측에 브랜드 색 세로선을 세운다.
+.rowHighlight {
+  position: relative;
+  background-color: var(--brand-soft) !important;
+
+  td:first-child {
+    box-shadow: inset 3px 0 0 var(--brand);
+  }
+}
+
+.rowBar {
+  display: block;
+  width: 100%;
+  min-width: 80px;
+  height: 6px;
+  background-color: var(--surface-sunken);
+  border-radius: s.$radius-full;
+  overflow: hidden;
+}
+
+.rowBar__fill {
+  display: block;
+  height: 100%;
+  border-radius: s.$radius-full;
+  background: linear-gradient(90deg, color-mix(in srgb, var(--solar) 50%, transparent), var(--solar));
+  transition: width 0.6s cubic-bezier(0.2, 0.8, 0.3, 1);
+}
+
+// ── 조회 계층 경로 ─────────────────────────────────────────
+.scopePath {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: s.$space-1;
+}
+
+.scopePath__item {
+  display: inline-flex;
+  align-items: center;
+  gap: s.$space-1;
+}
+
+.scopePath__sep {
+  color: var(--text-faint);
+}
+
+.scopePath__link {
+  padding: 2px s.$space-2;
+  background: none;
+  border: 0;
+  border-radius: s.$radius-xs;
+  color: var(--text-muted);
+  transition: color 0.14s ease, background-color 0.14s ease;
+
+  @include t.body-sm;
+
+  &:hover {
+    background-color: var(--surface-hover);
+    color: var(--brand-contrast);
+  }
+}
+
+.scopePath__current {
+  display: inline-flex;
+  align-items: center;
+  gap: s.$space-2;
+  padding: 2px s.$space-2;
+  color: var(--text-strong);
+
+  @include t.label-md;
+}
+
+.scopePath__kind {
+  padding: 1px s.$space-2;
+  background-color: var(--brand-soft);
+  border-radius: s.$radius-full;
+  color: var(--brand-contrast);
+
+  @include t.label-sm;
+
+  font-size: 0.6875rem;
+}
+
+// ── 발전정보 요약 ──────────────────────────────────────────
+.infoGrid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: s.$space-5 s.$space-6;
+  margin: 0;
+  padding-top: s.$space-4;
+
+  @include media.tablet {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  @include media.mobile {
+    grid-template-columns: 1fr;
+    gap: s.$space-4;
+  }
+
+  dt {
+    margin-bottom: s.$space-1;
+    color: var(--text-faint);
+
+    @include t.label-sm;
+  }
+
+  dd {
+    display: flex;
+    align-items: baseline;
+    gap: s.$space-2;
+    margin: 0;
+    color: var(--text-strong);
+
+    @include t.data-md;
+  }
+}
+
+.infoGrid__unit {
+  color: var(--text-muted);
+
+  @include t.caption;
+}
+
+.infoGrid__accent {
+  color: var(--solar-text);
+}
+
+// ── 인버터 카드 그리드 ─────────────────────────────────────
+.inverterCards {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: s.$space-3;
+  padding-top: s.$space-4;
+
+  @include mx.stretch-cells;
+
+  @include media.tablet {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  @include media.mobile {
+    grid-template-columns: 1fr;
+  }
+}
+
+.inverterCard {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: s.$space-2;
+  padding: s.$space-4;
+  text-align: left;
+  background-color: var(--surface);
+  border: 1px solid var(--border-subtle);
+  border-radius: s.$radius-md;
+  transition:
+    transform 0.2s cubic-bezier(0.2, 0.8, 0.3, 1),
+    border-color 0.18s ease,
+    box-shadow 0.2s ease,
+    background-color 0.18s ease;
+
+  &:hover {
+    transform: translateY(-2px);
+    border-color: var(--border-strong);
+    box-shadow: var(--shadow-md);
+  }
+}
+
+.inverterCard--abnormal {
+  border-color: color-mix(in srgb, var(--critical) 28%, transparent);
+}
+
+.inverterCard--selected {
+  border-color: var(--brand);
+  background-color: var(--brand-soft);
+  box-shadow: var(--shadow-sm);
+}
+
+.inverterCard__head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: s.$space-3;
+}
+
+.inverterCard__title {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  min-width: 0;
+}
+
+.inverterCard__name {
+  color: var(--text-strong);
+
+  @include t.title-sm;
+}
+
+.inverterCard__school {
+  color: var(--text-muted);
+
+  @include t.caption;
+  @include mx.truncate;
+}
+
+.inverterCard__figure {
+  display: flex;
+  align-items: baseline;
+  gap: s.$space-2;
+  color: var(--text-strong);
+
+  @include t.data-lg;
+
+  font-size: 1.625rem;
+}
+
+.inverterCard__unit {
+  color: var(--text-muted);
+
+  @include t.label-md;
+}
+
+// 기준일 하루 발전 곡선
+.inverterCard__spark {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+
+  svg {
+    width: 100%;
+    height: 44px;
+  }
+}
+
+.inverterCard__sparkLabel {
+  color: var(--text-faint);
+
+  @include t.caption;
+
+  font-size: 0.6875rem;
+}
+
+.inverterCard__bar {
+  display: block;
+  height: 6px;
+  background-color: var(--surface-sunken);
+  border-radius: s.$radius-full;
+  overflow: hidden;
+}
+
+.inverterCard__barFill {
+  display: block;
+  height: 100%;
+  border-radius: s.$radius-full;
+  background: linear-gradient(90deg, color-mix(in srgb, var(--solar) 50%, transparent), var(--solar));
+  transition: width 0.6s cubic-bezier(0.2, 0.8, 0.3, 1);
+}
+
+.inverterCard__metrics {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: s.$space-2;
+  padding-block: s.$space-3;
+  border-block: 1px solid var(--border-subtle);
+
+  > span {
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+    color: var(--text-strong);
+
+    @include t.data-sm;
+  }
+}
+
+.inverterCard__metricLabel {
+  color: var(--text-faint);
+
+  @include t.caption;
+
+  font-size: 0.6875rem;
+}
+
+.inverterCard__foot {
+  margin-top: auto;
+  color: var(--text-faint);
+
+  @include t.caption;
+}
+
+// ── 시점별 세부 데이터 표 ──────────────────────────────────
+.timeTableWrap {
+  margin-top: s.$space-2;
+  overflow-x: auto;
+}
+
+.timeTable {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+
+  caption {
+    @include mx.sr-only;
+  }
+
+  th,
+  td {
+    padding: s.$space-3 s.$space-4;
+    border-bottom: 1px solid var(--border-subtle);
+    white-space: nowrap;
+  }
+
+  thead th {
+    text-align: right;
+    color: var(--text-muted);
+    border-bottom-color: var(--border);
+    background-color: var(--surface);
+
+    @include t.label-sm;
+  }
+
+  tbody tr:last-child th,
+  tbody tr:last-child td {
+    border-bottom: 0;
+  }
+}
+
+// 좌측 지표 열은 가로로 스크롤해도 자리를 지킨다.
+.timeTable__corner,
+.timeTable__metric {
+  position: sticky;
+  left: 0;
+  z-index: 1;
+  text-align: left;
+  background-color: var(--surface);
+  border-right: 1px solid var(--border-subtle);
+}
+
+.timeTable__metric {
+  min-width: 132px;
+  font-weight: 400;
+}
+
+.timeTable__metricName {
+  display: block;
+  color: var(--text-strong);
+
+  @include t.label-md;
+}
+
+.timeTable__metricUnit {
+  display: block;
+  color: var(--text-faint);
+
+  @include t.caption;
+
+  font-size: 0.6875rem;
+}
+
+.timeTable__cell {
+  text-align: right;
+  color: var(--text-muted);
+
+  @include t.data-sm;
+}
+
+.timeTable__cell--strong {
+  color: var(--text-strong);
+}
+
+.timeTable__cell--low {
+  color: var(--critical-text);
+  background-color: var(--critical-soft);
+}
+
+// ── 인버터별 발전 ──────────────────────────────────────────
+.inverterList {
+  display: flex;
+  flex-direction: column;
+  margin-top: s.$space-4;
+}
+
+.inverterRow {
+  display: grid;
+  grid-template-columns: 168px 84px minmax(0, 1fr) 104px 72px 88px;
+  align-items: center;
+  gap: s.$space-4;
+  padding: s.$space-3 s.$space-6;
+  border-top: 1px solid var(--border-subtle);
+  transition: background-color 0.16s ease;
+
+  &:hover {
+    background-color: var(--surface-hover);
+  }
+
+  @include media.tablet {
+    grid-template-columns: minmax(0, 1fr) 104px 88px;
+    row-gap: s.$space-2;
+    padding-inline: s.$space-5;
+  }
+}
+
+.inverterRow__name {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  min-width: 0;
+}
+
+.inverterRow__capacity {
+  color: var(--text-muted);
+
+  @include t.data-sm;
+
+  @include media.tablet {
+    display: none;
+  }
+}
+
+.inverterRow__value {
+  display: flex;
+  align-items: baseline;
+  justify-content: flex-end;
+  gap: s.$space-1;
+  color: var(--text-strong);
+
+  @include t.data-sm;
+}
+
+// ── 최고 발전 구간 ─────────────────────────────────────────
+.peak {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: s.$space-4;
+}
+
+.peak__label {
+  color: var(--text-muted);
+
+  @include t.label-md;
+}
+
+.peak__value {
+  display: inline-flex;
+  align-items: baseline;
+  gap: s.$space-2;
+  color: var(--solar-text);
+
+  @include t.data-lg;
+}
+
+.peak__unit {
+  color: var(--text-muted);
+
+  @include t.label-md;
+}
+
+.peak__note {
+  color: var(--text-faint);
+
+  @include t.body-sm;
+}
+
+// ── 환경 기여도 ────────────────────────────────────────────
+.forest {
+  display: grid;
+  grid-template-columns: repeat(20, minmax(0, 1fr));
+  gap: s.$space-2;
+  padding: s.$space-4 0 s.$space-3;
+
+  @include media.tablet {
+    grid-template-columns: repeat(12, minmax(0, 1fr));
+  }
+
+  @include media.mobile {
+    grid-template-columns: repeat(10, minmax(0, 1fr));
+  }
+}
+
+.forest__tree {
+  width: 100%;
+  height: auto;
+  fill: var(--ok);
+}
+
+.forest__trunk {
+  fill: var(--text-faint);
+}
+
+.forest__caption {
+  color: var(--text-faint);
+
+  @include t.caption;
+}
+
+// ── 산정 기준 ──────────────────────────────────────────────
+.method {
+  display: flex;
+  flex-direction: column;
+  gap: s.$space-4;
+
+  > div {
+    display: flex;
+    gap: s.$space-4;
+
+    @include media.mobile {
+      flex-direction: column;
+      gap: s.$space-1;
+    }
+  }
+
+  dt {
+    flex-shrink: 0;
+    width: 140px;
+    color: var(--text-muted);
+
+    @include t.label-md;
+  }
+
+  dd {
+    margin: 0;
+    color: var(--text);
+
+    @include t.body-md;
+  }
+}

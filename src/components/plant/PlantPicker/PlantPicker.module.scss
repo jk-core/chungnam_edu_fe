@@ -1,0 +1,450 @@
+@use "@/styles/tokens/spacing" as s;
+@use "@/styles/tokens/typography" as t;
+@use "@/styles/utils/media" as media;
+@use "@/styles/utils/mixins" as mx;
+
+// ── 트리거 ─────────────────────────────────────────────────
+.trigger {
+  display: inline-flex;
+  align-items: center;
+  gap: s.$space-3;
+  max-width: 100%;
+  padding: s.$space-2 s.$space-3 s.$space-2 s.$space-2;
+  background-color: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: s.$radius-full;
+  box-shadow: var(--shadow-sm);
+  transition:
+    border-color 0.18s ease,
+    box-shadow 0.22s ease,
+    transform 0.18s cubic-bezier(0.2, 0.8, 0.3, 1);
+
+  &:hover {
+    transform: translateY(-1px);
+    border-color: var(--brand);
+    box-shadow: var(--shadow-md);
+
+    .trigger__action {
+      background-color: var(--brand);
+      color: var(--text-on-brand);
+    }
+  }
+}
+
+// 좌측 컬럼용 — 전체 폭을 쓰고 이름이 길어도 두 줄로 편다.
+.trigger--block {
+  display: flex;
+  width: 100%;
+  padding: s.$space-4;
+  border-color: var(--border-subtle);
+  border-radius: s.$radius-md;
+  box-shadow: none;
+
+  .trigger__text {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .trigger__name {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1px;
+    max-width: none;
+    white-space: normal;
+  }
+
+  .trigger__action {
+    margin-left: auto;
+    align-self: flex-start;
+  }
+}
+
+.trigger__icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 34px;
+  height: 34px;
+  border-radius: s.$radius-full;
+  background-color: var(--brand-soft);
+  color: var(--brand);
+
+  svg {
+    width: 17px;
+    height: 17px;
+  }
+}
+
+.trigger__text {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 1px;
+  min-width: 0;
+}
+
+.trigger__eyebrow {
+  color: var(--text-faint);
+
+  @include t.eyebrow;
+
+  font-size: 0.625rem;
+}
+
+.trigger__name {
+  display: inline-flex;
+  align-items: baseline;
+  gap: s.$space-2;
+  color: var(--text-strong);
+
+  @include t.label-md;
+  @include mx.truncate;
+
+  max-width: 30ch;
+}
+
+.trigger__sub {
+  color: var(--brand-contrast);
+
+  @include t.data-sm;
+
+  font-size: 0.75rem;
+}
+
+.trigger__action {
+  flex-shrink: 0;
+  padding: 3px s.$space-3;
+  border-radius: s.$radius-full;
+  background-color: var(--surface-sunken);
+  color: var(--text-muted);
+  transition: background-color 0.18s ease, color 0.18s ease;
+
+  @include t.label-sm;
+}
+
+// ── 모달 내부 ──────────────────────────────────────────────
+.filters {
+  display: flex;
+  align-items: center;
+  gap: s.$space-3;
+  margin-bottom: s.$space-4;
+
+  @include media.mobile {
+    flex-direction: column;
+    align-items: stretch;
+  }
+}
+
+.search {
+  position: relative;
+  flex: 1;
+  min-width: 0;
+}
+
+.search__label {
+  @include mx.sr-only;
+}
+
+.search__input {
+  width: 100%;
+  height: 36px;
+  padding-inline: s.$space-4;
+  background-color: var(--surface-sunken);
+  border: 1px solid var(--border);
+  border-radius: s.$radius-full;
+  color: var(--text-strong);
+  transition: border-color 0.16s ease, box-shadow 0.16s ease, background-color 0.16s ease;
+
+  @include t.body-md;
+
+  &::placeholder {
+    color: var(--text-faint);
+  }
+
+  &:focus-visible {
+    outline: none;
+    background-color: var(--surface);
+    border-color: var(--brand);
+    box-shadow: var(--shadow-focus);
+  }
+}
+
+.all {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: s.$space-4;
+  width: 100%;
+  padding: s.$space-4;
+  text-align: left;
+  background-color: var(--surface-sunken);
+  border: 1px solid var(--border-subtle);
+  border-radius: s.$radius-md;
+  transition: border-color 0.16s ease, background-color 0.16s ease;
+
+  &:hover {
+    border-color: var(--border-strong);
+  }
+}
+
+.all--selected {
+  background-color: var(--brand-soft);
+  border-color: var(--brand);
+}
+
+.all__text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.all__name {
+  color: var(--text-strong);
+
+  @include t.title-sm;
+}
+
+.all__meta {
+  color: var(--text-muted);
+
+  @include t.body-sm;
+}
+
+.all__check {
+  flex-shrink: 0;
+  width: 18px;
+  height: 18px;
+  color: var(--brand-contrast);
+}
+
+.count {
+  margin: s.$space-5 0 s.$space-2;
+  color: var(--text-faint);
+
+  @include t.label-sm;
+}
+
+.list {
+  display: flex;
+  flex-direction: column;
+  gap: s.$space-2;
+}
+
+// 발전소 한 줄 — 본 행 + 인버터 펼침 영역을 함께 감싼다.
+.row {
+  border: 1px solid var(--border-subtle);
+  border-radius: s.$radius-md;
+  overflow: hidden;
+  transition: border-color 0.16s ease, background-color 0.16s ease;
+
+  &:hover {
+    border-color: var(--border-strong);
+  }
+}
+
+.row--selected {
+  border-color: var(--brand);
+  background-color: var(--brand-soft);
+}
+
+.row--expanded {
+  border-color: var(--border-strong);
+  background-color: var(--surface-sunken);
+}
+
+.row__main {
+  display: flex;
+  align-items: stretch;
+}
+
+.item {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 92px 200px;
+  align-items: center;
+  gap: s.$space-4;
+  flex: 1;
+  min-width: 0;
+  padding: s.$space-3 s.$space-4;
+  text-align: left;
+  background-color: transparent;
+  border: 0;
+  transition: background-color 0.16s ease;
+
+  &:hover {
+    background-color: var(--surface-hover);
+  }
+
+  @include media.tablet {
+    grid-template-columns: minmax(0, 1fr) auto;
+    row-gap: s.$space-3;
+  }
+}
+
+// 인버터 펼침 토글
+.expand {
+  display: inline-flex;
+  align-items: center;
+  gap: s.$space-1;
+  flex-shrink: 0;
+  padding-inline: s.$space-4;
+  background-color: transparent;
+  border: 0;
+  border-left: 1px solid var(--border-subtle);
+  color: var(--text-muted);
+  white-space: nowrap;
+  transition: background-color 0.16s ease, color 0.16s ease;
+
+  @include t.label-sm;
+
+  &:hover {
+    background-color: var(--surface-hover);
+    color: var(--brand-contrast);
+  }
+}
+
+.expand__chevron {
+  width: 14px;
+  height: 14px;
+  transition: transform 0.22s ease;
+}
+
+.expand__chevron--open {
+  transform: rotate(180deg);
+}
+
+// 펼쳐진 인버터 목록
+.inverters {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  overflow: hidden;
+  padding: 0 s.$space-3 s.$space-3 s.$space-8;
+}
+
+.inverter {
+  display: grid;
+  grid-template-columns: 110px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: s.$space-3;
+  width: 100%;
+  padding: s.$space-2 s.$space-3;
+  text-align: left;
+  background-color: var(--surface);
+  border: 1px solid var(--border-subtle);
+  border-radius: s.$radius-sm;
+  transition: border-color 0.14s ease, background-color 0.14s ease;
+
+  &:hover {
+    border-color: var(--brand);
+  }
+
+  @include media.mobile {
+    grid-template-columns: minmax(0, 1fr) auto;
+    row-gap: s.$space-1;
+  }
+}
+
+.inverter--selected {
+  border-color: var(--brand);
+  background-color: var(--brand-soft);
+}
+
+.inverter__name {
+  display: inline-flex;
+  align-items: center;
+  gap: s.$space-2;
+  color: var(--text-strong);
+
+  @include t.label-md;
+}
+
+.inverter__meta {
+  color: var(--text-muted);
+
+  @include t.data-sm;
+
+  font-size: 0.75rem;
+}
+
+.item__main {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.item__name {
+  display: flex;
+  align-items: center;
+  gap: s.$space-2;
+  color: var(--text-strong);
+
+  @include t.label-md;
+}
+
+.item__check {
+  width: 15px;
+  height: 15px;
+  color: var(--brand-contrast);
+}
+
+.item__address {
+  color: var(--text-muted);
+
+  @include t.caption;
+  @include mx.truncate;
+}
+
+.item__capacity {
+  display: flex;
+  align-items: baseline;
+  justify-content: flex-end;
+  gap: 3px;
+  color: var(--text-strong);
+
+  @include t.data-sm;
+
+  @include media.tablet {
+    justify-content: flex-start;
+    grid-row: 2;
+  }
+}
+
+.item__unit {
+  color: var(--text-faint);
+
+  @include t.caption;
+}
+
+.item__status {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: s.$space-3;
+
+  @include media.tablet {
+    grid-row: 2;
+    justify-content: flex-end;
+  }
+
+  @include media.mobile {
+    gap: s.$space-2;
+  }
+}
+
+.item__statusItem {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+}
+
+.item__statusLabel {
+  color: var(--text-faint);
+
+  @include t.caption;
+
+  font-size: 0.6875rem;
+}

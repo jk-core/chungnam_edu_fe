@@ -1,0 +1,95 @@
+@use "@/styles/tokens/spacing" as s;
+@use "@/styles/utils/media" as media;
+@use "@/styles/utils/mixins" as mx;
+
+.header {
+  position: sticky;
+  top: 0;
+  z-index: 40;
+  border-bottom: 1px solid transparent;
+  background-color: color-mix(in srgb, var(--paper) 82%, transparent);
+  backdrop-filter: blur(14px) saturate(140%);
+  transition: border-color 0.24s ease, background-color 0.24s ease, box-shadow 0.24s ease;
+}
+
+.header--scrolled {
+  border-bottom-color: var(--border-subtle);
+  background-color: color-mix(in srgb, var(--paper) 92%, transparent);
+  box-shadow: var(--shadow-sm);
+}
+
+.header__inner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: s.$space-6;
+  height: var(--header-height);
+  transition: height 0.24s ease;
+
+  @include mx.container;
+}
+
+.header__brand {
+  flex-shrink: 0;
+  min-width: 0;
+  border-radius: s.$radius-sm;
+}
+
+.header__utils {
+  display: flex;
+  align-items: center;
+  gap: s.$space-2;
+  flex-shrink: 0;
+}
+
+.header__help {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 38px;
+  height: 38px;
+  background: none;
+  border: 1px solid var(--border);
+  border-radius: s.$radius-full;
+  color: var(--text-muted);
+  transition: color 0.16s ease, background-color 0.16s ease, border-color 0.16s ease;
+
+  &:hover {
+    background-color: var(--surface-hover);
+    border-color: var(--border-strong);
+    color: var(--text-strong);
+  }
+
+  svg {
+    width: 19px;
+    height: 19px;
+  }
+
+  // 모바일은 계정·테마·메뉴만으로도 자리가 꽉 찬다. 도움말은 전체 메뉴 서랍에서 연다.
+  @include media.mobile {
+    display: none;
+  }
+}
+
+.header__menu {
+  display: none;
+  align-items: center;
+  justify-content: center;
+  width: 38px;
+  height: 38px;
+  background: none;
+  border: 1px solid var(--border);
+  border-radius: s.$radius-full;
+  color: var(--text-muted);
+  transition: color 0.16s ease, background-color 0.16s ease, border-color 0.16s ease;
+
+  &:hover {
+    background-color: var(--surface-hover);
+    border-color: var(--border-strong);
+    color: var(--text-strong);
+  }
+
+  @include media.tablet {
+    display: inline-flex;
+  }
+}

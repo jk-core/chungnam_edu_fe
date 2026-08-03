@@ -1,0 +1,23 @@
+@use "@/styles/tokens/spacing" as s;
+@use "@/styles/utils/media" as media;
+
+/**
+ * 홈 세로 리듬은 이 컨테이너가 혼자 정한다.
+ * 섹션마다 제 아래쪽 패딩을 갖게 두면 하나만 빠져도 간격이 무너지므로,
+ * 각 섹션은 가로 여백(container)만 갖고 세로 간격은 gap 으로 통일한다.
+ * 배경이 본문과 같은 --paper 라 gap 자리에 줄이 생기지 않는다.
+ */
+.home {
+  display: flex;
+  flex-direction: column;
+  gap: s.$space-9;
+  padding-bottom: s.$space-12;
+
+  @include media.tablet {
+    gap: s.$space-8;
+  }
+
+  @include media.mobile {
+    padding-bottom: s.$space-10;
+  }
+}

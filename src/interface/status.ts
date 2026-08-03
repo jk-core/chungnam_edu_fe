@@ -1,0 +1,28 @@
+/**
+ * 설비 운영 상태 (SFR-009-02 — 최소 5단계).
+ * 인버터 자체의 발전 상태만 나타낸다. 통신은 아래 RtuStatus 로 따로 본다.
+ *
+ * 발전 등급은 정상·주의·경고 세 단계이고, 여기에 아직 발전 전인 준비중과
+ * 값 자체가 오지 않는 통신단절이 붙어 다섯이 된다.
+ * 화면 문구와 연계 코드는 `mocks/status.ts` 의 OPERATION_LABEL·OPERATION_CODE 가 쥔다.
+ */
+export type OperationStatus =
+  /** 정상(7002) — 기대 출력 범위 안 */
+  | 'running'
+  /** 준비중(7001) — 설치·시운전을 마쳤지만 아직 정상 수집 이력이 없다 */
+  | 'ready'
+  /** 주의(7003) — 맑은 시간대에도 기대보다 낮다 */
+  | 'degraded'
+  /** 경고(7004) — 회로 이상으로 출력이 크게 떨어졌다 */
+  | 'fault'
+  /** 통신단절(7998) — 계측값이 들어오지 않는다 */
+  | 'commLost';
+
+/**
+ * 데이터수집장치·환경센서의 연계 상태 (SFR-017-01).
+ * SFR-009-03 이 요구하는 "인버터 고장과 RTU 고장 구분"이 이 축으로 갈린다.
+ */
+export type RtuStatus = 'normal' | 'abnormal' | 'disconnected';
+
+/** 이상 항목 심각도 */
+export type Severity = 'critical' | 'caution' | 'info';

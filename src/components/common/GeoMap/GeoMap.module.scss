@@ -1,0 +1,283 @@
+@use "@/styles/tokens/spacing" as s;
+@use "@/styles/tokens/typography" as t;
+@use "@/styles/utils/media" as media;
+@use "@/styles/utils/mixins" as mx;
+
+.map {
+  position: relative;
+  border: 1px solid var(--map-border);
+  border-radius: s.$radius-md;
+  background:
+    radial-gradient(80% 70% at 50% 0%, var(--brand-soft) 0%, transparent 64%),
+    var(--map-surface);
+  overflow: hidden;
+}
+
+.map__viewport {
+  position: relative;
+  width: 100%;
+  touch-action: none;
+  cursor: grab;
+
+  &:active {
+    cursor: grabbing;
+  }
+}
+
+.map__svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+// pan/zoom 은 transform 만 바꾼다. rAF 관성 대신 짧은 트랜지션으로 부드럽게 한다.
+.map__stage {
+  transition: transform 0.18s ease-out;
+}
+
+@include media.reduced-motion {
+  .map__stage {
+    transition: none;
+  }
+}
+
+// ── 경계와 시·군 라벨 ───────────────────────────────────────
+.province path {
+  // 도 안쪽 시·군 경계선을 옅게 남긴다.
+  stroke-width: 0.4;
+}
+
+.region__label {
+  fill: var(--text-muted);
+  font-family: var(--font-sans);
+  font-weight: 500;
+  text-anchor: middle;
+  pointer-events: none;
+  user-select: none;
+  paint-order: stroke;
+  stroke: var(--surface);
+  stroke-width: 3;
+  stroke-linejoin: round;
+}
+
+// ── 마커 ───────────────────────────────────────────────────
+.marker {
+  cursor: pointer;
+}
+
+.marker__dot {
+  stroke: var(--surface);
+  stroke-width: 1.4;
+  transition: r 0.16s ease;
+}
+
+.marker__dot--ok {
+  fill: var(--ok);
+}
+
+.marker__dot--brand {
+  fill: var(--brand);
+}
+
+.marker__dot--caution {
+  fill: var(--caution);
+}
+
+.marker__dot--critical {
+  fill: var(--critical);
+}
+
+.marker__dot--offline {
+  fill: var(--offline);
+}
+
+.marker__dot--neutral {
+  fill: var(--text-faint);
+}
+
+.marker--selected .marker__dot {
+  stroke: var(--brand);
+  stroke-width: 2.4;
+}
+
+// 이상 설비는 고리를 하나 더 둘러 색에만 의존하지 않게 한다 (COR-003).
+.marker__ring {
+  fill: none;
+  stroke: var(--critical);
+  stroke-width: 1;
+  opacity: 0.5;
+}
+
+.cluster {
+  cursor: pointer;
+}
+
+.cluster__bubble {
+  fill: var(--surface);
+  stroke: var(--brand);
+  stroke-width: 1.4;
+}
+
+.cluster__count {
+  fill: var(--brand-contrast);
+  font-family: var(--font-data);
+  font-size: 10px;
+  font-weight: 600;
+  text-anchor: middle;
+  pointer-events: none;
+  user-select: none;
+}
+
+.cluster__abnormal {
+  fill: var(--critical);
+}
+
+// ── 조작 ───────────────────────────────────────────────────
+.controls {
+  position: absolute;
+  top: s.$space-3;
+  right: s.$space-3;
+  display: flex;
+  flex-direction: column;
+  gap: s.$space-1;
+}
+
+.controls__button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border: 1px solid var(--border);
+  border-radius: s.$radius-xs;
+  background-color: var(--surface);
+  color: var(--text-muted);
+  transition: color 0.16s ease, background-color 0.16s ease;
+
+  &:hover {
+    background-color: var(--surface-hover);
+    color: var(--text-strong);
+  }
+
+  &:disabled {
+    opacity: 0.45;
+    cursor: not-allowed;
+  }
+}
+
+.legend {
+  position: absolute;
+  bottom: s.$space-3;
+  left: s.$space-3;
+  display: flex;
+  flex-wrap: wrap;
+  gap: s.$space-1 s.$space-3;
+  padding: s.$space-2 s.$space-3;
+  border: 1px solid var(--border-subtle);
+  border-radius: s.$radius-sm;
+  background-color: color-mix(in srgb, var(--surface) 88%, transparent);
+  backdrop-filter: blur(6px);
+}
+
+.legend__item {
+  @include t.caption;
+
+  display: inline-flex;
+  align-items: center;
+  gap: s.$space-1 + 2px;
+  color: var(--text-muted);
+}
+
+.legend__dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+}
+
+.zoomNote {
+  @include t.caption;
+
+  position: absolute;
+  bottom: s.$space-3;
+  right: s.$space-3;
+  color: var(--text-faint);
+  font-family: var(--font-data);
+}
+
+// ── 팝업 (SFR-007-06~08) ───────────────────────────────────
+.popup {
+  position: absolute;
+  z-index: 5;
+  width: 244px;
+  padding: s.$space-3 s.$space-4;
+  border: 1px solid var(--border);
+  border-radius: s.$radius-md;
+  background-color: var(--surface-raised);
+  box-shadow: var(--shadow-lg);
+  transform: translate(-50%, calc(-100% - 14px));
+
+  @include media.mobile {
+    width: 208px;
+  }
+}
+
+.popup__close {
+  position: absolute;
+  top: s.$space-1;
+  right: s.$space-1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  border: none;
+  border-radius: s.$radius-xs;
+  background: none;
+  color: var(--text-faint);
+
+  &:hover {
+    background-color: var(--surface-hover);
+    color: var(--text-strong);
+  }
+}
+
+// 말풍선 꼬리
+.popup::after {
+  content: "";
+  position: absolute;
+  bottom: -6px;
+  left: 50%;
+  width: 10px;
+  height: 10px;
+  border-right: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
+  background-color: var(--surface-raised);
+  transform: translateX(-50%) rotate(45deg);
+}
+
+// ── 대체 표 (COR-003) ──────────────────────────────────────
+.fallback {
+  margin-top: s.$space-3;
+}
+
+.fallback__toggle {
+  @include t.label-sm;
+
+  display: inline-flex;
+  align-items: center;
+  gap: s.$space-1 + 2px;
+  padding: s.$space-2 s.$space-3;
+  border: 1px solid var(--border);
+  border-radius: s.$radius-full;
+  background-color: var(--surface);
+  color: var(--text-muted);
+
+  &:hover {
+    background-color: var(--surface-hover);
+    color: var(--text-strong);
+  }
+}
+
+.fallback__body {
+  margin-top: s.$space-3;
+}

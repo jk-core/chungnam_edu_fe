@@ -1,0 +1,54 @@
+@use "@/styles/tokens/spacing" as s;
+@use "@/styles/tokens/typography" as t;
+@use "@/styles/utils/media" as media;
+@use "@/styles/utils/mixins" as mx;
+
+.wrap {
+  width: 100%;
+  overflow-x: auto;
+}
+
+.table {
+  width: 100%;
+  min-width: 100%;
+}
+
+.table__caption {
+  @include mx.sr-only;
+}
+
+.table thead th {
+  padding: s.$space-3 s.$space-4;
+  border-bottom: 1px solid var(--border);
+  color: var(--text-muted);
+  white-space: nowrap;
+
+  @include t.label-sm;
+}
+
+.table tbody td {
+  padding: s.$space-4;
+  border-bottom: 1px solid var(--border-subtle);
+  color: var(--text);
+  vertical-align: middle;
+
+  @include t.body-md;
+}
+
+.table tbody tr {
+  transition: background-color 0.14s ease;
+
+  &:hover {
+    background-color: var(--surface-hover);
+  }
+
+  &:last-child td {
+    border-bottom: 0;
+  }
+}
+
+.table__cell--hideTablet {
+  @include media.tablet {
+    display: none;
+  }
+}

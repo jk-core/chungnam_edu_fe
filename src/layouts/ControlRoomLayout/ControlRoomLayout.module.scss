@@ -1,0 +1,171 @@
+@use "@/styles/tokens/spacing" as s;
+@use "@/styles/tokens/typography" as t;
+@use "@/styles/utils/media" as media;
+
+/**
+ * 통합관제 상황판 골격 (SFR-004).
+ * 벽면 모니터 전용이라 KRDS 좌우 여백(mx.container)을 쓰지 않고 화면을 다 쓴다.
+ */
+
+/* 벽면 모니터에 한 화면으로 수렴시킨다 — 넘치는 목록은 패널 안에서 스크롤한다. */
+.room {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  height: 100vh;
+  padding: s.$space-4 s.$space-5 s.$space-5;
+  overflow: hidden;
+  background:
+    radial-gradient(60% 40% at 12% 0%, var(--sky-glow) 0%, transparent 62%),
+    linear-gradient(180deg, var(--sky-top) 0%, var(--paper) 46%);
+
+  @include media.kiosk {
+    padding: s.$space-5 s.$space-6 s.$space-6;
+  }
+
+  // 좁은 화면은 세로로 쌓고 스크롤을 허용한다.
+  @include media.tablet {
+    height: auto;
+    min-height: 100vh;
+    overflow: visible;
+  }
+
+  @include media.mobile {
+    padding: s.$space-3;
+  }
+}
+
+// ── 상단 상태바 ────────────────────────────────────────────
+.bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: s.$space-4;
+  padding-bottom: s.$space-4;
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+.bar__left,
+.bar__right {
+  display: flex;
+  align-items: center;
+  gap: s.$space-4;
+  flex-wrap: wrap;
+}
+
+.bar__brand {
+  display: flex;
+  align-items: center;
+  gap: s.$space-3;
+}
+
+.bar__title {
+  @include t.title-md;
+
+  color: var(--text-strong);
+}
+
+.bar__scope {
+  @include t.caption;
+
+  display: block;
+  margin-top: 1px;
+  color: var(--text-muted);
+}
+
+.bar__clock {
+  @include t.data-lg;
+
+  color: var(--text-strong);
+}
+
+.bar__date {
+  @include t.caption;
+
+  display: block;
+  color: var(--text-faint);
+}
+
+// 최근 수집 시각 — 지연되면 색으로 알린다 (SFR-004-04)
+.stamp {
+  display: flex;
+  align-items: center;
+  gap: s.$space-2;
+  padding: s.$space-2 s.$space-3;
+  border: 1px solid var(--border-subtle);
+  border-radius: s.$radius-full;
+  background-color: var(--surface);
+}
+
+.stamp--stale {
+  border-color: var(--caution);
+  background-color: var(--caution-soft);
+}
+
+.stamp__label {
+  @include t.caption;
+
+  color: var(--text-faint);
+}
+
+.stamp__value {
+  @include t.data-sm;
+
+  color: var(--text-strong);
+}
+
+// 자동 갱신 살아있음 표시
+.pulse {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background-color: var(--ok);
+  animation: live-pulse 2.4s ease-in-out infinite;
+
+  @include media.reduced-motion {
+    animation: none;
+  }
+}
+
+@keyframes live-pulse {
+  0%,
+  100% {
+    opacity: 1;
+    box-shadow: 0 0 0 0 var(--ok-soft);
+  }
+
+  50% {
+    opacity: 0.55;
+    box-shadow: 0 0 0 6px transparent;
+  }
+}
+
+.bar__action {
+  display: inline-flex;
+  align-items: center;
+  gap: s.$space-2;
+  height: 36px;
+  padding: 0 s.$space-4;
+  border: 1px solid var(--border);
+  border-radius: s.$radius-full;
+  background: none;
+  color: var(--text-muted);
+  transition: color 0.16s ease, background-color 0.16s ease, border-color 0.16s ease;
+
+  @include t.label-sm;
+
+  &:hover {
+    background-color: var(--surface-hover);
+    border-color: var(--border-strong);
+    color: var(--text-strong);
+  }
+}
+
+.room__body {
+  flex: 1;
+  min-height: 0;
+  padding-top: s.$space-4;
+}

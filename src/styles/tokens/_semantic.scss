@@ -1,0 +1,204 @@
+// Semantic Tokens (CSS Custom Properties)
+// 컴포넌트는 반드시 var(--*) 로만 색을 참조한다.
+// light / dark 두 모드를 html[data-theme] 으로 전환한다.
+
+@use "./primitive" as p;
+
+:root,
+[data-theme="light"] {
+  color-scheme: light;
+
+  --font-sans: "Pretendard Variable", pretendard, -apple-system, blinkmacsystemfont, system-ui, sans-serif;
+  --font-data: "Space Grotesk", "Pretendard Variable", pretendard, sans-serif;
+
+  // Surface
+  --paper: #{p.$ink-5};
+  --paper-alt: #{p.$ink-10};
+  --surface: #{p.$ink-0};
+  --surface-raised: #{p.$ink-0};
+  --surface-sunken: #{p.$ink-10};
+  --surface-hover: #{p.$ink-10};
+  --surface-inverse: #{p.$ink-90};
+  --overlay: rgb(14 26 43 / 45%);
+
+  // Text
+  --text-strong: #{p.$ink-90};
+  --text: #{p.$ink-80};
+  --text-muted: #{p.$ink-50};
+  --text-faint: #{p.$ink-40};
+  --text-on-brand: #{p.$ink-0};
+  --text-on-solar: #{p.$ink-90};
+  --text-inverse: #{p.$ink-5};
+
+  // Border
+  --border: #{p.$ink-20};
+  --border-strong: #{p.$ink-30};
+  --border-subtle: #{p.$ink-15};
+
+  // Brand
+  --brand: #{p.$brand-50};
+  --brand-hover: #{p.$brand-60};
+  --brand-active: #{p.$brand-70};
+  --brand-soft: #{p.$brand-5};
+  --brand-soft-border: #{p.$brand-10};
+  --brand-contrast: #{p.$brand-70};
+
+  // Solar — 발전·태양 전용 액센트
+  --solar: #{p.$solar-40};
+  --solar-deep: #{p.$solar-50};
+  --solar-soft: #{p.$solar-5};
+  --solar-line: #{p.$solar-30};
+  --solar-text: #{p.$solar-70};
+
+  // Status
+  --ok: #{p.$leaf-40};
+  --ok-soft: #{p.$leaf-5};
+  --ok-text: #{p.$leaf-60};
+  --caution: #{p.$solar-50};
+  --caution-soft: #{p.$solar-5};
+  --caution-text: #{p.$solar-70};
+  --critical: #{p.$red-40};
+  --critical-soft: #{p.$red-5};
+  --critical-text: #{p.$red-60};
+  --offline: #{p.$ink-40};
+  --offline-soft: #{p.$ink-10};
+  --offline-text: #{p.$ink-60};
+
+  // Chart
+  --chart-grid: #{p.$ink-15};
+  --chart-axis: #{p.$ink-40};
+  --chart-generation: #{p.$solar-40};
+  --chart-generation-soft: rgb(245 165 36 / 18%);
+
+  // 기준일 막대 — 같은 계열에서 한 단계 더 진하게
+  --chart-generation-focus: #{p.$solar-60};
+  --chart-irradiance: #{p.$brand-40};
+  --chart-compare: #{p.$ink-30};
+
+  // Series — 인버터별처럼 여러 갈래를 나란히 그릴 때 (SFR-008-06).
+  // 선 모양(실선·점선)을 함께 바꿔 색만으로 구분하지 않게 한다.
+  --series-1: #{p.$brand-40};
+  --series-2: #{p.$solar-40};
+  --series-3: #{p.$leaf-40};
+  --series-4: #{p.$red-40};
+  --series-5: #7c5cff;
+  --series-6: #0e9aa8;
+  --series-7: #c026d3;
+  --series-8: #64748b;
+
+  // Map — 값 단계 색 (전국 발전시간 분포). 색만으로 읽히지 않게 수치를 늘 함께 적는다.
+  --map-scale-1: #{p.$brand-5};
+  --map-scale-2: #{p.$brand-10};
+  --map-scale-3: #{p.$brand-20};
+  --map-scale-4: #{p.$brand-30};
+  --map-scale-5: #{p.$brand-50};
+  --map-surface: #{p.$ink-5};
+  --map-border: #{p.$ink-20};
+
+  // Sky — 히어로 배경 그라데이션
+  --sky-top: #eaf1fa;
+  --sky-bottom: #f7f9fc;
+  --sky-glow: rgb(245 165 36 / 22%);
+
+  // Elevation
+  --shadow-sm: 0 1px 2px rgb(#{p.$shadow-color} / 6%);
+  --shadow-md: 0 2px 4px rgb(#{p.$shadow-color} / 5%), 0 8px 20px rgb(#{p.$shadow-color} / 6%);
+  --shadow-lg: 0 4px 8px rgb(#{p.$shadow-color} / 6%), 0 20px 44px rgb(#{p.$shadow-color} / 10%);
+  --shadow-focus: 0 0 0 3px rgb(11 87 164 / 22%);
+}
+
+[data-theme="dark"] {
+  color-scheme: dark;
+
+  // Surface
+  --paper: #08111d;
+  --paper-alt: #0d1a2a;
+  --surface: #11202f;
+  --surface-raised: #16273a;
+  --surface-sunken: #0b1524;
+  --surface-hover: #1b2f45;
+  --surface-inverse: #eef2f8;
+  --overlay: rgb(3 8 15 / 66%);
+
+  // Text
+  --text-strong: #eaf1f9;
+  --text: #d3dfec;
+  --text-muted: #8fa2b8;
+  --text-faint: #6b7d94;
+  --text-on-brand: #04203e;
+  --text-on-solar: #2c1c02;
+  --text-inverse: #0e1a2b;
+
+  // Border
+  --border: #22344a;
+  --border-strong: #33475f;
+  --border-subtle: #1a2a3d;
+
+  // Brand
+  --brand: #5aa2ea;
+  --brand-hover: #7ab6f1;
+  --brand-active: #9cc9f6;
+  --brand-soft: rgb(90 162 234 / 12%);
+  --brand-soft-border: rgb(90 162 234 / 26%);
+  --brand-contrast: #9cc9f6;
+
+  // Solar
+  --solar: #ffc15e;
+  --solar-deep: #f5a524;
+  --solar-soft: rgb(255 193 94 / 12%);
+  --solar-line: #f5a524;
+  --solar-text: #ffd28a;
+
+  // Status
+  --ok: #34d399;
+  --ok-soft: rgb(52 211 153 / 12%);
+  --ok-text: #6ee7b7;
+  --caution: #fbbf4a;
+  --caution-soft: rgb(251 191 74 / 12%);
+  --caution-text: #fcd487;
+  --critical: #f4737a;
+  --critical-soft: rgb(244 115 122 / 12%);
+  --critical-text: #f9a5aa;
+  --offline: #6b7d94;
+  --offline-soft: rgb(107 125 148 / 14%);
+  --offline-text: #a3b3c6;
+
+  // Chart
+  --chart-grid: #1e2f43;
+  --chart-axis: #6b7d94;
+  --chart-generation: #ffc15e;
+  --chart-generation-soft: rgb(255 193 94 / 20%);
+  --chart-generation-focus: #ffe3ad;
+  --chart-irradiance: #5aa2ea;
+  --chart-compare: #33475f;
+
+  // Series
+  --series-1: #5aa2ea;
+  --series-2: #ffc15e;
+  --series-3: #79d19b;
+  --series-4: #f9a5aa;
+  --series-5: #a892ff;
+  --series-6: #4fd0dc;
+  --series-7: #e879f9;
+  --series-8: #94a3b8;
+
+  // Map
+  --map-scale-1: #16273a;
+  --map-scale-2: #1b3a58;
+  --map-scale-3: #205076;
+  --map-scale-4: #2c6da0;
+  --map-scale-5: #5aa2ea;
+  --map-surface: #0b1524;
+  --map-border: #22344a;
+
+  // Sky
+  --sky-top: #0c1a2b;
+  --sky-bottom: #08111d;
+  --sky-glow: rgb(255 193 94 / 16%);
+
+  // Elevation
+  --shadow-sm: 0 1px 2px rgb(0 0 0 / 34%);
+  --shadow-md: 0 2px 4px rgb(0 0 0 / 28%), 0 8px 20px rgb(0 0 0 / 34%);
+  --shadow-lg: 0 4px 8px rgb(0 0 0 / 30%), 0 20px 44px rgb(0 0 0 / 44%);
+  --shadow-focus: 0 0 0 3px rgb(90 162 234 / 34%);
+}
