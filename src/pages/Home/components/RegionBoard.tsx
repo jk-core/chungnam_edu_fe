@@ -4,7 +4,7 @@ import { Card } from '@/components/common/Card';
 import { REGIONS } from '@/mocks/regions';
 import { Reveal } from '@/components/common/Reveal';
 import { SegmentedControl } from '@/components/common/SegmentedControl';
-import { formatEnergy, formatNumber } from '@/utils/format';
+import { formatCapacity, formatEnergy } from '@/utils/format';
 import styles from './RegionBoard.module.scss';
 
 type Metric = 'today' | 'month';
@@ -52,6 +52,7 @@ export function RegionBoard() {
             <ul className={styles.board__list}>
               {rows.map((row, index) => {
                 const energy = formatEnergy(row.value);
+                const capacity = formatCapacity(row.capacityKw);
 
                 return (
                   <li key={row.code} className={styles.board__row}>
@@ -76,7 +77,7 @@ export function RegionBoard() {
                       <span className={styles.board__unit}>{energy.unit}</span>
                     </span>
 
-                    <span className={styles.board__capacity}>{formatNumber(row.capacityKw)} kW</span>
+                    <span className={styles.board__capacity}>{capacity.value} {capacity.unit}</span>
                   </li>
                 );
               })}

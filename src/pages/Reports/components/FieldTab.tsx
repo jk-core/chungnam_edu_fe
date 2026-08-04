@@ -24,7 +24,7 @@ import { EmptyState } from '@/components/common/EmptyState';
 import { Modal } from '@/components/common/Modal';
 import { MSG } from '@/configs/messages';
 import { NOW, TODAY } from '@/mocks/today';
-import { PlusIcon, PrinterIcon } from '@/components/common/Icon';
+import { PlusIcon, PrinterIcon, UserIcon } from '@/components/common/Icon';
 import { Reveal } from '@/components/common/Reveal';
 import { Select } from '@/components/common/Select';
 import { cn } from '@/utils/cn';
@@ -36,8 +36,11 @@ import { usePrint } from '@/hooks/usePrint';
 import useFieldReportStore from '@/stores/fieldReportStore';
 import type { BadgeTone } from '@/components/common/Badge';
 import type { CheckResult, FieldReport, ReportState } from '@/interface/fieldReport';
+import type { ManagedUser } from '@/interface/account';
 import type { UploadFile } from '@/components/common/Form';
 import styles from '../Reports.module.scss';
+import { FieldShareModal } from './FieldShareModal';
+import { getFieldPermission } from './fieldPermission';
 
 const STATE_TONE: Record<ReportState, BadgeTone> = {
   draft: 'neutral',
@@ -79,12 +82,17 @@ export function FieldTab() {
   const [draft, setDraft] = useState<DraftState | null>(null);
   const [error, setError] = useState<string | undefined>(undefined);
   const [confirming, setConfirming] = useState<'draft' | 'submit' | null>(null);
+  const [sharing, setSharing] = useState<FieldReport | null>(null);
+
+  const permission = getFieldPermission(user);
 
   const reports = useMemo(() => {
-    const all = mergeFieldReports(created, patched, deleted);
+    const all = mergeFieldReports(created, patched, deleted).filter(permission.canRead);
 
     return plant ? all.filter((item) => item.schoolId === plant.id) : all;
-  }, [plant, created, patched, deleted]);
+    // permission 은 user 에서 파생된다 — 의존성은 user 하나로 충분하다.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [plant, created, patched, deleted, user]);
 
   const repeats = useMemo(() => findRepeatIssues(reports), [reports]);
   const detail = reports.find((item) => item.id === openId) ?? null;
@@ -199,6 +207,21 @@ export function FieldTab() {
     toast.success(`${REPORT_STATE_LABEL[next]}(으)로 처리했습니다.`);
   };
 
+  /** 공유한 사실을 이력에 남긴다 (SFR-021-18) */
+  const share = (report: FieldReport, recipients: ManagedUser[]) => {
+    patch(report.id, {
+      history: [
+        ...report.history,
+        {
+          at: NOW.format('YYYY-MM-DD HH:mm'),
+          actor: user?.name ?? '담당자',
+          change: `${recipients.map((item) => item.name).join(', ')}에게 공유했습니다.`,
+        },
+      ],
+    });
+    toast.success(`${recipients.length}명에게 공유했습니다.`);
+  };
+
   return (
     <div className={styles.tab}>
       <div className={cn(styles.toolbar, 'no-print')}>
@@ -206,11 +229,16 @@ export function FieldTab() {
           <p className={styles.toolbar__note}>
             {label} · 보고서 {reports.length}건
           </p>
+          {permission.writeBlockedReason ? (
+            <p className={styles.toolbar__note}>{permission.writeBlockedReason}</p>
+          ) : null}
         </div>
         <div className={styles.toolbar__actions}>
-          <Button iconLeft={<PlusIcon />} onClick={startWriting} disabled={!plant}>
-            보고서 작성
-          </Button>
+          {permission.canWrite ? (
+            <Button iconLeft={<PlusIcon />} onClick={startWriting} disabled={!plant}>
+              보고서 작성
+            </Button>
+          ) : null}
         </div>
       </div>
 
@@ -288,7 +316,12 @@ export function FieldTab() {
             >
               PDF 로 저장
             </Button>
-            {STATE_ORDER.indexOf(detail.state) < STATE_ORDER.length - 1 ? (
+            {permission.canShare ? (
+              <Button variant="secondary" iconLeft={<UserIcon />} onClick={() => setSharing(detail)}>
+                관계자 공유
+              </Button>
+            ) : null}
+            {permission.canAdvance(detail) ? (
               <Button onClick={() => advance(detail)}>
                 {REPORT_STATE_LABEL[STATE_ORDER[STATE_ORDER.indexOf(detail.state) + 1]]}로 처리
               </Button>
@@ -496,6 +529,8 @@ export function FieldTab() {
         onConfirm={() => commit(confirming === 'draft' ? 'draft' : 'submitted')}
         onClose={() => setConfirming(null)}
       />
+
+      <FieldShareModal report={sharing} onClose={() => setSharing(null)} onShare={share} />
     </div>
   );
 }

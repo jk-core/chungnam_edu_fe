@@ -12,7 +12,9 @@ import { MSG } from '@/configs/messages';
 import { NOW } from '@/mocks/today';
 import { OPERATION_LABEL, OPERATION_TONE } from '@/mocks/status';
 import { Reveal } from '@/components/common/Reveal';
-import { SCHOOLS } from '@/mocks/schools';
+import { SCHOOL_LEVELS, SCHOOLS } from '@/mocks/schools';
+import { REGIONS } from '@/mocks/regions';
+import { Select } from '@/components/common/Select';
 import { Table } from '@/components/common/Table';
 import { formatNumber } from '@/utils/format';
 import { toast } from '@/stores/toastStore';
@@ -33,6 +35,70 @@ interface Draft {
   panelCount: number | '';
 }
 
+/** 신규 등록 초안 — 수정 초안과 달리 발전소 자체를 세우므로 소재·설치 정보까지 받는다 (SFR-016-01) */
+interface NewDraft {
+  plantName: string;
+  regionCode: string;
+  level: string;
+  address: string;
+  installedAt: string;
+  inverterModel: string;
+  builderName: string;
+  builderPhone: string;
+  monitoringName: string;
+  monitoringPhone: string;
+  customerName: string;
+  customerPhone: string;
+  moduleModel: string;
+  wattPerPanel: number | '';
+  panelCount: number | '';
+}
+
+const EMPTY_NEW: NewDraft = {
+  plantName: '',
+  regionCode: REGIONS[0].code,
+  level: SCHOOL_LEVELS[0],
+  address: '',
+  installedAt: NOW.format('YYYY-MM'),
+  inverterModel: '',
+  builderName: '',
+  builderPhone: '',
+  monitoringName: '',
+  monitoringPhone: '',
+  customerName: '',
+  customerPhone: '',
+  moduleModel: '',
+  wattPerPanel: '',
+  panelCount: '',
+};
+
+/**
+ * 등록 정보를 목록 행으로 옮긴다.
+ * 새로 세운 발전소는 아직 계측값이 없으므로 발전량은 0, 상태는 준비중으로 둔다 (SFR-003-10).
+ */
+function toSchoolRow(asset: PlantAsset): School {
+  const region = REGIONS.find((item) => asset.address.includes(item.name)) ?? REGIONS[0];
+
+  return {
+    id: asset.plantId,
+    name: asset.plantName,
+    regionCode: region.code,
+    regionName: region.name,
+    level: SCHOOL_LEVELS[0],
+    address: asset.address,
+    capacityKw: computeCapacity(asset.module),
+    inverterCount: 0,
+    pyranometerStatus: 'disconnected',
+    todayKwh: 0,
+    monthKwh: 0,
+    yearKwh: 0,
+    utilization: 0,
+    status: 'ready',
+    installedAt: asset.installedAt,
+    location: region.center,
+  };
+}
+
 function draftOf(asset: PlantAsset): Draft {
   return {
     builderName: asset.builder.name,
@@ -49,6 +115,9 @@ function draftOf(asset: PlantAsset): Draft {
 export function PlantsTab() {
   const user = useAuthUser();
   const assetPatched = useAssetStore((state) => state.assetPatched);
+  const plantCreated = useAssetStore((state) => state.plantCreated);
+  const createPlant = useAssetStore((state) => state.createPlant);
+  const nextPlantId = useAssetStore((state) => state.nextPlantId);
   const changes = useAssetStore((state) => state.changes);
   const saveAsset = useAssetStore((state) => state.saveAsset);
 
@@ -56,16 +125,23 @@ export function PlantsTab() {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [draft, setDraft] = useState<Draft | null>(null);
   const [confirming, setConfirming] = useState(false);
+  const [creating, setCreating] = useState<NewDraft | null>(null);
+
+  // 새로 등록한 발전소를 앞에 세운다 — 방금 넣은 것이 목록 끝에 묻히면 확인이 어렵다.
+  const all = useMemo(
+    () => [...plantCreated.map(toSchoolRow), ...SCHOOLS],
+    [plantCreated],
+  );
 
   const rows = useMemo(() => {
     const trimmed = keyword.trim();
 
     return trimmed
-      ? SCHOOLS.filter((school) => school.name.includes(trimmed) || school.regionName.includes(trimmed))
-      : SCHOOLS;
-  }, [keyword]);
+      ? all.filter((school) => school.name.includes(trimmed) || school.regionName.includes(trimmed))
+      : all;
+  }, [keyword, all]);
 
-  const editing = editingId ? mergeAsset(editingId, assetPatched) : null;
+  const editing = editingId ? mergeAsset(editingId, assetPatched, plantCreated) : null;
   const history = useMemo(() => mergeChanges(changes), [changes]);
 
   // 모듈 스펙을 바꾸면 총 용량이 즉시 다시 계산된다 (SFR-016-03).
@@ -78,8 +154,69 @@ export function PlantsTab() {
     })
     : null;
 
+  // 모듈 스펙만 넣으면 총 용량이 바로 잡힌다 (SFR-016-03) — 등록 폼도 수정 폼과 같은 셈을 쓴다.
+  const newCapacity = creating && creating.wattPerPanel !== '' && creating.panelCount !== ''
+    ? computeCapacity({
+      model: creating.moduleModel,
+      wattPerPanel: creating.wattPerPanel,
+      panelCount: creating.panelCount,
+      seriesCount: 1,
+    })
+    : null;
+
+  const canCreate = Boolean(
+    creating
+    && creating.plantName.trim()
+    && creating.address.trim()
+    && creating.moduleModel.trim()
+    && creating.wattPerPanel !== ''
+    && creating.panelCount !== '',
+  );
+
+  const commitCreate = () => {
+    if (!creating || !canCreate || creating.wattPerPanel === '' || creating.panelCount === '') return;
+
+    const region = REGIONS.find((item) => item.code === creating.regionCode) ?? REGIONS[0];
+    const plantId = nextPlantId();
+    // 목록 행은 주소에서 시·군을 되읽으므로 주소 앞에 시·군을 세워 둔다.
+    const address = creating.address.includes(region.name)
+      ? creating.address.trim()
+      : `충청남도 ${region.name} ${creating.address.trim()}`;
+
+    const asset: PlantAsset = {
+      plantId,
+      plantName: creating.plantName.trim(),
+      address,
+      installedAt: creating.installedAt.trim(),
+      builder: { name: creating.builderName.trim(), phone: creating.builderPhone.trim() },
+      monitoring: { name: creating.monitoringName.trim(), phone: creating.monitoringPhone.trim() },
+      customer: { name: creating.customerName.trim(), phone: creating.customerPhone.trim() },
+      inverterModel: creating.inverterModel.trim(),
+      module: {
+        model: creating.moduleModel.trim(),
+        wattPerPanel: creating.wattPerPanel,
+        panelCount: creating.panelCount,
+        seriesCount: 1,
+      },
+    };
+
+    createPlant(asset, {
+      id: `AC-${NOW.format('MMDDHHmm')}-${plantId}`,
+      plantId,
+      plantName: asset.plantName,
+      at: NOW.format('YYYY-MM-DD HH:mm'),
+      actor: user?.name ?? '관리자',
+      field: '신규 등록',
+      before: '—',
+      after: `${formatNumber(computeCapacity(asset.module), 1)}kW · ${creating.level}`,
+    });
+
+    toast.success(MSG.createSuccess(asset.plantName));
+    setCreating(null);
+  };
+
   const openEditor = (plantId: string) => {
-    const asset = mergeAsset(plantId, assetPatched);
+    const asset = mergeAsset(plantId, assetPatched, plantCreated);
 
     if (!asset) return;
 
@@ -209,14 +346,17 @@ export function PlantsTab() {
             width="md"
           />
         </div>
-        <p className={styles.toolbar__note}>{formatNumber(rows.length)}개소</p>
+        <div className={styles.toolbar__left}>
+          <p className={styles.toolbar__note}>{formatNumber(rows.length)}개소</p>
+          <Button size="sm" onClick={() => setCreating(EMPTY_NEW)}>발전소 등록</Button>
+        </div>
       </div>
 
       <Reveal>
         <Card
           eyebrow="Plants"
           title="발전소 목록"
-          description="행의 수정 버튼으로 등록 정보를 고칩니다. 변경 내역은 아래 이력에 남습니다."
+          description="위 등록 버튼으로 발전소를 새로 세우고, 행의 수정 버튼으로 등록 정보를 고칩니다. 변경 내역은 아래 이력에 남습니다."
         >
           <Table caption="발전소 등록 목록" columns={columns} rows={rows} getRowKey={(row) => row.id} />
         </Card>
@@ -348,6 +488,155 @@ export function PlantsTab() {
                   <dd>{editing.inverterModel}</dd>
                 </div>
               </dl>
+            </FormSection>
+          </div>
+        ) : null}
+      </Modal>
+
+      {/* 발전소 신규 등록 (SFR-016-01~04) */}
+      <Modal
+        isOpen={creating !== null}
+        onClose={() => setCreating(null)}
+        size="lg"
+        title="발전소 등록"
+        description="설비용량은 모듈 정보에서 자동으로 계산됩니다."
+        footer={(
+          <>
+            <Button variant="secondary" onClick={() => setCreating(null)}>
+              취소
+            </Button>
+            <Button onClick={commitCreate} disabled={!canCreate}>
+              등록
+            </Button>
+          </>
+        )}
+      >
+        {creating ? (
+          <div className={styles.form}>
+            <FormSection legend="발전소 정보" hint="시·군은 지도 위 마커 자리를 정하는 데 쓰입니다.">
+              <FormRow cols={2}>
+                <TextField
+                  label="발전소명"
+                  value={creating.plantName}
+                  onChange={(value) => setCreating({ ...creating, plantName: value })}
+                  placeholder="예: 온양초등학교"
+                  required
+                />
+                <Select
+                  label="시·군"
+                  value={creating.regionCode}
+                  options={REGIONS.map((item) => ({ value: item.code, label: item.name }))}
+                  onChange={(value) => setCreating({ ...creating, regionCode: value })}
+                />
+              </FormRow>
+              <FormRow cols={2}>
+                <Select
+                  label="학교급"
+                  value={creating.level}
+                  options={SCHOOL_LEVELS.map((item) => ({ value: item, label: item }))}
+                  onChange={(value) => setCreating({ ...creating, level: value })}
+                />
+                <TextField
+                  label="설치 시기"
+                  value={creating.installedAt}
+                  onChange={(value) => setCreating({ ...creating, installedAt: value })}
+                  hint="YYYY-MM"
+                  ime="numeric"
+                />
+              </FormRow>
+              <TextField
+                label="주소"
+                value={creating.address}
+                onChange={(value) => setCreating({ ...creating, address: value })}
+                placeholder="시·군 뒤 상세 주소"
+                width="full"
+                required
+              />
+            </FormSection>
+
+            <FormSection legend="시공·관리 업체" hint="연락처는 고장 대응 시 바로 쓰입니다.">
+              <FormRow cols={2}>
+                <TextField
+                  label="시공 업체"
+                  value={creating.builderName}
+                  onChange={(value) => setCreating({ ...creating, builderName: value })}
+                />
+                <TextField
+                  label="시공 업체 연락처"
+                  value={creating.builderPhone}
+                  onChange={(value) => setCreating({ ...creating, builderPhone: value })}
+                  ime="numeric"
+                />
+              </FormRow>
+              <FormRow cols={2}>
+                <TextField
+                  label="모니터링 업체"
+                  value={creating.monitoringName}
+                  onChange={(value) => setCreating({ ...creating, monitoringName: value })}
+                />
+                <TextField
+                  label="모니터링 업체 연락처"
+                  value={creating.monitoringPhone}
+                  onChange={(value) => setCreating({ ...creating, monitoringPhone: value })}
+                  ime="numeric"
+                />
+              </FormRow>
+            </FormSection>
+
+            <FormSection legend="수용가" hint="개인정보라 목록·상세에서는 가려서 보여 줍니다.">
+              <FormRow cols={2}>
+                <TextField
+                  label="수용가명"
+                  value={creating.customerName}
+                  onChange={(value) => setCreating({ ...creating, customerName: value })}
+                />
+                <TextField
+                  label="수용가 연락처"
+                  value={creating.customerPhone}
+                  onChange={(value) => setCreating({ ...creating, customerPhone: value })}
+                  ime="numeric"
+                />
+              </FormRow>
+            </FormSection>
+
+            <FormSection legend="설비 정보" hint="출력과 장수를 넣으면 총 설비용량이 자동 계산됩니다.">
+              <FormRow cols={3}>
+                <TextField
+                  label="모듈 모델"
+                  value={creating.moduleModel}
+                  onChange={(value) => setCreating({ ...creating, moduleModel: value })}
+                  ime="latin"
+                  required
+                />
+                <NumberField
+                  label="1장 출력"
+                  value={creating.wattPerPanel}
+                  onChange={(value) => setCreating({ ...creating, wattPerPanel: value })}
+                  unit="W"
+                  required
+                />
+                <NumberField
+                  label="모듈 장수"
+                  value={creating.panelCount}
+                  onChange={(value) => setCreating({ ...creating, panelCount: value })}
+                  unit="장"
+                  required
+                />
+              </FormRow>
+              <TextField
+                label="인버터 모델"
+                value={creating.inverterModel}
+                onChange={(value) => setCreating({ ...creating, inverterModel: value })}
+                ime="latin"
+              />
+
+              <div className={styles.capacity}>
+                <span className={styles.capacity__label}>산출 설비용량</span>
+                <span className={styles.capacity__value}>
+                  {newCapacity === null ? '—' : `${formatNumber(newCapacity, 1)} kW`}
+                </span>
+                <span className={styles.capacity__note}>모듈 출력 × 장수로 계산합니다</span>
+              </div>
             </FormSection>
           </div>
         ) : null}

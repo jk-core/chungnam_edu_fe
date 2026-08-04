@@ -20,9 +20,9 @@ import { toast } from '@/stores/toastStore';
 import { useAuthUser } from '@/stores/authStore';
 import { useDiagnosisScope } from '@/hooks/useDiagnosisScope';
 import type { FaultTimeline, TimelinePhase } from '@/interface/faultTimeline';
-import shared from '../AiDiagnosis.module.scss';
+import shared from '../Alerts.module.scss';
 import styles from './TimelineTab.module.scss';
-import { AnalysisFilter } from './AnalysisFilter';
+import { FaultGantt } from './FaultGantt';
 
 const PHASE_ICON: Record<TimelinePhase, typeof AlertIcon> = {
   detected: AlertIcon,
@@ -32,6 +32,9 @@ const PHASE_ICON: Record<TimelinePhase, typeof AlertIcon> = {
 };
 
 type ResolveChoice = 'resolve' | 'progress';
+
+/** 타임라인이 거슬러 올라가는 기간(년) */
+const TIMELINE_YEARS = 5;
 
 /**
  * 고장 발생부터 조치 완료까지 단계별 이력 (SFR-015).
@@ -44,6 +47,7 @@ export function TimelineTab() {
   // 사용자가 넣은 조치가 바뀌면 목록을 다시 그린다.
   const manual = useManualActions();
 
+  const [detailId, setDetailId] = useState<string | null>(null);
   const [openId, setOpenId] = useState<string | null>(null);
   const [note, setNote] = useState('');
   const [actor, setActor] = useState(user?.name ?? '');
@@ -69,6 +73,13 @@ export function TimelineTab() {
 
   const open = timelines.filter((item) => !item.resolved);
   const editing = timelines.find((item) => item.id === openId) ?? null;
+  const detail = timelines.find((item) => item.id === detailId) ?? null;
+
+  /**
+   * 축은 오늘부터 5년 전까지 — 과거로 계속 밀어 볼 수 있어야 한다.
+   * 날짜 칸이 1,800개를 넘으므로 눈금은 보이는 구간만 그린다(FaultGantt).
+   */
+  const axis = useMemo(() => ({ from: NOW.subtract(TIMELINE_YEARS, 'year').startOf('day'), to: NOW.endOf('day') }), []);
 
   const totalLoss = timelines.reduce((sum, item) => sum + item.lossKwh, 0);
   const avgMinutes = timelines.length > 0
@@ -111,8 +122,6 @@ export function TimelineTab() {
 
   return (
     <div className={shared.tab}>
-      <AnalysisFilter trailing={<p className={shared.toolbar__count}>이상 구간 {timelines.length}건</p>} />
-
       <Reveal>
         <div className={styles.summary}>
           <StatCard label="이상 발생 구간" value={timelines.length} unit="건" icon={<AlertIcon />} />
@@ -139,102 +148,87 @@ export function TimelineTab() {
           <Card
             eyebrow="Timeline"
             title="고장 타임라인"
-            description="정상 가동 기간은 빼고 이상이 있던 구간만 모았습니다. AI 가 판별한 고장과 시스템이 잡은 통신 장애를 구분하고, 관리자가 넣은 조치는 따로 표시합니다."
+            description="정상 가동 기간은 빼고 이상이 있던 구간만 막대로 늘어놓았습니다. 발전소 이름을 누르면 설비별로 펼쳐지고, 막대를 누르면 단계별 이력과 조치 기록이 열립니다."
           >
-            <div className={styles.list}>
-              {timelines.map((item) => {
-                const fault = getFaultCode(item.faultCode);
-
-                return (
-                  <article
-                    key={item.id}
-                    className={cn(styles.item, item.resolved ? styles['item--done'] : styles['item--open'])}
-                  >
-                    <header className={styles.item__head}>
-                      <div>
-                        <p className={styles.item__title}>
-                          {item.plantName} · {item.deviceName}
-                        </p>
-                        <p className={styles.item__meta}>
-                          <span>발생 {item.startedAt}</span>
-                          <span>
-                            {item.resolved ? `완료 ${item.endedAt}` : '조치 진행 중'} · 경과{' '}
-                            {formatDuration(timelineDurationMinutes(item))}
-                          </span>
-                          <span>추정 손실 {formatNumber(item.lossKwh, 1)}kWh</span>
-                        </p>
-                      </div>
-
-                      <div className={styles.item__badges}>
-                        <Badge tone={item.source === 'ai' ? 'brand' : 'offline'}>
-                          {item.source === 'ai' ? 'AI 판별' : '시스템 감지'}
-                        </Badge>
-                        {fault && fault.code !== 'F-000' ? (
-                          <Badge tone="critical">
-                            {fault.code} {fault.label}
-                          </Badge>
-                        ) : null}
-                        <Badge tone={item.resolved ? 'ok' : 'caution'} withDot>
-                          {item.resolved ? '조치 완료' : '미조치'}
-                        </Badge>
-                      </div>
-                    </header>
-
-                    <ol className={styles.steps}>
-                      {item.steps.map((step, index) => {
-                        const Icon = PHASE_ICON[step.phase];
-
-                        return (
-                          <li key={`${step.at}-${index}`} className={styles.step}>
-                            <span className={cn(styles.step__marker, styles[`step__marker--${step.phase}`])}>
-                              <Icon width={13} height={13} />
-                            </span>
-                            <div className={styles.step__body}>
-                              <p className={styles.step__top}>
-                                <span className={styles.step__phase}>{PHASE_LABEL[step.phase]}</span>
-                                <span className={styles.step__at}>{step.at}</span>
-                                {step.manual ? (
-                                  <span className={styles.step__manual}>
-                                    <UserIcon width={11} height={11} />
-                                    {step.actor ?? '관리자'} 직접 입력
-                                  </span>
-                                ) : null}
-                              </p>
-                              <p className={styles.step__note}>{step.note}</p>
-                            </div>
-                          </li>
-                        );
-                      })}
-                    </ol>
-
-                    <div className={styles.actions}>
-                      <span className={styles.actions__note}>
-                        {item.resolved
-                          ? '조치가 끝난 건입니다. 추가 이력이 필요하면 다시 기록할 수 있습니다.'
-                          : '현장 확인 결과를 남기거나 완료로 처리하세요.'}
-                      </span>
-                      <Button
-                        variant="secondary"
-                        size="sm"
-                        iconLeft={<WrenchIcon />}
-                        onClick={() => {
-                          setOpenId(item.id);
-                          setNote('');
-                          setActor(user?.name ?? '');
-                          setChoice(item.resolved ? 'progress' : 'resolve');
-                          setError(undefined);
-                        }}
-                      >
-                        조치 기록
-                      </Button>
-                    </div>
-                  </article>
-                );
-              })}
-            </div>
+            <FaultGantt rows={timelines} from={axis.from} to={axis.to} onSelect={(item) => setDetailId(item.id)} />
           </Card>
         </Reveal>
       )}
+
+      <Modal
+        isOpen={detail !== null}
+        onClose={() => setDetailId(null)}
+        size="lg"
+        title={detail ? `${detail.plantName} · ${detail.deviceName}` : ''}
+        description={detail
+          ? `발생 ${detail.startedAt} · ${detail.resolved ? `완료 ${detail.endedAt}` : '조치 진행 중'} · 경과 ${formatDuration(timelineDurationMinutes(detail))}`
+          : undefined}
+        footer={detail ? (
+          <Button
+            iconLeft={<WrenchIcon />}
+            onClick={() => {
+              setOpenId(detail.id);
+              setNote('');
+              setActor(user?.name ?? '');
+              setChoice(detail.resolved ? 'progress' : 'resolve');
+              setError(undefined);
+              setDetailId(null);
+            }}
+          >
+            조치 기록
+          </Button>
+        ) : null}
+      >
+        {detail ? (
+          <div className={styles.detail}>
+            <div className={styles.item__badges}>
+              <Badge tone={detail.source === 'ai' ? 'brand' : 'offline'}>
+                {detail.source === 'ai' ? 'AI 판별' : '시스템 감지'}
+              </Badge>
+              {(() => {
+                const fault = getFaultCode(detail.faultCode);
+
+                return fault && fault.code !== 0 ? (
+                  <Badge tone="critical">
+                    {fault.label} · {fault.summary}
+                  </Badge>
+                ) : null;
+              })()}
+              <Badge tone={detail.resolved ? 'ok' : 'caution'} withDot>
+                {detail.resolved ? '조치 완료' : '미조치'}
+              </Badge>
+              <Badge tone="neutral">추정 손실 {formatNumber(detail.lossKwh, 1)}kWh</Badge>
+            </div>
+
+            <ol className={styles.steps}>
+              {detail.steps.map((step, index) => {
+                const Icon = PHASE_ICON[step.phase];
+
+                return (
+                  <li key={`${step.at}-${index}`} className={styles.step}>
+                    <span className={cn(styles.step__marker, styles[`step__marker--${step.phase}`])}>
+                      <Icon width={13} height={13} />
+                    </span>
+                    <div className={styles.step__body}>
+                      <p className={styles.step__top}>
+                        <span className={styles.step__phase}>{PHASE_LABEL[step.phase]}</span>
+                        <span className={styles.step__at}>{step.at}</span>
+                        {step.manual ? (
+                          <span className={styles.step__manual}>
+                            <UserIcon width={11} height={11} />
+                            {step.actor ?? '관리자'} 직접 입력
+                          </span>
+                        ) : null}
+                      </p>
+                      <p className={styles.step__note}>{step.note}</p>
+                    </div>
+                  </li>
+                );
+              })}
+            </ol>
+          </div>
+        ) : null}
+      </Modal>
 
       <Modal
         isOpen={editing !== null}

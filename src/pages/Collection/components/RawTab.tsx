@@ -6,11 +6,16 @@ import { DownloadIcon } from '@/components/common/Icon';
 import { Pagination } from '@/components/common/Pagination';
 import { Reveal } from '@/components/common/Reveal';
 import { SegmentedControl } from '@/components/common/SegmentedControl';
+import { MSG } from '@/configs/messages';
 import { cn } from '@/utils/cn';
+import { exportCsv } from '@/utils/export';
 import { formatNumber } from '@/utils/format';
 import { formatShort } from '@/utils/date';
+import { toast } from '@/stores/toastStore';
 import { useCollectionDate } from '@/stores/filterStore';
 import { usePlantScope } from '@/hooks/usePlantScope';
+import type { CsvColumn } from '@/utils/export';
+import type { RawPoint } from '@/interface/collection';
 import styles from '../Collection.module.scss';
 import { CollectionFilter } from './CollectionFilter';
 
@@ -36,6 +41,28 @@ export function RawTab() {
     return filter === 'missing' ? points.filter((point) => point.values.power === null) : points;
   }, [plant, inverter, date, filter]);
 
+  // 채널 구성이 바뀌면 열도 따라 바뀌도록 CHANNELS 에서 그대로 뽑는다.
+  const csvColumns: CsvColumn<RawPoint>[] = [
+    { header: '시각', value: (row) => row.time },
+    ...CHANNELS.map((channel) => ({
+      header: `${channel.label}(${channel.unit})`,
+      value: (row: RawPoint) => row.values[channel.key] ?? '',
+    })),
+  ];
+
+  const download = () => {
+    if (rows.length === 0) {
+      toast.error(MSG.noResult);
+
+      return;
+    }
+
+    const filename = `원시데이터_${label}_${formatShort(date).replace(/[.\s]/g, '')}`;
+
+    exportCsv(filename, csvColumns, rows);
+    toast.success(MSG.downloadStart(filename));
+  };
+
   const pageCount = Math.max(1, Math.ceil(rows.length / PAGE_SIZE));
   const current = Math.min(page, pageCount);
   const visible = rows.slice((current - 1) * PAGE_SIZE, current * PAGE_SIZE);
@@ -44,7 +71,7 @@ export function RawTab() {
     <div className={styles.tab}>
       <CollectionFilter
         trailing={
-          <Button variant="secondary" size="sm" iconLeft={<DownloadIcon />}>
+          <Button variant="secondary" size="sm" iconLeft={<DownloadIcon />} onClick={download}>
             CSV 내려받기
           </Button>
         }

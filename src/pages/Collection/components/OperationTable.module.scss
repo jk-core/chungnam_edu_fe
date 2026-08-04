@@ -1,0 +1,88 @@
+@use "@/styles/tokens/spacing" as s;
+@use "@/styles/tokens/typography" as t;
+@use "@/styles/utils/mixins" as mx;
+
+.scroll {
+  width: 100%;
+  overflow-x: auto;
+}
+
+.srOnly {
+  @include mx.sr-only;
+}
+
+.table {
+  width: max-content;
+  min-width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+}
+
+.head {
+  @include t.label-sm;
+
+  padding: s.$space-2 s.$space-3;
+  border-bottom: 1px solid var(--border);
+  background-color: var(--surface);
+  color: var(--text-muted);
+  text-align: right;
+  white-space: nowrap;
+}
+
+// 묶음 머리글 — 아래 하위 열과 한 몸으로 읽히게 가운데로 둔다
+.head--group {
+  border-bottom: 1px solid var(--border-subtle);
+  text-align: center;
+}
+
+.head--sub {
+  @include t.caption;
+}
+
+// 가로로 흘러도 언제 값인지 잃지 않게 시각 열은 붙여 둔다
+.head--time,
+.time {
+  position: sticky;
+  left: 0;
+  z-index: 2;
+  background-color: var(--surface);
+  box-shadow: 1px 0 0 var(--border-subtle);
+  text-align: left;
+}
+
+.head--time {
+  z-index: 3;
+}
+
+.time {
+  @include t.data-sm;
+
+  padding: s.$space-2 s.$space-3;
+  border-bottom: 1px solid var(--border-subtle);
+  color: var(--text-strong);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.cell {
+  @include t.data-sm;
+
+  padding: s.$space-2 s.$space-3;
+  border-bottom: 1px solid var(--border-subtle);
+  background-color: var(--surface);
+  color: var(--text);
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+  white-space: nowrap;
+}
+
+// 결측·이상이 섞인 줄은 훑을 때 걸리도록 눌러 둔다
+.row--flag .cell,
+.row--flag .time {
+  background-color: var(--surface-hover);
+}
+
+.table tbody tr:hover .cell,
+.table tbody tr:hover .time {
+  background-color: var(--surface-sunken);
+}

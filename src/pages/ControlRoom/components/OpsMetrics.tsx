@@ -1,6 +1,6 @@
 import { CountUp } from '@/components/common/CountUp';
 import { countOperation, OPERATION_LABEL, OPERATION_ORDER, OPERATION_TONE } from '@/mocks/status';
-import { formatNumber, formatPercent } from '@/utils/format';
+import { formatCapacity, formatNumber, formatPercent } from '@/utils/format';
 import type { School } from '@/interface/energy';
 import styles from './OpsMetrics.module.scss';
 
@@ -20,6 +20,10 @@ export function OpsMetrics({ schools, hours, staleCount }: OpsMetricsProps) {
   const count = countOperation(schools);
   const total = schools.length || 1;
   const utilization = schools.reduce((sum, school) => sum + school.utilization, 0) / total;
+  const capacity = formatCapacity(schools.reduce((sum, school) => sum + school.capacityKw, 0));
+  const inverterCount = schools.reduce((sum, school) => sum + school.inverterCount, 0);
+  // 지금 실제로 전기를 내고 있는 개소 — 상태 분포만으로는 한눈에 안 들어온다.
+  const running = count.running + count.degraded;
 
   return (
     <div className={styles.ops}>
@@ -40,6 +44,27 @@ export function OpsMetrics({ schools, hours, staleCount }: OpsMetricsProps) {
           <span className={staleCount > 0 ? styles.ops__valueAlert : styles.ops__value}>
             {formatNumber(staleCount)}
             <span className={styles.ops__unit}>개소</span>
+          </span>
+        </div>
+        <div className={styles.ops__stat}>
+          <span className={styles.ops__label}>발전 중</span>
+          <span className={styles.ops__value}>
+            {formatNumber(running)}
+            <span className={styles.ops__unit}>/ {formatNumber(schools.length)}</span>
+          </span>
+        </div>
+        <div className={styles.ops__stat}>
+          <span className={styles.ops__label}>설비용량</span>
+          <span className={styles.ops__value}>
+            {capacity.value}
+            <span className={styles.ops__unit}>{capacity.unit}</span>
+          </span>
+        </div>
+        <div className={styles.ops__stat}>
+          <span className={styles.ops__label}>인버터</span>
+          <span className={styles.ops__value}>
+            {formatNumber(inverterCount)}
+            <span className={styles.ops__unit}>대</span>
           </span>
         </div>
       </div>

@@ -103,7 +103,11 @@ a {
   transition: color 0.15s ease;
 }
 
+// 브라우저 기본 버튼 테두리(2px outset)와 회색 면을 걷어낸다.
+// 두지 않으면 배경만 지정한 버튼에 검은 윤곽이 남는다.
 button {
+  border: 0;
+  background: none;
   font-family: inherit;
   cursor: pointer;
 }
@@ -154,4 +158,40 @@ svg {
 
 [hidden] {
   display: none !important;
+}
+
+/*
+  전역 맥동 시계 (COR-003).
+
+  이상 상태를 알리는 점·테두리·알림창이 저마다 제 주기로 깜빡이면, 서로 어긋나며
+  화면이 어수선해진다. 각자 애니메이션을 돌리는 대신 문서 하나만 숫자를 흔들고
+  나머지는 그 값을 물려받아 쓴다. 늦게 그려진 요소도 같은 박자에 올라탄다.
+
+  --pulse 는 0 → 1 → 0 을 오간다. 쓰는 쪽에서 calc() 로 필요한 크기에 맞춘다.
+*/
+@property --pulse {
+  syntax: "<number>";
+  inherits: true;
+  initial-value: 0;
+}
+
+:root {
+  animation: global-pulse 2.4s ease-in-out infinite;
+}
+
+@keyframes global-pulse {
+  0%,
+  100% {
+    --pulse: 0;
+  }
+
+  50% {
+    --pulse: 1;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    animation: none;
+  }
 }

@@ -55,19 +55,28 @@
   flex-shrink: 0;
 }
 
-.banner__dot {
+// 눌러서 되돌려 볼 수 있다 — 모양은 그대로 두고 손이 닿는 자리만 조금 넓힌다.
+.banner__dot,
+.banner__dot--active {
   display: block;
-  width: 5px;
-  height: 5px;
+  height: 6px;
+  padding: 0;
+  border: 0;
   border-radius: s.$radius-full;
+  cursor: pointer;
+}
+
+.banner__dot {
+  width: 6px;
   background-color: var(--border-strong);
+
+  &:hover {
+    background-color: var(--brand-soft-border);
+  }
 }
 
 .banner__dot--active {
-  display: block;
-  width: 14px;
-  height: 5px;
-  border-radius: s.$radius-full;
+  width: 16px;
   background-color: var(--brand);
 }
 

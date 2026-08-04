@@ -73,7 +73,7 @@ function buildTimeline(node: ScopeNode): FaultTimeline {
     steps.push({
       phase: 'inProgress',
       at: inProgressAt.format('YYYY-MM-DD HH:mm'),
-      note: fault ? fault.actions[0] : '현장 확인을 시작했습니다.',
+      note: fault ? fault.plan[0] : '현장 확인을 시작했습니다.',
       manual: true,
       actor: '시설 담당',
     });

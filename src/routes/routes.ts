@@ -36,16 +36,14 @@ export const PATH = {
 
   /** AI진단 (SFR-011, 013, 014, 015) */
   AI_DIAGNOSIS: '/ai-diagnosis',
-  AI_DIAGNOSIS_SUMMARY: '/ai-diagnosis/summary',
-  AI_DIAGNOSIS_EQUIPMENT: '/ai-diagnosis/equipment',
-  AI_DIAGNOSIS_FAULTS: '/ai-diagnosis/faults',
-  AI_DIAGNOSIS_TIMELINE: '/ai-diagnosis/timeline',
+  AI_DIAGNOSIS_OVERVIEW: '/ai-diagnosis/overview',
   AI_DIAGNOSIS_SCHEDULE: '/ai-diagnosis/schedule',
 
   /** 알림이력 (SFR-022) */
   ALERTS: '/alerts',
   ALERTS_LIST: '/alerts/list',
   ALERTS_PENDING: '/alerts/pending',
+  ALERTS_TIMELINE: '/alerts/timeline',
   ALERTS_SETTINGS: '/alerts/settings',
 
   /** 보고·소통 (SFR-019, 020, 021, 025) */
@@ -66,6 +64,7 @@ export const PATH = {
   ADMIN_USAGE: '/admin/usage',
   ADMIN_DATA_QUALITY: '/admin/data-quality',
   ADMIN_SECURITY: '/admin/security',
+  ADMIN_SERVER_HEALTH: '/admin/server-health',
 } as const;
 
 export type Path = (typeof PATH)[keyof typeof PATH];

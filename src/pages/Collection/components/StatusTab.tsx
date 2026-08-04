@@ -8,7 +8,7 @@ import { SegmentedControl } from '@/components/common/SegmentedControl';
 import { StatCard } from '@/components/common/StatCard';
 import { Table } from '@/components/common/Table';
 import { formatPercent } from '@/utils/format';
-import { getCollectionStatus } from '@/mocks/collection';
+import { COLLECT_RATE_TARGET, getCollectionStatus, LINK_RATE_TARGET } from '@/mocks/collection';
 import { usePlantScope } from '@/hooks/usePlantScope';
 import { useCollectionDate } from '@/stores/filterStore';
 import type { Column } from '@/components/common/Table';
@@ -26,8 +26,8 @@ const FILTER_OPTIONS: { value: StatusFilter; label: string }[] = [
 const PAGE_SIZE = 15;
 
 function rateTone(rate: number) {
-  if (rate >= 0.99) return 'ok' as const;
-  if (rate >= 0.9) return 'caution' as const;
+  if (rate >= COLLECT_RATE_TARGET) return 'ok' as const;
+  if (rate >= LINK_RATE_TARGET) return 'caution' as const;
 
   return 'critical' as const;
 }
@@ -125,7 +125,7 @@ export function StatusTab() {
       width: '92px',
       render: (row) => (
         <Badge tone={rateTone(row.rate)} withDot>
-          {row.rate >= 0.99 ? '정상' : row.rate >= 0.9 ? '주의' : '점검필요'}
+          {row.rate >= COLLECT_RATE_TARGET ? '정상' : row.rate >= LINK_RATE_TARGET ? '주의' : '점검필요'}
         </Badge>
       ),
     },
@@ -154,7 +154,7 @@ export function StatusTab() {
             unit="%"
             fractionDigits={2}
             meter={summary.rate}
-            meterLabel="목표 99%"
+            meterLabel={`목표 ${formatPercent(COLLECT_RATE_TARGET, 0)}`}
             accent
           />
         </Reveal>

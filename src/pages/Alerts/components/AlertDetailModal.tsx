@@ -85,21 +85,21 @@ export function AlertDetailModal({ alert, onClose }: AlertDetailModalProps) {
           {fault ? (
             <section className={`${styles.detail__block} ${styles['detail__block--fault']}`}>
               <h3 className={styles.detail__blockTitle}>
-                {fault.code} · {fault.label}
+                {fault.label} · {fault.summary}
               </h3>
               <div className={styles.detail__faultGrid}>
                 <div>
-                  <p className={styles.detail__faultLabel}>짐작되는 원인</p>
+                  <p className={styles.detail__faultLabel}>고장 코드 문제</p>
                   <ul className={styles.detail__faultList}>
-                    {fault.causes.map((cause) => (
+                    {fault.description.map((cause) => (
                       <li key={cause}>{cause}</li>
                     ))}
                   </ul>
                 </div>
                 <div>
-                  <p className={styles.detail__faultLabel}>조치 방법</p>
+                  <p className={styles.detail__faultLabel}>조치 방안</p>
                   <ul className={styles.detail__faultList}>
-                    {fault.actions.map((action) => (
+                    {fault.plan.map((action) => (
                       <li key={action}>{action}</li>
                     ))}
                   </ul>

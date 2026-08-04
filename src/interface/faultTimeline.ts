@@ -1,3 +1,5 @@
+import type { DiagnosisFaultCode } from './equipment';
+
 /** 고장 처리 단계 (SFR-015-01) */
 export type TimelinePhase = 'detected' | 'notified' | 'inProgress' | 'resolved';
 
@@ -19,7 +21,7 @@ export interface FaultTimeline {
   /** 소속 발전소 */
   plantName: string;
   plantId: string;
-  faultCode: string | null;
+  faultCode: DiagnosisFaultCode | null;
   /** AI 판별 고장인지, 시스템이 잡은 통신 장애인지 (SFR-015-02) */
   source: 'ai' | 'system';
   /** 이상 발생 구간 시작 */

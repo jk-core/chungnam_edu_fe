@@ -1,152 +1,186 @@
-import type { FaultCode } from '@/interface/equipment';
+import type { DiagnosisFaultCode, FaultCode } from '@/interface/equipment';
 import type { OperationStatus } from '@/interface/status';
 
 /**
- * 고장 분류 사전 (SFR-011-05 / SFR-014-04).
- * RFP 가 예시한 유형 — 모듈 음영, 센서 오염, 바이패스 다이오드 단락, 스트링 결선 불량 — 을 포함해
- * 정상까지 9종으로 둔다. 카드·표에서 코드를 누르면 이 내용을 펼친다.
+ * AI 진단 고장 분류 (SFR-011-05 / SFR-014-04).
+ * 0 = 정상, 1~6 = 모듈·발전 이상, 7 = 인버터/스트링 정지·고장 —
+ * 진단 모델이 내놓는 라벨 체계를 그대로 따른다.
+ * 화면에서 코드를 누르면 원인·조치와 참고 이미지를 함께 펼친다 (SFR-013-06).
  */
 export const FAULT_CODES: FaultCode[] = [
   {
-    code: 'F-000',
+    code: 0,
     label: '정상',
+    summary: '정상',
     category: 'normal',
     severity: 'info',
     defaultStatus: 'running',
     appliesTo: ['plant', 'inverter', 'junctionBox', 'string', 'channel'],
-    technicalDetail: '실측 출력이 모델 예측 범위 안에서 움직입니다. 분류 모델이 이상 징후를 찾지 못한 상태입니다.',
-    causes: [],
-    actions: ['다음 정기점검 주기를 지키면 됩니다.'],
+    description: [
+      '정상 상태, 발전 상태 양호, 이상 징후 없음',
+      '전압·전류 측정값이 정상 범위 안에 있어 추가 조치가 필요 없음',
+    ],
+    plan: [
+      '현재 상태를 유지하며 주기적인 점검과 청소를 이어 갑니다.',
+      '연간 노화율을 넘는 성능 저하를 잡아내려면 효율 추이를 꾸준히 봅니다.',
+    ],
+    images: ['/image/FaultCode/faultcode0.png'],
   },
   {
-    code: 'F-101',
-    label: '모듈 음영',
+    code: 1,
+    label: '고장코드 1',
+    summary: 'PID 열화·부식',
     category: 'module',
     severity: 'caution',
     defaultStatus: 'degraded',
     appliesTo: ['string', 'channel'],
-    technicalDetail:
-      '하루 중 특정 시간대에만 출력이 뚝 떨어지고 나머지 시간에는 회복됩니다. 그림자가 어레이를 지나가는 모양입니다.',
-    causes: ['인접 수목 성장', '옥탑 구조물·난간 그림자', '신축 건물에 따른 일조 변화'],
-    actions: [
-      '어레이 남측 수목을 가지치기하세요.',
-      '오후 시간대 출력 곡선에서 그림자 구간을 확인하세요.',
-      '음영이 고정적이면 모듈 재배치를 검토하세요.',
+    description: [
+      'PID(Potential Induced Degradation) 현상',
+      '태양전지 국부 소손 또는 전극 부식',
+      '태양전지·모듈 구성부재 열화로 인한 누설전류 발생',
     ],
+    plan: [
+      'Anti-PID 장비를 설치합니다.',
+      '고장 모듈을 교체하고 스트링을 재구성합니다.',
+      '정상 모듈로 스트링을 다시 묶고, 남은 용량은 새 모듈로 채웁니다.',
+    ],
+    images: ['/image/FaultCode/faultcode1-1.png', '/image/FaultCode/faultcode1-2.png'],
   },
   {
-    code: 'F-102',
-    label: '모듈 오염',
+    code: 2,
+    label: '고장코드 2',
+    summary: '다이오드 쇼트·음영',
     category: 'module',
     severity: 'caution',
     defaultStatus: 'degraded',
     appliesTo: ['string', 'channel'],
-    technicalDetail:
-      '시간대에 관계없이 출력이 완만하게 낮습니다. 표면 오염으로 모듈에 닿는 일사가 전반적으로 줄어든 상태입니다.',
-    causes: ['모듈 표면 먼지·황사 누적', '조류 배설물', '강우 부족으로 자연 세척 지연'],
-    actions: ['모듈 표면을 세척하세요.', '세척 전후 출력을 비교해 회복 폭을 확인하세요.', '세척 주기를 계절에 맞춰 조정하세요.'],
+    description: ['바이패스 다이오드 쇼트 고장', '바이패스 다이오드가 동작하는 음영'],
+    plan: ['정션박스 안 바이패스 다이오드 상태를 점검하고 교체합니다.', '모듈 음영 요인을 없앱니다.'],
+    images: ['/image/FaultCode/faultcode2-1.png', '/image/FaultCode/faultcode2-2.png'],
   },
   {
-    code: 'F-103',
-    label: '바이패스 다이오드 단락',
+    code: 3,
+    label: '고장코드 3',
+    summary: '음영·오염 저하',
     category: 'module',
-    severity: 'critical',
-    defaultStatus: 'fault',
-    appliesTo: ['string'],
-    technicalDetail:
-      '해당 스트링 전압이 계단처럼 한 단 떨어져 있습니다. 모듈 안 바이패스 다이오드가 단락되면 그 구간이 발전에서 빠집니다.',
-    causes: ['부분 음영 반복에 따른 다이오드 열손상', '핫스팟 누적', '제조 불량'],
-    actions: [
-      '스트링 개방전압을 측정해 정상 스트링과 견주세요.',
-      '열화상으로 핫스팟 모듈을 특정하세요.',
-      '해당 모듈을 교체하고 음영 원인을 함께 없애세요.',
-    ],
-  },
-  {
-    code: 'F-104',
-    label: '스트링 결선 불량',
-    category: 'wiring',
-    severity: 'critical',
-    defaultStatus: 'fault',
-    appliesTo: ['string', 'junctionBox', 'channel'],
-    technicalDetail:
-      '전압은 살아 있는데 전류가 거의 흐르지 않습니다. 회로 어딘가가 끊겼거나 접촉 저항이 크게 늘어난 상태입니다.',
-    causes: ['접속함 퓨즈 단선', '커넥터 접촉 저항 증가', '단자대 조임 풀림'],
-    actions: [
-      '해당 스트링 퓨즈 도통을 확인하세요.',
-      '커넥터를 분리해 접점을 청소하고 다시 체결하세요.',
-      '단자대 토크를 규정값으로 다시 조이세요.',
-    ],
-  },
-  {
-    code: 'F-201',
-    label: '인버터 과열',
-    category: 'thermal',
     severity: 'caution',
     defaultStatus: 'degraded',
-    appliesTo: ['inverter'],
-    technicalDetail:
-      '내부 온도가 기준을 넘어 인버터가 스스로 출력을 제한하고 있습니다. 정오 무렵에 출력 상한이 눌리는 모양으로 나타납니다.',
-    causes: ['냉각 팬 고착', '통풍구 먼지 누적', '설치 공간 환기 부족'],
-    actions: ['냉각 팬 회전을 확인하세요.', '통풍구와 방열핀을 청소하세요.', '함체 주변 환기 여유를 확보하세요.'],
+    appliesTo: ['string', 'channel'],
+    description: [
+      '바이패스 다이오드가 동작하지 않은 음영·오염 (또는 모듈 하단부의 음영·오염)',
+      '모듈 설치 각도 차이',
+      '전류 저하가 크면 퓨즈가 끊어질 수 있음',
+    ],
+    plan: [
+      '모듈 표면 오염을 씻어 내고 음영 요인을 없앱니다.',
+      '모듈 구조물 상태를 살핍니다 (설치각 등).',
+      '스트링 퓨즈를 점검합니다.',
+    ],
+    images: ['/image/FaultCode/faultcode3-1.png', '/image/FaultCode/faultcode3-2.png'],
   },
   {
-    code: 'F-202',
-    label: '절연저항 저하',
-    category: 'insulation',
-    severity: 'critical',
-    defaultStatus: 'fault',
-    appliesTo: ['inverter', 'junctionBox'],
-    technicalDetail:
-      '대지 절연저항이 기준치 아래로 떨어졌습니다. 감전·화재 위험이 있어 다른 어떤 항목보다 먼저 확인해야 합니다.',
-    causes: ['케이블 피복 손상', '접속함 내부 침수', '모듈 프레임 접지 불량'],
-    actions: ['우천 직후 절연저항을 재측정하세요.', '접속함 방수 상태와 배수를 점검하세요.', '접지 저항이 기준치인지 확인하세요.'],
+    code: 4,
+    label: '고장코드 4',
+    summary: '광범위 음영',
+    category: 'module',
+    severity: 'caution',
+    defaultStatus: 'degraded',
+    appliesTo: ['string', 'channel'],
+    description: ['수목·구조물 등에 의한 넓은 범위의 음영'],
+    plan: [
+      '수목을 가지치기하고 구조물을 조정해 음영 요인을 없앱니다.',
+      '없애기 어려우면 파워 옵티마이저나 마이크로 인버터 설치를 검토합니다.',
+    ],
+    images: ['/image/FaultCode/faultcode4-1.png', '/image/FaultCode/faultcode4-2.png'],
   },
   {
-    code: 'F-301',
-    label: '일사량계 계측 오차',
+    code: 5,
+    label: '고장코드 5',
+    summary: '일사량계 이상',
     category: 'sensor',
+    // 센서 이상도 확인·조치가 필요하므로 주의 등급으로 둔다.
     severity: 'caution',
     defaultStatus: 'degraded',
     appliesTo: [],
-    technicalDetail:
-      '설비는 정상인데 일사량 대비 발전량만 낮게 계산됩니다. 센서가 실제보다 큰 값을 읽으면 기대 발전량이 부풀려집니다.',
-    causes: ['센서 돔 오염', '수평 틀어짐', '보정 주기 경과'],
-    actions: ['센서 돔을 부드러운 천으로 닦으세요.', '수평계로 설치각을 다시 맞추세요.', '인근 관측소 값과 견주어 편차를 확인하세요.'],
+    description: ['일사량계 노후화 및 센서 표면 오염'],
+    plan: ['일사량계 센서를 교정하거나 교체합니다.', '센서 표면을 닦고 음영 요인을 없앱니다.'],
+    images: ['/image/FaultCode/faultcode5.png'],
   },
   {
-    code: 'F-401',
-    label: '통신 장애',
-    category: 'communication',
-    severity: 'critical',
-    defaultStatus: 'commLost',
-    appliesTo: ['inverter'],
-    technicalDetail:
-      '수집장치가 응답하지 않아 계측값이 들어오지 않습니다. 발전 자체는 정상일 수 있어 설비 고장과 구분해 다뤄야 합니다.',
-    causes: ['현장 통신 모뎀 전원 차단', 'LTE 신호 세기 부족', '수집장치와 인버터 사이 RS-485 결선 불량'],
-    actions: [
-      '모뎀 전원과 상태 LED를 확인하세요.',
-      '신호 세기가 -110dBm 이하면 안테나 위치를 옮기세요.',
-      '통신 단자대 결선을 다시 조이세요.',
+    code: 6,
+    label: '고장코드 6',
+    summary: '핫스팟 열화',
+    category: 'thermal',
+    severity: 'caution',
+    defaultStatus: 'degraded',
+    appliesTo: ['string', 'channel'],
+    description: ['태양전지 열화로 인한 핫스팟(또는 핫셀)', '태양광 모듈 구성부재 열화'],
+    plan: [
+      '태양전지 열화 원인을 찾아 없앱니다 (국부 오염·음영 등).',
+      '주기 점검으로 모듈 상태를 관리합니다 — 오래 두면 고장코드 1로 번질 수 있습니다.',
     ],
+    images: ['/image/FaultCode/faultcode6-1.png', '/image/FaultCode/faultcode6-2.png'],
+  },
+  {
+    code: 7,
+    label: '고장코드 7',
+    summary: '인버터 정지·고장',
+    category: 'wiring',
+    severity: 'critical',
+    defaultStatus: 'fault',
+    appliesTo: ['plant', 'inverter', 'junctionBox', 'string', 'channel'],
+    description: [
+      '인버터 정지·고장',
+      '스트링 케이블 결선 또는 커넥터 손상',
+      '스트링 결선을 방치하면 화재로 번질 수 있음',
+    ],
+    plan: [
+      '인버터 전원을 다시 넣고 표시부 알림 코드를 확인한 뒤 A/S를 부릅니다.',
+      '차단기 트립 여부를 확인합니다 (DC·AC 모두).',
+      '스트링 케이블·커넥터·접속함·인버터 결선 상태를 점검합니다.',
+      '커넥터와 단자 접촉 상태, 탄화·변색 여부를 살핍니다.',
+      '절연저항을 측정해 누설전류가 있는지 확인합니다.',
+    ],
+    images: ['/image/FaultCode/faultcode99-1.png', '/image/FaultCode/faultcode99-2.png'],
   },
 ];
 
 const FAULT_BY_CODE = new Map(FAULT_CODES.map((fault) => [fault.code, fault]));
 
-export const getFaultCode = (code: string | null) => (code ? (FAULT_BY_CODE.get(code) ?? null) : null);
+export const getFaultCode = (code: DiagnosisFaultCode | null | undefined) => (
+  code == null ? null : (FAULT_BY_CODE.get(code) ?? null)
+);
+
+/** 배지·표 셀에 쓰는 짧은 표기 — '고장코드 3 · 음영·오염 저하' */
+export function faultCodeLabel(code: DiagnosisFaultCode | null | undefined): string {
+  const fault = getFaultCode(code);
+
+  return fault ? `${fault.label} · ${fault.summary}` : '—';
+}
 
 /** 분류 라벨 목록 — 모델 성능 표(Confusion Matrix)의 축으로 쓴다. */
-export const FAULT_LABELS = FAULT_CODES.map((fault) => fault.label);
+export const FAULT_LABELS = FAULT_CODES.map((fault) => `${fault.code}. ${fault.summary}`);
 
 /**
  * 인버터 상태에 붙을 수 있는 고장코드 후보.
- * 일사량계(F-301)는 설비 계층 밖이라 여기 넣지 않는다.
+ * 정상·준비중은 코드를 달지 않는다. 통신단절은 계측이 끊긴 것이라
+ * 설비 원인을 단정할 수 없어 코드 7(정지·고장)로 모아 둔다.
  */
-export const FAULT_BY_STATUS: Record<OperationStatus, string[]> = {
+export const FAULT_BY_STATUS: Record<OperationStatus, DiagnosisFaultCode[]> = {
   running: [],
   ready: [],
-  degraded: ['F-101', 'F-102', 'F-201'],
-  fault: ['F-103', 'F-104', 'F-202'],
-  commLost: ['F-401'],
+  degraded: [1, 2, 3, 4, 6],
+  fault: [7],
+  commLost: [7],
 };
+
+/** 적설(눈) 의심 참고 이미지 */
+export const SNOW_FAULT_IMAGE = '/image/FaultCode/faultcode-snow.png';
+
+/** 적설(눈) 의심 시 '특이사항'에 덧붙일 문구 */
+export const SNOW_SUSPICION_NOTE = '적설(눈)로 모듈 표면이 가려지고 일사량이 줄어 일시적으로 발전이 떨어진 것으로 의심됩니다.';
+
+/** 눈이 의심되는 날은 참고 이미지에 적설 예시를 덧붙인다. */
+export function withSnowSuspicion(fault: FaultCode, isSnow: boolean): FaultCode {
+  return isSnow ? { ...fault, images: [...fault.images, SNOW_FAULT_IMAGE] } : fault;
+}

@@ -28,13 +28,31 @@ export function computeCapacity(spec: ModuleSpec): number {
   return Math.round(spec.wattPerPanel * spec.panelCount) / 1000;
 }
 
+/**
+ * 모듈은 직렬 묶음(스트링) 단위로 붙는다 — 장수가 직렬수로 나누어떨어져야
+ * 어레이 구성이 성립한다 (SFR-017-06). 현장에서 흔한 15~24직렬 안에서 고르고,
+ * 딱 떨어지지 않으면 장수를 몇 장 보태 맞춘다.
+ */
+const SERIES_CANDIDATES = [20, 19, 21, 18, 22, 17, 23, 16, 24, 15];
+
+function fitSeries(panelCount: number): { panelCount: number; seriesCount: number } {
+  for (let extra = 0; extra <= 19; extra += 1) {
+    const total = panelCount + extra;
+    const series = SERIES_CANDIDATES.find((value) => total % value === 0);
+
+    if (series) return { panelCount: total, seriesCount: series };
+  }
+
+  return { panelCount, seriesCount: 1 };
+}
+
 function buildAsset(schoolIndex: number): PlantAsset {
   const school = SCHOOLS[schoolIndex];
   const next = createRandom(hashSeed(`${school.id}-asset`));
   const moduleModel = pickOne(next, MODULE_MODELS);
   const wattPerPanel = MODULE_WATT[moduleModel];
-  // 등록 용량과 스펙 산출값이 맞아떨어지게 장수를 역산한다.
-  const panelCount = Math.max(1, Math.round((school.capacityKw * 1000) / wattPerPanel));
+  // 등록 용량과 스펙 산출값이 맞아떨어지게 장수를 역산한 뒤, 스트링 단위로 맞춘다.
+  const fitted = fitSeries(Math.max(1, Math.round((school.capacityKw * 1000) / wattPerPanel)));
 
   return {
     plantId: school.id,
@@ -51,8 +69,8 @@ function buildAsset(schoolIndex: number): PlantAsset {
     module: {
       model: moduleModel,
       wattPerPanel,
-      panelCount,
-      seriesCount: Math.max(1, Math.round(panelCount / Math.max(1, Math.round(school.capacityKw / 3)))),
+      panelCount: fitted.panelCount,
+      seriesCount: fitted.seriesCount,
     },
   };
 }

@@ -12,7 +12,6 @@ import { useDiagnosisRange } from '@/stores/filterStore';
 import { usePlantScope } from '@/hooks/usePlantScope';
 import styles from '../AiDiagnosis.module.scss';
 import { AnalysisBanner } from './AnalysisBanner';
-import { AnalysisFilter } from './AnalysisFilter';
 import { HealthGauge } from './HealthGauge';
 import { PerformancePane } from './PerformancePane';
 import type { EChartsOption } from 'echarts';
@@ -20,7 +19,7 @@ import type { EChartsOption } from 'echarts';
 /** 이 아래로 떨어진 발전시간은 주의로 본다 (h) */
 const LOW_HOURS = 3;
 
-export function SummaryTab() {
+export function DiagnosisSummary() {
   const { plant, plantLabel: label } = usePlantScope();
   const [range] = useDiagnosisRange();
   const palette = useChartPalette();
@@ -106,9 +105,7 @@ export function SummaryTab() {
   };
 
   return (
-    <div className={styles.tab}>
-      <AnalysisFilter />
-
+    <>
       <Reveal>
         <AnalysisBanner />
       </Reveal>
@@ -164,6 +161,6 @@ export function SummaryTab() {
           />
         </Card>
       </Reveal>
-    </div>
+    </>
   );
 }

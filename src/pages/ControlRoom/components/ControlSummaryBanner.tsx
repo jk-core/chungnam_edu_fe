@@ -1,7 +1,7 @@
 import { countOperation, isProducing } from '@/mocks/status';
 import { currentOutputOf, todayVsYesterday } from '@/mocks/schoolOutput';
 import { formatDelta, formatNumber, formatPercent } from '@/utils/format';
-import { useAutoRefresh } from '@/hooks/useAutoRefresh';
+import { useAutoPager } from '@/hooks/useAutoPager';
 import type { School } from '@/interface/energy';
 import styles from './ControlSummaryBanner.module.scss';
 
@@ -72,8 +72,9 @@ export function ControlSummaryBanner({ schools, staleCount }: ControlSummaryBann
     });
   }
 
-  const index = useAutoRefresh(ROLL_MS, lines.length);
-  const line = lines[Math.min(index, lines.length - 1)];
+  // 한 줄씩 넘기는 것도 쪽 넘김이라, 목록·표와 같은 장치를 쓴다 — 눌러서 되돌려 볼 수 있다.
+  const { page, pageCount, goTo } = useAutoPager({ total: lines.length, perPage: 1, intervalMs: ROLL_MS });
+  const line = lines[Math.min(page, lines.length - 1)];
 
   return (
     <p className={styles.banner} role="status">
@@ -88,11 +89,15 @@ export function ControlSummaryBanner({ schools, staleCount }: ControlSummaryBann
         {line.text}
       </span>
 
-      <span className={styles.banner__dots} aria-hidden="true">
+      <span className={styles.banner__dots}>
         {lines.map((item, dotIndex) => (
-          <span
+          <button
             key={item.id}
-            className={dotIndex === index ? styles['banner__dot--active'] : styles.banner__dot}
+            type="button"
+            className={dotIndex === page ? styles['banner__dot--active'] : styles.banner__dot}
+            onClick={() => goTo(dotIndex)}
+            aria-label={`${dotIndex + 1}번째 소식 보기 (전체 ${pageCount}건)`}
+            aria-current={dotIndex === page ? 'true' : undefined}
           />
         ))}
       </span>

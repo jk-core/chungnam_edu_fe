@@ -7,6 +7,7 @@ import { IntegrationsTab } from './components/IntegrationsTab';
 import { LoginPolicyTab } from './components/LoginPolicyTab';
 import { PlantsTab } from './components/PlantsTab';
 import { SecurityTab } from './components/SecurityTab';
+import { ServerHealthTab } from './components/ServerHealthTab';
 import { UsageTab } from './components/UsageTab';
 import { UsersTab } from './components/UsersTab';
 
@@ -20,6 +21,7 @@ const TABS = {
   usage: UsageTab,
   'data-quality': DataQualityTab,
   security: SecurityTab,
+  'server-health': ServerHealthTab,
 } as const;
 
 type TabKey = keyof typeof TABS;

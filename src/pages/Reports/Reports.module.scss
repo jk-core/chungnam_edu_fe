@@ -443,3 +443,55 @@
 .noPrint {
   display: contents;
 }
+
+// 관계자 공유 (SFR-021-18)
+.share {
+  display: flex;
+  flex-direction: column;
+  gap: s.$space-4;
+}
+
+.share__note {
+  @include t.body-sm;
+
+  color: var(--text-muted);
+}
+
+.share__list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: s.$space-2;
+}
+
+.share__chip {
+  display: inline-flex;
+  align-items: center;
+  gap: s.$space-2;
+  padding: s.$space-2 s.$space-3;
+  border: 1px solid var(--border);
+  border-radius: s.$radius-full;
+  background-color: var(--surface);
+  cursor: pointer;
+  transition: border-color 0.16s ease, background-color 0.16s ease;
+
+  &:hover {
+    border-color: var(--border-strong);
+  }
+}
+
+.share__chip--on {
+  border-color: var(--brand);
+  background-color: var(--brand-soft);
+}
+
+.share__name {
+  @include t.label-md;
+
+  color: var(--text);
+}
+
+.share__org {
+  @include t.caption;
+
+  color: var(--text-muted);
+}

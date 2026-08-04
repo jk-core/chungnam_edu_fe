@@ -14,11 +14,39 @@ import type { Column } from '@/components/common/Table';
 import type { Rtu } from '@/interface/asset';
 import type { RtuStatus } from '@/interface/status';
 import styles from '../Admin.module.scss';
+import { DeviceInverters } from './DeviceInverters';
+import { DeviceModules } from './DeviceModules';
 
 type Filter = 'all' | RtuStatus;
 
-/** 시스템 장비(수집장치) 관리 (SFR-017) */
+/** 어느 장비를 볼지 (SFR-017-01~07) */
+type Kind = 'rtu' | 'inverter' | 'module';
+
+const KIND_OPTIONS: { value: Kind; label: string }[] = [
+  { value: 'rtu', label: '수집장치' },
+  { value: 'inverter', label: '인버터' },
+  { value: 'module', label: '모듈' },
+];
+
+/** 시스템 장비 관리 (SFR-017) — 수집장치·인버터·모듈을 갈아 가며 본다. */
 export function DevicesTab() {
+  const [kind, setKind] = useState<Kind>('rtu');
+
+  return (
+    <div className={styles.tab}>
+      <div className={styles.toolbar}>
+        <SegmentedControl value={kind} onChange={setKind} options={KIND_OPTIONS} label="장비 종류" />
+      </div>
+
+      {kind === 'rtu' ? <DeviceRtus /> : null}
+      {kind === 'inverter' ? <DeviceInverters /> : null}
+      {kind === 'module' ? <DeviceModules /> : null}
+    </div>
+  );
+}
+
+/** 수집장치 목록과 설치·교체 이력 (SFR-017-01~03) */
+function DeviceRtus() {
   const [filter, setFilter] = useState<Filter>('all');
   const [selected, setSelected] = useState<Rtu | null>(null);
 
@@ -65,7 +93,7 @@ export function DevicesTab() {
   ];
 
   return (
-    <div className={styles.tab}>
+    <>
       <Reveal>
         <div className={`${styles.summary} ${styles['summary--three']}`}>
           <StatCard label="수집장치" value={RTUS.length} unit="식" />
@@ -125,6 +153,6 @@ export function DevicesTab() {
           </div>
         ) : null}
       </Modal>
-    </div>
+    </>
   );
 }

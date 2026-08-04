@@ -10,6 +10,7 @@ import { buildEduStats, EDU_FACTS } from '@/mocks/solarEdu';
 import { getDayWeather } from '@/mocks/weather';
 import { getNode } from '@/mocks/tree';
 import { TODAY } from '@/mocks/today';
+import { useAutoPager } from '@/hooks/useAutoPager';
 import { useAutoRefresh } from '@/hooks/useAutoRefresh';
 import styles from './SolarEdu.module.scss';
 
@@ -65,7 +66,8 @@ function kstHourOf(date: Date): number {
  */
 function SolarEduPage() {
   const { orgId } = useParams<{ orgId: string }>();
-  const factIndex = useAutoRefresh(FACT_MS, EDU_FACTS.length);
+  // 한 줄씩 넘기는 것도 쪽 넘김이라, 관제 화면과 같은 장치를 쓴다 — 눌러서 되돌려 볼 수 있다.
+  const fact = useAutoPager({ total: EDU_FACTS.length, perPage: 1, intervalMs: FACT_MS });
   // 화면을 주기적으로 되그린다. 실제 API 로 바뀌면 이 틱이 재조회 시점이 된다 (SFR-005-09).
   useAutoRefresh(REFRESH_MS);
 
@@ -91,7 +93,9 @@ function SolarEduPage() {
       clock={timeFormat.format(now)}
       date={dateFormat.format(now)}
       headline={<HeadlineStrip stats={stats} />}
-      fact={EDU_FACTS[factIndex]}
+      facts={EDU_FACTS}
+      factIndex={fact.page}
+      onSelectFact={fact.goTo}
     >
       <div className={styles.grid}>
         <div className={styles.main}>

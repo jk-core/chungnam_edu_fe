@@ -1,3 +1,4 @@
+import type { DiagnosisFaultCode } from './equipment';
 import type { Severity } from './energy';
 
 export type AlertType = '통신' | '발전' | '설비' | '환경';
@@ -12,7 +13,7 @@ export interface AlertRecord {
   type: AlertType;
   severity: Severity;
   /** 연결된 고장코드. 없을 수도 있다. */
-  faultCode: string | null;
+  faultCode: DiagnosisFaultCode | null;
   title: string;
   description: string;
   /** 'YYYY-MM-DD HH:mm' */

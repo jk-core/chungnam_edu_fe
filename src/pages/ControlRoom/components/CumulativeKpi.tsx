@@ -1,8 +1,13 @@
 import { CountUp } from '@/components/common/CountUp';
-import { formatNumber, formatPercent } from '@/utils/format';
+import { formatEnergy, formatNumber, formatPercent } from '@/utils/format';
 import { pickEnergyUnit } from '@/mocks/generation';
 import { todayVsYesterday } from '@/mocks/schoolOutput';
+import { TODAY } from '@/mocks/today';
 import styles from './CumulativeKpi.module.scss';
+
+/** 누적값을 하루·한 달 몫으로 되돌릴 때 나눌 값 — 이번 달·올해가 얼마나 지났는지 */
+const DAY_OF_MONTH = TODAY.date();
+const MONTH_OF_YEAR = TODAY.month() + 1;
 
 interface CumulativeKpiProps {
   /** 조회 대상의 금일·금월·금년 누적(kWh) */
@@ -17,6 +22,8 @@ interface CumulativeKpiProps {
  */
 export function CumulativeKpi({ todayKwh, monthKwh, yearKwh }: CumulativeKpiProps) {
   const comparison = todayVsYesterday();
+  const dayAverage = formatEnergy(monthKwh / DAY_OF_MONTH);
+  const monthAverage = formatEnergy(yearKwh / MONTH_OF_YEAR);
   const isUp = comparison.deltaRatio >= 0;
 
   const rows = [
@@ -54,6 +61,24 @@ export function CumulativeKpi({ todayKwh, monthKwh, yearKwh }: CumulativeKpiProp
           </div>
         );
       })}
+
+      {/* 누적값만으로는 많고 적음을 가늠하기 어려워, 하루·한 달 몫으로 되돌려 함께 적는다 */}
+      <dl className={styles.kpi__avg}>
+        <div>
+          <dt>금월 일평균</dt>
+          <dd>
+            {dayAverage.value}
+            <span className={styles.kpi__avgUnit}>{dayAverage.unit}</span>
+          </dd>
+        </div>
+        <div>
+          <dt>금년 월평균</dt>
+          <dd>
+            {monthAverage.value}
+            <span className={styles.kpi__avgUnit}>{monthAverage.unit}</span>
+          </dd>
+        </div>
+      </dl>
 
       <p className={styles.kpi__foot}>
         전일 {formatNumber(comparison.previous)}kWh 대비 오늘 {formatNumber(comparison.today)}kWh

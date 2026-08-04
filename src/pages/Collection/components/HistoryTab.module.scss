@@ -187,3 +187,40 @@
     grid-template-columns: 1fr;
   }
 }
+
+// ── 조회 기준 칩 ───────────────────────────────────────────
+// 표가 길어 스크롤하다 보면 무슨 조건이었는지 잊는다. 표 바로 위에 붙여 둔다.
+.criteria {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: s.$space-2 s.$space-3;
+  padding: 0 s.$space-5 s.$space-4;
+}
+
+.criteria__label {
+  @include t.caption;
+
+  color: var(--text-faint);
+}
+
+.criteria__item {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 3px s.$space-3;
+  border-radius: s.$radius-full;
+  background-color: var(--surface-sunken);
+}
+
+.criteria__key {
+  @include t.caption;
+
+  color: var(--text-faint);
+}
+
+.criteria__value {
+  @include t.label-sm;
+
+  color: var(--text-strong);
+}

@@ -73,29 +73,15 @@ export const HELP_CONTENT: Record<string, HelpTopic> = {
     ],
     errorCodes: ['NET-002', 'DAT-002'],
   },
-  [PATH.AI_DIAGNOSIS_SUMMARY]: {
-    overview: 'AI 진단 결과를 요약해 봅니다.',
-    steps: ['기간을 고르고 이상 설비를 확인합니다.'],
-    errorCodes: ['DAT-002'],
-  },
-  [PATH.AI_DIAGNOSIS_EQUIPMENT]: {
-    overview: '설비별 진단 효율을 비교합니다. 센트럴형은 접속반, 스트링형은 스트링까지 봅니다.',
-    steps: ['조회 대상을 좁히고 진단 효율이 낮은 설비를 확인합니다.', 'AI 고장분석 버튼으로 원인 소견을 받습니다.'],
-    errorCodes: ['DAT-002'],
-  },
-  [PATH.AI_DIAGNOSIS_FAULTS]: {
-    overview: '기간별 진단 효율과 고장 분류 결과를 함께 봅니다.',
+  [PATH.AI_DIAGNOSIS_OVERVIEW]: {
+    overview: '발전 지표와 설비별 진단, 일자별 발전 효율을 한 화면에서 봅니다.',
     steps: [
-      '기간을 고릅니다.',
-      '히트맵 칸을 누르면 그 설비가 위 추이 그래프로 올라갑니다.',
-      '표의 고장 코드를 누르면 원인·조치 설명이 열립니다.',
+      '조회 대상과 기간을 고릅니다.',
+      'AI 고장분석 버튼으로 원인 소견을 받습니다.',
+      '일자별 발전효율 표에서 색이 들어온 칸을 누르면 원인·조치와 참고 사진이 열립니다.',
+      '표·차트 버튼으로 보기 방식을 바꿉니다.',
     ],
     errorCodes: ['DAT-001', 'DAT-002'],
-  },
-  [PATH.AI_DIAGNOSIS_TIMELINE]: {
-    overview: '고장 발생부터 조치 완료까지 단계별 이력을 관리합니다.',
-    steps: ['이상 구간을 확인합니다.', '조치 기록 버튼으로 진행·완료를 남깁니다.'],
-    errorCodes: [],
   },
   [PATH.AI_DIAGNOSIS_SCHEDULE]: {
     overview: '현장 점검 일정을 등록하고 관리합니다.',
@@ -112,6 +98,15 @@ export const HELP_CONTENT: Record<string, HelpTopic> = {
     steps: [
       '경과가 오래된 건부터 확인합니다.',
       '조치 예정일 버튼으로 알림을 예정일까지 접어 둘 수 있습니다.',
+    ],
+    errorCodes: [],
+  },
+  [PATH.ALERTS_TIMELINE]: {
+    overview: '고장 발생부터 조치 완료까지 단계별 이력을 관리합니다.',
+    steps: [
+      '막대 길이로 얼마나 오래 끌었는지 봅니다.',
+      '발전소 이름을 누르면 설비별로 펼쳐집니다.',
+      '막대를 누르면 단계별 이력이 열리고, 조치 기록 버튼으로 진행·완료를 남깁니다.',
     ],
     errorCodes: [],
   },

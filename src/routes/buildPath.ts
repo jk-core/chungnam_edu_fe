@@ -8,7 +8,7 @@ export const buildPath = {
   /** 운전이력 상세 (SFR-009-04) */
   operationHistoryDetail: (id: string) => `${PATH.COLLECTION_HISTORY}/${id}`,
   /** 고장진단 상세 (SFR-013-08/09) */
-  diagnosisFaultDetail: (id: string) => `${PATH.AI_DIAGNOSIS_FAULTS}/${id}`,
+  diagnosisFaultDetail: (id: string) => `${PATH.AI_DIAGNOSIS_OVERVIEW}/${id}`,
   /** 현장보고서 상세 (SFR-021-11) */
   fieldReportDetail: (id: string) => `${PATH.REPORTS_FIELD}/${id}`,
   /** 게시글 상세 (SFR-025) */

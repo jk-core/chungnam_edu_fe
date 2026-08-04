@@ -81,11 +81,11 @@ export const routes: RouteObject[] = [
           // 대메뉴만 눌렀을 때는 첫 소메뉴로 보낸다.
           { path: 'statistics', element: <Navigate to={PATH.STATISTICS_OVERVIEW} replace /> },
           { path: 'collection', element: <Navigate to={PATH.COLLECTION_TREND} replace /> },
-          { path: 'ai-diagnosis', element: <Navigate to={PATH.AI_DIAGNOSIS_SUMMARY} replace /> },
+          { path: 'ai-diagnosis', element: <Navigate to={PATH.AI_DIAGNOSIS_OVERVIEW} replace /> },
           { path: 'alerts', element: <Navigate to={PATH.ALERTS_LIST} replace /> },
           { path: 'reports', element: <Navigate to={PATH.REPORTS_MONTHLY} replace /> },
           // 예전에 쓰던 주소로 들어와도 이어지게 둔다.
-          { path: 'diagnosis/*', element: <Navigate to={PATH.AI_DIAGNOSIS_SUMMARY} replace /> },
+          { path: 'diagnosis/*', element: <Navigate to={PATH.AI_DIAGNOSIS_OVERVIEW} replace /> },
           { path: '*', element: <Navigate to={PATH.HOME} replace /> },
         ],
       },

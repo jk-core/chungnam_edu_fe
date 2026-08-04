@@ -10,7 +10,7 @@
 .ops__top {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: s.$space-2;
+  gap: s.$space-3 s.$space-2;
 }
 
 .ops__stat {

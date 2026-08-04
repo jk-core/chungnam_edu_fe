@@ -1,3 +1,4 @@
+import type { DiagnosisFaultCode } from './equipment';
 import type { OperationStatus } from './status';
 
 /** DC 전압·전류 예측 대 실측 한 시점 (SFR-014-01/10) */
@@ -12,7 +13,7 @@ export interface PredictionPoint {
   /** 편차(%) */
   deviation: number;
   /** KNN 이 내놓은 고장 분류 코드 */
-  faultCode: string;
+  faultCode: DiagnosisFaultCode;
 }
 
 /** 모델 성능 지표 (SFR-014-05, SFR-011-06/07) */
@@ -33,7 +34,7 @@ export interface DiagEfficiencyPoint {
   estimateKwh: number;
   /** 실측 발전량(kWh) */
   measuredKwh: number;
-  faultCode: string;
+  faultCode: DiagnosisFaultCode;
 }
 
 /** 수집 데이터 상태 코드 (SFR-003-05~08) */

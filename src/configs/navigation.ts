@@ -101,32 +101,16 @@ export const NAVIGATION: NavSection[] = [
     path: PATH.AI_DIAGNOSIS,
     children: [
       {
-        label: '진단 요약',
-        path: PATH.AI_DIAGNOSIS_SUMMARY,
-        description: '발전시간과 이용률로 설비 상태를 읽고 AI 고장분석을 실행합니다.',
+        label: 'AI 진단',
+        path: PATH.AI_DIAGNOSIS_OVERVIEW,
+        description: '발전 지표와 설비별 진단, 일자별 발전 효율을 한 화면에서 봅니다.',
         needsScope: true,
-        requirements: ['SFR-011-03', 'SFR-011-04', 'SFR-013-01'],
-      },
-      {
-        label: '설비별 진단',
-        path: PATH.AI_DIAGNOSIS_EQUIPMENT,
-        description: '인버터 타입에 맞춰 스트링·접속반 단위로 이상을 짚어 봅니다.',
-        needsScope: true,
-        requirements: ['SFR-013-04', 'SFR-013-07', 'SFR-020-02'],
-      },
-      {
-        label: '고장진단 조회',
-        path: PATH.AI_DIAGNOSIS_FAULTS,
-        description: '기간별 진단 효율과 고장 분류 결과를 함께 봅니다.',
-        needsScope: true,
-        requirements: ['SFR-013-02', 'SFR-013-03', 'SFR-013-05', 'SFR-013-06', 'SFR-013-08', 'SFR-013-09', 'SFR-013-10'],
-      },
-      {
-        label: '고장 타임라인',
-        path: PATH.AI_DIAGNOSIS_TIMELINE,
-        description: '고장 발생부터 조치 완료까지 단계별 이력을 관리합니다.',
-        needsScope: true,
-        requirements: ['SFR-015-01', 'SFR-015-02', 'SFR-015-03', 'SFR-015-04', 'SFR-015-05'],
+        requirements: [
+          'SFR-011-03', 'SFR-011-04',
+          'SFR-013-01', 'SFR-013-02', 'SFR-013-03', 'SFR-013-04', 'SFR-013-05',
+          'SFR-013-06', 'SFR-013-07', 'SFR-013-08', 'SFR-013-09', 'SFR-013-10',
+          'SFR-020-02',
+        ],
       },
       {
         label: '점검 일정',
@@ -154,6 +138,13 @@ export const NAVIGATION: NavSection[] = [
         description: '아직 조치되지 않은 알림을 경과 순으로 보고 조치 예정일을 정합니다.',
         needsScope: true,
         requirements: ['SFR-022-03', 'SFR-022-05'],
+      },
+      {
+        label: '고장 타임라인',
+        path: PATH.ALERTS_TIMELINE,
+        description: '고장 발생부터 조치 완료까지 단계별 이력을 관리합니다.',
+        needsScope: true,
+        requirements: ['SFR-015-01', 'SFR-015-02', 'SFR-015-03', 'SFR-015-04', 'SFR-015-05'],
       },
       {
         label: '알림 설정',
@@ -252,6 +243,12 @@ export const ADMIN_NAVIGATION: NavSection = {
       path: PATH.ADMIN_SECURITY,
       description: '접속 현황과 로그인 실패 추이를 살핍니다.',
       requirements: ['SER-001-18', 'SER-001-19'],
+    },
+    {
+      label: '서버 자원 현황',
+      path: PATH.ADMIN_SERVER_HEALTH,
+      description: 'CPU·메모리·네트워크 사용률과 DB 상태를 봅니다.',
+      requirements: ['ECR-002-20', 'ECR-002-21', 'ECR-003-13'],
     },
   ],
 };

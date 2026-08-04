@@ -12,10 +12,15 @@ import { SegmentedControl } from '@/components/common/SegmentedControl';
 import { Select } from '@/components/common/Select';
 import { StatCard } from '@/components/common/StatCard';
 import { Table } from '@/components/common/Table';
+import { MSG } from '@/configs/messages';
+import { exportCsv } from '@/utils/export';
+import { formatShort } from '@/utils/date';
 import { formatDuration, formatNumber, formatPercent } from '@/utils/format';
+import { toast } from '@/stores/toastStore';
 import { usePlantScope } from '@/hooks/usePlantScope';
 import type { AlertRecord, AlertType } from '@/interface/alert';
 import type { Column } from '@/components/common/Table';
+import type { CsvColumn } from '@/utils/export';
 import type { Severity } from '@/interface/energy';
 import styles from '../Alerts.module.scss';
 import { summarize, useAlertFilters } from './useAlertFilters';
@@ -63,6 +68,35 @@ export function ListTab() {
   const [selected, setSelected] = useState<AlertRecord | null>(null);
 
   const stats = summarize(results);
+
+  // 표에는 자리가 없어 줄인 항목까지 그대로 담는다 (SFR-022-03).
+  const csvColumns: CsvColumn<AlertRecord>[] = [
+    { header: '알림시간', value: (row) => row.occurredAt },
+    { header: '발전소', value: (row) => row.schoolName },
+    { header: '설비명', value: (row) => row.deviceName },
+    { header: '유형', value: (row) => row.type },
+    { header: '심각도', value: (row) => SEVERITY_LABEL[row.severity] },
+    { header: '알림원인', value: (row) => row.title },
+    { header: '고장코드', value: (row) => row.faultCode ?? '' },
+    { header: '조치여부', value: (row) => (row.handled ? '조치완료' : '미조치') },
+    { header: '조치완료 시간', value: (row) => row.resolvedAt ?? '' },
+    { header: '조치자', value: (row) => row.handler ?? '' },
+  ];
+
+  const download = () => {
+    if (results.length === 0) {
+      toast.error(MSG.noResult);
+
+      return;
+    }
+
+    // range 는 Date 라 그대로 쓰면 파일명에 요일·시간대까지 붙는다.
+    const filename = `알림이력_${label}_${formatShort(range.start)}~${formatShort(range.end)}`;
+
+    exportCsv(filename, csvColumns, results);
+    toast.success(MSG.downloadStart(filename));
+  };
+
   const pageCount = Math.max(1, Math.ceil(results.length / PAGE_SIZE));
   const current = Math.min(page, pageCount);
   const visible = results.slice((current - 1) * PAGE_SIZE, current * PAGE_SIZE);
@@ -221,7 +255,7 @@ export function ListTab() {
           action={
             <div className={styles.cardActions}>
               <SegmentedControl label="보기 방식" size="sm" options={VIEW_OPTIONS} value={view} onChange={setView} />
-              <Button variant="secondary" size="sm" iconLeft={<DownloadIcon />}>
+              <Button variant="secondary" size="sm" iconLeft={<DownloadIcon />} onClick={download}>
                 엑셀 내려받기
               </Button>
             </div>

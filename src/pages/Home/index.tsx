@@ -4,7 +4,6 @@ import { NationalBoard } from './components/NationalBoard';
 import { NoticePopup } from './components/NoticePopup';
 import { QuickLinks } from './components/QuickLinks';
 import { RegionBoard } from './components/RegionBoard';
-import { StatusSummary } from './components/StatusSummary';
 import { SunArcHero } from './components/SunArcHero';
 import styles from './Home.module.scss';
 
@@ -15,7 +14,6 @@ function HomePage() {
       <KpiStrip />
       <RegionBoard />
       <MonitoringBoard />
-      <StatusSummary />
       <NationalBoard />
       <QuickLinks />
       <NoticePopup />

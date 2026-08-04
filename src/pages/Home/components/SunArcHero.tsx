@@ -7,7 +7,7 @@ import { CountUp } from '@/components/common/CountUp';
 import { PATH } from '@/routes/routes';
 import { getAccumulatedAt, getOutputAt, PEAK_OUTPUT, SUNSET_HOUR } from '@/mocks/generation';
 import { REGION_TOTAL } from '@/mocks/regions';
-import { formatDate, formatEnergy, formatNumber, formatTime } from '@/utils/format';
+import { formatCapacity, formatDate, formatEnergy, formatNumber, formatTime } from '@/utils/format';
 import { SunArc } from './SunArc';
 import styles from './SunArcHero.module.scss';
 
@@ -28,6 +28,8 @@ export function SunArcHero() {
   const now = useClock();
   const nowHour = now.getHours() + now.getMinutes() / 60;
   const currentKw = getOutputAt(nowHour);
+  const current = formatCapacity(currentKw);
+  const peak = formatCapacity(PEAK_OUTPUT.kw);
   const accumulated = getAccumulatedAt(nowHour);
   const today = formatEnergy(accumulated);
   const isAfterSunset = nowHour >= SUNSET_HOUR;
@@ -90,13 +92,13 @@ export function SunArcHero() {
               <dt>현재 출력</dt>
               <dd>
                 <PulseIcon className={styles.hero__metaIcon} />
-                {isAfterSunset ? '일몰 · 발전 종료' : `${formatNumber(currentKw)} kW`}
+                {isAfterSunset ? '일몰 · 발전 종료' : `${current.value} ${current.unit}`}
               </dd>
             </div>
             <div className={styles.hero__metaItem}>
               <dt>최고 출력</dt>
               <dd>
-                {formatNumber(PEAK_OUTPUT.kw)} kW
+                {peak.value} {peak.unit}
                 <span className={styles.hero__metaSub}>{PEAK_OUTPUT.hour}시</span>
               </dd>
             </div>
@@ -113,7 +115,7 @@ export function SunArcHero() {
                 발전통계 보기
               </Button>
             </Link>
-            <Link to={PATH.AI_DIAGNOSIS_SUMMARY}>
+            <Link to={PATH.AI_DIAGNOSIS_OVERVIEW}>
               <Button size="lg" variant="secondary">
                 설비 진단 열기
               </Button>

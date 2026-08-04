@@ -109,6 +109,13 @@ export const AlertIcon = (props: IconProps) => (
   </Base>
 );
 
+export const BellIcon = (props: IconProps) => (
+  <Base {...props}>
+    <path d="M18 8.6a6 6 0 1 0-12 0c0 5.2-2 6.7-2 6.7h16s-2-1.5-2-6.7Z" />
+    <path d="M13.7 19a2 2 0 0 1-3.4 0" />
+  </Base>
+);
+
 export const CheckIcon = (props: IconProps) => (
   <Base {...props}>
     <path d="M4.5 12.5 9.5 17.5 19.5 6.5" />
@@ -308,5 +315,23 @@ export const HelpCircleIcon = (props: IconProps) => (
     <circle cx="12" cy="12" r="8.2" />
     <path d="M9.8 9.6a2.3 2.3 0 1 1 3.4 2.1c-.7.4-1.2.9-1.2 1.8" />
     <path d="M12 17h.01" />
+  </Base>
+);
+
+export const ChevronLeftIcon = (props: IconProps) => (
+  <Base {...props}>
+    <path d="M15 5l-7 7 7 7" />
+  </Base>
+);
+
+export const PauseIcon = (props: IconProps) => (
+  <Base {...props}>
+    <path d="M9.5 5.5v13M14.5 5.5v13" />
+  </Base>
+);
+
+export const PlayIcon = (props: IconProps) => (
+  <Base {...props}>
+    <path d="M8 5.6 18 12 8 18.4z" />
   </Base>
 );

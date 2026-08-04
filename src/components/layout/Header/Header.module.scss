@@ -43,6 +43,7 @@
 }
 
 .header__help {
+  position: relative;
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -92,4 +93,16 @@
   @include media.tablet {
     display: inline-flex;
   }
+}
+
+// 미조치가 있으면 종에 붙는 점
+.header__dot {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  width: 7px;
+  height: 7px;
+  border: 1.5px solid var(--surface);
+  border-radius: 50%;
+  background-color: var(--critical);
 }

@@ -114,12 +114,15 @@ function buildInverters(): Inverter[] {
       // 셋 중 하나쯤은 접속반을 거쳐 채널이 물리는 센트럴형으로 둔다.
       // 용량으로 가르면 목업 분포상 한쪽으로 쏠려 계층이 한 종류만 나온다.
       const type: Inverter['type'] = next() > 0.68 ? 'central' : 'string';
+      // 계통 연계는 용량으로 갈린다 — 20kW 아래는 단상, 그 위는 삼상으로 둔다.
+      const phase: Inverter['phase'] = capacityKw < 20 ? 'single' : 'three';
 
       inverters.push({
         id,
         schoolId: school.id,
         name: `인버터 #${index + 1}`,
         type,
+        phase,
         capacityKw,
         status,
         ownStatus,
@@ -128,11 +131,11 @@ function buildInverters(): Inverter[] {
         healthFactor,
         cf: !isProducing(status) ? 0 : pickNumber(next, 0.108, 0.176, 4),
         todayKwh: !isProducing(status) ? 0 : Math.round((school.todayKwh / school.inverterCount) * 10) / 10,
-        temperature: faultCode === 'F-201' ? pickNumber(next, 64, 72, 1) : pickNumber(next, 38, 56, 1),
-        hoursTrend: Array.from(
-          { length: 7 },
-          (_, day) => Math.round((todayHours + (day - 6) * 0.04 + pickNumber(next, -0.1, 0.1, 2)) * 10) / 10,
-        ),
+        temperature: faultCode === 7 ? pickNumber(next, 64, 72, 1) : pickNumber(next, 38, 56, 1),
+        // 발전하지 않는 설비는 흔들림 없이 0 이어야 한다 — 잡음이 섞이면 "-0.0h" 같은 값이 나온다.
+        hoursTrend: Array.from({ length: 7 }, (_, day) => (todayHours === 0
+          ? 0
+          : Math.max(0, Math.round((todayHours + (day - 6) * 0.04 + pickNumber(next, -0.1, 0.1, 2)) * 10) / 10))),
         strings: type === 'string'
           ? buildUnits(next, id, 'str', 'String', 2 + Math.floor(next() * 3), status, capacityKw)
           : [],
@@ -222,6 +225,11 @@ export function getDiagnosisUnits(inverter: Inverter): { id: string; name: strin
 export const INVERTER_TYPE_LABEL: Record<Inverter['type'], string> = {
   string: '스트링형',
   central: '센트럴형',
+};
+
+export const INVERTER_PHASE_LABEL: Record<Inverter['phase'], string> = {
+  single: '단상 220V',
+  three: '삼상 380V',
 };
 
 /** 인버터 아래 최말단 단위(스트링 또는 접속반 채널)를 모두 모은다. */

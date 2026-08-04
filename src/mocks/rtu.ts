@@ -71,3 +71,10 @@ export const RTU_EVENT_LABEL: Record<RtuEvent['kind'], string> = {
   relocate: '이설',
   firmware: '펌웨어',
 };
+
+const RTU_BY_PLANT = new Map(RTUS.map((rtu) => [rtu.plantId, rtu]));
+
+/** 발전소에 붙은 수집장치. 수집주기를 알아야 하는 쪽에서 쓴다. */
+export function getRtuOf(plantId: string): Rtu | null {
+  return RTU_BY_PLANT.get(plantId) ?? null;
+}

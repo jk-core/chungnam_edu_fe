@@ -168,49 +168,78 @@
 }
 
 // ── 진행 게이지 ─────────────────────────────────────────────
+// 단계 색은 --ai-stage 로 흘러들어 게이지·숫자·후광이 함께 물든다.
 .progress {
   display: flex;
+  flex-direction: column;
   align-items: center;
-  gap: s.$space-7;
-  padding: s.$space-4 0 s.$space-2;
-
-  @include media.mobile {
-    flex-direction: column;
-    gap: s.$space-5;
-    text-align: center;
-  }
+  gap: s.$space-6;
+  padding: s.$space-6 0 s.$space-4;
+  text-align: center;
 }
 
 .gauge {
   position: relative;
-  width: 148px;
-  height: 148px;
+  display: grid;
+  place-items: center;
+  width: 176px;
+  height: 176px;
   flex-shrink: 0;
 }
 
+// 단계 색으로 번지는 후광 — 숨 쉬듯 커졌다 작아진다
+.gauge__aura {
+  position: absolute;
+  inset: 8px;
+  border-radius: 50%;
+  background: radial-gradient(
+    circle,
+    color-mix(in srgb, var(--ai-stage, var(--brand)) 26%, transparent) 0%,
+    transparent 68%
+  );
+  animation: ai-breathe 2.8s ease-in-out infinite;
+}
+
+// 원을 도는 빛줄기 — 분석이 멈추지 않았음을 알린다
+.gauge__sweep {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  background: conic-gradient(
+    from 0deg,
+    transparent 0deg,
+    transparent 250deg,
+    color-mix(in srgb, var(--ai-stage, var(--brand)) 46%, transparent) 340deg,
+    transparent 360deg
+  );
+  mask: radial-gradient(circle, transparent 62%, #000 64%);
+  animation: ai-spin 2.6s linear infinite;
+}
+
 .gauge__svg {
+  position: relative;
+  z-index: 1;
   width: 100%;
   height: 100%;
-  transform: rotate(-90deg);
 }
 
 .gauge__track {
   fill: none;
   stroke: var(--border-subtle);
-  stroke-width: 8;
 }
 
 .gauge__value {
   fill: none;
-  stroke: var(--brand);
-  stroke-width: 8;
+  stroke: var(--ai-stage, var(--brand));
   stroke-linecap: round;
-  transition: stroke-dashoffset 0.24s linear;
+  filter: drop-shadow(0 0 6px color-mix(in srgb, var(--ai-stage, var(--brand)) 52%, transparent));
+  transition: stroke 0.7s ease, filter 0.7s ease, stroke-dashoffset 0.5s cubic-bezier(0.22, 1, 0.36, 1);
 }
 
 .gauge__label {
   position: absolute;
   inset: 0;
+  z-index: 2;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -221,8 +250,15 @@
 .gauge__percent {
   @include t.data-xl;
 
-  color: var(--text-strong);
+  color: var(--ai-stage, var(--brand));
   font-variant-numeric: tabular-nums;
+  transition: color 0.7s ease;
+
+  small {
+    @include t.label-sm;
+
+    margin-left: 2px;
+  }
 }
 
 .gauge__unit {
@@ -231,41 +267,91 @@
   color: var(--text-faint);
 }
 
-.steps {
-  flex: 1;
-  min-width: 0;
+.progress__head {
   display: flex;
   flex-direction: column;
+  align-items: center;
   gap: s.$space-2;
+}
+
+.progress__badge {
+  @include t.label-sm;
+
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px s.$space-3;
+  border: 1px solid color-mix(in srgb, var(--ai-stage, var(--brand)) 34%, transparent);
+  border-radius: s.$radius-full;
+  background-color: color-mix(in srgb, var(--ai-stage, var(--brand)) 10%, transparent);
+  color: var(--ai-stage, var(--brand));
+  letter-spacing: 0.04em;
+  transition: color 0.7s ease, border-color 0.7s ease, background-color 0.7s ease;
+}
+
+.progress__title {
+  @include t.title-sm;
+
+  color: var(--text-strong);
+}
+
+.progress__desc {
+  @include t.body-sm;
+
+  color: var(--text-muted);
+}
+
+// ── 단계 롤러 ──────────────────────────────────────────────
+// 지금 단계를 가운데 두고 앞뒤가 흐리게 비친다.
+.roller {
+  position: relative;
   width: 100%;
+  max-width: 420px;
+  overflow: hidden;
+  mask: linear-gradient(to bottom, transparent, #000 22%, #000 78%, transparent);
+}
+
+.roller__track {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  list-style: none;
+  transform: translateY(var(--roll, 0));
+  transition: transform 0.5s cubic-bezier(0.22, 1, 0.36, 1);
 }
 
 .step {
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   gap: s.$space-3;
   padding: s.$space-2 s.$space-3;
-  border-radius: s.$radius-sm;
-  transition: background-color 0.2s ease;
+  border: 1px solid var(--border-subtle);
+  border-radius: s.$radius-md;
+  background-color: var(--surface);
+  text-align: left;
+  transition: border-color 0.4s ease, background-color 0.4s ease, opacity 0.4s ease, filter 0.4s ease;
 }
 
 .step--current {
-  background: var(--brand-soft);
+  border-color: color-mix(in srgb, var(--step-color, var(--brand)) 46%, transparent);
+  background-color: color-mix(in srgb, var(--step-color, var(--brand)) 8%, var(--surface));
+  box-shadow: 0 0 0 4px color-mix(in srgb, var(--step-color, var(--brand)) 10%, transparent);
 }
 
 .step__mark {
+  @include t.caption;
+
   display: grid;
   place-items: center;
-  width: 20px;
-  height: 20px;
-  margin-top: 1px;
+  width: 22px;
+  height: 22px;
   flex-shrink: 0;
   border: 1.5px solid var(--border-strong);
   border-radius: 50%;
   background: var(--surface);
   color: var(--text-faint);
-  font-size: 11px;
   line-height: 1;
+  transition: border-color 0.4s ease, background-color 0.4s ease, color 0.4s ease;
 }
 
 .step--done .step__mark {
@@ -275,22 +361,21 @@
 }
 
 .step--current .step__mark {
-  border-color: var(--brand);
-  color: var(--brand-contrast);
+  border-color: var(--step-color, var(--brand));
+  color: var(--step-color, var(--brand));
+  animation: ai-mark-pulse 1.8s ease-in-out infinite;
 }
 
 .step__text {
   display: flex;
   flex-direction: column;
+  flex: 1;
   min-width: 0;
-  text-align: left;
 }
 
 .step__label {
   @include t.label-sm;
 
-  display: flex;
-  align-items: center;
   color: var(--text-faint);
 }
 
@@ -301,51 +386,68 @@
 
 .step__note {
   @include t.caption;
+  @include mx.truncate;
 
-  display: block;
   margin-top: 1px;
   color: var(--text-faint);
 }
 
-// 현재 단계에 붙는 말줄임 점. 오래 걸리는 추론 단계에서 살아 있음을 알린다.
-.step__dots {
-  display: inline-flex;
-  gap: 3px;
-  margin-left: s.$space-2;
-  vertical-align: middle;
+.step__state {
+  @include t.caption;
 
-  span {
-    width: 3px;
-    height: 3px;
-    border-radius: 50%;
-    background: var(--brand);
-    animation: dot-blink 1.2s ease-in-out infinite;
+  flex-shrink: 0;
+  color: var(--text-faint);
+}
 
-    &:nth-child(2) {
-      animation-delay: 0.18s;
-    }
+.step--current .step__state {
+  color: var(--step-color, var(--brand));
+}
 
-    &:nth-child(3) {
-      animation-delay: 0.36s;
-    }
+@keyframes ai-spin {
+  to {
+    transform: rotate(360deg);
   }
 }
 
-@keyframes dot-blink {
+@keyframes ai-breathe {
   0%,
   100% {
-    opacity: 0.2;
+    transform: scale(1);
+    opacity: 0.7;
   }
 
   50% {
+    transform: scale(1.06);
     opacity: 1;
   }
 }
 
+@keyframes ai-mark-pulse {
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 color-mix(in srgb, var(--step-color, var(--brand)) 42%, transparent);
+  }
+
+  50% {
+    box-shadow: 0 0 0 5px color-mix(in srgb, var(--step-color, var(--brand)) 0%, transparent);
+  }
+}
+
 @include media.reduced-motion {
-  .step__dots span {
+  .gauge__aura,
+  .gauge__sweep,
+  .step--current .step__mark {
     animation: none;
-    opacity: 0.6;
+  }
+
+  .gauge__sweep {
+    opacity: 0;
+  }
+
+  .roller__track,
+  .step,
+  .gauge__value {
+    transition: none;
   }
 }
 
@@ -357,10 +459,36 @@
 }
 
 .insight {
-  padding: s.$space-4 s.$space-5;
-  border: 1px solid var(--brand-soft-border);
+  position: relative;
+  padding: s.$space-5;
   border-radius: s.$radius-md;
-  background: var(--brand-soft);
+  background:
+    linear-gradient(var(--surface), var(--surface)) padding-box,
+    linear-gradient(
+      118deg,
+      color-mix(in srgb, var(--ai-scan) 46%, transparent),
+      color-mix(in srgb, var(--ai-classify) 46%, transparent) 42%,
+      color-mix(in srgb, var(--ai-reason) 46%, transparent) 78%,
+      color-mix(in srgb, var(--ai-done) 40%, transparent)
+    ) border-box;
+  border: 1px solid transparent;
+  overflow: hidden;
+
+  // 카드 왼쪽 위에서 은은하게 번지는 빛
+  &::before {
+    content: "";
+    position: absolute;
+    top: -40%;
+    left: -10%;
+    width: 46%;
+    height: 180%;
+    background: radial-gradient(
+      ellipse,
+      color-mix(in srgb, var(--ai-reason) 16%, transparent),
+      transparent 68%
+    );
+    pointer-events: none;
+  }
 }
 
 .insight__head {
@@ -373,10 +501,35 @@
 .insight__title {
   @include t.label-md;
 
+  position: relative;
   color: var(--text-strong);
 }
 
+// 생성 중임을 알리는 커서 — 마지막 줄 끝에서 깜빡인다
+.insight__caret {
+  display: inline-block;
+  width: 2px;
+  height: 1em;
+  margin-left: 3px;
+  border-radius: 1px;
+  background: var(--ai-reason);
+  vertical-align: -2px;
+  animation: ai-caret 1s steps(2, start) infinite;
+}
+
+@keyframes ai-caret {
+  0%,
+  100% {
+    opacity: 1;
+  }
+
+  50% {
+    opacity: 0;
+  }
+}
+
 .insight__list {
+  position: relative;
   display: flex;
   flex-direction: column;
   gap: s.$space-2;
@@ -395,8 +548,8 @@
     width: 3px;
     flex-shrink: 0;
     border-radius: s.$radius-full;
-    background: var(--brand);
-    opacity: 0.5;
+    background: linear-gradient(var(--ai-classify), var(--ai-reason));
+    opacity: 0.7;
   }
 }
 

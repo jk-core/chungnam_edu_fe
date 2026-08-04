@@ -6,11 +6,19 @@
   display: grid;
   grid-template-columns: minmax(0, 1fr) 200px;
   gap: s.$space-4;
-  align-items: start;
+  align-items: stretch;
+  flex: 1;
+  min-height: 0;
 
   @include media.tablet {
     grid-template-columns: 1fr;
   }
+}
+
+// 칸을 그대로 채운다. 최소 높이는 눈금과 막대가 겹치지 않을 만큼만 잡아 둔다.
+.chart__canvas {
+  min-height: 190px;
+  min-width: 0;
 }
 
 // 권역별 금일 발전량 — 차트 옆에 표로 붙여 수치를 그대로 읽게 한다 (SFR-004-10).

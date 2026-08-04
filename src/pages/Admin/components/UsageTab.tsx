@@ -1,14 +1,21 @@
 import { useMemo } from 'react';
+import { Button } from '@/components/common/Button';
 import { Card } from '@/components/common/Card';
+import { DownloadIcon } from '@/components/common/Icon';
 import { EChart } from '@/components/common/EChart';
 import { getLoginTrend, getMenuUsage } from '@/mocks/security';
+import { MSG } from '@/configs/messages';
+import { NOW } from '@/mocks/today';
 import { Reveal } from '@/components/common/Reveal';
 import { StatCard } from '@/components/common/StatCard';
 import { Table } from '@/components/common/Table';
+import { exportCsv } from '@/utils/export';
 import { formatNumber } from '@/utils/format';
+import { toast } from '@/stores/toastStore';
 import { useChartPalette } from '@/hooks/useChartPalette';
 import type { Column } from '@/components/common/Table';
-import type { MenuUsage } from '@/interface/security';
+import type { CsvColumn } from '@/utils/export';
+import type { LoginTrendPoint, MenuUsage } from '@/interface/security';
 import styles from '../Admin.module.scss';
 import type { EChartsOption } from 'echarts';
 
@@ -103,6 +110,33 @@ export function UsageTab() {
     ],
   };
 
+  // 활용 통계 내려받기 (SFR-028-03) — 화면에서 줄인 항목까지 그대로 담는다.
+  const downloadUsage = () => {
+    const csvColumns: CsvColumn<MenuUsage>[] = [
+      { header: '대메뉴', value: (row) => row.section },
+      { header: '화면', value: (row) => row.menu },
+      { header: '조회수', value: (row) => row.views },
+      { header: '이용자수', value: (row) => row.users },
+      { header: '비중(%)', value: (row) => ((row.views / totalViews) * 100).toFixed(1) },
+    ];
+    const filename = `시스템활용통계_메뉴별_${NOW.format('YYYYMMDD')}`;
+
+    exportCsv(filename, csvColumns, usage);
+    toast.success(MSG.downloadStart(filename));
+  };
+
+  const downloadTrend = () => {
+    const csvColumns: CsvColumn<LoginTrendPoint>[] = [
+      { header: '일자', value: (row) => row.date },
+      { header: '로그인 성공', value: (row) => row.success },
+      { header: '로그인 실패', value: (row) => row.fail },
+    ];
+    const filename = `시스템활용통계_로그인추이_${NOW.format('YYYYMMDD')}`;
+
+    exportCsv(filename, csvColumns, trend);
+    toast.success(MSG.downloadStart(filename));
+  };
+
   const columns: Column<MenuUsage>[] = [
     { key: 'section', header: '대메뉴', width: '120px', render: (row) => row.section },
     { key: 'menu', header: '화면', render: (row) => <strong>{row.menu}</strong> },
@@ -146,7 +180,16 @@ export function UsageTab() {
         </Reveal>
 
         <Reveal delay={0.08}>
-          <Card eyebrow="Login" title="일별 로그인 추이" description="실선은 성공, 점선은 실패입니다.">
+          <Card
+            eyebrow="Login"
+            title="일별 로그인 추이"
+            description="실선은 성공, 점선은 실패입니다."
+            action={(
+              <Button variant="secondary" size="sm" iconLeft={<DownloadIcon />} onClick={downloadTrend}>
+                내려받기
+              </Button>
+            )}
+          >
             <EChart
               option={trendOption}
               height={320}
@@ -157,7 +200,16 @@ export function UsageTab() {
       </div>
 
       <Reveal delay={0.1}>
-        <Card eyebrow="Detail" title="화면별 상세" description="조회수 순으로 정렬했습니다.">
+        <Card
+          eyebrow="Detail"
+          title="화면별 상세"
+          description="조회수 순으로 정렬했습니다."
+          action={(
+            <Button variant="secondary" size="sm" iconLeft={<DownloadIcon />} onClick={downloadUsage}>
+              엑셀 내려받기
+            </Button>
+          )}
+        >
           <Table caption="메뉴별 활용 통계" columns={columns} rows={usage} getRowKey={(row) => row.menu} />
         </Card>
       </Reveal>

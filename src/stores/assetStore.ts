@@ -1,15 +1,20 @@
 import { create } from 'zustand';
 import { createJSONStorage, persist } from 'zustand/middleware';
 import type { AssetChange, PlantAsset } from '@/interface/asset';
-import type { LoginPolicy, ManagedUser } from '@/interface/account';
+import type { LoginPolicy, ManagedUser, UserChange } from '@/interface/account';
 import { getSeedAsset, SEED_ASSET_CHANGES } from '@/mocks/assetMaster';
-import { LOGIN_POLICY, SEED_USERS } from '@/mocks/accounts';
+import { LOGIN_POLICY, SEED_USER_CHANGES, SEED_USERS } from '@/mocks/accounts';
 
 /**
  * 관리자 콘솔의 쓰기 상태.
  * 시드는 mocks 가 갖고, 여기는 변경분만 얹는다 — API 로 갈 때 셀렉터 안쪽만 바꾼다.
  */
 interface AssetState {
+  /** 새로 등록한 발전소 (SFR-016-01) */
+  plantCreated: PlantAsset[];
+  createPlant: (asset: PlantAsset, entry: AssetChange) => void;
+  nextPlantId: () => string;
+
   /** 발전소 등록 정보 변경분 (SFR-016) */
   assetPatched: Record<string, Partial<PlantAsset>>;
   /** 수정 이력 — 저장할 때마다 앞에 쌓인다 (SFR-016-06) */
@@ -20,9 +25,11 @@ interface AssetState {
   userCreated: ManagedUser[];
   userPatched: Record<string, Partial<ManagedUser>>;
   userDeleted: string[];
-  saveUser: (user: ManagedUser) => void;
-  patchUser: (id: string, change: Partial<ManagedUser>) => void;
-  removeUser: (id: string) => void;
+  /** 담당자 변경 이력 — 저장할 때마다 앞에 쌓인다 (SFR-018-04) */
+  userChanges: UserChange[];
+  saveUser: (user: ManagedUser, entries: UserChange[]) => void;
+  patchUser: (id: string, change: Partial<ManagedUser>, entries: UserChange[]) => void;
+  removeUser: (id: string, entry: UserChange) => void;
   nextUserId: () => string;
 
   /** 로그인 설정 덮어쓰기 (SFR-026) */
@@ -37,6 +44,15 @@ interface AssetState {
 const useAssetStore = create<AssetState>()(
   persist(
     (set, get) => ({
+      plantCreated: [],
+      createPlant: (asset, entry) =>
+        set((state) => ({
+          plantCreated: [asset, ...state.plantCreated],
+          changes: [entry, ...state.changes],
+        })),
+      // 시드는 학교 id 를 쓰므로 새 발전소는 겹치지 않는 앞자리를 둔다.
+      nextPlantId: () => `NEW-${String(get().plantCreated.length + 1).padStart(3, '0')}`,
+
       assetPatched: {},
       changes: [],
       saveAsset: (plantId, change, entries) =>
@@ -48,27 +64,43 @@ const useAssetStore = create<AssetState>()(
       userCreated: [],
       userPatched: {},
       userDeleted: [],
-      saveUser: (user) =>
+      userChanges: [],
+      saveUser: (user, entries) =>
         set((state) => {
+          const logged = [...entries, ...state.userChanges];
+
           if (state.userCreated.some((item) => item.id === user.id)) {
-            return { userCreated: state.userCreated.map((item) => (item.id === user.id ? user : item)) };
+            return {
+              userCreated: state.userCreated.map((item) => (item.id === user.id ? user : item)),
+              userChanges: logged,
+            };
           }
 
           if (SEED_USERS.some((item) => item.id === user.id)) {
-            return { userPatched: { ...state.userPatched, [user.id]: user } };
+            return { userPatched: { ...state.userPatched, [user.id]: user }, userChanges: logged };
           }
 
-          return { userCreated: [user, ...state.userCreated] };
+          return { userCreated: [user, ...state.userCreated], userChanges: logged };
         }),
-      patchUser: (id, change) =>
+      patchUser: (id, change, entries) =>
         set((state) => {
+          const logged = [...entries, ...state.userChanges];
+
           if (state.userCreated.some((item) => item.id === id)) {
-            return { userCreated: state.userCreated.map((item) => (item.id === id ? { ...item, ...change } : item)) };
+            return {
+              userCreated: state.userCreated.map((item) => (item.id === id ? { ...item, ...change } : item)),
+              userChanges: logged,
+            };
           }
 
-          return { userPatched: { ...state.userPatched, [id]: { ...state.userPatched[id], ...change } } };
+          return {
+            userPatched: { ...state.userPatched, [id]: { ...state.userPatched[id], ...change } },
+            userChanges: logged,
+          };
         }),
-      removeUser: (id) => set((state) => ({ userDeleted: [...state.userDeleted, id] })),
+      // 계정은 지워도 누가 언제 지웠는지는 남겨 둔다.
+      removeUser: (id, entry) =>
+        set((state) => ({ userDeleted: [...state.userDeleted, id], userChanges: [entry, ...state.userChanges] })),
       nextUserId: () => `usr-${String(9100 + get().userCreated.length)}`,
 
       policy: LOGIN_POLICY,
@@ -84,9 +116,16 @@ const useAssetStore = create<AssetState>()(
   ),
 );
 
-/** 시드 + 변경분이 합쳐진 발전소 등록 정보 */
-export function mergeAsset(plantId: string, patched: Record<string, Partial<PlantAsset>>): PlantAsset | null {
-  const seed = getSeedAsset(plantId);
+/**
+ * 시드 + 변경분이 합쳐진 발전소 등록 정보.
+ * 새로 등록한 발전소는 시드에 없으므로 생성 목록에서 먼저 찾는다.
+ */
+export function mergeAsset(
+  plantId: string,
+  patched: Record<string, Partial<PlantAsset>>,
+  created: PlantAsset[] = [],
+): PlantAsset | null {
+  const seed = created.find((item) => item.plantId === plantId) ?? getSeedAsset(plantId);
 
   return seed ? { ...seed, ...patched[plantId] } : null;
 }
@@ -94,6 +133,11 @@ export function mergeAsset(plantId: string, patched: Record<string, Partial<Plan
 /** 시드 + 사용자 저장분이 합쳐진 수정 이력 */
 export function mergeChanges(changes: AssetChange[]): AssetChange[] {
   return [...changes, ...SEED_ASSET_CHANGES];
+}
+
+/** 시드 + 사용자 저장분이 합쳐진 담당자 변경 이력 (SFR-018-04) */
+export function mergeUserChanges(changes: UserChange[]): UserChange[] {
+  return [...changes, ...SEED_USER_CHANGES];
 }
 
 /** 시드 + 변경분이 합쳐진 사용자 목록 */

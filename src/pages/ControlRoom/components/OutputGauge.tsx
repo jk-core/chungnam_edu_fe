@@ -1,7 +1,7 @@
 import { motion, useReducedMotion } from 'motion/react';
 import { CountUp } from '@/components/common/CountUp';
 import { PEAK_OUTPUT } from '@/mocks/generation';
-import { formatNumber } from '@/utils/format';
+import { formatCapacity, formatNumber, scaleSi } from '@/utils/format';
 import styles from './OutputGauge.module.scss';
 
 const RADIUS = 78;
@@ -35,6 +35,9 @@ export function OutputGauge({ outputKw, capacityKw }: OutputGaugeProps) {
   const peak = PEAK_OUTPUT.kw > 0 ? PEAK_OUTPUT.kw : 1;
   const ratio = Math.max(0, Math.min(1, outputKw / peak));
   const offset = ARC_LENGTH * (1 - ratio);
+  // 도 전체를 더하면 kW 로는 자릿수가 길어 게이지 안에서 줄이 넘어간다.
+  const output = scaleSi(outputKw, 'W');
+  const capacity = formatCapacity(capacityKw);
 
   return (
     <div className={styles.gauge}>
@@ -53,11 +56,12 @@ export function OutputGauge({ outputKw, capacityKw }: OutputGaugeProps) {
       <div className={styles.gauge__center}>
         <p className={styles.gauge__label}>지금 총출력</p>
         <p className={styles.gauge__number}>
-          <CountUp value={outputKw} fractionDigits={1} startOnView={false} />
-          <span className={styles.gauge__unit}>kW</span>
+          <CountUp value={output.amount} fractionDigits={output.fractionDigits} startOnView={false} />
+          <span className={styles.gauge__unit}>{output.unit}</span>
         </p>
         <p className={styles.gauge__sub}>
-          피크 대비 {formatNumber(ratio * 100, 1)}% · 설비 {formatNumber(capacityKw, 1)}kW
+          설비 {capacity.value}
+          {capacity.unit}
         </p>
       </div>
     </div>

@@ -9,6 +9,16 @@ import { createRandom, hashSeed, pickNumber } from './random';
 export const INTERVAL_MINUTES = 15;
 export const POINTS_PER_DAY = (24 * 60) / INTERVAL_MINUTES;
 
+/**
+ * 수집률을 재는 두 기준. 성격이 달라 값도 다르다 — 한곳에 모아 두어 화면마다 갈리지 않게 한다.
+ *
+ * - 운영 목표: 하루하루 수집이 제대로 도는지 보는 선. 이 위를 '정상' 으로 본다.
+ * - 검수 기준: 사업 종료시점에 맞춰야 하는 연동률 (ECR-007-03).
+ *   품질 기준(`QUALITY_THRESHOLD`)과 같은 값이라, 이 아래는 AI 학습에서도 빠진다.
+ */
+export const COLLECT_RATE_TARGET = 0.99;
+export const LINK_RATE_TARGET = 0.95;
+
 export const CHANNELS: Channel[] = [
   { key: 'power', label: '발전전력', unit: 'kW', color: 'var(--chart-generation)' },
   { key: 'irradiance', label: '일사량', unit: 'W/m²', color: 'var(--chart-irradiance)' },

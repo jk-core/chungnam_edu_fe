@@ -354,7 +354,7 @@ export function MonthlyTab() {
         >
           <div className={styles.diagList}>
             {report.faultByDay.map((row) => {
-              const codes = [...new Set(row.codes.filter((code) => code !== 'F-000'))];
+              const codes = [...new Set(row.codes.filter((code) => code !== 0))];
 
               return (
                 <p key={row.id} className={styles.guide}>
@@ -366,7 +366,7 @@ export function MonthlyTab() {
                         const fault = getFaultCode(code);
                         const days = row.codes.filter((item) => item === code).length;
 
-                        return `${fault?.label ?? code} ${days}일`;
+                        return `${fault ? `${fault.label} · ${fault.summary}` : code} ${days}일`;
                       })
                       .join(' · ')}
                 </p>

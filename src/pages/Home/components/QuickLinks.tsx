@@ -26,7 +26,7 @@ const LINKS: QuickLink[] = [
     icon: <SunIcon />,
   },
   {
-    path: PATH.AI_DIAGNOSIS_SUMMARY,
+    path: PATH.AI_DIAGNOSIS_OVERVIEW,
     label: 'AI진단',
     description: '발전시간과 고장코드로 이상 설비를 짚어 냅니다.',
     icon: <PulseIcon />,

@@ -1,0 +1,132 @@
+@use "@/styles/tokens/spacing" as s;
+@use "@/styles/tokens/typography" as t;
+@use "@/styles/utils/media" as media;
+@use "@/styles/utils/mixins" as mx;
+
+.wrap {
+  display: flex;
+  flex-direction: column;
+  gap: s.$space-2;
+  flex: 1;
+  min-height: 0;
+}
+
+// 스크롤 대신 쪽을 넘긴다. 칸에 담기는 만큼만 그리므로 넘칠 일이 없다.
+.frame {
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+}
+
+// 쪽이 넘어갈 때 다음 줄들이 옆에서 밀려 들어온다 — 집계표가 넘어가는 결과 맞춘다.
+.list {
+  display: flex;
+  flex-direction: column;
+  gap: s.$space-1;
+  animation: rows-slide 0.45s cubic-bezier(0.22, 0.68, 0.32, 1) both;
+
+  @include media.reduced-motion {
+    animation: none;
+  }
+}
+
+@keyframes rows-slide {
+  from {
+    opacity: 0;
+    transform: translateX(28px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+.row {
+  display: flex;
+  align-items: center;
+  gap: s.$space-2;
+  padding: s.$space-2;
+  border: 1px solid var(--border-subtle);
+  border-left-width: 3px;
+  border-radius: s.$radius-sm;
+  background-color: var(--surface-sunken);
+}
+
+// 왼쪽 굵은 선으로 급한 정도를 알린다 — 배지와 함께 두 겹으로 읽힌다.
+.row--critical {
+  border-left-color: var(--critical);
+}
+
+.row--caution {
+  border-left-color: var(--caution);
+}
+
+.row--offline {
+  border-left-color: var(--offline);
+}
+
+.row__main {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  flex: 1;
+  min-width: 0;
+}
+
+.row__name {
+  @include t.label-md;
+  @include mx.truncate;
+
+  color: var(--text-strong);
+}
+
+.row__region {
+  @include t.caption;
+
+  color: var(--text-faint);
+}
+
+.row__figures {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 1px;
+  flex-shrink: 0;
+}
+
+.row__kwh {
+  @include t.data-sm;
+
+  display: flex;
+  align-items: baseline;
+  gap: 1px;
+  color: var(--text-strong);
+}
+
+.row__unit {
+  @include t.caption;
+
+  color: var(--text-muted);
+}
+
+.row__delay {
+  @include t.caption;
+
+  color: var(--text-faint);
+}
+
+.row__stale {
+  @include t.caption;
+
+  color: var(--critical-text);
+}
+
+.empty {
+  @include t.body-sm;
+
+  display: grid;
+  place-items: center;
+  flex: 1;
+  color: var(--text-muted);
+}

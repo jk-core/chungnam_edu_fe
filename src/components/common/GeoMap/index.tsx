@@ -16,6 +16,13 @@ const ZOOM = { min: 1, max: 6, step: 1.6 };
 // 초기 배율에서는 시·군 하나가 한 묶음이 되도록 넉넉히 잡는다. 확대하면 칸이 좁아져 흩어진다.
 const CLUSTER_CELL = 58;
 
+/** 묶음이 클수록 한 번에 더 크게 열어야 한 번 눌러 흩어진다. */
+function stepFor(count: number): number {
+  if (count >= 12) return ZOOM.step ** 2;
+
+  return ZOOM.step;
+}
+
 interface GeoMapProps {
   plants: School[];
   /** 마커를 눌렀을 때 띄울 팝업 본문 */
@@ -44,7 +51,8 @@ export function GeoMap({ plants, renderPopup, selectedId, onSelect, height = 460
   const [zoom, setZoom] = useState(1);
   const [pan, setPan] = useState({ x: 0, y: 0 });
   const [openId, setOpenId] = useState<string | null>(null);
-  const [showTable, setShowTable] = useState(false);
+  // 묶음을 눌렀을 때 옆으로 미끄러져 들어오는 발전소 목록
+  const [clusterList, setClusterList] = useState<School[] | null>(null);
   const dragRef = useRef<{ x: number; y: number; panX: number; panY: number } | null>(null);
 
   const markers = useMemo<MapMarkerDatum<School>[]>(
@@ -83,6 +91,7 @@ export function GeoMap({ plants, renderPopup, selectedId, onSelect, height = 460
     setZoom(1);
     setPan({ x: 0, y: 0 });
     setOpenId(null);
+    setClusterList(null);
   };
 
   const handlePointerDown = (event: React.PointerEvent<HTMLDivElement>) => {
@@ -121,6 +130,30 @@ export function GeoMap({ plants, renderPopup, selectedId, onSelect, height = 460
     return (value * MAP_FIT.scale + offset) / size;
   };
 
+  /**
+   * 한 지점을 화면 가운데로 끌어오며 확대한다 (SFR-007-10).
+   * 가운데 기준으로만 키우면 누른 묶음이 화면 밖으로 밀려 "확대가 안 된" 것처럼 보인다.
+   */
+  const focusOn = (x: number, y: number, nextZoom: number) => {
+    const clamped = Math.min(ZOOM.max, Math.max(ZOOM.min, nextZoom));
+    const limit = (clamped - 1) * 0.5;
+    const targetX = -clamped * (toRatio(x, 'x') - 0.5);
+    const targetY = -clamped * (toRatio(y, 'y') - 0.5);
+
+    setZoom(clamped);
+    setPan({
+      x: Math.max(-limit, Math.min(limit, targetX)),
+      y: Math.max(-limit, Math.min(limit, targetY)),
+    });
+  };
+
+  /** 묶음을 누르면 그 자리로 확대하면서 옆에 목록을 편다. */
+  const openCluster = (cluster: { x: number; y: number; members: MapMarkerDatum<School>[] }) => {
+    focusOn(cluster.x, cluster.y, zoom * stepFor(cluster.members.length));
+    setClusterList(cluster.members.map((member) => member.data));
+    setOpenId(null);
+  };
+
   const popupPosition = openMarker
     ? {
       left: `${((toRatio(openMarker.x, 'x') - 0.5) * zoom + 0.5 + pan.x) * 100}%`,
@@ -143,7 +176,7 @@ export function GeoMap({ plants, renderPopup, selectedId, onSelect, height = 460
             className={styles.map__svg}
             viewBox={`0 0 ${MAP_VIEW.width} ${MAP_VIEW.height}`}
             role="img"
-            aria-label={`충청남도 발전소 ${plants.length}개소 위치 지도. 아래 "표로 보기"에서 같은 내용을 표로 확인할 수 있습니다.`}
+            aria-label={`충청남도 발전소 ${plants.length}개소 위치 지도. 같은 내용을 아래 표로도 읽을 수 있습니다.`}
           >
             <g
               className={styles.map__stage}
@@ -211,13 +244,13 @@ export function GeoMap({ plants, renderPopup, selectedId, onSelect, height = 460
                       transform={`translate(${cluster.x} ${cluster.y}) scale(${markerScale})`}
                       role="button"
                       tabIndex={0}
-                      aria-label={`발전소 ${cluster.members.length}개소 묶음${abnormalCount > 0 ? `, 이상 ${abnormalCount}개소` : ''}. 확대하면 흩어집니다.`}
-                      onClick={() => applyZoom(zoom * ZOOM.step)}
+                      aria-label={`발전소 ${cluster.members.length}개소 묶음${abnormalCount > 0 ? `, 이상 ${abnormalCount}개소` : ''}. 누르면 그 자리로 확대합니다.`}
+                      onClick={() => openCluster(cluster)}
                       onKeyDown={(event) => {
                         if (event.key !== 'Enter' && event.key !== ' ') return;
 
                         event.preventDefault();
-                        applyZoom(zoom * ZOOM.step);
+                        openCluster(cluster);
                       }}
                     >
                       <circle className={styles.cluster__bubble} r={radius} />
@@ -234,6 +267,44 @@ export function GeoMap({ plants, renderPopup, selectedId, onSelect, height = 460
             </g>
           </svg>
         </div>
+
+        {clusterList ? (
+          <aside className={styles.clusterList} aria-label={`이 자리 발전소 ${clusterList.length}개소`}>
+            <header className={styles.clusterList__head}>
+              <p className={styles.clusterList__title}>
+                이 자리 발전소
+                <span className={styles.clusterList__count}>{clusterList.length}</span>
+              </p>
+              <button
+                type="button"
+                className={styles.clusterList__close}
+                aria-label="목록 닫기"
+                onClick={() => setClusterList(null)}
+              >
+                <CloseIcon width={15} height={15} />
+              </button>
+            </header>
+
+            <ul className={styles.clusterList__body}>
+              {clusterList.map((plant) => (
+                <li key={plant.id}>
+                  <button
+                    type="button"
+                    className={styles.clusterList__item}
+                    onClick={() => {
+                      setClusterList(null);
+                      onSelect?.(plant);
+                    }}
+                  >
+                    <span className={cn(styles.clusterList__dot, styles[`dot--${TONE_CLASS[plant.status]}`])} />
+                    <span className={styles.clusterList__name}>{plant.name}</span>
+                    <span className={styles.clusterList__meta}>{plant.regionName}</span>
+                  </button>
+                </li>
+              ))}
+            </ul>
+          </aside>
+        ) : null}
 
         {openMarker ? (
           <div className={styles.popup} style={popupPosition} role="dialog" aria-label={`${openMarker.label} 상세`}>
@@ -280,17 +351,8 @@ export function GeoMap({ plants, renderPopup, selectedId, onSelect, height = 460
         <p className={styles.zoomNote}>×{zoom.toFixed(1)}</p>
       </div>
 
-      <div className={styles.fallback}>
-        <button
-          type="button"
-          className={styles.fallback__toggle}
-          onClick={() => setShowTable((prev) => !prev)}
-          aria-expanded={showTable}
-        >
-          {showTable ? '표 접기' : '표로 보기'}
-        </button>
-        {showTable ? <div className={styles.fallback__body}>{fallback}</div> : null}
-      </div>
+      {/* 화면에는 띄우지 않지만 스크린리더·인쇄에는 같은 내용을 남긴다 (COR-003). */}
+      <div className={styles.srOnly}>{fallback}</div>
     </div>
   );
 }

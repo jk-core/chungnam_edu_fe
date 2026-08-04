@@ -1,3 +1,4 @@
+import type { DiagnosisFaultCode } from './equipment';
 import type { OperationStatus } from './status';
 
 /** AI 고장분석 진행 단계 */
@@ -17,7 +18,7 @@ export interface DiagnosisFinding {
   parentName: string;
   status: OperationStatus;
   /** 규칙엔진이 확정한 고장코드. 정상이면 null */
-  faultCode: string | null;
+  faultCode: DiagnosisFaultCode | null;
   faultLabel: string;
   /** 최근 진단 효율(%) */
   diagEfficiency: number;

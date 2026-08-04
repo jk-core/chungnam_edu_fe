@@ -6,11 +6,15 @@ import { getMonthDays, getYearMonths } from '@/mocks/weather';
 import { describePeriod, getTrend, labelOf, PERIOD_META, pickEnergyUnit } from '@/mocks/generation';
 import { Reveal } from '@/components/common/Reveal';
 import { Table } from '@/components/common/Table';
+import { MSG } from '@/configs/messages';
 import { cn } from '@/utils/cn';
+import { exportCsv } from '@/utils/export';
 import { formatDelta, formatNumber } from '@/utils/format';
+import { toast } from '@/stores/toastStore';
 import { usePlantScope } from '@/hooks/usePlantScope';
 import { useStatisticsDate } from '@/stores/filterStore';
 import type { Column } from '@/components/common/Table';
+import type { CsvColumn } from '@/utils/export';
 import type { PeriodKey } from '@/mocks/generation';
 import type { TrendPoint } from '@/interface/energy';
 import styles from '../Statistics.module.scss';
@@ -44,6 +48,27 @@ export function PeriodTab() {
       months: getYearMonths(plant?.id ?? null, cursor.year()),
     };
   }, [date, plant?.id]);
+
+  const download = () => {
+    if (rows.length === 0) {
+      toast.error(MSG.noResult);
+
+      return;
+    }
+
+    // 화면은 단위를 줄여 보여 주지만 파일에는 원단위 그대로 담는다.
+    const csvColumns: CsvColumn<typeof rows[number]>[] = [
+      { header: PERIOD_META[period].label, value: (row) => row.label },
+      { header: '발전량(kWh)', value: (row) => Math.round(row.generation) },
+      { header: '전기 발전량(kWh)', value: (row) => Math.round(row.previous) },
+      { header: '증감률', value: (row) => formatDelta(row.generation / row.previous - 1) },
+      { header: '일사량(kWh/m²)', value: (row) => row.irradiance },
+    ];
+    const filename = `기간비교_${label}_${describePeriod(period, date)}`;
+
+    exportCsv(filename, csvColumns, rows);
+    toast.success(MSG.downloadStart(filename));
+  };
 
   const max = Math.max(...rows.map((row) => row.generation));
   const { divider, unit } = pickEnergyUnit(max);
@@ -105,7 +130,13 @@ export function PeriodTab() {
 
   return (
     <div className={styles.tab}>
-      <PeriodFilter period={period} onPeriodChange={setPeriod} date={date} onDateChange={setDate} />
+      <PeriodFilter
+        period={period}
+        onPeriodChange={setPeriod}
+        date={date}
+        onDateChange={setDate}
+        onDownload={download}
+      />
 
       {/* 일 단위에서는 날씨·발전시간을, 월·연 단위에서는 발전시간·예상 수익금을 달력에 얹는다 (SFR-007-01/02) */}
       <Reveal>

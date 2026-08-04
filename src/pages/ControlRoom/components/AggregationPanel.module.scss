@@ -1,5 +1,6 @@
 @use "@/styles/tokens/spacing" as s;
 @use "@/styles/tokens/typography" as t;
+@use "@/styles/utils/media" as media;
 @use "@/styles/utils/mixins" as mx;
 
 .agg {
@@ -72,8 +73,25 @@
   vertical-align: middle;
 }
 
-.table__row--selected {
-  background-color: var(--brand-soft);
+// 쪽이 넘어갈 때 다음 줄들이 옆에서 밀려 들어온다 — 설비 카드가 넘어가는 결과 맞춘다.
+.table__body {
+  animation: rows-slide 0.45s cubic-bezier(0.22, 0.68, 0.32, 1) both;
+
+  @include media.reduced-motion {
+    animation: none;
+  }
+}
+
+@keyframes rows-slide {
+  from {
+    opacity: 0;
+    transform: translateX(28px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
 }
 
 .table__name {
@@ -85,22 +103,6 @@
   color: var(--text-strong);
   text-align: left;
   font-weight: 500;
-}
-
-.table__link {
-  @include t.body-sm;
-  @include mx.truncate;
-
-  padding: 0;
-  border: 0;
-  background: none;
-  color: var(--text-strong);
-  text-align: left;
-
-  &:hover {
-    color: var(--brand);
-    text-decoration: underline;
-  }
 }
 
 .table__count {

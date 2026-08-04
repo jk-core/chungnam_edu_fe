@@ -1,5 +1,5 @@
 import dayjs from 'dayjs';
-import type { Inverter } from '@/interface/equipment';
+import type { DiagnosisFaultCode, Inverter } from '@/interface/equipment';
 import type { School } from '@/interface/energy';
 import { getFaultCode } from './faultCodes';
 import { getInvertersOf } from './equipment';
@@ -38,7 +38,7 @@ export interface MonthlyReport {
   /** 스트링 단위 진단 (SFR-020-02) */
   unitDiagnosis: { id: string; name: string; parent: string; normal: number; actual: number }[];
   /** 인버터별 일 단위 고장 분류 (SFR-020-03) */
-  faultByDay: { id: string; name: string; codes: string[] }[];
+  faultByDay: { id: string; name: string; codes: DiagnosisFaultCode[] }[];
   /** 조치방안 제안 (SFR-020-04) */
   recommendations: string[];
   /** 이상 발생 시 일상 점검 안내 (SFR-019-06) */
@@ -130,9 +130,9 @@ export function getMonthlyReport(schoolId: string, year: number, month: number):
     id: inverter.id,
     name: inverter.name,
     codes: days.map(() => {
-      if (!isAbnormal(inverter.status)) return 'F-000';
+      if (!isAbnormal(inverter.status)) return 0;
 
-      return next() > 0.62 ? inverter.faultCode ?? 'F-000' : 'F-000';
+      return next() > 0.62 ? inverter.faultCode ?? 0 : 0;
     }),
   }));
 
@@ -142,7 +142,7 @@ export function getMonthlyReport(schoolId: string, year: number, month: number):
     : abnormal.map((inverter) => {
       const fault = getFaultCode(inverter.faultCode);
 
-      return `${inverter.name} — ${fault ? `${fault.label}: ${fault.actions[0]}` : '진단 효율 저하 원인을 현장에서 확인하세요.'}`;
+      return `${inverter.name} — ${fault ? `${fault.summary}: ${fault.plan[0]}` : '진단 효율 저하 원인을 현장에서 확인하세요.'}`;
     });
 
   const report: MonthlyReport = {

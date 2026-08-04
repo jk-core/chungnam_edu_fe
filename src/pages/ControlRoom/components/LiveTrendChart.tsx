@@ -14,14 +14,13 @@ interface LiveTrendChartProps {
   /** 필터로 좁힌 발전소 — 권역 집계에 쓴다 */
   schools: School[];
   date: Date;
-  height: number;
 }
 
 /**
  * 시간대별 출력 곡선 + 권역별 집계 (SFR-004-01/03/06).
  * 지금 시각에 세로 기준선을 그어 "어디까지 왔는지"를 바로 읽히게 한다.
  */
-export function LiveTrendChart({ schools, date, height }: LiveTrendChartProps) {
+export function LiveTrendChart({ schools, date }: LiveTrendChartProps) {
   const palette = useChartPalette();
   const hourly = getHourlyTrend(date);
   const nowIndex = Math.min(hourly.length - 1, Math.round(NOW_HOUR));
@@ -77,9 +76,14 @@ export function LiveTrendChart({ schools, date, height }: LiveTrendChartProps) {
 
   return (
     <div className={styles.chart}>
+      {/*
+        칸 높이는 옆의 권역 표가 정한다. 차트에 픽셀 높이를 박아 두면 그만큼 아래가 비므로
+        칸을 그대로 채우게 두고, 최소 높이만 지켜 준다.
+      */}
       <EChart
+        className={styles.chart__canvas}
         option={option}
-        height={height}
+        height="100%"
         summary={`시간대별 발전량 추이. 권역 상위 ${regions.length}곳 집계 포함.`}
       />
 

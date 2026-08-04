@@ -47,9 +47,15 @@ function InsightLines({ lines }: { lines: string[] }) {
 
   return (
     <div className={styles.insight__list}>
-      {lines.slice(0, shown).map((line) => (
+      {lines.slice(0, shown).map((line, index) => (
         <p key={line} className={styles.insight__line}>
-          {line}
+          <span>
+            {line}
+            {/* 아직 더 쓸 문장이 남았으면 마지막 줄 끝에서 커서가 깜빡인다 */}
+            {index === shown - 1 && shown < lines.length ? (
+              <span className={styles.insight__caret} aria-hidden />
+            ) : null}
+          </span>
         </p>
       ))}
     </div>

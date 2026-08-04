@@ -39,6 +39,15 @@
   .map__stage {
     transition: none;
   }
+
+  .clusterList {
+    animation: none;
+  }
+
+  .clusterList__item,
+  .clusterList__close {
+    transition: none;
+  }
 }
 
 // ── 경계와 시·군 라벨 ───────────────────────────────────────
@@ -63,6 +72,16 @@
 // ── 마커 ───────────────────────────────────────────────────
 .marker {
   cursor: pointer;
+
+  &:focus-visible {
+    outline: none;
+
+    .marker__dot {
+      stroke: var(--brand);
+      stroke-width: 2.6;
+      filter: drop-shadow(0 0 4px color-mix(in srgb, var(--brand) 60%, transparent));
+    }
+  }
 }
 
 .marker__dot {
@@ -110,6 +129,180 @@
 
 .cluster {
   cursor: pointer;
+
+  // SVG 에 사각 outline 이 걸리면 원형 묶음과 어긋나 보인다 — 테두리를 밝혀 대신 알린다.
+  &:focus-visible {
+    outline: none;
+
+    .cluster__bubble {
+      stroke: var(--brand);
+      stroke-width: 2.6;
+      filter: drop-shadow(0 0 4px color-mix(in srgb, var(--brand) 60%, transparent));
+    }
+  }
+
+  &:hover .cluster__bubble {
+    stroke-width: 2.2;
+  }
+}
+
+.srOnly {
+  @include mx.sr-only;
+}
+
+// ── 묶음 발전소 목록 (도면 우측에서 미끄러져 들어온다) ───────
+.clusterList {
+  position: absolute;
+  top: s.$space-3;
+  right: s.$space-3;
+  bottom: s.$space-3;
+  z-index: 3;
+  display: flex;
+  flex-direction: column;
+  width: 236px;
+  max-width: calc(100% - #{s.$space-6});
+  border: 1px solid var(--border-subtle);
+  border-radius: s.$radius-md;
+  background-color: var(--surface);
+  box-shadow: var(--shadow-lg);
+  overflow: hidden;
+  animation: cluster-slide 0.22s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+@keyframes cluster-slide {
+  from {
+    opacity: 0;
+    transform: translateX(14px);
+  }
+
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.clusterList__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: s.$space-2;
+  padding: s.$space-3;
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+.clusterList__title {
+  @include t.label-sm;
+
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--text-strong);
+}
+
+.clusterList__count {
+  @include t.caption;
+
+  display: inline-grid;
+  place-items: center;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 5px;
+  border-radius: s.$radius-full;
+  background-color: var(--brand-soft);
+  color: var(--brand-contrast);
+  font-variant-numeric: tabular-nums;
+}
+
+.clusterList__close {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  border-radius: s.$radius-xs;
+  color: var(--text-muted);
+  transition: background-color 0.14s ease;
+
+  &:hover {
+    background-color: var(--surface-hover);
+  }
+}
+
+.clusterList__body {
+  flex: 1;
+  padding: s.$space-2;
+  list-style: none;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+
+.clusterList__item {
+  display: flex;
+  align-items: center;
+  gap: s.$space-2;
+  width: 100%;
+  padding: s.$space-2;
+  border-radius: s.$radius-xs;
+  text-align: left;
+  transition: background-color 0.14s ease;
+
+  &:hover {
+    background-color: var(--surface-hover);
+  }
+
+  &:focus-visible {
+    outline: none;
+    background-color: var(--brand-soft);
+    box-shadow: inset 0 0 0 1px var(--brand);
+  }
+}
+
+.clusterList__close:focus-visible {
+  outline: none;
+  background-color: var(--brand-soft);
+  box-shadow: inset 0 0 0 1px var(--brand);
+}
+
+.clusterList__dot {
+  width: 7px;
+  height: 7px;
+  flex-shrink: 0;
+  border-radius: 50%;
+}
+
+.dot--ok {
+  background-color: var(--ok);
+}
+
+.dot--brand {
+  background-color: var(--brand);
+}
+
+.dot--caution {
+  background-color: var(--caution);
+}
+
+.dot--critical {
+  background-color: var(--critical);
+}
+
+.dot--offline {
+  background-color: var(--offline);
+}
+
+.clusterList__name {
+  @include t.body-sm;
+  @include mx.truncate;
+
+  flex: 1;
+  color: var(--text-strong);
+}
+
+.clusterList__meta {
+  @include t.caption;
+
+  flex-shrink: 0;
+  color: var(--text-faint);
 }
 
 .cluster__bubble {
@@ -152,7 +345,14 @@
   border-radius: s.$radius-xs;
   background-color: var(--surface);
   color: var(--text-muted);
-  transition: color 0.16s ease, background-color 0.16s ease;
+  transition: color 0.16s ease, background-color 0.16s ease, border-color 0.16s ease;
+
+  &:focus-visible {
+    outline: none;
+    border-color: var(--brand);
+    background-color: var(--brand-soft);
+    color: var(--brand-contrast);
+  }
 
   &:hover {
     background-color: var(--surface-hover);
@@ -221,6 +421,12 @@
   }
 }
 
+.popup__close:focus-visible {
+  outline: none;
+  background-color: var(--brand-soft);
+  box-shadow: inset 0 0 0 1px var(--brand);
+}
+
 .popup__close {
   position: absolute;
   top: s.$space-1;
@@ -256,28 +462,3 @@
 }
 
 // ── 대체 표 (COR-003) ──────────────────────────────────────
-.fallback {
-  margin-top: s.$space-3;
-}
-
-.fallback__toggle {
-  @include t.label-sm;
-
-  display: inline-flex;
-  align-items: center;
-  gap: s.$space-1 + 2px;
-  padding: s.$space-2 s.$space-3;
-  border: 1px solid var(--border);
-  border-radius: s.$radius-full;
-  background-color: var(--surface);
-  color: var(--text-muted);
-
-  &:hover {
-    background-color: var(--surface-hover);
-    color: var(--text-strong);
-  }
-}
-
-.fallback__body {
-  margin-top: s.$space-3;
-}

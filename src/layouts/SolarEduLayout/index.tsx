@@ -18,8 +18,12 @@ interface SolarEduLayoutProps {
   date: string;
   /** 위쪽에 고정으로 붙는 지금 이 순간의 수치 */
   headline: ReactNode;
-  /** 하단에 흐르는 한 줄 설명 */
-  fact: string;
+  /** 번갈아 띄우는 한 줄 설명 전부 */
+  facts: string[];
+  /** 지금 보여 주는 문구 */
+  factIndex: number;
+  /** 점을 눌러 그 문구로 건너뛴다 */
+  onSelectFact: (index: number) => void;
   children: ReactNode;
 }
 
@@ -37,7 +41,9 @@ export function SolarEduLayout({
   clock,
   date,
   headline,
-  fact,
+  facts,
+  factIndex,
+  onSelectFact,
   children,
 }: SolarEduLayoutProps) {
   const { isFullscreen, toggle: toggleFullscreen } = useFullscreen();
@@ -94,10 +100,24 @@ export function SolarEduLayout({
       <p className={styles.ticker} role="status">
         <span className={styles.ticker__label}>알고 계셨나요</span>
         <span
-          key={fact}
+          key={factIndex}
           className={styles.ticker__text}
         >
-          {fact}
+          {facts[factIndex]}
+        </span>
+
+        {/* 지나간 문구가 궁금하면 눌러서 되돌려 볼 수 있다 */}
+        <span className={styles.ticker__dots}>
+          {facts.map((item, index) => (
+            <button
+              key={item}
+              type="button"
+              className={index === factIndex ? styles['ticker__dot--active'] : styles.ticker__dot}
+              onClick={() => onSelectFact(index)}
+              aria-label={`${index + 1}번째 이야기 보기 (전체 ${facts.length}건)`}
+              aria-current={index === factIndex ? 'true' : undefined}
+            />
+          ))}
         </span>
       </p>
 

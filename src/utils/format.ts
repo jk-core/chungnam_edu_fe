@@ -6,22 +6,58 @@ export function formatNumber(value: number, fractionDigits = 0): string {
   });
 }
 
-/**
- * 발전량(kWh)을 읽기 좋은 단위로 바꾼다.
- * 1,000,000 이상은 GWh, 1,000 이상은 MWh, 그 미만은 kWh.
- */
-export function formatEnergy(kwh: number): { value: string; unit: string } {
-  if (kwh >= 1_000_000) return { value: formatNumber(kwh / 1_000_000, 2), unit: 'GWh' };
-  if (kwh >= 1_000) return { value: formatNumber(kwh / 1_000, 1), unit: 'MWh' };
-
-  return { value: formatNumber(kwh, 1), unit: 'kWh' };
+/** 값과 그 값에 붙는 단위. 숫자와 단위를 다른 크기로 그리는 곳이 많아 따로 돌려준다. */
+export interface ScaledValue {
+  value: string;
+  unit: string;
 }
 
-/** 설비용량(kW)을 1,000kW 이상이면 MW로 바꾼다. */
-export function formatCapacity(kw: number): { value: string; unit: string } {
-  if (kw >= 1_000) return { value: formatNumber(kw / 1_000, 2), unit: 'MW' };
+/** 문자열로 굳히기 전의 값 — 숫자를 굴려 올리는 CountUp 이 이 형태를 쓴다. */
+export interface SiScale {
+  amount: number;
+  unit: string;
+  fractionDigits: number;
+}
 
-  return { value: formatNumber(kw, 1), unit: 'kW' };
+/**
+ * 킬로 단위로 들어온 값을 자릿수에 맞춰 M·G 로 끌어올린다.
+ *
+ * 이 시스템의 수치는 전부 kW·kWh 로 들어오는데, 도 전체를 더하면 자릿수가 커져
+ * 화면마다 제각각 1,000 으로 나누게 된다. 그 계산을 한 곳으로 모아,
+ * 어느 화면에서 보든 같은 값이 같은 단위로 보이게 한다.
+ *
+ * 소수 자릿수는 단위가 올라갈수록 늘린다 — 7,294kW 에서 반올림한 "7MW" 는
+ * 정보가 너무 깎이고, "7.29MW" 는 원래 값의 크기를 그대로 전한다.
+ */
+export function scaleSi(kilo: number, suffix: 'W' | 'Wh', fractionDigits?: number): SiScale {
+  const abs = Math.abs(kilo);
+
+  if (abs >= 1_000_000) {
+    return { amount: kilo / 1_000_000, unit: `G${suffix}`, fractionDigits: fractionDigits ?? 2 };
+  }
+
+  if (abs >= 1_000) {
+    return { amount: kilo / 1_000, unit: `M${suffix}`, fractionDigits: fractionDigits ?? 2 };
+  }
+
+  return { amount: kilo, unit: `k${suffix}`, fractionDigits: fractionDigits ?? 1 };
+}
+
+/** 위 계산을 바로 쓸 수 있는 문자열로 바꾼 것. 숫자를 굴리지 않는 곳에서 쓴다. */
+export function formatSi(kilo: number, suffix: 'W' | 'Wh', fractionDigits?: number): ScaledValue {
+  const scaled = scaleSi(kilo, suffix, fractionDigits);
+
+  return { value: formatNumber(scaled.amount, scaled.fractionDigits), unit: scaled.unit };
+}
+
+/** 발전량(kWh)을 읽기 좋은 단위로 바꾼다. */
+export function formatEnergy(kwh: number): ScaledValue {
+  return formatSi(kwh, 'Wh', kwh >= 1_000 && kwh < 1_000_000 ? 1 : undefined);
+}
+
+/** 설비용량·출력(kW)을 읽기 좋은 단위로 바꾼다. */
+export function formatCapacity(kw: number): ScaledValue {
+  return formatSi(kw, 'W');
 }
 
 /** CO₂ 저감량(kg)을 t 단위로 바꾼다. */

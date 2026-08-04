@@ -139,13 +139,3 @@ export function deriveOperation(own: OperationStatus, rtuStatus: RtuStatus): Ope
 
   return own;
 }
-
-/**
- * 정상 수집이 들어오면 준비중·통신단절은 정상으로 넘어간다 (SFR-003-09/10).
- * 수집 프로세스는 서버가 돌리지만, 전환 규칙을 화면 쪽에도 남겨 둔다.
- */
-export function resolveStatus(prev: OperationStatus, hasFreshData: boolean): OperationStatus {
-  if (hasFreshData && (prev === 'ready' || prev === 'commLost')) return 'running';
-
-  return prev;
-}

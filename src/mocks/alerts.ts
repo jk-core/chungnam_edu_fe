@@ -1,12 +1,14 @@
 import dayjs from 'dayjs';
+import type { DiagnosisFaultCode } from '@/interface/equipment';
 import type { AlertRecord, AlertRule, AlertType } from '@/interface/alert';
-import type { Severity } from '@/interface/energy';
+import type { OperationStatus, Severity } from '@/interface/status';
 import { SCHOOLS } from './schools';
-import { endOfToday } from './today';
+import { isAbnormal } from './status';
+import { endOfToday, NOW } from './today';
 import { createRandom, hashSeed, pickNumber } from './random';
 
 interface Template {
-  faultCode: string | null;
+  faultCode: DiagnosisFaultCode | null;
   type: AlertType;
   severity: Severity;
   title: string;
@@ -14,62 +16,70 @@ interface Template {
   device: string;
   /** 조치까지 보통 걸리는 시간(분) */
   typicalMinutes: number;
+  /** 조치 완료로 남길 문구. 없으면 기본 문구를 쓴다. */
+  actionNote?: string;
 }
 
 const TEMPLATES: Template[] = [
   {
-    faultCode: 'F-401',
+    faultCode: 7,
     type: '통신',
     severity: 'critical',
     title: '인버터 통신 두절',
     description: '수집장치가 인버터 응답을 15분 이상 받지 못했습니다.',
     device: '인버터 #1',
     typicalMinutes: 620,
+    actionNote: '현장 통신 모뎀 재기동 후 정상 수집 확인',
   },
   {
-    faultCode: 'F-104',
+    faultCode: 3,
     type: '발전',
     severity: 'critical',
     title: '스트링 출력 저하',
     description: '동일 인버터의 다른 스트링 대비 출력이 30% 이상 낮습니다.',
     device: '인버터 #2 · String 4',
     typicalMinutes: 1450,
+    actionNote: '접속함 퓨즈 교체, 스트링 출력 회복 확인',
   },
   {
-    faultCode: 'F-201',
+    faultCode: null,
     type: '설비',
     severity: 'caution',
     title: '인버터 내부 온도 상승',
     description: '인버터 내부 온도가 65℃를 넘어 출력 제한이 발생했습니다.',
     device: '인버터 #3',
     typicalMinutes: 380,
+    actionNote: '냉각 팬 교체 및 통풍구 청소',
   },
   {
-    faultCode: 'F-202',
+    faultCode: 7,
     type: '설비',
     severity: 'critical',
     title: '절연저항 기준치 미달',
     description: '절연저항이 1MΩ 아래로 측정되었습니다. 감전 위험이 있어 즉시 확인이 필요합니다.',
     device: '접속함 A',
     typicalMinutes: 240,
+    actionNote: '접속함 침수 배수, 절연저항 재측정 정상',
   },
   {
-    faultCode: 'F-102',
+    faultCode: 3,
     type: '환경',
     severity: 'caution',
     title: '어레이 출력 이상 저하',
     description: '맑은 날 오후 시간대 출력이 반복적으로 떨어집니다. 오염 또는 음영이 의심됩니다.',
     device: '모듈 어레이 B동',
     typicalMinutes: 2900,
+    actionNote: '모듈 표면 세척 및 남측 수목 가지치기',
   },
   {
-    faultCode: 'F-301',
+    faultCode: 5,
     type: '환경',
     severity: 'info',
     title: '일사량계 계측 오차 확대',
     description: '인근 관측소 값과의 차이가 허용 오차 상한에 근접했습니다.',
     device: '일사량계',
     typicalMinutes: 4200,
+    actionNote: '일사량계 돔 청소 후 영점 재설정',
   },
   {
     faultCode: null,
@@ -92,15 +102,6 @@ const TEMPLATES: Template[] = [
 ];
 
 const HANDLERS = ['시설과 담당자', '학교 시설 담당', '위탁 관리업체', '유지보수 협력사'];
-
-const ACTION_NOTES: Record<string, string> = {
-  'F-401': '현장 통신 모뎀 재기동 후 정상 수집 확인',
-  'F-104': '접속함 퓨즈 교체, 스트링 출력 회복 확인',
-  'F-201': '냉각 팬 교체 및 통풍구 청소',
-  'F-202': '접속함 침수 배수, 절연저항 재측정 정상',
-  'F-102': '모듈 표면 세척 및 남측 수목 가지치기',
-  'F-301': '일사량계 돔 청소 후 영점 재설정',
-};
 
 const DEFAULT_ACTION = '현장 점검 결과 이상 없음. 계측값 정상 범위 복귀 확인';
 
@@ -141,11 +142,54 @@ function buildAlerts(): AlertRecord[] {
       handled: Boolean(resolved && resolved.isBefore(base)),
       manual,
       handler: manual ? HANDLERS[Math.floor(next() * HANDLERS.length) % HANDLERS.length] : handled ? '자동 복구' : null,
-      actionNote: handled ? (template.faultCode ? ACTION_NOTES[template.faultCode] : DEFAULT_ACTION) : null,
+      actionNote: handled ? (template.actionNote ?? DEFAULT_ACTION) : null,
     });
   }
 
-  return records.sort((a, b) => (a.occurredAt < b.occurredAt ? 1 : -1));
+  return [...records, ...buildOpenAlerts(next)]
+    .sort((a, b) => (a.occurredAt < b.occurredAt ? 1 : -1));
+}
+
+/** 지금 이상 상태인 발전소에 붙일 템플릿. 상태와 경보의 무게를 맞춘다. */
+const OPEN_TEMPLATE: Partial<Record<OperationStatus, Template>> = {
+  fault: TEMPLATES[3],
+  degraded: TEMPLATES[4],
+  commLost: TEMPLATES[0],
+};
+
+/**
+ * 지금 아픈 발전소마다 아직 열려 있는 경보를 하나씩 세운다.
+ *
+ * 위의 무작위 생성만으로는 "상태는 경고인데 열린 경보는 없는" 상황이 나온다.
+ * 상황판에서 지도·장애 목록과 알림창이 서로 다른 말을 하게 되므로, 이상 상태와
+ * 미조치 경보를 짝지어 둔다. 하루가 끝나는 시각이 아니라 지금 시각에서 거슬러 올라가야
+ * "몇 시간 전에 벌어진 일" 로 읽힌다.
+ */
+function buildOpenAlerts(next: () => number): AlertRecord[] {
+  return SCHOOLS.filter((school) => isAbnormal(school.status)).map((school, index) => {
+    const template = OPEN_TEMPLATE[school.status] ?? TEMPLATES[6];
+    const occurred = NOW.subtract(Math.floor(pickNumber(next, 0, 9)), 'hour')
+      .subtract(Math.floor(pickNumber(next, 0, 59)), 'minute');
+
+    return {
+      id: `AL-OPEN-${String(index + 1).padStart(3, '0')}`,
+      schoolId: school.id,
+      schoolName: school.name,
+      regionName: school.regionName,
+      deviceName: template.device,
+      type: template.type,
+      severity: template.severity,
+      faultCode: template.faultCode,
+      title: template.title,
+      description: template.description,
+      occurredAt: occurred.format('YYYY-MM-DD HH:mm'),
+      resolvedAt: null,
+      handled: false,
+      manual: false,
+      handler: null,
+      actionNote: null,
+    };
+  });
 }
 
 export const ALERT_RECORDS: AlertRecord[] = buildAlerts();

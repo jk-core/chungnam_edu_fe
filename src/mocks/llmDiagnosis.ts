@@ -19,12 +19,22 @@ import type { ScopeNode } from './tree';
  * 분석 진행 단계.
  * 생성형 추론이 가장 오래 걸려 진행률의 대부분을 차지한다.
  */
-export const ANALYSIS_STEPS: { stage: AnalysisStage; label: string; note: string; threshold: number }[] = [
-  { stage: 'scan', label: '데이터 정밀 스캔', note: '수집값 결측·이상치를 훑습니다', threshold: 12 },
-  { stage: 'classify', label: '고장 분류', note: '고장 분류 모델이 코드를 판정합니다', threshold: 26 },
+/**
+ * 분석 단계. 단계마다 색이 달라 게이지와 글자가 함께 물든다 —
+ * 지금 어디를 지나는지 숫자를 읽지 않아도 알게 하려는 것이다.
+ */
+export const ANALYSIS_STEPS: {
+  stage: AnalysisStage;
+  label: string;
+  note: string;
+  threshold: number;
+  color: string;
+}[] = [
+  { stage: 'scan', label: '데이터 정밀 스캔', note: '수집값 결측·이상치를 훑습니다', threshold: 12, color: 'var(--ai-scan)' },
+  { stage: 'classify', label: '고장 분류', note: '고장 분류 모델이 코드를 판정합니다', threshold: 26, color: 'var(--ai-classify)' },
   // 100% 에 닿기 전까지는 추론 단계로 둔다. 완료 표시는 진행률이 다 찬 뒤에만 켠다.
-  { stage: 'reason', label: '생성형 AI 심층 추론', note: '원인과 조치를 문장으로 정리합니다', threshold: 100 },
-  { stage: 'done', label: 'AI 진단 완료', note: '결과를 정리했습니다', threshold: 100 },
+  { stage: 'reason', label: '생성형 AI 심층 추론', note: '원인과 조치를 문장으로 정리합니다', threshold: 100, color: 'var(--ai-reason)' },
+  { stage: 'done', label: 'AI 진단 완료', note: '결과를 정리했습니다', threshold: 100, color: 'var(--ai-done)' },
 ];
 
 export function stageOf(percent: number): AnalysisStage {
@@ -91,10 +101,10 @@ function buildFinding(target: ScopeNode, snowSeason: boolean): DiagnosisFinding 
     parentName: getNode(target.parentId).name,
     status: target.status,
     faultCode,
-    faultLabel: fault?.label ?? (target.status === 'running' ? '정상' : '진단 효율 저하'),
+    faultLabel: fault ? `${fault.label} · ${fault.summary}` : (target.status === 'running' ? '정상' : '진단 효율 저하'),
     diagEfficiency,
-    cause: fault ? `${fault.label} — ${fault.causes[0]}` : CAUSE_BY_STATUS[target.status],
-    recommendation: fault ? fault.actions[0] : ACTION_BY_STATUS[target.status],
+    cause: fault ? `${fault.summary} — ${fault.description[0]}` : CAUSE_BY_STATUS[target.status],
+    recommendation: fault ? fault.plan[0] : ACTION_BY_STATUS[target.status],
     // 겨울에 효율이 크게 떨어졌다면 고장보다 적설을 먼저 의심한다.
     snowSuspected: snowSeason && isLow && diagEfficiency >= DIAG_EFFICIENCY_CRITICAL,
   };

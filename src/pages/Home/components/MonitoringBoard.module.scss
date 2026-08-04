@@ -80,7 +80,7 @@
 
 .layout {
   display: grid;
-  grid-template-columns: minmax(0, 1.35fr) minmax(0, 1fr);
+  grid-template-columns: minmax(240px, 0.72fr) minmax(0, 1.6fr);
   gap: s.$space-4;
 
   @include mx.stretch-cells;
@@ -96,7 +96,11 @@
   flex-direction: column;
   gap: s.$space-2;
   max-height: 456px;
-  padding-right: s.$space-1;
+
+  // 포커스 링(outline-offset 2px)과 선택 그림자가 스크롤 영역에 잘리지 않도록
+  // 사방에 여유를 두고 같은 만큼 바깥으로 당긴다.
+  margin: -4px;
+  padding: 4px;
   overflow-y: auto;
 }
 
@@ -111,11 +115,29 @@
   border-radius: s.$radius-sm;
   background-color: var(--surface);
   text-align: left;
-  transition: border-color 0.16s ease, background-color 0.16s ease;
+  cursor: pointer;
+  transition:
+    border-color 0.16s ease,
+    background-color 0.16s ease,
+    transform 0.16s ease,
+    box-shadow 0.16s ease;
 
   &:hover {
     border-color: var(--brand-soft-border);
     background-color: var(--brand-soft);
+    box-shadow: var(--shadow-sm);
+  }
+
+  // 누르는 순간 살짝 들어가 눌린 느낌을 준다
+  &:active {
+    transform: scale(0.995);
+    box-shadow: none;
+  }
+
+  &:hover .row__go,
+  &:focus-visible .row__go {
+    opacity: 1;
+    transform: none;
   }
 }
 
@@ -155,6 +177,14 @@
   align-items: center;
   gap: s.$space-3;
   flex-shrink: 0;
+}
+
+// 이동 신호 — 자리는 늘 차지하고 있어 hover 때 줄이 밀리지 않는다
+.row__go {
+  color: var(--brand);
+  opacity: 0;
+  transform: translateX(-4px);
+  transition: opacity 0.16s ease, transform 0.16s ease;
 }
 
 .row__output {
@@ -241,4 +271,160 @@
   display: block;
   color: var(--text-strong);
   font-variant-numeric: tabular-nums;
+}
+
+// 팝업에서 이어지는 이동 — 지도 선택은 그대로 두고 여기서만 넘어간다
+.popup__go {
+  @include t.label-sm;
+
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  width: 100%;
+  margin-top: s.$space-3;
+  padding: s.$space-2 s.$space-3;
+  justify-content: center;
+  border: 1px solid var(--brand-soft-border);
+  border-radius: s.$radius-sm;
+  background-color: var(--brand-soft);
+  color: var(--brand-contrast);
+  cursor: pointer;
+  transition: background-color 0.16s ease, transform 0.16s ease;
+
+  &:hover {
+    background-color: var(--brand);
+    color: var(--text-on-brand);
+  }
+
+  &:active {
+    transform: scale(0.98);
+  }
+}
+
+@include media.reduced-motion {
+  .row,
+  .row__go,
+  .popup__go {
+    transition: none;
+  }
+
+  .row:active,
+  .popup__go:active {
+    transform: none;
+  }
+
+  .row__go {
+    transform: none;
+  }
+}
+
+// ── 좌측 운영 상태 ─────────────────────────────────────────
+.health {
+  display: flex;
+  flex-direction: column;
+  gap: s.$space-4;
+  height: 100%;
+  padding: s.$space-5;
+  border: 1px solid var(--border-subtle);
+  border-radius: s.$radius-md;
+  background-color: var(--surface);
+}
+
+// 도넛은 남는 세로 공간을 채운다 — 지도와 키를 맞추려는 것이다.
+.health__donutWrap {
+  position: relative;
+  display: grid;
+  place-items: center;
+  flex: 1;
+  min-height: 168px;
+}
+
+.health__donut {
+  width: min(100%, 232px);
+  height: auto;
+  aspect-ratio: 1;
+}
+
+.health__track {
+  fill: none;
+  stroke: var(--surface-sunken);
+  stroke-width: 14;
+}
+
+.health__segment {
+  fill: none;
+  stroke-width: 14;
+  stroke-linecap: butt;
+}
+
+// 도넛은 12시 방향에서 시작한다.
+.health__donut {
+  transform: rotate(-90deg);
+}
+
+.health__center {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+}
+
+.health__ratio {
+  @include t.data-lg;
+
+  color: var(--text-strong);
+}
+
+.health__ratioLabel {
+  @include t.caption;
+
+  color: var(--text-faint);
+}
+
+.health__legend {
+  display: flex;
+  flex-direction: column;
+  gap: s.$space-2;
+  width: 100%;
+  list-style: none;
+}
+
+.health__legendItem {
+  display: flex;
+  align-items: center;
+  gap: s.$space-2;
+}
+
+.health__dot {
+  width: 8px;
+  height: 8px;
+  flex-shrink: 0;
+  border-radius: 50%;
+}
+
+.health__legendLabel {
+  @include t.body-sm;
+
+  flex: 1;
+  color: var(--text-muted);
+}
+
+.health__legendValue {
+  @include t.data-sm;
+
+  color: var(--text-strong);
+  font-variant-numeric: tabular-nums;
+}
+
+.health__note {
+  @include t.caption;
+
+  width: 100%;
+  padding-top: s.$space-3;
+  border-top: 1px solid var(--border-subtle);
+  color: var(--text-muted);
 }

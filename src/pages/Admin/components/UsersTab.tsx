@@ -3,6 +3,7 @@ import { Badge } from '@/components/common/Badge';
 import { Button } from '@/components/common/Button';
 import { Card } from '@/components/common/Card';
 import { ConfirmDialog } from '@/components/common/ConfirmDialog';
+import { EmptyState } from '@/components/common/EmptyState';
 import { FormRow, FormSection, RadioGroup, TextField } from '@/components/common/Form';
 import { Modal } from '@/components/common/Modal';
 import { MaskedText } from '@/components/common/MaskedText';
@@ -16,9 +17,10 @@ import { ROLE_LABEL } from '@/mocks/accounts';
 import { Table } from '@/components/common/Table';
 import { formatNumber } from '@/utils/format';
 import { toast } from '@/stores/toastStore';
-import useAssetStore, { mergeUsers } from '@/stores/assetStore';
+import { useAuthUser } from '@/stores/authStore';
+import useAssetStore, { mergeUserChanges, mergeUsers } from '@/stores/assetStore';
 import type { Column } from '@/components/common/Table';
-import type { ManagedUser, Role } from '@/interface/account';
+import type { ManagedUser, Role, UserChange } from '@/interface/account';
 import styles from '../Admin.module.scss';
 
 const PAGE_SIZE = 10;
@@ -32,6 +34,16 @@ interface Draft {
   email: string;
   phone: string;
 }
+
+/** 이력에 남길 항목 — 화면의 입력 항목과 이름을 맞춘다 (SFR-018-04). */
+const TRACKED: { key: keyof Draft; label: string }[] = [
+  { key: 'name', label: '이름' },
+  { key: 'orgName', label: '소속 기관' },
+  { key: 'department', label: '부서' },
+  { key: 'email', label: '이메일' },
+  { key: 'phone', label: '연락처' },
+  { key: 'role', label: '권한' },
+];
 
 const EMPTY_DRAFT: Draft = {
   id: null,
@@ -48,10 +60,12 @@ export function UsersTab() {
   const userCreated = useAssetStore((state) => state.userCreated);
   const userPatched = useAssetStore((state) => state.userPatched);
   const userDeleted = useAssetStore((state) => state.userDeleted);
+  const userChanges = useAssetStore((state) => state.userChanges);
   const saveUser = useAssetStore((state) => state.saveUser);
   const patchUser = useAssetStore((state) => state.patchUser);
   const removeUser = useAssetStore((state) => state.removeUser);
   const nextUserId = useAssetStore((state) => state.nextUserId);
+  const actor = useAuthUser();
 
   const [keyword, setKeyword] = useState('');
   const [page, setPage] = useState(1);
@@ -68,6 +82,16 @@ export function UsersTab() {
       ? all.filter((user) => user.name.includes(trimmed) || user.orgName.includes(trimmed) || user.email.includes(trimmed))
       : all;
   }, [userCreated, userPatched, userDeleted, keyword]);
+
+  // 위 검색어를 이력에도 그대로 걸어 준다 — 한 사람만 골라 보게 하려는 것 (SFR-018-04).
+  const history = useMemo(() => {
+    const all = mergeUserChanges(userChanges);
+    const trimmed = keyword.trim();
+
+    return trimmed
+      ? all.filter((item) => item.userName.includes(trimmed) || item.actor.includes(trimmed) || item.field.includes(trimmed))
+      : all;
+  }, [userChanges, keyword]);
 
   const pageCount = Math.max(1, Math.ceil(users.length / PAGE_SIZE));
   const currentPage = Math.min(page, pageCount);
@@ -104,13 +128,24 @@ export function UsersTab() {
     setConfirming(true);
   };
 
+  /** 이력 한 줄을 만든다 — 저장·잠금해제·삭제가 같은 형식을 쓴다. */
+  const entryOf = (target: Pick<ManagedUser, 'id' | 'name'>, field: string, before: string, after: string, seq = 0): UserChange => ({
+    id: `UC-${NOW.format('MMDDHHmm')}-${target.id}-${seq}`,
+    userId: target.id,
+    userName: target.name,
+    at: NOW.format('YYYY-MM-DD HH:mm'),
+    actor: actor?.name ?? '관리자',
+    field,
+    before,
+    after,
+  });
+
   const commit = () => {
     if (!draft) return;
 
     const isNew = draft.id === null;
     const existing = isNew ? null : users.find((user) => user.id === draft.id) ?? null;
-
-    saveUser({
+    const saved: ManagedUser = {
       id: draft.id ?? nextUserId(),
       name: draft.name.trim(),
       role: draft.role,
@@ -121,14 +156,29 @@ export function UsersTab() {
       plantIds: existing?.plantIds ?? [],
       lastLoginAt: existing?.lastLoginAt ?? null,
       locked: existing?.locked ?? false,
-    });
+    };
 
+    // 신규는 한 줄로, 수정은 실제로 달라진 항목만 남긴다 (SFR-018-04).
+    const entries: UserChange[] = isNew
+      ? [entryOf(saved, '신규 등록', '—', `${ROLE_LABEL[saved.role]} · ${saved.orgName}`)]
+      : TRACKED.flatMap(({ key, label }, index) => {
+        const before = String(existing?.[key as keyof ManagedUser] ?? '');
+        const after = String(saved[key as keyof ManagedUser] ?? '');
+
+        if (before === after) return [];
+
+        return key === 'role'
+          ? [entryOf(saved, label, ROLE_LABEL[before as Role], ROLE_LABEL[after as Role], index)]
+          : [entryOf(saved, label, before || '—', after || '—', index)];
+      });
+
+    saveUser(saved, entries);
     toast.success(isNew ? MSG.createSuccess('사용자') : MSG.updateSuccess(draft.name));
     setDraft(null);
   };
 
   const unlock = (target: ManagedUser) => {
-    patchUser(target.id, { locked: false });
+    patchUser(target.id, { locked: false }, [entryOf(target, '계정 잠금', '잠김', '해제')]);
     toast.success(`${target.name} 계정 잠금을 풀었습니다.`);
   };
 
@@ -239,6 +289,33 @@ export function UsersTab() {
         </Card>
       </Reveal>
 
+      <Reveal delay={0.06}>
+        <Card
+          eyebrow="History"
+          title="담당자 변경 이력"
+          description="누가 언제 어떤 항목을 바꿨는지 남습니다. 위 검색어로 사람을 좁혀 볼 수 있습니다."
+        >
+          {history.length === 0 ? (
+            <EmptyState title="변경 이력이 없습니다" description="검색어를 지우거나 다른 이름으로 찾아 보세요." />
+          ) : (
+            <div className={styles.history}>
+              {history.slice(0, 10).map((item) => (
+                <div key={item.id} className={styles.historyItem}>
+                  <span className={styles.historyItem__at}>{item.at}</span>
+                  <span className={styles.historyItem__body}>
+                    <strong>{item.userName}</strong> · {item.field} —{' '}
+                    <span className={styles.historyItem__diff}>
+                      <del>{item.before}</del> → <ins>{item.after}</ins>
+                    </span>
+                  </span>
+                  <span className={styles.historyItem__at}>{item.actor}</span>
+                </div>
+              ))}
+            </div>
+          )}
+        </Card>
+      </Reveal>
+
       <Modal
         isOpen={draft !== null}
         onClose={() => setDraft(null)}
@@ -332,7 +409,7 @@ export function UsersTab() {
         onConfirm={() => {
           if (!deleting) return;
 
-          removeUser(deleting.id);
+          removeUser(deleting.id, entryOf(deleting, '계정 삭제', `${ROLE_LABEL[deleting.role]} · ${deleting.orgName}`, '삭제됨'));
           toast.success(MSG.deleteSuccess(deleting.name));
           setDeleting(null);
         }}

@@ -1,0 +1,289 @@
+@use "@/styles/tokens/spacing" as s;
+@use "@/styles/tokens/typography" as t;
+@use "@/styles/utils/media" as media;
+@use "@/styles/utils/mixins" as mx;
+
+// 본문을 덮지 않는 오른쪽 아래에 쌓는다. 아래에서 위로 쌓여야 새 경보가 눈에 가깝다.
+.stack {
+  position: fixed;
+  right: 0;
+  bottom: 0;
+  padding: s.$space-5;
+  z-index: 40;
+  display: flex;
+  flex-direction: column-reverse;
+  gap: s.$space-2;
+  width: 360px;
+  max-width: calc(100vw - #{s.$space-5} * 2);
+  pointer-events: none;
+
+  @include media.mobile {
+    right: s.$space-3;
+    bottom: s.$space-3;
+    width: auto;
+    left: s.$space-3;
+  }
+}
+
+/*
+  알림 뒤에 깔리는 흐림 판.
+  판이 겹쳐 보이면 어디까지가 알림인지 읽히지 않는다. 뒤를 흐려 층을 갈라 준다.
+
+  backdrop-filter 는 한 요소 안에서 흐림 정도를 점점 달리할 수 없다.
+  그래서 판을 두 겹으로 겹친다 — 넓고 옅게 한 겹, 그 위에 좁고 진하게 한 겹.
+  둘 다 마스크로 가장자리를 지워, 알림 바로 뒤가 가장 뿌옇고 멀어질수록 맑아진다.
+
+  색을 더하지도 빼지도 않는다. 채도를 올리면 뒤의 주황·빨강이 번지고, 반대로 덜어 내면
+  회색 판을 덧댄 것처럼 보인다. 블라인드를 한 겹 내린 것처럼 흐리기만 한다.
+*/
+.stack::before,
+.stack::after {
+  content: "";
+  position: absolute;
+  z-index: -1;
+  pointer-events: none;
+}
+
+// 바깥 겹 — 넓게 퍼지며 살짝만 흐린다.
+.stack::before {
+  inset: -10px;
+  backdrop-filter: blur(1px);
+}
+
+/*
+  펼친 모습 — 오른쪽 한 칸을 통째로 쓰는 목록이 된다.
+  눌러서 연 화면이라 본문을 가려도 되고, 접으면 다시 세 건짜리 알림으로 돌아간다.
+*/
+.stack--expanded {
+  top: s.$space-5;
+  flex-direction: column;
+
+  @include media.mobile {
+    top: s.$space-3;
+  }
+}
+
+.stack__list {
+  display: flex;
+  flex-direction: column-reverse;
+  gap: s.$space-2;
+  min-height: 0;
+}
+
+// 다 펼치면 화면을 넘길 수 있으므로, 이 안에서만 굴린다.
+.stack--expanded .stack__list {
+  flex-direction: column;
+  flex: 1;
+  overflow-y: auto;
+  padding: 2px 10px 2px 2px;
+  scrollbar-width: thin;
+}
+
+// 머리줄은 카드 묶음 위에 붙는다. flex-direction: column-reverse 라 마크업 순서상 먼저 온다.
+.stack__head {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: s.$space-2;
+  pointer-events: auto;
+}
+
+.stack__clear {
+  @include t.caption;
+
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  padding: 3px s.$space-3;
+  border: 1px solid color-mix(in srgb, var(--border) 60%, transparent);
+  border-radius: s.$radius-full;
+  background-color: color-mix(in srgb, var(--surface) 78%, transparent);
+  color: var(--text-muted);
+  box-shadow: var(--shadow-md);
+  cursor: pointer;
+
+  &:hover {
+    color: var(--text-strong);
+  }
+}
+
+/*
+  애플 알림센터의 결.
+  테두리로 가두지 않고, 반투명한 판을 띄워 뒤를 흐리는 것으로 층을 만든다.
+  모서리를 크게 굴리고 그림자를 넓게 흩어 화면 위에 얹혀 있는 느낌을 준다.
+*/
+.toast {
+  position: relative;
+  display: flex;
+  align-items: flex-start;
+  gap: s.$space-3;
+  padding: s.$space-3 s.$space-4;
+  border: 1px solid color-mix(in srgb, var(--border) 60%, transparent);
+  border-radius: 18px;
+  background-color: color-mix(in srgb, var(--surface) 82%, transparent);
+  backdrop-filter: blur(30px);
+  box-shadow: var(--shadow-lg);
+  pointer-events: auto;
+  animation: toast-rise 0.42s cubic-bezier(0.22, 0.68, 0.32, 1) both;
+
+  @include media.reduced-motion {
+    animation: none;
+  }
+}
+
+// 애플 알림처럼 손이 올라갔을 때만 모서리에 지우기 단추가 뜬다.
+.toast__close {
+  position: absolute;
+  top: -8px;
+  right: -8px;
+  z-index: 1;
+  display: grid;
+  place-items: center;
+  width: 22px;
+  height: 22px;
+  padding: 0;
+  border: 1px solid color-mix(in srgb, var(--border) 70%, transparent);
+  border-radius: s.$radius-full;
+  background-color: color-mix(in srgb, var(--surface) 88%, transparent);
+  backdrop-filter: blur(20px);
+  color: var(--text-muted);
+  box-shadow: var(--shadow-md);
+  opacity: 0;
+  transform: scale(0.7);
+  transition:
+    opacity 0.14s ease,
+    transform 0.14s ease;
+  cursor: pointer;
+
+  &:hover {
+    border-color: var(--border-strong);
+    color: var(--text-strong);
+  }
+
+  /* 키보드로 옮겨 다닐 때도 보여야 누를 수 있다. */
+  &:focus-visible {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.toast:hover .toast__close {
+  opacity: 1;
+  transform: scale(1);
+}
+
+/*
+  상태는 앱 아이콘처럼 왼쪽 타일의 색이 맡는다.
+  카드 자체는 어느 상태든 같은 판이라 여러 건이 쌓여도 결이 흐트러지지 않는다.
+*/
+.toast--critical {
+  --tone: var(--critical);
+
+  /*
+    경고만 계속 맥동한다. 셋 다 깜빡이면 정작 급한 것이 묻힌다.
+    깜빡임은 제 주기가 아니라 전역 맥동 시계(--pulse)를 따라, 지도의 점·화면 테두리와 박자를 맞춘다.
+  */
+  box-shadow:
+    var(--shadow-lg),
+    0 0 0 calc(var(--pulse) * 3px) var(--critical);
+
+  @include media.reduced-motion {
+    box-shadow:
+      var(--shadow-lg),
+      0 0 0 2px var(--critical);
+  }
+}
+
+.toast--caution {
+  --tone: var(--caution);
+}
+
+.toast--offline {
+  --tone: var(--offline);
+}
+
+// 앱 아이콘 자리 — 색이 곧 상태다.
+.toast__icon {
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  width: 38px;
+  height: 38px;
+  border-radius: 11px;
+  background-color: var(--tone);
+  color: var(--text-on-brand);
+  box-shadow: 0 2px 6px color-mix(in srgb, var(--tone) 42%, transparent);
+}
+
+.toast__body {
+  min-width: 0;
+  flex: 1;
+}
+
+.toast__head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: s.$space-2;
+  min-width: 0;
+}
+
+.toast__where {
+  @include t.label-md;
+  @include mx.truncate;
+
+  color: var(--text-strong);
+}
+
+.toast__when {
+  @include t.caption;
+
+  flex-shrink: 0;
+  color: var(--text-faint);
+}
+
+.toast__title {
+  @include t.body-sm;
+
+  margin-top: 1px;
+  color: var(--text);
+}
+
+.toast__meta {
+  @include t.caption;
+
+  display: flex;
+  align-items: center;
+  gap: s.$space-2;
+  margin-top: 3px;
+  color: var(--text-faint);
+}
+
+// 색만으로 구분되지 않게 상태 이름을 함께 적는다 (COR-003)
+.toast__tone {
+  padding: 1px s.$space-2;
+  border-radius: s.$radius-full;
+  background-color: color-mix(in srgb, var(--tone) 16%, transparent);
+  color: var(--tone);
+  font-weight: 600;
+}
+
+.toast__code {
+  padding: 0 s.$space-2;
+  border-radius: s.$radius-sm;
+  background-color: color-mix(in srgb, var(--border) 40%, transparent);
+  color: var(--text-muted);
+  font-family: "Space Grotesk", sans-serif;
+}
+
+@keyframes toast-rise {
+  from {
+    opacity: 0;
+    transform: translateY(18px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}

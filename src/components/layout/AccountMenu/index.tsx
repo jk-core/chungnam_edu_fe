@@ -1,7 +1,7 @@
 import { AnimatePresence, motion } from 'motion/react';
 import { useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { ChevronDownIcon, LogoutIcon, MonitorIcon, ShieldIcon, SunIcon, UserIcon } from '@/components/common/Icon';
+import { ChevronDownIcon, HelpCircleIcon, LogoutIcon, MonitorIcon, ShieldIcon, SunIcon, UserIcon } from '@/components/common/Icon';
 import { Badge } from '@/components/common/Badge';
 import { buildPath } from '@/routes/buildPath';
 import { PATH } from '@/routes/routes';
@@ -19,7 +19,12 @@ function remainingMinutes(expiresAt: number | null): number {
 }
 
 /** 헤더 우측 계정 메뉴. 로그아웃과 권한 안내를 담는다. */
-export function AccountMenu() {
+interface AccountMenuProps {
+  /** 도움말 패널을 여는 손잡이. 헤더가 넘겨 준다. */
+  onOpenHelp?: () => void;
+}
+
+export function AccountMenu({ onOpenHelp }: AccountMenuProps) {
   const user = useAuthUser();
   const logout = useLogout();
   const selectedPlantId = useSelectedPlantId();
@@ -120,6 +125,22 @@ export function AccountMenu() {
                 <UserIcon width={18} height={18} />
                 마이페이지
               </Link>
+
+              {/* 헤더 자리는 알림이 가져갔다 — 도움말은 여기서 연다 (SIF-005). */}
+              {onOpenHelp ? (
+                <button
+                  type="button"
+                  role="menuitem"
+                  className={styles.panel__item}
+                  onClick={() => {
+                    setIsOpen(false);
+                    onOpenHelp();
+                  }}
+                >
+                  <HelpCircleIcon width={18} height={18} />
+                  이 화면 도움말
+                </button>
+              ) : null}
 
               {user.role === 'admin' ? (
                 <Link

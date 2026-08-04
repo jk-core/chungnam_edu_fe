@@ -1,7 +1,10 @@
 import { formatNumber } from '@/utils/format';
 import type { EduStats } from '@/mocks/solarEdu';
-import { delay } from './EduScenery';
 import styles from './SolarEdu.module.scss';
+import type { CSSProperties } from 'react';
+
+/** 애니메이션 시작 시각을 어긋내 여러 알갱이가 줄지어 흐르게 한다. */
+const delay = (seconds: number) => ({ animationDelay: `${seconds}s` }) as CSSProperties;
 
 interface JourneyOverviewArtProps {
   stats: EduStats;

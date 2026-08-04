@@ -43,6 +43,12 @@
   --brand-soft-border: #{p.$brand-10};
   --brand-contrast: #{p.$brand-70};
 
+  // AI 진단 단계색 — 스캔·분류·추론·완료 순으로 물든다
+  --ai-scan: #0ea5b7;
+  --ai-classify: #2f6fe4;
+  --ai-reason: #7c5cf0;
+  --ai-done: #12a67b;
+
   // Solar — 발전·태양 전용 액센트
   --solar: #{p.$solar-40};
   --solar-deep: #{p.$solar-50};
@@ -141,6 +147,12 @@
   --brand-soft: rgb(90 162 234 / 12%);
   --brand-soft-border: rgb(90 162 234 / 26%);
   --brand-contrast: #9cc9f6;
+
+  // AI 진단 단계색 — 어두운 면에서는 한 단 밝혀 잡는다
+  --ai-scan: #22d3ee;
+  --ai-classify: #60a5fa;
+  --ai-reason: #a78bfa;
+  --ai-done: #34d399;
 
   // Solar
   --solar: #ffc15e;

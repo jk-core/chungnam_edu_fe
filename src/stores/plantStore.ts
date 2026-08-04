@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import { createJSONStorage, persist } from 'zustand/middleware';
-import { getNode, hasNode, ROOT_ID } from '@/mocks/tree';
+import { getNode, getNodePath, hasNode, ROOT_ID } from '@/mocks/tree';
 import type { ScopeNode } from '@/mocks/tree';
 
 interface PlantState {
@@ -41,7 +41,13 @@ const usePlantStore = create<PlantState>()(
           const nodeId = hasNode(id) ? id : ROOT_ID;
 
           // 어느 계층을 골랐든 소속 발전소를 함께 기억한다. 루트를 고르면 도 전체로 돌아간다.
-          return { selectedNodeId: nodeId, selectedPlantId: getNode(nodeId).plantId };
+          // 트리는 고른 자리로 가는 길만 남긴다 — 형제를 갈아탈 때 앞서 펼쳐 둔 가지가
+          // 그대로 남아 있으면 어디를 보고 있는지 흐려진다.
+          return {
+            selectedNodeId: nodeId,
+            selectedPlantId: getNode(nodeId).plantId,
+            expandedIds: getNodePath(nodeId).map((item) => item.id),
+          };
         }),
       resetDepth: () =>
         set((state) => {

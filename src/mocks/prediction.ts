@@ -43,7 +43,7 @@ export function getPredictionSeries(inverterId: string, date: Date): PredictionP
   // 상태가 나쁘면 실측이 예측보다 이만큼 낮게 나온다.
   const lossBase = status === 'fault' ? 0.46 : status === 'degraded' ? 0.78 : 1;
   const candidates = FAULT_BY_STATUS[status];
-  const faultCode = candidates.length > 0 ? candidates[0] : 'F-000';
+  const faultCode = candidates.length > 0 ? candidates[0] : 0;
 
   const points: PredictionPoint[] = [];
 
@@ -67,7 +67,7 @@ export function getPredictionSeries(inverterId: string, date: Date): PredictionP
       predCurrent,
       ratio,
       deviation: Math.round((ratio - 1) * 1000) / 10,
-      faultCode: ratio >= 0.9 ? 'F-000' : faultCode,
+      faultCode: ratio >= 0.9 ? 0 : faultCode,
     });
   }
 
@@ -115,23 +115,11 @@ export function getDiagEfficiencyPoints(
       efficiency,
       estimateKwh,
       measuredKwh,
-      faultCode: efficiency >= NORMAL_BAND.min ? 'F-000' : candidates[0] ?? 'F-000',
+      faultCode: efficiency >= NORMAL_BAND.min ? 0 : candidates[0] ?? 0,
     };
   });
 
   efficiencyCache.set(key, points);
 
   return points;
-}
-
-/** 고장 분류 모델의 혼동 행렬 (SFR-014-09 검증 보고서) */
-export function getConfusionMatrix(labels: string[]): number[][] {
-  const next = createRandom(hashSeed(`confusion-${labels.length}`));
-
-  return labels.map((_, row) =>
-    labels.map((__, col) => {
-      if (row === col) return Math.round(pickNumber(next, 88, 98));
-
-      return Math.round(pickNumber(next, 0, 4));
-    }));
 }

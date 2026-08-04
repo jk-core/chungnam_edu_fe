@@ -167,6 +167,7 @@
 .ticker__text {
   @include t.body-md;
 
+  flex: 1;
   min-width: 0;
   color: var(--text);
   animation: ticker-roll 0.55s cubic-bezier(0.22, 0.68, 0.32, 1) both;
@@ -186,6 +187,37 @@
     opacity: 1;
     transform: translateY(0);
   }
+}
+
+.ticker__dots {
+  display: flex;
+  align-items: center;
+  gap: s.$space-1;
+  flex-shrink: 0;
+}
+
+.ticker__dot,
+.ticker__dot--active {
+  display: block;
+  height: 6px;
+  padding: 0;
+  border: 0;
+  border-radius: s.$radius-full;
+  cursor: pointer;
+}
+
+.ticker__dot {
+  width: 6px;
+  background-color: var(--border-strong);
+
+  &:hover {
+    background-color: var(--solar-soft);
+  }
+}
+
+.ticker__dot--active {
+  width: 18px;
+  background-color: var(--solar);
 }
 
 // ── 본문 ───────────────────────────────────────────────────

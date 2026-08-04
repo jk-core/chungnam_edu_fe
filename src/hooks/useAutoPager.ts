@@ -1,10 +1,15 @@
-import { useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 
 interface AutoPagerOptions {
   /** 전체 항목 수 */
   total: number;
   /** 한 쪽이 머무는 시간(ms) */
   intervalMs?: number;
+  /**
+   * 한 쪽에 담을 개수를 못 박는다.
+   * 주지 않으면 칸 높이를 재서 들어가는 만큼 담는다.
+   */
+  perPage?: number;
 }
 
 interface AutoPager<TFrame extends HTMLElement, TItem extends HTMLElement> {
@@ -15,10 +20,18 @@ interface AutoPager<TFrame extends HTMLElement, TItem extends HTMLElement> {
   /** 지금 쪽에서 보여 줄 구간 */
   from: number;
   to: number;
+  /** 한 쪽에 담기는 개수 */
+  perPage: number;
   page: number;
   pageCount: number;
   /** 쪽이 넘어갈 때마다 바뀌는 값 — 진행 막대를 되감는 열쇠 */
   turnKey: number;
+  /** 자동 넘김을 멈춰 두었는지 */
+  paused: boolean;
+  togglePause: () => void;
+  goTo: (page: number) => void;
+  next: () => void;
+  prev: () => void;
 }
 
 /**
@@ -29,21 +42,28 @@ interface AutoPager<TFrame extends HTMLElement, TItem extends HTMLElement> {
  *
  * 한 쪽에 몇 개가 들어가는지는 재서 정한다 — 화면 크기와 글자 크기에 따라 달라지므로
  * 숫자를 박아 두면 어느 모니터에서는 잘리고 어느 모니터에서는 빈자리가 남는다.
+ * 다만 칸을 나눠 쓰는 방식이 정해져 있는 화면은 `perPage` 로 직접 못 박는다.
  */
-export function useAutoPager<TFrame extends HTMLElement, TItem extends HTMLElement>({
+export function useAutoPager<
+  TFrame extends HTMLElement = HTMLElement,
+  TItem extends HTMLElement = HTMLElement,
+>({
   total,
   intervalMs = 6000,
+  perPage: fixedPerPage,
 }: AutoPagerOptions): AutoPager<TFrame, TItem> {
   const frameRef = useRef<TFrame>(null);
   const itemRef = useRef<TItem>(null);
-  const [perPage, setPerPage] = useState(total || 1);
+  const [measured, setMeasured] = useState(total || 1);
   const [page, setPage] = useState(0);
   const [turnKey, setTurnKey] = useState(0);
+  const [paused, setPaused] = useState(false);
 
   useEffect(() => {
     const frame = frameRef.current;
 
-    if (!frame) return;
+    // 개수를 못 박아 두었으면 잴 것이 없다.
+    if (!frame || fixedPerPage) return;
 
     // ResizeObserver 가 넘겨주는 contentRect 는 첫 콜백에서 낡은 값이라 노드를 직접 읽는다.
     const measure = () => {
@@ -68,7 +88,7 @@ export function useAutoPager<TFrame extends HTMLElement, TItem extends HTMLEleme
       const rows = Math.floor((available + rowGap) / (itemRect.height + rowGap));
       const columns = Math.floor((frameRect.width + columnGap) / (itemRect.width + columnGap));
 
-      setPerPage(Math.max(1, rows) * Math.max(1, columns));
+      setMeasured(Math.max(1, rows) * Math.max(1, columns));
     };
 
     measure();
@@ -78,24 +98,32 @@ export function useAutoPager<TFrame extends HTMLElement, TItem extends HTMLEleme
     observer.observe(frame);
 
     return () => observer.disconnect();
-  }, [total]);
+  }, [total, fixedPerPage]);
 
+  const perPage = Math.max(1, fixedPerPage ?? measured);
   const pageCount = Math.max(1, Math.ceil(total / perPage));
-
-  useEffect(() => {
-    // 한 쪽에 다 담기면 넘길 것이 없다. 남아 있는 page 값은 아래 safePage 가 걸러 준다.
-    if (pageCount <= 1) return;
-
-    const timer = window.setInterval(() => {
-      setPage((prev) => (prev + 1) % pageCount);
-      setTurnKey((prev) => prev + 1);
-    }, intervalMs);
-
-    return () => window.clearInterval(timer);
-  }, [pageCount, intervalMs]);
 
   // 목록이 줄어 지금 쪽이 사라졌을 수 있다.
   const safePage = Math.min(page, pageCount - 1);
+
+  const goTo = useCallback((next: number) => {
+    setPage(next);
+    // 진행 막대를 되감아, 손으로 넘긴 쪽도 머무는 시간을 온전히 갖게 한다.
+    setTurnKey((prev) => prev + 1);
+  }, []);
+
+  useEffect(() => {
+    // 한 쪽에 다 담기면 넘길 것이 없다. 멈춰 두었을 때도 마찬가지다.
+    if (pageCount <= 1 || paused) return;
+
+    // turnKey 를 의존성에 두어, 손으로 넘긴 직후에는 시간이 처음부터 다시 흐르게 한다.
+    const timer = window.setTimeout(() => {
+      goTo((safePage + 1) % pageCount);
+    }, intervalMs);
+
+    return () => window.clearTimeout(timer);
+  }, [pageCount, intervalMs, paused, safePage, turnKey, goTo]);
+
   const from = safePage * perPage;
 
   return {
@@ -103,8 +131,14 @@ export function useAutoPager<TFrame extends HTMLElement, TItem extends HTMLEleme
     itemRef,
     from,
     to: Math.min(total, from + perPage),
+    perPage,
     page: safePage,
     pageCount,
     turnKey,
+    paused,
+    togglePause: useCallback(() => setPaused((prev) => !prev), []),
+    goTo,
+    next: useCallback(() => goTo((safePage + 1) % pageCount), [goTo, safePage, pageCount]),
+    prev: useCallback(() => goTo((safePage - 1 + pageCount) % pageCount), [goTo, safePage, pageCount]),
   };
 }

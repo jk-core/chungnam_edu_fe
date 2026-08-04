@@ -2,17 +2,20 @@
 @use "@/styles/tokens/typography" as t;
 @use "@/styles/utils/media" as media;
 
+// 아래 장애 목록과 한 판을 나눠 쓴다 — 지도는 자기 몫만 쓰고 남는 높이는 목록이 가져간다.
 .map {
   display: flex;
   flex-direction: column;
   gap: s.$space-2;
-  height: 100%;
+  flex: 0 0 auto;
   min-height: 0;
+  padding-bottom: s.$space-2;
+  border-bottom: 1px solid var(--border-subtle);
 }
 
 .map__svg {
-  flex: 1;
   width: 100%;
+  height: 210px;
   min-height: 0;
 }
 
@@ -27,30 +30,14 @@
 }
 
 // 값이 계속 나쁜 상태라는 신호로 천천히 번진다.
+// 제 주기로 돌지 않고 전역 맥동 시계(--pulse)를 물려받아, 화면의 다른 점등과 박자를 맞춘다.
 .dot__halo {
-  opacity: 0.25;
-  animation: dot-ping 2.6s ease-out infinite;
+  transform: scale(calc(0.5 + var(--pulse) * 0.75));
+  opacity: calc(0.45 - var(--pulse) * 0.45);
 
   @include media.reduced-motion {
-    animation: none;
+    transform: scale(0.9);
     opacity: 0.18;
-  }
-}
-
-@keyframes dot-ping {
-  0% {
-    transform: scale(0.5);
-    opacity: 0.45;
-  }
-
-  70% {
-    transform: scale(1.25);
-    opacity: 0;
-  }
-
-  100% {
-    transform: scale(1.25);
-    opacity: 0;
   }
 }
 

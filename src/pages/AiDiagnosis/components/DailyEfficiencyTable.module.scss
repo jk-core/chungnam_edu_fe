@@ -1,0 +1,335 @@
+@use "@/styles/tokens/spacing" as s;
+@use "@/styles/tokens/typography" as t;
+@use "@/styles/utils/media" as media;
+@use "@/styles/utils/mixins" as mx;
+
+.wrap {
+  display: flex;
+  flex-direction: column;
+  gap: s.$space-3;
+}
+
+.scroll {
+  overflow-x: auto;
+}
+
+.table {
+  width: max-content;
+  min-width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+}
+
+.srOnly {
+  @include mx.sr-only;
+}
+
+.head {
+  @include t.label-sm;
+
+  padding: s.$space-2 s.$space-3;
+  border-bottom: 1px solid var(--border);
+  background-color: var(--surface);
+  color: var(--text-muted);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+// 설비 이름 열은 가로로 스크롤해도 남아 있어야 어느 줄인지 안다
+.head--name {
+  position: sticky;
+  left: 0;
+  z-index: 3;
+  min-width: 260px;
+  box-shadow: 1px 0 0 var(--border);
+  text-align: left;
+}
+
+.head--avg {
+  position: sticky;
+  right: 0;
+  z-index: 3;
+  box-shadow: -1px 0 0 var(--border);
+}
+
+.row:hover .name,
+.row:hover .cell {
+  background-color: var(--surface-hover);
+}
+
+.name {
+  position: sticky;
+  left: 0;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 260px;
+  padding: s.$space-2 s.$space-3;
+  border-bottom: 1px solid var(--border-subtle);
+  background-color: var(--surface);
+  box-shadow: 1px 0 0 var(--border-subtle);
+  text-align: left;
+  transition: background-color 0.14s ease;
+}
+
+.name--child {
+  padding-left: s.$space-6;
+}
+
+.name__toggle {
+  display: inline-flex;
+  width: 18px;
+  height: 18px;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+// 펼치고 접는 버튼임이 드러나게 테두리를 두르고, 화살표를 돌려 상태를 알린다
+button.name__toggle {
+  border: 1px solid var(--border);
+  border-radius: s.$radius-xs;
+  background-color: var(--surface);
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: background-color 0.14s ease, color 0.14s ease, border-color 0.14s ease;
+
+  &:hover {
+    border-color: var(--brand);
+    background-color: var(--brand-soft);
+    color: var(--brand-contrast);
+  }
+}
+
+.name__toggleIcon {
+  transition: transform 0.16s ease;
+}
+
+.name__toggleIcon--open {
+  transform: rotate(90deg);
+}
+
+.name__dot {
+  display: block;
+  width: 7px;
+  height: 7px;
+  flex-shrink: 0;
+  border-radius: 50%;
+}
+
+.dot--running {
+  background-color: var(--ok);
+}
+
+.dot--degraded {
+  background-color: var(--caution);
+}
+
+.dot--fault {
+  background-color: var(--critical);
+}
+
+.dot--commLost,
+.dot--ready {
+  background-color: var(--offline);
+}
+
+.name__text {
+  @include t.label-sm;
+
+  color: var(--text-strong);
+  white-space: nowrap;
+}
+
+.name__meta {
+  @include t.caption;
+
+  color: var(--text-faint);
+  white-space: nowrap;
+}
+
+.row--child .name__text {
+  color: var(--text);
+  font-weight: 400;
+}
+
+.cell {
+  padding: 3px;
+  border-bottom: 1px solid var(--border-subtle);
+  background-color: var(--surface);
+  text-align: center;
+  transition: background-color 0.14s ease;
+}
+
+.cell--avg {
+  position: sticky;
+  right: 0;
+  z-index: 2;
+
+  @include t.data-sm;
+
+  padding: s.$space-2 s.$space-3;
+  box-shadow: -1px 0 0 var(--border-subtle);
+  color: var(--text-strong);
+  font-variant-numeric: tabular-nums;
+}
+
+.chip {
+  @include t.caption;
+
+  display: block;
+  min-width: 62px;
+  padding: 6px;
+  border-radius: s.$radius-xs;
+  color: var(--text-strong);
+  font-variant-numeric: tabular-nums;
+  transition: transform 0.14s ease, box-shadow 0.14s ease;
+}
+
+// 고장 칸만 눌러 볼 수 있다 — 커서와 살짝 뜨는 움직임으로 알린다
+.chip--clickable {
+  cursor: pointer;
+
+  &:focus-visible {
+    outline-offset: -2px;
+  }
+
+  &:hover {
+    transform: translateY(-1px);
+    box-shadow: var(--shadow-sm);
+  }
+
+  &:active {
+    transform: none;
+  }
+}
+
+// ── 고장코드별 칸 색 ────────────────────────────────────────
+// 0 은 정상이라 색을 거의 쓰지 않고, 번호가 커질수록 눈에 걸리게 둔다.
+.chip--c0 {
+  background-color: var(--ok-soft);
+  color: var(--ok-text);
+}
+
+.chip--c1 {
+  background-color: color-mix(in srgb, var(--series-5) 26%, transparent);
+}
+
+.chip--c2 {
+  background-color: color-mix(in srgb, var(--series-3) 26%, transparent);
+}
+
+.chip--c3 {
+  background-color: color-mix(in srgb, var(--caution) 24%, transparent);
+}
+
+.chip--c4 {
+  background-color: color-mix(in srgb, var(--caution) 38%, transparent);
+}
+
+.chip--c5 {
+  background-color: color-mix(in srgb, var(--series-6) 30%, transparent);
+}
+
+.chip--c6 {
+  background-color: color-mix(in srgb, var(--solar) 34%, transparent);
+}
+
+.chip--c7 {
+  background-color: var(--critical-soft);
+  color: var(--critical-text);
+}
+
+// 계측이 없는 날 — 사선으로 비워 둔 것을 드러낸다
+.chip--missing {
+  background-image: repeating-linear-gradient(
+    45deg,
+    var(--surface-sunken),
+    var(--surface-sunken) 3px,
+    transparent 3px,
+    transparent 6px
+  );
+  color: var(--text-faint);
+}
+
+// ── 범례 ───────────────────────────────────────────────────
+.legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: s.$space-2 s.$space-4;
+  list-style: none;
+}
+
+.legend__item {
+  @include t.caption;
+
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--text-muted);
+}
+
+.legend__swatch {
+  display: block;
+  width: 12px;
+  height: 12px;
+  border: 1px solid var(--border-subtle);
+  border-radius: 3px;
+}
+
+.swatch--c0 {
+  background-color: var(--ok-soft);
+}
+
+.swatch--c1 {
+  background-color: color-mix(in srgb, var(--series-5) 26%, transparent);
+}
+
+.swatch--c2 {
+  background-color: color-mix(in srgb, var(--series-3) 26%, transparent);
+}
+
+.swatch--c3 {
+  background-color: color-mix(in srgb, var(--caution) 24%, transparent);
+}
+
+.swatch--c4 {
+  background-color: color-mix(in srgb, var(--caution) 38%, transparent);
+}
+
+.swatch--c5 {
+  background-color: color-mix(in srgb, var(--series-6) 30%, transparent);
+}
+
+.swatch--c6 {
+  background-color: color-mix(in srgb, var(--solar) 34%, transparent);
+}
+
+.swatch--c7 {
+  background-color: var(--critical-soft);
+}
+
+.swatch--missing {
+  background-image: repeating-linear-gradient(
+    45deg,
+    var(--surface-sunken),
+    var(--surface-sunken) 3px,
+    transparent 3px,
+    transparent 6px
+  );
+}
+
+@include media.reduced-motion {
+  .chip,
+  .cell,
+  .name,
+  .name__toggleIcon,
+  button.name__toggle {
+    transition: none;
+  }
+
+  .chip--clickable:hover {
+    transform: none;
+  }
+}

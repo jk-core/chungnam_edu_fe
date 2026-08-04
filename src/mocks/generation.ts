@@ -208,6 +208,13 @@ export const DETAIL_UNIT: Record<PeriodKey, string> = {
   year: '월',
 };
 
+/** 상세 추이 카드의 제목 — '일대별' 같은 말이 되지 않도록 따로 둔다. */
+export const DETAIL_TITLE: Record<PeriodKey, string> = {
+  day: '시간대별',
+  month: '일자별',
+  year: '월별',
+};
+
 /** 상세 조회 구간 설명 */
 export function describeDetail(period: PeriodKey, date: Date): string {
   const year = date.getFullYear();

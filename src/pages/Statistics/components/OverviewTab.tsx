@@ -3,17 +3,20 @@ import { Card } from '@/components/common/Card';
 import { EChart } from '@/components/common/EChart';
 import {
   describeDetail,
+  DETAIL_TITLE,
   DETAIL_UNIT,
   getDetailTrend,
-  getHourlyTrend,
   PERIOD_META,
   pickEnergyUnit,
 } from '@/mocks/generation';
 import { childKindOf, getNodePath, KIND_LABEL } from '@/mocks/tree';
 import { Reveal } from '@/components/common/Reveal';
 import { SegmentedControl } from '@/components/common/SegmentedControl';
-import { AXIS_NAME_GAP, LEGEND_GRID_TOP, topLegend } from '@/utils/chart';
+import { AXIS_NAME_GAP, LEGEND_GRID_TOP, seriesPalette, topLegend } from '@/utils/chart';
+import { MSG } from '@/configs/messages';
+import { exportCsv } from '@/utils/export';
 import { formatCapacity, formatNumber } from '@/utils/format';
+import { toast } from '@/stores/toastStore';
 import { formatShort } from '@/utils/date';
 import { getChildStats, getNodeStat } from '@/mocks/nodeStats';
 import { useChartPalette } from '@/hooks/useChartPalette';
@@ -21,6 +24,7 @@ import { usePlantScope } from '@/hooks/usePlantScope';
 import { useSelectNode } from '@/stores/plantStore';
 import { useStatisticsDate } from '@/stores/filterStore';
 import type { PeriodKey } from '@/mocks/generation';
+import type { CsvColumn } from '@/utils/export';
 import styles from '../Statistics.module.scss';
 import { ChildGrid } from './ChildGrid';
 import { InverterTimeTable } from './InverterTimeTable';
@@ -34,6 +38,9 @@ const DETAIL_VIEW_OPTIONS: { value: DetailView; label: string }[] = [
   { value: 'table', label: '표' },
 ];
 
+/** 색이 여덟 개를 넘어 돌 때 선 모양으로 한 번 더 가른다 (COR-003-03) */
+const DASH = ['solid', 'dashed', 'dotted'] as const;
+
 export function OverviewTab() {
   const [period, setPeriod] = useState<PeriodKey>('day');
   const [detailView, setDetailView] = useState<DetailView>('chart');
@@ -41,25 +48,44 @@ export function OverviewTab() {
   const { node, label } = usePlantScope();
   const selectNode = useSelectNode();
   const palette = useChartPalette();
+  const childColors = seriesPalette(palette);
   const meta = PERIOD_META[period];
 
   const stat = useMemo(() => getNodeStat(node, period, date), [node, period, date]);
   const childStats = useMemo(() => getChildStats(node, period, date), [node, period, date]);
 
   const detail = getDetailTrend(period, date);
-  const hourlyTrend = getHourlyTrend(date);
   const path = getNodePath(node.id);
   const childKind = childKindOf(node);
 
   const totalUnit = pickEnergyUnit(stat.generationKwh);
   const capacity = formatCapacity(node.capacityKw);
   const bestIndex = stat.series.reduce((best, value, index) => (value > stat.series[best] ? index : best), 0);
-  const hourlyPeakIndex = stat.hourly.reduce((best, value, index) => (value > stat.hourly[best] ? index : best), 0);
-  const hourlyTotal = stat.hourly.reduce((sum, value) => sum + value, 0);
-  const hourlyUnit = pickEnergyUnit(Math.max(...stat.hourly, 1));
+  // 조회 단위(시간·일·월)에 맞춘 상세 추이 — 차트와 표가 같은 값을 본다.
+  const detailPeakIndex = stat.series.reduce((best, value, index) => (value > stat.series[best] ? index : best), 0);
+  const detailTotal = stat.series.reduce((sum, value) => sum + value, 0);
   const detailUnit = pickEnergyUnit(Math.max(...stat.series, 1));
   // 발전량이 왜 많고 적었는지는 그날 들어온 햇빛의 양이 답한다.
   const totalIrradiance = detail.reduce((sum, point) => sum + point.irradiance, 0);
+
+  const download = () => {
+    if (stat.series.length === 0) {
+      toast.error(MSG.noResult);
+
+      return;
+    }
+
+    // 화면은 단위를 줄여 보여 주지만 파일에는 원단위 그대로 담는다.
+    const csvColumns: CsvColumn<number>[] = [
+      { header: DETAIL_UNIT[period], value: (_, index) => detail[index]?.label ?? '' },
+      { header: '발전량(kWh)', value: (value) => Math.round(value) },
+      { header: '일사량(kWh/m²)', value: (_, index) => detail[index]?.irradiance ?? '' },
+    ];
+    const filename = `발전현황_${label}_${describeDetail(period, date)}`;
+
+    exportCsv(filename, csvColumns, stat.series);
+    toast.success(MSG.downloadStart(filename));
+  };
 
   /** 발전량 막대 + 일사량 선을 겹친 차트. 시간대별과 시점별이 같은 모양을 공유한다. */
   const comboOption = (
@@ -129,9 +155,61 @@ export function OverviewTab() {
     ],
   });
 
+  /*
+    하위 설비별 발전시간을 한 판에 겹친 차트 (SFR-008-05/06/07).
+
+    발전량을 그대로 겹치면 용량 큰 설비가 판을 덮어 버린다. 설비용량으로 나눈 발전시간이라야
+    크기가 다른 설비를 같은 눈금 위에서 견줄 수 있다. 설비마다 다른 색을 주고 한 시점의
+    모든 설비 값을 툴팁 하나에 모아, 어느 설비가 언제 처졌는지 좌우로 훑어볼 수 있게 한다.
+  */
+  const childHourOption: EChartsOption = {
+    grid: { top: LEGEND_GRID_TOP, right: 24, bottom: 30, left: 52 },
+    tooltip: {
+      trigger: 'axis',
+      backgroundColor: palette.surface,
+      borderColor: palette.border,
+      borderWidth: 1,
+      textStyle: { color: palette.text, fontSize: 12, fontFamily: 'Pretendard Variable, sans-serif' },
+      valueFormatter: (value) => `${formatNumber(Number(value), 2)} h`,
+    },
+    legend: topLegend(palette, childStats.map((child) => child.node.name)),
+    xAxis: {
+      type: 'category',
+      data: detail.map((point) => point.label),
+      axisLine: { lineStyle: { color: palette.grid } },
+      axisTick: { show: false },
+      axisLabel: { color: palette.axis, fontSize: 11, fontFamily: 'Space Grotesk, sans-serif' },
+    },
+    yAxis: {
+      type: 'value',
+      name: 'h',
+      nameGap: AXIS_NAME_GAP,
+      nameTextStyle: { color: palette.axis, fontSize: 11, padding: [0, 0, 0, -24] },
+      splitLine: { lineStyle: { color: palette.grid, type: 'dashed' } },
+      axisLabel: { color: palette.axis, fontSize: 11, fontFamily: 'Space Grotesk, sans-serif' },
+    },
+    series: childStats.map((child, index) => ({
+      name: child.node.name,
+      type: 'line',
+      smooth: true,
+      symbol: 'circle',
+      symbolSize: 5,
+      // 색만으로 구분되지 않게 선 모양도 함께 바꾼다 (COR-003-03)
+      lineStyle: { color: childColors[index % childColors.length], width: 2, type: DASH[index % DASH.length] },
+      itemStyle: { color: childColors[index % childColors.length] },
+      data: child.series.map((value) => (child.node.capacityKw > 0 ? Number((value / child.node.capacityKw).toFixed(2)) : 0)),
+    })),
+  };
+
   return (
     <div className={styles.tab}>
-      <PeriodFilter period={period} onPeriodChange={setPeriod} date={date} onDateChange={setDate} />
+      <PeriodFilter
+        period={period}
+        onPeriodChange={setPeriod}
+        date={date}
+        onDateChange={setDate}
+        onDownload={download}
+      />
 
       {/* 지금 어느 계층을 보고 있는지, 위로 어떻게 올라가는지 */}
       <nav className={styles.scopePath} aria-label="조회 계층">
@@ -242,36 +320,27 @@ export function OverviewTab() {
         </Reveal>
       ) : null}
 
+      {childKind ? (
+        <Reveal delay={0.08}>
+          <Card
+            eyebrow="Compare"
+            title={`${DETAIL_UNIT[period]}별 ${KIND_LABEL[childKind]} 발전시간`}
+            description={`${KIND_LABEL[childKind]}마다 다른 색과 선 모양으로 구분했습니다. 선 위에 마우스를 올리면 그 ${DETAIL_UNIT[period]}의 값이 한꺼번에 나옵니다.`}
+          >
+            <EChart
+              option={childHourOption}
+              height={320}
+              summary={`${label} 아래 ${KIND_LABEL[childKind]} ${childStats.length}개의 ${DETAIL_UNIT[period]}별 발전시간 비교.`}
+            />
+          </Card>
+        </Reveal>
+      ) : null}
+
       <Reveal delay={0.1}>
         <Card
-          eyebrow="Hourly"
-          title="시간대별 발전량"
-          description={`${formatShort(date)} 하루를 시간 단위로 폈습니다. 최고는 ${
-            hourlyTrend[hourlyPeakIndex]?.label ?? '—'
-          }, 하루 합계 ${formatNumber(hourlyTotal / hourlyUnit.divider, 2)}${hourlyUnit.unit}입니다.`}
-        >
-          <EChart
-            option={comboOption(
-              hourlyTrend.map((point) => point.label),
-              stat.hourly,
-              hourlyTrend.map((point) => point.irradiance),
-              hourlyUnit.divider,
-              hourlyUnit.unit,
-              'kWh/m²',
-            )}
-            height={320}
-            summary={`${label}의 ${formatShort(date)} 시간대별 발전량. 최고 ${
-              hourlyTrend[hourlyPeakIndex]?.label ?? '—'
-            }, 합계 ${formatNumber(hourlyTotal / hourlyUnit.divider, 2)}${hourlyUnit.unit}.`}
-          />
-        </Card>
-      </Reveal>
-
-      <Reveal delay={0.14}>
-        <Card
           eyebrow="Detail"
-          title="시점별 발전 데이터"
-          description={`${meta.label} 조회라 ${DETAIL_UNIT[period]} 단위로 폈습니다 · ${describeDetail(period, date)}`}
+          title={`${DETAIL_TITLE[period]} 발전량`}
+          description={`${describeDetail(period, date)} · 최고는 ${detail[detailPeakIndex]?.label ?? '—'}, 합계 ${formatNumber(detailTotal / detailUnit.divider, 2)}${detailUnit.unit}입니다. 표로 바꾸면 같은 값을 숫자로 봅니다.`}
           action={
             <SegmentedControl
               label="보기 방식"

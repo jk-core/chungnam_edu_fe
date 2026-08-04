@@ -16,9 +16,11 @@ interface PeriodFilterProps {
   onPeriodChange: (period: PeriodKey) => void;
   date: Date;
   onDateChange: (date: Date) => void;
+  /** 지금 화면이 보여 주는 표를 내려받는다 — 무엇을 담을지는 탭마다 다르다. */
+  onDownload: () => void;
 }
 
-export function PeriodFilter({ period, onPeriodChange, date, onDateChange }: PeriodFilterProps) {
+export function PeriodFilter({ period, onPeriodChange, date, onDateChange, onDownload }: PeriodFilterProps) {
   return (
     <div className={styles.filter}>
       <div className={styles.filter__left}>
@@ -26,7 +28,7 @@ export function PeriodFilter({ period, onPeriodChange, date, onDateChange }: Per
         <DatePicker value={date} onChange={onDateChange} granularity={period} label="기준일" />
       </div>
 
-      <Button variant="secondary" size="sm" iconLeft={<DownloadIcon />}>
+      <Button variant="secondary" size="sm" iconLeft={<DownloadIcon />} onClick={onDownload}>
         데이터 내려받기
       </Button>
     </div>
