@@ -47,6 +47,8 @@
   .clusterList__item,
   .clusterList__close {
     transition: none;
+
+  @include mx.press;
   }
 }
 
@@ -73,7 +75,7 @@
 .marker {
   cursor: pointer;
 
-  &:focus-visible {
+  @include mx.keyboard-focus {
     outline: none;
 
     .marker__dot {
@@ -131,7 +133,7 @@
   cursor: pointer;
 
   // SVG 에 사각 outline 이 걸리면 원형 묶음과 어긋나 보인다 — 테두리를 밝혀 대신 알린다.
-  &:focus-visible {
+  @include mx.keyboard-focus {
     outline: none;
 
     .cluster__bubble {
@@ -223,6 +225,8 @@
   color: var(--text-muted);
   transition: background-color 0.14s ease;
 
+  @include mx.press;
+
   &:hover {
     background-color: var(--surface-hover);
   }
@@ -250,14 +254,14 @@
     background-color: var(--surface-hover);
   }
 
-  &:focus-visible {
+  @include mx.keyboard-focus {
     outline: none;
     background-color: var(--brand-soft);
     box-shadow: inset 0 0 0 1px var(--brand);
   }
 }
 
-.clusterList__close:focus-visible {
+:root[data-input="keyboard"] .clusterList__close:focus-visible {
   outline: none;
   background-color: var(--brand-soft);
   box-shadow: inset 0 0 0 1px var(--brand);
@@ -347,7 +351,9 @@
   color: var(--text-muted);
   transition: color 0.16s ease, background-color 0.16s ease, border-color 0.16s ease;
 
-  &:focus-visible {
+  @include mx.press;
+
+  @include mx.keyboard-focus {
     outline: none;
     border-color: var(--brand);
     background-color: var(--brand-soft);
@@ -421,7 +427,7 @@
   }
 }
 
-.popup__close:focus-visible {
+:root[data-input="keyboard"] .popup__close:focus-visible {
   outline: none;
   background-color: var(--brand-soft);
   box-shadow: inset 0 0 0 1px var(--brand);
@@ -444,6 +450,53 @@
   &:hover {
     background-color: var(--surface-hover);
     color: var(--text-strong);
+  }
+}
+
+// ── 네이버 지도 (SFR-007-05) ───────────────────────────────
+.naver {
+  width: 100%;
+  height: 100%;
+}
+
+// 상황판용 작은 지도 — 높이는 쓰는 쪽에서 넘긴다.
+.mini {
+  width: 100%;
+  border: 1px solid var(--map-border);
+  border-radius: s.$radius-sm;
+  overflow: hidden;
+}
+
+// 실지도에서는 말풍선을 마커 위에 얹지 않는다. 지도를 끌 때마다 위치를 다시 잡아야 해서
+// 꼬리가 어긋나기 쉽다. 내용은 그대로 두고 자리만 왼쪽 아래로 고정한다.
+.popupDock {
+  position: absolute;
+  left: s.$space-3;
+  bottom: s.$space-3;
+  z-index: 5;
+  width: 244px;
+  padding: s.$space-3 s.$space-4;
+  border: 1px solid var(--border);
+  border-radius: s.$radius-md;
+  background-color: var(--surface-raised);
+  box-shadow: var(--shadow-lg);
+  animation: geo-dock-in 0.18s ease-out;
+
+  @include media.mobile {
+    width: 208px;
+  }
+}
+
+@keyframes geo-dock-in {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+}
+
+@include media.reduced-motion {
+  .popupDock {
+    animation: none;
   }
 }
 

@@ -2,21 +2,22 @@ import { useMemo, useState } from 'react';
 import { Badge } from '@/components/common/Badge';
 import { Button } from '@/components/common/Button';
 import { Card } from '@/components/common/Card';
-import { INTEGRATION_LOGS, integrationSummaries } from '@/mocks/integrationLog';
-import { Pagination } from '@/components/common/Pagination';
+import { EChart } from '@/components/common/EChart';
+import { INTEGRATION_LOGS, integrationSummaries, integrationTrend } from '@/mocks/integrationLog';
+import { DEFAULT_PAGE_SIZE, Pagination } from '@/components/common/Pagination';
 import { Reveal } from '@/components/common/Reveal';
 import { SegmentedControl } from '@/components/common/SegmentedControl';
 import { Table } from '@/components/common/Table';
-import { formatNumber } from '@/utils/format';
+import { formatNumber, formatPercent } from '@/utils/format';
+import { useChartPalette } from '@/hooks/useChartPalette';
 import { toast } from '@/stores/toastStore';
 import useAssetStore from '@/stores/assetStore';
 import type { Column } from '@/components/common/Table';
 import type { IntegrationLog, IntegrationResult } from '@/interface/integration';
 import styles from '../Admin.module.scss';
+import type { EChartsOption } from 'echarts';
 
 type Filter = 'all' | IntegrationResult;
-
-const PAGE_SIZE = 12;
 
 const RESULT_LABEL: Record<IntegrationResult, string> = {
   success: '성공',
@@ -26,11 +27,13 @@ const RESULT_LABEL: Record<IntegrationResult, string> = {
 
 /** 교육부 연계이력 관리 (SFR-027) */
 export function IntegrationsTab() {
+  const palette = useChartPalette();
   const resentIds = useAssetStore((state) => state.resentIds);
   const markResent = useAssetStore((state) => state.markResent);
 
   const [filter, setFilter] = useState<Filter>('all');
   const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(DEFAULT_PAGE_SIZE);
 
   // 재송신한 건은 '재시도 성공' 으로 승격해 보여 준다 (SFR-027-05).
   const logs = useMemo(
@@ -48,11 +51,49 @@ export function IntegrationsTab() {
     [logs, filter],
   );
 
-  const pageCount = Math.max(1, Math.ceil(rows.length / PAGE_SIZE));
+  const pageCount = Math.max(1, Math.ceil(rows.length / pageSize));
   const currentPage = Math.min(page, pageCount);
-  const pageRows = rows.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE);
+  const pageRows = rows.slice((currentPage - 1) * pageSize, currentPage * pageSize);
 
   const summaries = useMemo(() => integrationSummaries(logs), [logs]);
+  const trend = useMemo(() => integrationTrend(logs), [logs]);
+
+  /** 성공률 추이 — 100%에 못 미친 날만 붉게 세운다. */
+  const trendOption: EChartsOption = {
+    grid: { top: 20, right: 16, bottom: 28, left: 44 },
+    tooltip: {
+      trigger: 'axis',
+      backgroundColor: palette.surface,
+      borderColor: palette.border,
+      borderWidth: 1,
+      textStyle: { color: palette.text, fontSize: 12 },
+      valueFormatter: (value) => `${formatNumber(Number(value), 1)}%`,
+    },
+    xAxis: {
+      type: 'category',
+      data: trend.map((point) => point.date.slice(5)),
+      axisLabel: { color: palette.textMuted, fontSize: 11, interval: 3 },
+      axisLine: { lineStyle: { color: palette.axis } },
+    },
+    yAxis: {
+      type: 'value',
+      max: 100,
+      min: 90,
+      axisLabel: { color: palette.textMuted, formatter: '{value}%', fontSize: 11 },
+      splitLine: { lineStyle: { color: palette.grid } },
+    },
+    series: [
+      {
+        name: '성공률',
+        type: 'bar',
+        barWidth: 10,
+        data: trend.map((point) => ({
+          value: Math.round(point.rate * 1000) / 10,
+          itemStyle: { color: point.rate < 1 ? palette.critical : palette.series1 },
+        })),
+      },
+    ],
+  };
   const openFails = logs.filter((log) => log.result === 'fail');
 
   const resendAll = () => {
@@ -149,6 +190,23 @@ export function IntegrationsTab() {
 
       <Reveal delay={0.05}>
         <Card
+          eyebrow="Trend"
+          title="일자별 전송 성공률"
+          description="어느 날부터 실패가 늘었는지 추이로 봅니다. 100%에 못 미친 날은 붉게 표시했습니다."
+        >
+          <EChart
+            option={trendOption}
+            height={240}
+            summary={`최근 30일 전송 성공률 추이. 평균 ${formatPercent(
+              trend.reduce((sum, point) => sum + point.rate, 0) / Math.max(1, trend.length),
+              1,
+            )}.`}
+          />
+        </Card>
+      </Reveal>
+
+      <Reveal delay={0.09}>
+        <Card
           eyebrow="REMS"
           title="교육부 전송 이력"
           description="최근 30일, 하루 4회 전문을 보냅니다. 실패 건은 사유 확인 후 재송신합니다."
@@ -166,6 +224,11 @@ export function IntegrationsTab() {
             totalCount={rows.length}
             onChange={setPage}
             label="전송 이력"
+            pageSize={pageSize}
+            onPageSizeChange={(size) => {
+              setPageSize(size);
+              setPage(1);
+            }}
           />
         </Card>
       </Reveal>

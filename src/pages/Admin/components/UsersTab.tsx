@@ -10,7 +10,7 @@ import { MaskedText } from '@/components/common/MaskedText';
 import { maskEmail } from '@/utils/mask';
 import { MSG } from '@/configs/messages';
 import { NOW } from '@/mocks/today';
-import { Pagination } from '@/components/common/Pagination';
+import { DEFAULT_PAGE_SIZE, Pagination } from '@/components/common/Pagination';
 import { PlusIcon } from '@/components/common/Icon';
 import { Reveal } from '@/components/common/Reveal';
 import { ROLE_LABEL } from '@/mocks/accounts';
@@ -22,8 +22,6 @@ import useAssetStore, { mergeUserChanges, mergeUsers } from '@/stores/assetStore
 import type { Column } from '@/components/common/Table';
 import type { ManagedUser, Role, UserChange } from '@/interface/account';
 import styles from '../Admin.module.scss';
-
-const PAGE_SIZE = 10;
 
 interface Draft {
   id: string | null;
@@ -69,6 +67,7 @@ export function UsersTab() {
 
   const [keyword, setKeyword] = useState('');
   const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(DEFAULT_PAGE_SIZE);
   const [draft, setDraft] = useState<Draft | null>(null);
   const [error, setError] = useState<string | undefined>(undefined);
   const [confirming, setConfirming] = useState(false);
@@ -93,9 +92,9 @@ export function UsersTab() {
       : all;
   }, [userChanges, keyword]);
 
-  const pageCount = Math.max(1, Math.ceil(users.length / PAGE_SIZE));
+  const pageCount = Math.max(1, Math.ceil(users.length / pageSize));
   const currentPage = Math.min(page, pageCount);
-  const pageRows = users.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE);
+  const pageRows = users.slice((currentPage - 1) * pageSize, currentPage * pageSize);
   const lockedCount = users.filter((user) => user.locked).length;
 
   const openEditor = (target: ManagedUser | null) => {
@@ -246,17 +245,18 @@ export function UsersTab() {
       <div className={styles.toolbar}>
         <div className={styles.toolbar__left}>
           <TextField
-            label="사용자 검색"
+            label="이름 검색"
+            hideLabel
             value={keyword}
             onChange={(value) => {
               setKeyword(value);
               setPage(1);
             }}
-            placeholder="이름·소속·이메일 검색"
+            placeholder="사용자명으로 검색"
             width="md"
           />
           <p className={styles.toolbar__note}>
-            {formatNumber(users.length)}명{lockedCount > 0 ? ` · 잠금 ${lockedCount}건` : ''}
+            총 {formatNumber(users.length)}개{lockedCount > 0 ? ` · 잠금 ${lockedCount}건` : ''}
           </p>
         </div>
         <div className={styles.toolbar__actions}>
@@ -285,6 +285,11 @@ export function UsersTab() {
             totalCount={users.length}
             onChange={setPage}
             label="사용자 목록"
+            pageSize={pageSize}
+            onPageSizeChange={(size) => {
+              setPageSize(size);
+              setPage(1);
+            }}
           />
         </Card>
       </Reveal>

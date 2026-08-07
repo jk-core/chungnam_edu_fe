@@ -54,6 +54,21 @@ function buildLogs(): IntegrationLog[] {
 
 export const INTEGRATION_LOGS: IntegrationLog[] = buildLogs();
 
+/**
+ * 일자별 전송 성공률 추이 (SFR-027-06).
+ * 요약 카드만으로는 어느 날부터 나빠졌는지 알 수 없어 시계열로도 편다.
+ */
+export function integrationTrend(logs: IntegrationLog[], days = 30): { date: string; total: number; success: number; rate: number }[] {
+  return Array.from({ length: days }, (_, index) => {
+    const date = TODAY.subtract(days - 1 - index, 'day').format('YYYY-MM-DD');
+    // at 은 'YYYY-MM-DD HH:mm' 이라 날짜 부분만 떼어 견준다.
+    const rows = logs.filter((log) => log.at.slice(0, 10) === date);
+    const success = rows.filter((log) => log.result !== 'fail').length;
+
+    return { date, total: rows.length, success, rate: rows.length > 0 ? success / rows.length : 1 };
+  });
+}
+
 /** 일·주·월 성공률 (SFR-027-06). 재송신으로 회복된 건도 성공으로 센다. */
 export function integrationSummaries(logs: IntegrationLog[]): IntegrationSummary[] {
   const spans = [

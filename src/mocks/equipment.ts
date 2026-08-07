@@ -87,7 +87,7 @@ function buildInverters(): Inverter[] {
     for (let index = 0; index < school.inverterCount; index += 1) {
       const id = `${school.id}-inv-${index + 1}`;
       // 발전소 상태는 인버터 한 대에서 비롯된 것으로 본다. 첫 번째 인버터가 그 상태를 물려받는다.
-      // 통신단절는 설비 고장이 아니라 수집장치 쪽 문제라, 상태를 물려받지 않고 RTU 축으로 넘긴다.
+      // 통신단절는 설비 고장이 아니라 RTU 쪽 문제라, 상태를 물려받지 않고 RTU 축으로 넘긴다.
       const inheritsFault = index === 0 && school.status !== 'commLost';
       const ownStatus: OperationStatus = inheritsFault
         ? school.status
@@ -179,7 +179,7 @@ export function countInverterStatus(inverters: Inverter[]): Record<OperationStat
   return countOperation(inverters);
 }
 
-/** 수집장치 연계 상태 집계 (SFR-017-01) */
+/** RTU 연계 상태 집계 (SFR-017-01) */
 export function countRtuStatus(inverters: Inverter[]): Record<RtuStatus, number> {
   return inverters.reduce<Record<RtuStatus, number>>(
     (acc, inverter) => ({ ...acc, [inverter.rtuStatus]: acc[inverter.rtuStatus] + 1 }),
@@ -284,6 +284,8 @@ export function getPerformanceSeries(schoolId: string | null, start: Date, end: 
       cf: Math.min(0.24, Math.max(0.01, factor * pickNumber(next, 0.15, 0.2, 4))),
       actualKwh,
       expectedKwh,
+      // PR 은 기대 대비 실측 비율이다. 기대값이 0 인 날(해가 없거나 통신단절)은 0 으로 둔다.
+      pr: expectedKwh > 0 ? Math.min(1.05, Math.round((actualKwh / expectedKwh) * 1000) / 1000) : 0,
     };
   });
 
@@ -293,7 +295,7 @@ export function getPerformanceSeries(schoolId: string | null, start: Date, end: 
 }
 
 export function averagePerformance(points: PerformancePoint[]) {
-  if (points.length === 0) return { hours: 0, cf: 0, actualKwh: 0, expectedKwh: 0 };
+  if (points.length === 0) return { hours: 0, cf: 0, pr: 0, actualKwh: 0, expectedKwh: 0 };
 
   return points.reduce(
     (acc, point, index) => {
@@ -302,10 +304,11 @@ export function averagePerformance(points: PerformancePoint[]) {
       return {
         hours: acc.hours + (point.hours - acc.hours) / count,
         cf: acc.cf + (point.cf - acc.cf) / count,
+        pr: acc.pr + (point.pr - acc.pr) / count,
         actualKwh: acc.actualKwh + point.actualKwh,
         expectedKwh: acc.expectedKwh + point.expectedKwh,
       };
     },
-    { hours: 0, cf: 0, actualKwh: 0, expectedKwh: 0 },
+    { hours: 0, cf: 0, pr: 0, actualKwh: 0, expectedKwh: 0 },
   );
 }

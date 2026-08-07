@@ -37,6 +37,7 @@ import useFieldReportStore from '@/stores/fieldReportStore';
 import type { BadgeTone } from '@/components/common/Badge';
 import type { CheckResult, FieldReport, ReportState } from '@/interface/fieldReport';
 import type { ManagedUser } from '@/interface/account';
+import { ScheduleTab } from '@/pages/AiDiagnosis/components/ScheduleTab';
 import type { UploadFile } from '@/components/common/Form';
 import styles from '../Reports.module.scss';
 import { FieldShareModal } from './FieldShareModal';
@@ -59,6 +60,8 @@ interface DraftState {
   results: Record<string, CheckResult | null>;
   notes: Record<string, string>;
   photos: UploadFile[];
+  /** 사진 id → 점검 항목 id. 비어 있으면 보고서 전체에 붙은 사진이다 (SFR-021-06). */
+  photoLinks: Record<string, string>;
 }
 
 /**
@@ -109,6 +112,7 @@ export function FieldTab() {
       results: {},
       notes: {},
       photos: [],
+      photoLinks: {},
     });
     setError(undefined);
     setIsWriting(true);
@@ -159,7 +163,11 @@ export function FieldTab() {
       date: TODAY.format('YYYY-MM-DD'),
       state,
       checklist,
-      photos: draft.photos.map((file) => ({ id: file.id, name: file.name, itemId: null })),
+      photos: draft.photos.map((file) => ({
+        id: file.id,
+        name: file.name,
+        itemId: draft.photoLinks[file.id] ?? null,
+      })),
       summary:
         draft.summary
         || (abnormal > 0 ? `점검 항목 ${abnormal}건에서 이상을 확인했습니다.` : '점검 항목 전체 정상입니다.'),
@@ -374,11 +382,16 @@ export function FieldTab() {
 
             {detail.photos.length > 0 ? (
               <div className={styles.post__files}>
-                {detail.photos.map((photo) => (
-                  <span key={photo.id} className={styles.post__file}>
-                    {photo.name}
-                  </span>
-                ))}
+                {detail.photos.map((photo) => {
+                  const linked = detail.checklist.find((item) => item.id === photo.itemId);
+
+                  return (
+                    <span key={photo.id} className={styles.post__file}>
+                      {photo.name}
+                      {linked ? <small className={styles.post__fileItem}>{linked.label}</small> : null}
+                    </span>
+                  );
+                })}
               </div>
             ) : null}
 
@@ -436,7 +449,7 @@ export function FieldTab() {
                   value={draft.targetName}
                   onChange={(value) => setDraft({ ...draft, targetName: value })}
                   width="md"
-                  hint="인버터 번호나 수집장치 이름을 적어도 됩니다."
+                  hint="인버터 번호나 RTU 이름을 적어도 됩니다."
                 />
               </FormRow>
               <FormRow cols={2}>
@@ -493,6 +506,36 @@ export function FieldTab() {
                 onChange={(files) => setDraft({ ...draft, photos: files })}
                 onError={(message) => toast.error(message)}
               />
+
+              {/*
+                사진마다 어느 점검 항목을 찍은 것인지 붙여 둔다 (SFR-021-06).
+                나중에 보고서를 다시 열었을 때 "이 사진이 무엇에 대한 자료인지" 를 답한다.
+              */}
+              {draft.photos.length > 0 && template ? (
+                <ul className={styles.photoLinks}>
+                  {draft.photos.map((file) => (
+                    <li key={file.id} className={styles.photoLinks__row}>
+                      <span className={styles.photoLinks__name}>{file.name}</span>
+                      <Select
+                        label={`${file.name} 연계 항목`}
+                        hideLabel
+                        value={draft.photoLinks[file.id] ?? ''}
+                        options={[
+                          { value: '', label: '보고서 전체' },
+                          ...template.items.map((itemLabel, index) => ({
+                            value: `${template.id}-${index}`,
+                            label: itemLabel,
+                          })),
+                        ]}
+                        onChange={(value) => setDraft({
+                          ...draft,
+                          photoLinks: { ...draft.photoLinks, [file.id]: value },
+                        })}
+                      />
+                    </li>
+                  ))}
+                </ul>
+              ) : null}
             </FormSection>
 
             <FormSection legend="정리">
@@ -531,6 +574,9 @@ export function FieldTab() {
       />
 
       <FieldShareModal report={sharing} onClose={() => setSharing(null)} onShare={share} />
+
+      {/* 점검 일정은 현장 점검과 한 흐름이라 보고서 아래 붙여 둔다 (SFR-021-19). */}
+      <ScheduleTab />
     </div>
   );
 }

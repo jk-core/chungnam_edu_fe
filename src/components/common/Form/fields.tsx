@@ -19,6 +19,8 @@ interface BaseProps {
   maxLength?: number;
   ime?: ImeMode;
   width?: FieldWidth;
+  /** 라벨을 눈에서만 감춘다 — 목록 위 검색창처럼 자리 표시로 뜻이 분명한 곳에 쓴다. */
+  hideLabel?: boolean;
 }
 
 export function TextField({
@@ -35,11 +37,20 @@ export function TextField({
   maxLength,
   ime = 'hangul',
   width = 'full',
+  hideLabel,
 }: BaseProps) {
   const id = useId();
 
   return (
-    <FormField label={label} htmlFor={id} required={required} optional={optional} hint={hint} error={error}>
+    <FormField
+      label={label}
+      htmlFor={id}
+      required={required}
+      optional={optional}
+      hint={hint}
+      error={error}
+      hideLabel={hideLabel}
+    >
       <input
         id={id}
         type="text"

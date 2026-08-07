@@ -1,29 +1,27 @@
-import { useId, useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
 import { motion } from 'motion/react';
 import { useNavigate } from 'react-router-dom';
 import { Badge } from '@/components/common/Badge';
+import { Button } from '@/components/common/Button';
 import { Card } from '@/components/common/Card';
-import { Column, Table } from '@/components/common/Table';
 import { currentOutputOf, hourlySeriesOf } from '@/mocks/schoolOutput';
 import { GeoMap } from '@/components/common/GeoMap';
+import { ALL, EMPTY_FILTERS, matchPlants, PlantSearchModal } from '@/components/plant/PlantSearchModal';
 import { SUNRISE_HOUR } from '@/mocks/generation';
 import { NOW } from '@/mocks/today';
-import { isAbnormal, OPERATION_LABEL, OPERATION_ORDER, OPERATION_RANK, OPERATION_TONE } from '@/mocks/status';
+import { isAbnormal, OPERATION_LABEL, OPERATION_ORDER, OPERATION_TONE } from '@/mocks/status';
 import { REGIONS } from '@/mocks/regions';
 import { Reveal } from '@/components/common/Reveal';
-import { SCHOOL_LEVELS, SCHOOLS } from '@/mocks/schools';
 import { ChevronRightIcon, SearchIcon } from '@/components/common/Icon';
-import { Select } from '@/components/common/Select';
 import { Sparkline } from '@/components/common/Sparkline';
 import { formatNumber, formatPercent } from '@/utils/format';
 import { getCollectionStatus } from '@/mocks/collection';
 import { PATH } from '@/routes/routes';
 import { useSelectNode } from '@/stores/plantStore';
 import type { OperationStatus } from '@/interface/status';
+import type { PlantFilters } from '@/components/plant/PlantSearchModal';
 import type { School } from '@/interface/energy';
 import styles from './MonitoringBoard.module.scss';
-
-const ALL = 'all';
 
 const SEGMENT_COLOR: Record<OperationStatus, string> = {
   running: 'var(--ok)',
@@ -44,19 +42,16 @@ const CIRCUMFERENCE = 2 * Math.PI * DONUT_RADIUS;
 export function MonitoringBoard() {
   const selectNode = useSelectNode();
   const navigate = useNavigate();
-  const searchId = useId();
 
-  const [keyword, setKeyword] = useState('');
-  const [region, setRegion] = useState<string>(ALL);
-  const [level, setLevel] = useState<string>(ALL);
-  const [status, setStatus] = useState<string>(ALL);
+  const [filters, setFilters] = useState<PlantFilters>(EMPTY_FILTERS);
+  const [searchOpen, setSearchOpen] = useState(false);
   const [selectedId, setSelectedId] = useState<string | null>(null);
 
   /** 고른 발전소를 조회 대상으로 잡고 발전 현황으로 넘긴다 — 누르면 다음 화면이 열려야 한다. */
   const openPlant = (plant: School) => {
     setSelectedId(plant.id);
     selectNode(plant.id);
-    navigate(PATH.STATISTICS_OVERVIEW);
+    navigate(PATH.ENERGY_STATISTICS);
   };
 
   // 수집 현황은 최근 수집 시각·미수신 표시에 쓴다 (SFR-004-04/05).
@@ -69,50 +64,16 @@ export function MonitoringBoard() {
     };
   }, []);
 
-  const rows = useMemo(() => {
-    const query = keyword.trim().toLowerCase();
+  const rows = useMemo(() => matchPlants(filters), [filters]);
 
-    return SCHOOLS
-      .filter((school) => {
-        if (region !== ALL && school.regionCode !== region) return false;
-        if (level !== ALL && school.level !== level) return false;
-        if (status !== ALL && school.status !== status) return false;
-        if (!query) return true;
-
-        // 학교명·지역·설비상태 어디로든 찾을 수 있게 한다 (SFR-004-11).
-        return [school.name, school.regionName, school.address, OPERATION_LABEL[school.status]]
-          .some((field) => field.toLowerCase().includes(query));
-      })
-      // 이상 설비를 먼저 확인하도록 상태 우선 정렬 (SFR-004-13)
-      .sort((a, b) => OPERATION_RANK[a.status] - OPERATION_RANK[b.status] || b.capacityKw - a.capacityKw);
-  }, [keyword, region, level, status]);
-
-  const fallbackColumns: Column<School>[] = [
-    { key: 'name', header: '발전소', render: (row) => row.name },
-    { key: 'region', header: '시·군', render: (row) => row.regionName, hideOnTablet: true },
-    {
-      key: 'status',
-      header: '설비상태',
-      render: (row) => (
-        <Badge tone={OPERATION_TONE[row.status]} withDot>
-          {OPERATION_LABEL[row.status]}
-        </Badge>
-      ),
-    },
-    {
-      key: 'output',
-      header: '실시간 출력',
-      align: 'right',
-      render: (row) => `${formatNumber(currentOutputOf(row), 1)} kW`,
-    },
-    {
-      key: 'today',
-      header: '금일 발전량',
-      align: 'right',
-      hideOnTablet: true,
-      render: (row) => `${formatNumber(row.todayKwh, 1)} kWh`,
-    },
-  ];
+  // 걸어 둔 조건을 짧은 말로 되짚는다.
+  const chips = [
+    filters.keyword.trim() ? `"${filters.keyword.trim()}"` : null,
+    filters.region !== ALL ? REGIONS.find((item) => item.code === filters.region)?.name ?? null : null,
+    filters.level !== ALL ? filters.level : null,
+    filters.status !== ALL ? OPERATION_LABEL[filters.status as OperationStatus] : null,
+    filters.org !== ALL ? (filters.org === 'moe' ? '교육부' : '충청남도교육청') : null,
+  ].filter((chip): chip is string => Boolean(chip));
 
   return (
     <section className={styles.board} aria-labelledby="monitoring-title">
@@ -124,40 +85,23 @@ export function MonitoringBoard() {
         >
           <div className={styles.board__inner}>
             <div className={styles.filters}>
-              <div className={styles.search}>
-                <SearchIcon className={styles.search__icon} width={18} height={18} />
-                <input
-                  id={searchId}
-                  type="search"
-                  className={styles.search__input}
-                  value={keyword}
-                  onChange={(event) => setKeyword(event.target.value)}
-                  placeholder="학교명·시·군·주소·설비상태로 검색"
-                  aria-label="발전소 검색"
-                />
-              </div>
+              <Button variant="secondary" iconLeft={<SearchIcon />} onClick={() => setSearchOpen(true)}>
+                발전소 검색
+              </Button>
 
-              <Select
-                className={styles.filters__select}
-                label="행정구역"
-                value={region}
-                onChange={setRegion}
-                options={[{ value: ALL, label: '전체 시·군' }, ...REGIONS.map((item) => ({ value: item.code, label: item.name }))]}
-              />
-              <Select
-                className={styles.filters__select}
-                label="학교급"
-                value={level}
-                onChange={setLevel}
-                options={[{ value: ALL, label: '전체 학교급' }, ...SCHOOL_LEVELS.map((item) => ({ value: item, label: item }))]}
-              />
-              <Select
-                className={styles.filters__select}
-                label="운영상태"
-                value={status}
-                onChange={setStatus}
-                options={[{ value: ALL, label: '전체 상태' }, ...OPERATION_ORDER.map((item) => ({ value: item, label: OPERATION_LABEL[item] }))]}
-              />
+              {/* 무엇으로 좁혀 놓았는지 늘 보이게 둔다 — 모달을 닫으면 조건이 잊히기 쉽다 */}
+              {chips.length > 0 ? (
+                <ul className={styles.chips}>
+                  {chips.map((chip) => (
+                    <li key={chip} className={styles.chips__item}>{chip}</li>
+                  ))}
+                  <li>
+                    <button type="button" className={styles.chips__clear} onClick={() => setFilters(EMPTY_FILTERS)}>
+                      조건 지우기
+                    </button>
+                  </li>
+                </ul>
+              ) : null}
 
               <p className={styles.filters__meta}>
                 <span>최근 수집 {NOW.format('YYYY-MM-DD HH:mm')}</span>
@@ -175,20 +119,22 @@ export function MonitoringBoard() {
                 selectedId={selectedId}
                 // 도면에서 바로 그 발전소 발전통계로 넘어간다.
                 onSelect={openPlant}
-                fallback={(
-                  <Table
-                    caption="지도에 표시한 발전소 목록"
-                    columns={fallbackColumns}
-                    rows={rows}
-                    getRowKey={(row) => row.id}
-                  />
-                )}
+                // 지도를 못 읽는 환경에서는 검색 모달의 발전소 목록으로 같은 내용을 훑을 수 있다.
+                fallback={<p>지도를 볼 수 없다면 위 발전소 검색에서 같은 목록을 조건별로 확인할 수 있습니다.</p>}
                 renderPopup={(plant) => <PlantPopup plant={plant} onOpen={() => openPlant(plant)} />}
               />
             </div>
           </div>
         </Card>
       </Reveal>
+
+      <PlantSearchModal
+        isOpen={searchOpen}
+        filters={filters}
+        onClose={() => setSearchOpen(false)}
+        onApply={setFilters}
+        onSelect={openPlant}
+      />
     </section>
   );
 }

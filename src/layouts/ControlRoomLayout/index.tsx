@@ -1,8 +1,7 @@
 import { Link } from 'react-router-dom';
 import { AiOrbit } from '@/pages/AiDiagnosis/components/AiOrbit';
-import { CloseIcon, ExpandIcon } from '@/components/common/Icon';
+import { CloseIcon, ExpandIcon, SearchIcon } from '@/components/common/Icon';
 import { PATH } from '@/routes/routes';
-import { cn } from '@/utils/cn';
 import { useFullscreen } from '@/hooks/useFullscreen';
 import { RoomClock } from './RoomClock';
 import styles from './ControlRoomLayout.module.scss';
@@ -11,12 +10,12 @@ import type { ReactNode } from 'react';
 interface ControlRoomLayoutProps {
   /** 보고 있는 대상 이름 — 이 화면은 늘 도 전체다 */
   scopeLabel: string;
-  /** 마지막 수집 시각 (YYYY-MM-DD HH:mm) */
-  collectedAt: string;
-  /** 수집이 지연됐는지 — 상태 스탬프 색이 바뀐다 */
-  isStale: boolean;
   /** 손봐야 할 경보 중 가장 급한 결. 없으면 null — 화면 테두리가 그 색으로 점등한다. */
   alertTone: 'critical' | 'caution' | 'offline' | null;
+  /** 검색창을 눌렀을 때 — 조회 조건 모달을 연다 (SFR-004-11/12) */
+  onSearch: () => void;
+  /** 걸어 둔 조건 요약. 없으면 안내 문구를 대신 띄운다 */
+  searchSummary?: string;
   children: ReactNode;
 }
 
@@ -26,9 +25,9 @@ interface ControlRoomLayoutProps {
  */
 export function ControlRoomLayout({
   scopeLabel,
-  collectedAt,
-  isStale,
   alertTone,
+  onSearch,
+  searchSummary,
   children,
 }: ControlRoomLayoutProps) {
   const { isFullscreen, toggle: toggleFullscreen } = useFullscreen();
@@ -50,11 +49,13 @@ export function ControlRoomLayout({
         </div>
 
         <div className={styles.bar__right}>
-          <span className={cn(styles.stamp, { [styles['stamp--stale']]: isStale })}>
-            <span className={styles.pulse} aria-hidden="true" />
-            <span className={styles.stamp__label}>최근 수집</span>
-            <span className={styles.stamp__value}>{collectedAt}</span>
-          </span>
+          {/* 조회 조건 (SFR-004-11/12). 최근 수집 시각은 수집 연동 현황 판이 맡는다. */}
+          <button type="button" className={styles.search} onClick={onSearch}>
+            <SearchIcon width={16} height={16} aria-hidden />
+            <span className={styles.search__text}>
+              {searchSummary ?? '학교·설비 검색'}
+            </span>
+          </button>
 
           <RoomClock />
 

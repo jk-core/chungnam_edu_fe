@@ -495,3 +495,39 @@
 
   color: var(--text-muted);
 }
+
+// 사진마다 어느 점검 항목인지 붙이는 줄 (SFR-021-06)
+.photoLinks {
+  display: flex;
+  flex-direction: column;
+  gap: s.$space-2;
+  margin-top: s.$space-3;
+  list-style: none;
+}
+
+.photoLinks__row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 220px;
+  align-items: center;
+  gap: s.$space-3;
+
+  @include media.mobile {
+    grid-template-columns: 1fr;
+    gap: s.$space-1;
+  }
+}
+
+.photoLinks__name {
+  @include t.body-sm;
+  @include mx.truncate;
+
+  color: var(--text-muted);
+}
+
+// 상세에서 사진 옆에 붙는 연계 항목
+.post__fileItem {
+  @include t.caption;
+
+  margin-left: s.$space-2;
+  color: var(--text-faint);
+}

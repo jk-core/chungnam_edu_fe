@@ -18,9 +18,20 @@ export default function RootLayout() {
 
   useEffect(() => {
     window.scrollTo({ top: 0, behavior: 'instant' });
-    // 화면을 옮기면 발전소 계층에서 다시 시작한다. 파고든 인버터·스트링은 들고 다니지 않는다.
+  }, [pathname]);
+
+  /*
+   * 화면을 옮기면 발전소 계층에서 다시 시작한다. 파고든 인버터·스트링은 들고 다니지 않는다.
+   *
+   * 다만 같은 화면 안에서 뎁스만 바뀐 것은 화면 이동이 아니다 — 발전통계는 조회 뎁스를
+   * 주소에 담으므로(`/energy/statistics/:plantId/:inverterId`), 경로가 바뀔 때마다 되돌리면
+   * 방금 고른 인버터를 그 자리에서 뺏는다. 그래서 앞 두 마디(화면)가 바뀔 때만 되돌린다.
+   */
+  const screen = pathname.split('/').slice(0, 3).join('/');
+
+  useEffect(() => {
     resetDepth();
-  }, [pathname, resetDepth]);
+  }, [screen, resetDepth]);
 
   return (
     <>

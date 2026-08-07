@@ -224,3 +224,15 @@
 
   color: var(--text-strong);
 }
+
+// 카드 머리의 보기 전환 + 내려받기
+.actions {
+  display: flex;
+  align-items: center;
+  gap: s.$space-2;
+}
+
+// 그래프 보기는 표와 달리 좌우 여백이 필요하다 — 카드가 padding: none 이라 여기서 준다.
+.chartWrap {
+  padding: 0 s.$space-5 s.$space-4;
+}

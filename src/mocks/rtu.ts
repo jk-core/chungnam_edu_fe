@@ -42,7 +42,7 @@ function buildEvents(next: () => number, installedAt: string): RtuEvent[] {
 function buildRtu(index: number): Rtu {
   const school = SCHOOLS[index];
   const next = createRandom(hashSeed(`${school.id}-rtu`));
-  // 발전소 일사량계 연계 상태를 수집장치 상태의 근거로 삼는다.
+  // 발전소 일사량계 연계 상태를 RTU 상태의 근거로 삼는다.
   const status: RtuStatus = school.status === 'commLost' ? 'disconnected' : school.pyranometerStatus;
 
   const lastSeenAt = status === 'disconnected'
@@ -74,7 +74,7 @@ export const RTU_EVENT_LABEL: Record<RtuEvent['kind'], string> = {
 
 const RTU_BY_PLANT = new Map(RTUS.map((rtu) => [rtu.plantId, rtu]));
 
-/** 발전소에 붙은 수집장치. 수집주기를 알아야 하는 쪽에서 쓴다. */
+/** 발전소에 붙은 RTU. 수집주기를 알아야 하는 쪽에서 쓴다. */
 export function getRtuOf(plantId: string): Rtu | null {
   return RTU_BY_PLANT.get(plantId) ?? null;
 }

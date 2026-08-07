@@ -11,11 +11,12 @@
   min-height: 0;
 }
 
-// 스크롤 대신 쪽을 넘긴다. 칸에 담기는 만큼만 그리므로 넘칠 일이 없다.
+// 칸에 담기는 것보다 많으면 굴려서 본다.
 .frame {
   flex: 1;
   min-height: 0;
-  overflow: hidden;
+  overflow-y: auto;
+  overscroll-behavior: contain;
 }
 
 // 쪽이 넘어갈 때 다음 줄들이 옆에서 밀려 들어온다 — 집계표가 넘어가는 결과 맞춘다.
@@ -23,23 +24,6 @@
   display: flex;
   flex-direction: column;
   gap: s.$space-1;
-  animation: rows-slide 0.45s cubic-bezier(0.22, 0.68, 0.32, 1) both;
-
-  @include media.reduced-motion {
-    animation: none;
-  }
-}
-
-@keyframes rows-slide {
-  from {
-    opacity: 0;
-    transform: translateX(28px);
-  }
-
-  to {
-    opacity: 1;
-    transform: translateX(0);
-  }
 }
 
 .row {
@@ -48,22 +32,34 @@
   gap: s.$space-2;
   padding: s.$space-2;
   border: 1px solid var(--border-subtle);
-  border-left-width: 3px;
   border-radius: s.$radius-sm;
   background-color: var(--surface-sunken);
 }
 
-// 왼쪽 굵은 선으로 급한 정도를 알린다 — 배지와 함께 두 겹으로 읽힌다.
+/*
+  급한 정도를 세 겹으로 알린다 — 왼쪽 굵은 선, 면 색, 그리고 배지.
+  회색으로 통일하면 목록을 훑는 동안 어느 줄이 급한지 배지를 하나씩 읽어야 한다.
+  면은 옅게만 물들여 글자 대비를 해치지 않는다.
+*/
 .row--critical {
-  border-left-color: var(--critical);
+  // 테두리 색을 먼저 깔고 왼쪽만 굵게 덮는다 — 순서가 뒤집히면 왼쪽 색이 지워진다.
+  border-color: color-mix(in srgb, var(--critical) 26%, transparent);
+  border-left: 3px solid var(--critical);
+  background-color: var(--critical-soft);
 }
 
 .row--caution {
-  border-left-color: var(--caution);
+  // 테두리 색을 먼저 깔고 왼쪽만 굵게 덮는다 — 순서가 뒤집히면 왼쪽 색이 지워진다.
+  border-color: color-mix(in srgb, var(--caution) 26%, transparent);
+  border-left: 3px solid var(--caution);
+  background-color: var(--caution-soft);
 }
 
 .row--offline {
-  border-left-color: var(--offline);
+  // 테두리 색을 먼저 깔고 왼쪽만 굵게 덮는다 — 순서가 뒤집히면 왼쪽 색이 지워진다.
+  border-color: color-mix(in srgb, var(--offline) 26%, transparent);
+  border-left: 3px solid var(--offline);
+  background-color: var(--offline-soft);
 }
 
 .row__main {
@@ -87,27 +83,13 @@
   color: var(--text-faint);
 }
 
+// 상태 칩과 그 아래 마지막 수신 시각
 .row__figures {
   display: flex;
   flex-direction: column;
   align-items: flex-end;
-  gap: 1px;
+  gap: 3px;
   flex-shrink: 0;
-}
-
-.row__kwh {
-  @include t.data-sm;
-
-  display: flex;
-  align-items: baseline;
-  gap: 1px;
-  color: var(--text-strong);
-}
-
-.row__unit {
-  @include t.caption;
-
-  color: var(--text-muted);
 }
 
 .row__delay {
@@ -129,4 +111,34 @@
   place-items: center;
   flex: 1;
   color: var(--text-muted);
+}
+
+/*
+  정렬 기준 (SFR-004-13).
+
+  지도 범례와 목록 사이에 끼는 줄이라, 오른쪽에 홀로 띄우면 어느 쪽에 속한 조작인지 흐려진다.
+  왼쪽에 이름을 달고 위에 선을 그어 아래 목록의 머리처럼 보이게 둔다.
+*/
+.sort {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: s.$space-2;
+  padding-top: s.$space-2;
+  border-top: 1px solid var(--border-subtle);
+}
+
+.sort__label {
+  @include t.caption;
+
+  color: var(--text-faint);
+}
+
+// 목록 아래 건수 — 쪽 표시가 있던 자리다.
+.count {
+  @include t.caption;
+
+  padding-top: s.$space-2;
+  border-top: 1px solid var(--border-subtle);
+  color: var(--text-faint);
 }

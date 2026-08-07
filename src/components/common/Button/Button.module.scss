@@ -1,5 +1,6 @@
 @use "@/styles/tokens/spacing" as s;
 @use "@/styles/tokens/typography" as t;
+@use "@/styles/utils/media" as media;
 
 .btn {
   display: inline-flex;
@@ -22,8 +23,18 @@
     transform: translateY(-1px);
   }
 
+  // 누르는 순간에는 뜬 상태에서 눌러 앉는다 — 클릭이 손끝에 닿는 느낌을 준다.
   &:active:not(:disabled) {
-    transform: translateY(0);
+    transform: translateY(0) scale(0.97);
+  }
+
+  @include media.reduced-motion {
+    transition: background-color 0.16s ease, border-color 0.16s ease, color 0.16s ease;
+
+    &:hover:not(:disabled),
+    &:active:not(:disabled) {
+      transform: none;
+    }
   }
 
   &:disabled {

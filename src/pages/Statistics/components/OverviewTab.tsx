@@ -1,7 +1,9 @@
+import dayjs from 'dayjs';
 import { useMemo, useState } from 'react';
 import { Card } from '@/components/common/Card';
 import { EChart } from '@/components/common/EChart';
 import {
+  CUMULATIVE,
   describeDetail,
   DETAIL_TITLE,
   DETAIL_UNIT,
@@ -15,12 +17,13 @@ import { SegmentedControl } from '@/components/common/SegmentedControl';
 import { AXIS_NAME_GAP, LEGEND_GRID_TOP, seriesPalette, topLegend } from '@/utils/chart';
 import { MSG } from '@/configs/messages';
 import { exportCsv } from '@/utils/export';
-import { formatCapacity, formatNumber } from '@/utils/format';
+import { formatCapacity, formatCarbon, formatNumber, formatPercent } from '@/utils/format';
 import { toast } from '@/stores/toastStore';
 import { formatShort } from '@/utils/date';
 import { getChildStats, getNodeStat } from '@/mocks/nodeStats';
 import { useChartPalette } from '@/hooks/useChartPalette';
 import { usePlantScope } from '@/hooks/usePlantScope';
+import { useStatisticsScopeRoute } from '@/hooks/useStatisticsScopeRoute';
 import { useSelectNode } from '@/stores/plantStore';
 import { useStatisticsDate } from '@/stores/filterStore';
 import type { PeriodKey } from '@/mocks/generation';
@@ -41,11 +44,33 @@ const DETAIL_VIEW_OPTIONS: { value: DetailView; label: string }[] = [
 /** 색이 여덟 개를 넘어 돌 때 선 모양으로 한 번 더 가른다 (COR-003-03) */
 const DASH = ['solid', 'dashed', 'dotted'] as const;
 
+/** 비교 대상이 되는 하나 전 기간 (SFR-007-03) */
+const PREVIOUS_UNIT: Record<PeriodKey, 'day' | 'month' | 'year'> = {
+  day: 'day',
+  month: 'month',
+  year: 'year',
+};
+
+const PREVIOUS_LABEL: Record<PeriodKey, string> = {
+  day: '전일 발전량',
+  month: '전월 발전량',
+  year: '전년 발전량',
+};
+
+const COMPARE_LABEL: Record<PeriodKey, string> = {
+  day: '전일',
+  month: '전월',
+  year: '전년',
+};
+
 export function OverviewTab() {
+  // 조회 뎁스는 주소가 쥔다 — 발전소 한 단, 인버터 한 단 (SFR-007).
+  useStatisticsScopeRoute();
+
   const [period, setPeriod] = useState<PeriodKey>('day');
   const [detailView, setDetailView] = useState<DetailView>('chart');
   const [date, setDate] = useStatisticsDate();
-  const { node, label } = usePlantScope();
+  const { node, label, factor } = usePlantScope();
   const selectNode = useSelectNode();
   const palette = useChartPalette();
   const childColors = seriesPalette(palette);
@@ -54,11 +79,41 @@ export function OverviewTab() {
   const stat = useMemo(() => getNodeStat(node, period, date), [node, period, date]);
   const childStats = useMemo(() => getChildStats(node, period, date), [node, period, date]);
 
+  // 하나 전 같은 기간 — 전일·전월·전년 비교에 쓴다 (SFR-007-03).
+  const previousDate = useMemo(
+    () => dayjs(date).subtract(1, PREVIOUS_UNIT[period]).toDate(),
+    [date, period],
+  );
+  const previous = useMemo(
+    () => getNodeStat(node, period, previousDate),
+    [node, period, previousDate],
+  );
+  const compareRatio = previous.generationKwh > 0
+    ? (stat.generationKwh - previous.generationKwh) / previous.generationKwh
+    : 0;
+  // 발전효율 = 같은 일사량에서 기대되는 발전량 대비 실측 (SFR-007-04)
+  const efficiency = stat.expectedKwh > 0 ? stat.generationKwh / stat.expectedKwh : 0;
+
   const detail = getDetailTrend(period, date);
-  const path = getNodePath(node.id);
+
+  // 도 전체는 조회 대상이 아니다 — 계층 경로도 발전소에서 시작한다.
+  const path = getNodePath(node.id).filter((item) => item.kind !== 'root');
   const childKind = childKindOf(node);
+  // 인버터가 조회 단위의 끝이다. 그 아래 스트링·접속반은 보여만 주고 눌러 내려가지 않는다.
+  const canDrill = node.kind !== 'inverter';
 
   const totalUnit = pickEnergyUnit(stat.generationKwh);
+
+  /*
+   * 환경 기여도는 누적 발전량에서 나온다.
+   * 계수는 환경부 고시 기준 — CO₂ 0.4594kg/kWh, 30년생 소나무 6.6kgCO₂/년, 4인 가구 350kWh/월.
+   */
+  const eco = {
+    co2SavedKg: CUMULATIVE.co2SavedKg * factor,
+    pineTrees: Math.round(CUMULATIVE.pineTrees * factor),
+    households: Math.round(CUMULATIVE.households * factor),
+  };
+  const carbon = formatCarbon(eco.co2SavedKg);
   const capacity = formatCapacity(node.capacityKw);
   const bestIndex = stat.series.reduce((best, value, index) => (value > stat.series[best] ? index : best), 0);
   // 조회 단위(시간·일·월)에 맞춘 상세 추이 — 차트와 표가 같은 값을 본다.
@@ -87,7 +142,10 @@ export function OverviewTab() {
     toast.success(MSG.downloadStart(filename));
   };
 
-  /** 발전량 막대 + 일사량 선을 겹친 차트. 시간대별과 시점별이 같은 모양을 공유한다. */
+  /**
+   * 발전량 막대 + 일사량 선을 겹친 차트. 시간대별과 시점별이 같은 모양을 공유한다.
+   * `comparison` 을 주면 하나 전 같은 기간을 점선 막대로 겹쳐 견줄 수 있게 한다 (SFR-007-03).
+   */
   const comboOption = (
     labels: string[],
     values: number[],
@@ -95,6 +153,7 @@ export function OverviewTab() {
     divider: number,
     unit: string,
     irradianceUnit: string,
+    comparison?: { name: string; values: number[] },
   ): EChartsOption => ({
     grid: { top: LEGEND_GRID_TOP, right: 52, bottom: 30, left: 58 },
     tooltip: {
@@ -104,7 +163,7 @@ export function OverviewTab() {
       borderWidth: 1,
       textStyle: { color: palette.text, fontSize: 12, fontFamily: 'Pretendard Variable, sans-serif' },
     },
-    legend: topLegend(palette, ['발전량', '일사량']),
+    legend: topLegend(palette, comparison ? ['발전량', comparison.name, '일사량'] : ['발전량', '일사량']),
     xAxis: {
       type: 'category',
       data: labels,
@@ -140,6 +199,25 @@ export function OverviewTab() {
         animationDuration: 700,
         animationDelay: (index: number) => index * 24,
       },
+      // 하나 전 기간은 테두리만 있는 막대로 겹쳐, 같은 눈금 위에서 높낮이만 견주게 한다.
+      ...(comparison
+        ? [{
+          name: comparison.name,
+          type: 'bar' as const,
+          barMaxWidth: 22,
+          barGap: '-100%' as const,
+          z: 1,
+          itemStyle: {
+            color: 'transparent',
+            borderColor: palette.axis,
+            borderWidth: 1,
+            borderType: 'dashed' as const,
+            borderRadius: [4, 4, 0, 0] as [number, number, number, number],
+          },
+          data: comparison.values.map((value) => Number((value / divider).toFixed(2))),
+          animationDuration: 700,
+        }]
+        : []),
       {
         name: '일사량',
         type: 'line',
@@ -203,6 +281,10 @@ export function OverviewTab() {
 
   return (
     <div className={styles.tab}>
+      {/*
+        발전 달력은 따로 놓지 않고 날짜 선택 달력 안에 얹는다 (SFR-007-01/02).
+        날짜를 고르는 자리와 그 날 실적을 보는 자리가 같아야 두 번 찾지 않는다.
+      */}
       <PeriodFilter
         period={period}
         onPeriodChange={setPeriod}
@@ -251,11 +333,23 @@ export function OverviewTab() {
                 <span className={styles.infoGrid__unit}>{totalUnit.unit}</span>
               </dd>
             </div>
+            {/* 같은 기간 하나 전과의 비교 (SFR-007-03) */}
             <div>
-              <dt>기대 발전량</dt>
+              <dt>{PREVIOUS_LABEL[period]}</dt>
               <dd>
-                {formatNumber(stat.expectedKwh / totalUnit.divider, 2)}
+                {formatNumber(previous.generationKwh / totalUnit.divider, 2)}
                 <span className={styles.infoGrid__unit}>{totalUnit.unit}</span>
+                <span className={compareRatio >= 0 ? styles.deltaUp : styles.deltaDown}>
+                  {compareRatio >= 0 ? '▲' : '▼'} {formatPercent(Math.abs(compareRatio), 1)}
+                </span>
+              </dd>
+            </div>
+            {/* 발전효율 = 실측 ÷ 같은 일사량에서 기대되는 발전량 (SFR-007-04) */}
+            <div>
+              <dt>발전효율</dt>
+              <dd>
+                {formatPercent(efficiency, 1)}
+                <span className={styles.infoGrid__unit}>실측/기대</span>
               </dd>
             </div>
             <div>
@@ -296,6 +390,34 @@ export function OverviewTab() {
               </dd>
             </div>
           </dl>
+
+          {/*
+            환경 기여도는 별도 페이지였으나, 발전량과 떨어져 있으면 무엇을 얼마나 아꼈는지
+            머릿속에서 이어 붙여야 했다. 같은 카드 안에서 바로 잇는다 (회의 결정).
+          */}
+          <dl className={styles.ecoGrid}>
+            <div>
+              <dt>CO₂ 절감량</dt>
+              <dd>
+                {carbon.value}
+                <span className={styles.infoGrid__unit}>{carbon.unit}</span>
+              </dd>
+            </div>
+            <div>
+              <dt>소나무 환산</dt>
+              <dd>
+                {formatNumber(eco.pineTrees)}
+                <span className={styles.infoGrid__unit}>그루·년</span>
+              </dd>
+            </div>
+            <div>
+              <dt>가구 사용량 환산</dt>
+              <dd>
+                {formatNumber(eco.households)}
+                <span className={styles.infoGrid__unit}>가구·년</span>
+              </dd>
+            </div>
+          </dl>
         </Card>
       </Reveal>
 
@@ -305,9 +427,11 @@ export function OverviewTab() {
             eyebrow="Children"
             title={`${KIND_LABEL[childKind]}별 발전`}
             description={
-              node.kind === 'root'
-                ? `이상이 있는 발전소를 앞세워 ${childStats.length}개소를 보여 줍니다. 카드를 누르면 그 발전소로 내려갑니다.`
-                : `${node.name} 아래 ${KIND_LABEL[childKind]} ${childStats.length}개입니다. 카드를 누르면 그 설비로 내려갑니다.`
+              !canDrill
+                ? `${node.name} 아래 ${KIND_LABEL[childKind]} ${childStats.length}개입니다. 발전통계는 인버터까지가 조회 단위라 여기서 더 내려가지는 않습니다 — ${KIND_LABEL[childKind]} 단위 판정은 AI진단에서 봅니다.`
+                : node.kind === 'root'
+                  ? `이상이 있는 발전소를 앞세워 ${childStats.length}개소를 보여 줍니다. 카드를 누르면 그 발전소로 내려갑니다.`
+                  : `${node.name} 아래 ${KIND_LABEL[childKind]} ${childStats.length}개입니다. 카드를 누르면 그 설비로 내려갑니다.`
             }
           >
             <ChildGrid
@@ -315,6 +439,7 @@ export function OverviewTab() {
               selectedId={node.id}
               dateLabel={formatShort(date)}
               emptyLabel={`${label} 아래에는 더 내려갈 설비가 없습니다.`}
+              interactive={canDrill}
             />
           </Card>
         </Reveal>
@@ -340,7 +465,7 @@ export function OverviewTab() {
         <Card
           eyebrow="Detail"
           title={`${DETAIL_TITLE[period]} 발전량`}
-          description={`${describeDetail(period, date)} · 최고는 ${detail[detailPeakIndex]?.label ?? '—'}, 합계 ${formatNumber(detailTotal / detailUnit.divider, 2)}${detailUnit.unit}입니다. 표로 바꾸면 같은 값을 숫자로 봅니다.`}
+          description={`${describeDetail(period, date)} · 최고는 ${detail[detailPeakIndex]?.label ?? '—'}, 합계 ${formatNumber(detailTotal / detailUnit.divider, 2)}${detailUnit.unit}입니다. 점선 막대는 ${COMPARE_LABEL[period]}이라 같은 눈금에서 견줄 수 있습니다. 표로 바꾸면 같은 값을 숫자로 봅니다.`}
           action={
             <SegmentedControl
               label="보기 방식"
@@ -361,6 +486,7 @@ export function OverviewTab() {
                 detailUnit.divider,
                 detailUnit.unit,
                 'kWh/m²',
+                { name: COMPARE_LABEL[period], values: previous.series },
               )}
               height={320}
               summary={`${label}의 ${describeDetail(period, date)} ${DETAIL_UNIT[period]}별 발전량 추이.`}
@@ -370,12 +496,12 @@ export function OverviewTab() {
               labels={detail.map((point) => point.label)}
               generation={stat.series}
               irradiance={detail.map((point) => point.irradiance)}
-              expectedKwh={stat.expectedKwh}
-              caption={`${label}의 ${DETAIL_UNIT[period]}별 발전량, 기대 발전량, 일사량 표`}
+              caption={`${label}의 ${DETAIL_UNIT[period]}별 발전량, 일사량 표`}
             />
           )}
         </Card>
       </Reveal>
+
     </div>
   );
 }

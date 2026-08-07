@@ -1,6 +1,7 @@
 @use "@/styles/tokens/spacing" as s;
 @use "@/styles/tokens/typography" as t;
 @use "@/styles/utils/media" as media;
+@use "@/styles/utils/mixins" as mx;
 
 /**
  * 교육용 대시보드 골격 (SFR-005).
@@ -104,7 +105,7 @@
     color: var(--text-strong);
   }
 
-  &:focus-visible {
+  @include mx.keyboard-focus {
     outline: 2px solid var(--brand);
     outline-offset: 2px;
   }
@@ -229,4 +230,18 @@
   @include media.tablet {
     min-height: 640px;
   }
+}
+
+// 학교 선택기와 학교 정보 — 상황판마다 다른 학교를 띄운다
+.bar__scope {
+  display: flex;
+  align-items: center;
+  gap: s.$space-2;
+}
+
+.bar__info {
+  @include t.caption;
+
+  margin-top: 2px;
+  color: var(--edu-text-soft, var(--text-muted));
 }

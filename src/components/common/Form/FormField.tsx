@@ -17,6 +17,8 @@ export interface FormFieldProps {
   optional?: boolean;
   hint?: string;
   error?: string;
+  /** 라벨을 눈에서만 감춘다 — 목록 위 검색창처럼 무엇을 넣는지 자리 표시로 충분한 곳에 쓴다. */
+  hideLabel?: boolean;
   children: ReactNode;
 }
 
@@ -24,10 +26,13 @@ export interface FormFieldProps {
  * 모든 입력의 껍데기.
  * 라벨·필수 표시·도움말·오류를 한 자리에서 붙여 화면마다 어긋나지 않게 한다.
  */
-export function FormField({ label, htmlFor, required, optional, hint, error, children }: FormFieldProps) {
+export function FormField({ label, htmlFor, required, optional, hint, error, hideLabel, children }: FormFieldProps) {
   return (
     <div className={styles.field}>
-      <label className={styles.field__label} htmlFor={htmlFor}>
+      <label
+        className={hideLabel ? styles['field__label--hidden'] : styles.field__label}
+        htmlFor={htmlFor}
+      >
         {label}
         {required ? (
           <span className={styles.field__required} aria-hidden="true">

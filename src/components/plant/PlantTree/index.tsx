@@ -21,12 +21,14 @@ interface RowProps {
   expandedIds: string[];
   /** 이 화면이 다루지 않는 계층 — 흐리게 두고 선택을 막는다. */
   disabledKinds: NodeKind[];
+  /** 이 계층에서 트리를 끊는다. 아래는 아예 그리지 않는다. */
+  stopAt?: NodeKind;
   onSelect: (id: string) => void;
   onToggle: (id: string) => void;
 }
 
-function TreeRow({ node, depth, selectedId, expandedIds, disabledKinds, onSelect, onToggle }: RowProps) {
-  const children = getChildNodes(node.id);
+function TreeRow({ node, depth, selectedId, expandedIds, disabledKinds, stopAt, onSelect, onToggle }: RowProps) {
+  const children = stopAt === node.kind ? [] : getChildNodes(node.id);
   const hasChildren = children.length > 0;
   const isExpanded = expandedIds.includes(node.id);
   const isSelected = selectedId === node.id;
@@ -88,6 +90,7 @@ function TreeRow({ node, depth, selectedId, expandedIds, disabledKinds, onSelect
                 selectedId={selectedId}
                 expandedIds={expandedIds}
                 disabledKinds={disabledKinds}
+                stopAt={stopAt}
                 onSelect={onSelect}
                 onToggle={onToggle}
               />
@@ -107,9 +110,14 @@ function TreeRow({ node, depth, selectedId, expandedIds, disabledKinds, onSelect
 interface PlantTreeProps {
   /** 이 화면이 다루지 않는 계층. 예: AI진단은 채널을 판정 대상으로 삼지 않는다. */
   disabledKinds?: NodeKind[];
+  /**
+   * 트리를 끊을 계층. 아래는 흐리게 두는 대신 아예 그리지 않는다.
+   * 예: 발전통계는 인버터까지가 조회 단위라 그 아래를 열 일이 없다.
+   */
+  stopAt?: NodeKind;
 }
 
-export function PlantTree({ disabledKinds = [] }: PlantTreeProps) {
+export function PlantTree({ disabledKinds = [], stopAt }: PlantTreeProps) {
   const node = useSelectedNode();
   const selectNode = useSelectNode();
   const expandedIds = useExpandedIds();
@@ -132,7 +140,9 @@ export function PlantTree({ disabledKinds = [] }: PlantTreeProps) {
   if (!plantId) {
     return (
       <p className={styles.empty}>
-        발전소를 고르면 인버터·접속반·스트링까지 계층으로 펼쳐 볼 수 있습니다.
+        {stopAt === 'inverter'
+          ? '발전소를 고르면 인버터까지 계층으로 펼쳐 볼 수 있습니다.'
+          : '발전소를 고르면 인버터·접속반·스트링까지 계층으로 펼쳐 볼 수 있습니다.'}
       </p>
     );
   }
@@ -149,12 +159,14 @@ export function PlantTree({ disabledKinds = [] }: PlantTreeProps) {
           selectedId={node.id}
           expandedIds={expandedIds}
           disabledKinds={disabledKinds}
+          stopAt={stopAt}
           onSelect={selectNode}
           onToggle={toggleExpanded}
         />
       </ul>
       <p className={styles.tree__hint}>
         {KIND_LABEL[node.kind]} 기준으로 조회 중입니다.
+        {stopAt === 'inverter' ? ' 인버터 아래는 AI진단에서 봅니다.' : ''}
         {disabledKinds.includes('channel') ? ' 채널은 진단 대상이 아닙니다.' : ''}
       </p>
     </div>

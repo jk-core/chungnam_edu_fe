@@ -10,7 +10,9 @@ import { getDiagEfficiencyPoints } from '@/mocks/prediction';
 import { getFaultCode } from '@/mocks/faultCodes';
 import { isAbnormal, OPERATION_LABEL, OPERATION_ORDER, OPERATION_RANK, OPERATION_TONE } from '@/mocks/status';
 import { Reveal } from '@/components/common/Reveal';
+import { SegmentedControl } from '@/components/common/SegmentedControl';
 import { Sparkline } from '@/components/common/Sparkline';
+import { Table } from '@/components/common/Table';
 import { cn } from '@/utils/cn';
 import { formatEnergy, formatNumber } from '@/utils/format';
 import { useDiagnosisRange } from '@/stores/filterStore';
@@ -19,8 +21,10 @@ import { useExpandPath, useSelectNode } from '@/stores/plantStore';
 import type { DiagEfficiencyPoint } from '@/interface/diagnosisDetail';
 import type { FaultCode } from '@/interface/equipment';
 import type { OperationStatus } from '@/interface/status';
+import type { Column } from '@/components/common/Table';
 import type { NodeKind, ScopeNode } from '@/interface/tree';
 import styles from '../AiDiagnosis.module.scss';
+import { DeepDiagnosisModal } from './DeepDiagnosisModal';
 import { FaultCodeModal } from './FaultCodeModal';
 
 /** 노드 종류를 사람이 부르는 이름으로 */
@@ -36,6 +40,13 @@ const KIND_NOUN: Record<NodeKind, string> = {
 /** 한 화면에 늘어놓을 카드 수 — 넘치면 이상 설비를 앞세워 자른다. */
 const MAX_CARDS = 12;
 
+type ViewMode = 'card' | 'table';
+
+const VIEW_OPTIONS: { value: ViewMode; label: string }[] = [
+  { value: 'card', label: '카드' },
+  { value: 'table', label: '표' },
+];
+
 interface UnitCard {
   node: ScopeNode;
   points: DiagEfficiencyPoint[];
@@ -49,8 +60,11 @@ interface UnitCard {
 }
 
 /**
- * 지금 보고 있는 계층 바로 아래 설비의 실시간 진단 (SFR-013-04/07).
+ * 지금 보고 있는 계층 바로 아래 설비의 실시간 진단 (SFR-013-04/07/08).
  * 한 단계만 내려가 보여 주고, 카드를 누르면 그 설비로 조회 대상이 옮겨 간다.
+ *
+ * 표 보기는 요구사항이 못박은 형태다 — 설비별 발전효율·추정값·측정값을 한 줄에 늘어놓고,
+ * 줄을 누르면 그 설비의 심층 진단이 열린다.
  */
 export function DiagnosisEquipment() {
   const { target, label } = useDiagnosisScope();
@@ -58,6 +72,8 @@ export function DiagnosisEquipment() {
   const selectNode = useSelectNode();
   const expandPath = useExpandPath();
   const [openFault, setOpenFault] = useState<{ fault: FaultCode; device: string } | null>(null);
+  const [deepTarget, setDeepTarget] = useState<ScopeNode | null>(null);
+  const [view, setView] = useState<ViewMode>('card');
 
   const children = useMemo(() => getChildNodes(target.id), [target.id]);
   const childNoun = children.length > 0 ? KIND_NOUN[children[0].kind] : '하위 설비';
@@ -87,13 +103,81 @@ export function DiagnosisEquipment() {
       };
     }), [children, range.start, range.end]);
 
+  /*
+   * 표 형태 리스트 (SFR-013-07). 카드가 훑어보는 그림이라면 이쪽은 값을 견주는 자리다.
+   * 줄을 누르면 심층 진단이 열린다 (SFR-013-08).
+   */
+  const tableColumns: Column<UnitCard>[] = [
+    {
+      key: 'name',
+      header: '설비',
+      render: (row) => (
+        <button type="button" className={styles.unitTable__name} onClick={() => setDeepTarget(row.node)}>
+          {row.node.name}
+        </button>
+      ),
+    },
+    {
+      key: 'status',
+      header: '상태',
+      width: '104px',
+      render: (row) => (
+        <Badge tone={OPERATION_TONE[row.node.status]} withDot>
+          {OPERATION_LABEL[row.node.status]}
+        </Badge>
+      ),
+    },
+    {
+      key: 'efficiency',
+      header: '발전효율',
+      align: 'right',
+      width: '96px',
+      render: (row) => (
+        <span className={row.efficiency > 0 && row.efficiency < DIAG_EFFICIENCY_WARN ? styles.deltaDown : undefined}>
+          {row.efficiency <= 0 ? '—' : `${formatNumber(row.efficiency, 1)} %`}
+        </span>
+      ),
+    },
+    {
+      key: 'estimate',
+      header: '추정값',
+      align: 'right',
+      width: '110px',
+      render: (row) => `${formatEnergy(row.estimateKwh).value} ${formatEnergy(row.estimateKwh).unit}`,
+    },
+    {
+      key: 'measured',
+      header: '측정값',
+      align: 'right',
+      width: '110px',
+      render: (row) => `${formatEnergy(row.measuredKwh).value} ${formatEnergy(row.measuredKwh).unit}`,
+    },
+    {
+      key: 'fault',
+      header: '고장분류',
+      hideOnTablet: true,
+      render: (row) => (row.fault && row.fault.code > 0 ? row.fault.label : '정상'),
+    },
+  ];
+
   return (
     <>
       <Reveal>
         <Card
           eyebrow="Equipment"
           title="설비별 진단 현황"
-          description={`${label}의 ${childNoun} 실시간 진단`}
+          description={view === 'table'
+            ? `${label}의 ${childNoun}별 발전효율·추정값·측정값 — 줄을 누르면 그 설비의 심층 진단이 열립니다`
+            : `${label}의 ${childNoun} 실시간 진단`}
+          action={(
+            <SegmentedControl
+              label="보기 방식"
+              size="sm"
+              options={VIEW_OPTIONS}
+              value={view}
+              onChange={setView}
+            />
+          )}
         >
           {cards.length === 0 ? (
             <EmptyState
@@ -122,22 +206,33 @@ export function DiagnosisEquipment() {
                 </ul>
               </div>
 
-              <ul className={styles.unitGrid} aria-label={`${childNoun}별 진단 카드`}>
-                {cards.map((card, index) => (
-                  <UnitTile
-                    key={card.node.id}
-                    card={card}
-                    index={index}
-                    parentName={children[0]?.kind === 'plant' ? '' : label}
-                    onOpenFault={(fault, device) => setOpenFault({ fault, device })}
-                    onOpen={() => {
-                      // 조회 대상을 옮기고, 좌측 트리에서도 그 자리가 펼쳐져 있게 한다.
-                      expandPath(getNodePath(card.node.id).map((item) => item.id));
-                      selectNode(card.node.id);
-                    }}
+              {view === 'table' ? (
+                <div className={styles.unitTable}>
+                  <Table
+                    caption={`${childNoun}별 발전효율, 추정값, 측정값, 고장분류`}
+                    columns={tableColumns}
+                    rows={cards}
+                    getRowKey={(row) => row.node.id}
                   />
-                ))}
-              </ul>
+                </div>
+              ) : (
+                <ul className={styles.unitGrid} aria-label={`${childNoun}별 진단 카드`}>
+                  {cards.map((card, index) => (
+                    <UnitTile
+                      key={card.node.id}
+                      card={card}
+                      index={index}
+                      parentName={children[0]?.kind === 'plant' ? '' : label}
+                      onOpenFault={(fault, device) => setOpenFault({ fault, device })}
+                      onOpen={() => {
+                        // 조회 대상을 옮기고, 좌측 트리에서도 그 자리가 펼쳐져 있게 한다.
+                        expandPath(getNodePath(card.node.id).map((item) => item.id));
+                        selectNode(card.node.id);
+                      }}
+                    />
+                  ))}
+                </ul>
+              )}
 
               {children.length > cards.length ? (
                 <p className={styles.unitGrid__more}>
@@ -154,6 +249,9 @@ export function DiagnosisEquipment() {
         deviceLabel={openFault?.device}
         onClose={() => setOpenFault(null)}
       />
+
+      {/* 표에서 고른 설비의 심층 진단 (SFR-013-08/09/10) */}
+      <DeepDiagnosisModal node={deepTarget} date={range.end} onClose={() => setDeepTarget(null)} />
     </>
   );
 }

@@ -1,6 +1,7 @@
 @use "@/styles/tokens/spacing" as s;
 @use "@/styles/tokens/typography" as t;
 @use "@/styles/utils/media" as media;
+@use "@/styles/utils/mixins" as mx;
 
 .modal {
   position: fixed;
@@ -98,6 +99,8 @@
   border-radius: s.$radius-full;
   color: var(--text-muted);
   transition: color 0.16s ease, background-color 0.16s ease, border-color 0.16s ease;
+
+  @include mx.press;
 
   &:hover {
     background-color: var(--surface-hover);

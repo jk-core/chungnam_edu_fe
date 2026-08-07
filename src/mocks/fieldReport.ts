@@ -42,7 +42,7 @@ export const CHECKLIST_TEMPLATES: ReportTemplate[] = [
     id: 'TPL-RTU-REG',
     inspectType: '정기',
     targetKind: 'rtu',
-    label: '수집장치 정기점검',
+    label: 'RTU 정기점검',
     items: [
       '함체 방수·잠금 상태',
       '전원 및 상태 LED',
@@ -123,7 +123,7 @@ function buildSeed(): FieldReport[] {
       templateId: template.id,
       inspectType: template.inspectType,
       targetKind: template.targetKind,
-      targetName: template.targetKind === 'inverter' ? '인버터 #1' : template.targetKind === 'rtu' ? '수집장치 #1' : school.name,
+      targetName: template.targetKind === 'inverter' ? '인버터 #1' : template.targetKind === 'rtu' ? 'RTU #1' : school.name,
       inspector: seed.inspector,
       date: daysAgo(seed.daysAgo),
       state: seed.state,

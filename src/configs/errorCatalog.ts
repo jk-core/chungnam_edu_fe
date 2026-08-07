@@ -18,9 +18,9 @@ export const ERROR_CATALOG: Record<string, ErrorEntry> = {
   },
   'NET-002': {
     code: 'NET-002',
-    title: '수집장치 미응답',
-    cause: '현장 수집장치가 응답하지 않아 해당 구간 계측값이 비어 있습니다.',
-    action: '수집장치 전원과 통신 신호를 확인하세요. 통신단절로 판정된 설비는 알림이력에 함께 기록됩니다.',
+    title: 'RTU 미응답',
+    cause: '현장 RTU가 응답하지 않아 해당 구간 계측값이 비어 있습니다.',
+    action: 'RTU 전원과 통신 신호를 확인하세요. 통신단절로 판정된 설비는 알림이력에 함께 기록됩니다.',
   },
   'DAT-001': {
     code: 'DAT-001',

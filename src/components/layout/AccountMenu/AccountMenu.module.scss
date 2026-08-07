@@ -19,6 +19,8 @@
   color: var(--text-muted);
   transition: color 0.16s ease, background-color 0.16s ease, border-color 0.16s ease;
 
+  @include mx.press;
+
   &:hover {
     background-color: var(--surface-hover);
     border-color: var(--border-strong);
@@ -124,6 +126,7 @@
   text-align: left;
   transition: background-color 0.16s ease, color 0.16s ease;
 
+  @include mx.press;
   @include t.body-sm;
 
   &:hover {
@@ -132,7 +135,7 @@
   }
 
   // 패널 안쪽이라 전역 focus-visible 외곽선이 잘린다. 안으로 들여 그린다.
-  &:focus-visible {
+  @include mx.keyboard-focus {
     @include mx.focus-ring(-2px);
   }
 }

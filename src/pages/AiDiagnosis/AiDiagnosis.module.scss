@@ -943,6 +943,71 @@
   background-color: var(--offline);
 }
 
+// 계측 추이 차트 아래 조작 안내
+.trendHint {
+  @include t.caption;
+
+  margin-top: s.$space-2;
+  color: var(--text-faint);
+  text-align: right;
+}
+
+// 표 보기 (SFR-013-07) — 카드와 같은 자료를 값으로 견주는 자리
+.unitTable {
+  margin-top: s.$space-4;
+}
+
+.unitTable__name {
+  color: var(--brand-contrast);
+  text-align: left;
+  text-decoration: underline;
+  text-decoration-color: transparent;
+  text-underline-offset: 3px;
+  transition: text-decoration-color 0.16s ease;
+
+  &:hover {
+    text-decoration-color: currentcolor;
+  }
+}
+
+// 심층 진단 머리 요약 (SFR-013-09/10)
+.deepSummary {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: s.$space-4;
+  margin: 0 0 s.$space-4;
+  padding-bottom: s.$space-4;
+  border-bottom: 1px solid var(--border-subtle);
+
+  @include media.mobile {
+    grid-template-columns: 1fr;
+    gap: s.$space-3;
+  }
+
+  dt {
+    @include t.label-sm;
+
+    margin-bottom: 2px;
+    color: var(--text-faint);
+  }
+
+  dd {
+    @include t.data-md;
+
+    display: flex;
+    align-items: baseline;
+    gap: 2px;
+    margin: 0;
+    color: var(--text-strong);
+
+    small {
+      @include t.caption;
+
+      color: var(--text-muted);
+    }
+  }
+}
+
 .unitGrid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -986,7 +1051,7 @@
     box-shadow: inset 3px 0 0 var(--unit-accent, var(--border)), var(--shadow-md);
   }
 
-  &:has(.unit__overlay:focus-visible) {
+  :root[data-input="keyboard"] &:has(.unit__overlay:focus-visible) {
     border-color: var(--brand);
   }
 }

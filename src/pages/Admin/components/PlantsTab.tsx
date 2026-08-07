@@ -11,6 +11,7 @@ import { Modal } from '@/components/common/Modal';
 import { MSG } from '@/configs/messages';
 import { NOW } from '@/mocks/today';
 import { OPERATION_LABEL, OPERATION_TONE } from '@/mocks/status';
+import { DEFAULT_PAGE_SIZE, Pagination } from '@/components/common/Pagination';
 import { Reveal } from '@/components/common/Reveal';
 import { SCHOOL_LEVELS, SCHOOLS } from '@/mocks/schools';
 import { REGIONS } from '@/mocks/regions';
@@ -120,17 +121,22 @@ export function PlantsTab() {
   const nextPlantId = useAssetStore((state) => state.nextPlantId);
   const changes = useAssetStore((state) => state.changes);
   const saveAsset = useAssetStore((state) => state.saveAsset);
+  const plantDeleted = useAssetStore((state) => state.plantDeleted);
+  const removePlant = useAssetStore((state) => state.removePlant);
 
   const [keyword, setKeyword] = useState('');
+  const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(DEFAULT_PAGE_SIZE);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [draft, setDraft] = useState<Draft | null>(null);
   const [confirming, setConfirming] = useState(false);
   const [creating, setCreating] = useState<NewDraft | null>(null);
+  const [deleting, setDeleting] = useState<School | null>(null);
 
   // 새로 등록한 발전소를 앞에 세운다 — 방금 넣은 것이 목록 끝에 묻히면 확인이 어렵다.
   const all = useMemo(
-    () => [...plantCreated.map(toSchoolRow), ...SCHOOLS],
-    [plantCreated],
+    () => [...plantCreated.map(toSchoolRow), ...SCHOOLS].filter((school) => !plantDeleted.includes(school.id)),
+    [plantCreated, plantDeleted],
   );
 
   const rows = useMemo(() => {
@@ -140,6 +146,10 @@ export function PlantsTab() {
       ? all.filter((school) => school.name.includes(trimmed) || school.regionName.includes(trimmed))
       : all;
   }, [keyword, all]);
+
+  const pageCount = Math.max(1, Math.ceil(rows.length / pageSize));
+  const currentPage = Math.min(page, pageCount);
+  const pageRows = rows.slice((currentPage - 1) * pageSize, currentPage * pageSize);
 
   const editing = editingId ? mergeAsset(editingId, assetPatched, plantCreated) : null;
   const history = useMemo(() => mergeChanges(changes), [changes]);
@@ -324,12 +334,17 @@ export function PlantsTab() {
     {
       key: 'action',
       header: '관리',
-      width: '90px',
+      width: '140px',
       align: 'center',
       render: (row) => (
-        <Button size="sm" variant="secondary" onClick={() => openEditor(row.id)}>
-          수정
-        </Button>
+        <span className={styles.toolbar__actions}>
+          <Button size="sm" variant="secondary" onClick={() => openEditor(row.id)}>
+            수정
+          </Button>
+          <Button size="sm" variant="ghost" onClick={() => setDeleting(row)}>
+            삭제
+          </Button>
+        </span>
       ),
     },
   ];
@@ -339,15 +354,19 @@ export function PlantsTab() {
       <div className={styles.toolbar}>
         <div className={styles.toolbar__left}>
           <TextField
-            label="발전소 검색"
+            label="이름 검색"
+            hideLabel
             value={keyword}
-            onChange={setKeyword}
-            placeholder="학교명·시군 검색"
+            onChange={(value) => {
+              setKeyword(value);
+              setPage(1);
+            }}
+            placeholder="발전소명으로 검색"
             width="md"
           />
         </div>
         <div className={styles.toolbar__left}>
-          <p className={styles.toolbar__note}>{formatNumber(rows.length)}개소</p>
+          <p className={styles.toolbar__note}>총 {formatNumber(rows.length)}개</p>
           <Button size="sm" onClick={() => setCreating(EMPTY_NEW)}>발전소 등록</Button>
         </div>
       </div>
@@ -358,7 +377,19 @@ export function PlantsTab() {
           title="발전소 목록"
           description="위 등록 버튼으로 발전소를 새로 세우고, 행의 수정 버튼으로 등록 정보를 고칩니다. 변경 내역은 아래 이력에 남습니다."
         >
-          <Table caption="발전소 등록 목록" columns={columns} rows={rows} getRowKey={(row) => row.id} />
+          <Table caption="발전소 등록 목록" columns={columns} rows={pageRows} getRowKey={(row) => row.id} />
+          <Pagination
+            page={currentPage}
+            pageCount={pageCount}
+            totalCount={rows.length}
+            onChange={setPage}
+            label="발전소 목록"
+            pageSize={pageSize}
+            onPageSizeChange={(size) => {
+              setPageSize(size);
+              setPage(1);
+            }}
+          />
         </Card>
       </Reveal>
 
@@ -649,6 +680,32 @@ export function PlantsTab() {
         confirmLabel="저장"
         onConfirm={commit}
         onClose={() => setConfirming(false)}
+      />
+
+      <ConfirmDialog
+        isOpen={deleting !== null}
+        title={MSG.deleteConfirm(deleting?.name ?? '발전소')}
+        description="딸린 RTU·인버터·접속반·스트링·일사량계도 시스템장비 관리에서 함께 감춰집니다."
+        confirmLabel="삭제"
+        tone="danger"
+        onConfirm={() => {
+          if (!deleting) return;
+
+          removePlant(deleting.id, {
+            // 같은 발전소의 등록 이력과 id 가 겹치지 않게 갈래를 붙인다 — 목록 key 로 쓰인다.
+            id: `AC-${NOW.format('MMDDHHmm')}-${deleting.id}-del`,
+            plantId: deleting.id,
+            plantName: deleting.name,
+            at: NOW.format('YYYY-MM-DD HH:mm'),
+            actor: user?.name ?? '관리자',
+            field: '발전소 삭제',
+            before: `${formatNumber(deleting.capacityKw, 1)}kW · ${deleting.regionName}`,
+            after: '—',
+          });
+          toast.success(MSG.deleteSuccess(deleting.name));
+          setDeleting(null);
+        }}
+        onClose={() => setDeleting(null)}
       />
     </div>
   );

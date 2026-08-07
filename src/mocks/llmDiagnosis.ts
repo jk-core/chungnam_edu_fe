@@ -64,7 +64,7 @@ const CAUSE_BY_STATUS: Record<OperationStatus, string> = {
 
 const ACTION_BY_STATUS: Record<OperationStatus, string> = {
   running: '추가 조치 없이 다음 정기점검 주기를 지키면 됩니다.',
-  ready: '시운전 결과를 확인하고 수집장치 등록 상태를 점검하세요.',
+  ready: '시운전 결과를 확인하고 RTU 등록 상태를 점검하세요.',
   degraded: '모듈 표면 세척과 남측 음영물 정리를 검토하세요.',
   fault: '접속함 퓨즈 도통과 커넥터 접촉을 우선 확인하세요.',
   commLost: '현장 통신 모뎀 전원과 신호 세기를 먼저 확인하세요.',

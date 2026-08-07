@@ -5,8 +5,13 @@ export type Granularity = 'day' | 'month' | 'year';
 
 export const WEEKDAY_LABELS = ['일', '월', '화', '수', '목', '금', '토'];
 
-/** 달력이 다루는 기간. 목업 데이터가 커버하는 범위와 맞춘다. */
-export const CALENDAR_MIN = dayjs('2021-01-01');
+/*
+  달력이 다루는 기간.
+
+  연 단위 조회는 예전 실적까지 죽 훑어보는 자리라 12년치를 연다 — 학교 태양광 설비가
+  2010년대 중반부터 깔린 것을 감안한 범위다. 목업은 어느 해든 시드로 만들어 낸다.
+*/
+export const CALENDAR_MIN = dayjs('2015-01-01');
 export const CALENDAR_MAX = dayjs('2026-12-31');
 
 /** 일 단위 달력은 최근 3년치만 그린다. 더 넓히면 셀이 수천 개가 된다. */

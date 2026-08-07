@@ -110,7 +110,7 @@ export function SunArcHero() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.55, delay: 0.3 }}
           >
-            <Link to={PATH.STATISTICS_OVERVIEW}>
+            <Link to={PATH.ENERGY_STATISTICS}>
               <Button size="lg" iconRight={<ArrowUpRightIcon />}>
                 발전통계 보기
               </Button>

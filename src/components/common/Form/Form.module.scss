@@ -1,6 +1,7 @@
 @use "@/styles/tokens/spacing" as s;
 @use "@/styles/tokens/typography" as t;
 @use "@/styles/utils/media" as media;
+@use "@/styles/utils/mixins" as mx;
 
 // ── 필드 껍데기 ─────────────────────────────────────────────
 .field {
@@ -17,6 +18,11 @@
   align-items: center;
   gap: s.$space-1;
   color: var(--text-strong);
+}
+
+// 목록 위 검색창처럼 자리 표시로 뜻이 분명한 곳에서는 라벨을 스크린리더에만 남긴다.
+.field__label--hidden {
+  @include mx.sr-only;
 }
 
 // SIF-001-02 필수 항목과 선택 항목을 구분해 표시한다.
@@ -63,7 +69,7 @@
     color: var(--text-faint);
   }
 
-  &:focus-visible {
+  @include mx.keyboard-focus {
     outline: none;
     border-color: var(--brand);
     box-shadow: var(--shadow-focus);
@@ -255,7 +261,7 @@
   background-color: var(--offline);
 }
 
-.option__input:focus-visible + .option__mark {
+:root[data-input="keyboard"] .option__input:focus-visible + .option__mark {
   box-shadow: var(--shadow-focus);
 }
 

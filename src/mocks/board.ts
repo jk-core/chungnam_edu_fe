@@ -21,8 +21,8 @@ export const SEED_POSTS: BoardPost[] = [
   {
     id: 'BD-1041',
     kind: 'notice',
-    title: '수집장치 통신 모듈 교체 대상 학교 안내',
-    body: 'LTE 3G 종료에 따라 구형 통신 모듈을 쓰는 12개 학교의 수집장치를 순차 교체합니다. 교체 중에는 최대 2시간 수집이 멈출 수 있습니다.',
+    title: 'RTU 통신 모듈 교체 대상 학교 안내',
+    body: 'LTE 3G 종료에 따라 구형 통신 모듈을 쓰는 12개 학교의 RTU를 순차 교체합니다. 교체 중에는 최대 2시간 수집이 멈출 수 있습니다.',
     author: '교육청 시설과',
     at: stampAgo(9, '14:35'),
     pinned: false,

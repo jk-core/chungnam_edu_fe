@@ -13,7 +13,7 @@ const cache = new Map<string, OperationRaw[]>();
 
 /**
  * 인버터 한 대의 하루치 원시 계측 (SFR-010-03 / SFR-009-04).
- * 수집주기는 그 발전소 수집장치를 따르고, 해 뜨기 전후로는 값이 0 이 된다.
+ * 수집주기는 그 발전소 RTU를 따르고, 해 뜨기 전후로는 값이 0 이 된다.
  * 통신이 끊긴 설비는 줄 자체가 결측으로 남아 "0 발전"과 구분된다.
  */
 export function getOperationRaw(inverter: Inverter, date: Date): OperationRaw[] {

@@ -9,7 +9,7 @@ import type { ScopeNode } from '@/mocks/tree';
 export interface PlantScope {
   /** 지금 보고 있는 계층 노드 */
   node: ScopeNode;
-  /** 소속 발전소. 도 전체를 보고 있으면 null. */
+  /** 소속 발전소. 조회는 늘 발전소 한 곳에서 시작한다. */
   plant: School | null;
   /** 소속 인버터. 발전소 이상 계층이면 null. */
   inverter: Inverter | null;
@@ -19,7 +19,7 @@ export interface PlantScope {
   plantLabel: string;
   /**
    * 도 전체 수치를 선택 대상 몫으로 환산할 때 곱하는 값.
-   * 설비용량 비율을 그대로 쓴다. 전체를 보고 있으면 1.
+   * 설비용량 비율을 그대로 쓴다.
    */
   factor: number;
 }
@@ -34,7 +34,7 @@ export function usePlantScope(): PlantScope {
     plant,
     inverter,
     label: node.fullName,
-    plantLabel: plant ? plant.name : '충청남도 전체',
-    factor: node.kind === 'root' ? 1 : node.capacityKw / REGION_TOTAL.capacityKw,
+    plantLabel: plant?.name ?? '',
+    factor: node.capacityKw / REGION_TOTAL.capacityKw,
   };
 }

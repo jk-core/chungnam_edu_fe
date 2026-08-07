@@ -6,7 +6,11 @@ import styles from './NationalBoard.module.scss';
 
 const CHUNGNAM = 'chungnam';
 
-/** 전국 시·도 평균 발전시간 분포 (SFR-006-03/04) */
+/**
+ * 전국 평균 발전시간 분포 지도 (SFR-006-03/04).
+ * 요구사항이 "금일 재생에너지 발전 현황 정보 출력 기능"에 묶어 둔 항목이라 홈에 둔다.
+ * 값은 한국에너지공단 REMS API 로 지역별 설비 데이터를 받아 평균을 낸 것으로 본다.
+ */
 export function NationalBoard() {
   const rank = getNationalRank(CHUNGNAM);
 

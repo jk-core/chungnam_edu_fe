@@ -48,6 +48,8 @@ export function Header() {
               className={styles.header__help}
               aria-label={pendingCount > 0 ? `실시간 알림 열기, 미조치 ${pendingCount}건` : '실시간 알림 열기'}
               aria-expanded={isAlertOpen}
+              // 이 버튼이 스스로 여닫으므로 바깥 클릭 닫기에서 빼 둔다.
+              data-dismiss-ignore
               onClick={() => setIsAlertOpen((prev) => !prev)}
             >
               <BellIcon />

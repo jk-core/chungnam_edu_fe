@@ -1,6 +1,7 @@
 @use "@/styles/tokens/spacing" as s;
 @use "@/styles/tokens/typography" as t;
 @use "@/styles/utils/media" as media;
+@use "@/styles/utils/mixins" as mx;
 
 .pagination {
   display: flex;
@@ -16,6 +17,17 @@
     gap: s.$space-3;
     padding-inline: s.$space-5;
   }
+}
+
+.pagination__left {
+  display: flex;
+  align-items: center;
+  gap: s.$space-3;
+}
+
+// 쪽당 개수 선택은 전체 건수 옆에 작게 붙인다
+.pagination__size {
+  min-width: 96px;
 }
 
 .pagination__count {
@@ -48,11 +60,17 @@
   color: var(--text-muted);
   transition: background-color 0.14s ease, color 0.14s ease, border-color 0.14s ease;
 
+  @include mx.press;
   @include t.data-sm;
 
   &:hover:not(:disabled) {
     background-color: var(--surface-hover);
     color: var(--text-strong);
+  }
+
+  // 클릭 감은 누르는 순간에만 준다 — 손을 뗀 뒤에는 흔적을 남기지 않는다.
+  &:active:not(:disabled) {
+    background-color: var(--surface-sunken);
   }
 
   &:disabled {

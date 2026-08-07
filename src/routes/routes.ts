@@ -20,38 +20,23 @@ export const PATH = {
   /** 마이페이지 (SFR-024) */
   MY: '/my',
 
-  /** 발전통계 (SFR-007, 008) */
-  STATISTICS: '/statistics',
-  STATISTICS_OVERVIEW: '/statistics/overview',
-  STATISTICS_PERIOD: '/statistics/period',
-  STATISTICS_SCHOOL: '/statistics/school',
-  STATISTICS_ECO: '/statistics/eco',
+  /** 발전관리 (SFR-007~010, 021) */
+  ENERGY: '/energy',
+  ENERGY_STATISTICS: '/energy/statistics',
+  ENERGY_HISTORY: '/energy/history',
+  ENERGY_FIELD_REPORT: '/energy/field-report',
+  ENERGY_FIELD_REPORT_NEW: '/energy/field-report/new',
 
-  /** 수집데이터 (SFR-001~003, 009, 010) */
-  COLLECTION: '/collection',
-  COLLECTION_TREND: '/collection/trend',
-  COLLECTION_RAW: '/collection/raw',
-  COLLECTION_STATUS: '/collection/status',
-  COLLECTION_HISTORY: '/collection/history',
-
-  /** AI진단 (SFR-011, 013, 014, 015) */
+  /** AI진단 (SFR-011, 013~015, 019, 020, 022) */
   AI_DIAGNOSIS: '/ai-diagnosis',
   AI_DIAGNOSIS_OVERVIEW: '/ai-diagnosis/overview',
-  AI_DIAGNOSIS_SCHEDULE: '/ai-diagnosis/schedule',
+  AI_DIAGNOSIS_MONTHLY: '/ai-diagnosis/monthly',
+  AI_DIAGNOSIS_ALERTS: '/ai-diagnosis/alerts',
 
-  /** 알림이력 (SFR-022) */
-  ALERTS: '/alerts',
-  ALERTS_LIST: '/alerts/list',
-  ALERTS_PENDING: '/alerts/pending',
-  ALERTS_TIMELINE: '/alerts/timeline',
-  ALERTS_SETTINGS: '/alerts/settings',
-
-  /** 보고·소통 (SFR-019, 020, 021, 025) */
-  REPORTS: '/reports',
-  REPORTS_MONTHLY: '/reports/monthly',
-  REPORTS_FIELD: '/reports/field',
-  REPORTS_FIELD_NEW: '/reports/field/new',
-  REPORTS_BOARD: '/reports/board',
+  /** 이용안내 (SFR-025) */
+  GUIDE: '/guide',
+  GUIDE_NOTICE: '/guide/notice',
+  GUIDE_QNA: '/guide/qna',
 
   /** 관리자 콘솔 — 내부망 전용 (SER-001-18) */
   ADMIN: '/admin',

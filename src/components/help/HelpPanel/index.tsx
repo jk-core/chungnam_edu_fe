@@ -2,6 +2,7 @@ import { useEffect, useId, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import { AnimatePresence, motion } from 'motion/react';
 import { useLocation } from 'react-router-dom';
+import { useDismissable } from '@/hooks/useDismissable';
 import { CloseIcon } from '@/components/common/Icon';
 import { ERROR_CATALOG } from '@/configs/errorCatalog';
 import { findChild, findSection } from '@/configs/navigation';
@@ -27,20 +28,13 @@ export function HelpPanel({ isOpen, onClose }: HelpPanelProps) {
   const child = findChild(section, pathname);
   const screenName = child?.label ?? section?.label ?? '이 화면';
 
-  // ESC 로 닫고, 열리면 패널로 포커스를 옮긴다.
+  // 바깥을 누르거나 ESC 를 치면 닫는다.
+  useDismissable(isOpen, panelRef, onClose);
+
+  // 열리면 패널로 포커스를 옮긴다.
   useEffect(() => {
-    if (!isOpen) return;
-
-    panelRef.current?.focus();
-
-    const onKeyDown = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') onClose();
-    };
-
-    window.addEventListener('keydown', onKeyDown);
-
-    return () => window.removeEventListener('keydown', onKeyDown);
-  }, [isOpen, onClose]);
+    if (isOpen) panelRef.current?.focus();
+  }, [isOpen]);
 
   return createPortal(
     <AnimatePresence>

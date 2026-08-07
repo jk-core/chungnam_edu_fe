@@ -17,15 +17,22 @@ interface ChildGridProps {
   /** 선그래프 아래에 적을 기준일 표기 */
   dateLabel: string;
   emptyLabel: string;
+  /**
+   * 카드를 눌러 그 설비로 내려갈 수 있는지.
+   * 조회 단위 아래를 보여 주기만 할 때는 끈다 — 눌러도 갈 데가 없는 카드에
+   * 손가락 커서와 눌림 효과를 남기면 못 가는 곳을 가리키는 셈이다.
+   */
+  interactive?: boolean;
 }
 
 /**
  * 한 계층 아래 설비들을 카드로 늘어놓는다.
  * 카드마다 기준일 하루의 발전 곡선을 넣어, 모양이 무너진 설비가 바로 눈에 띈다.
- * 카드를 누르면 그 설비가 조회 대상이 된다.
+ * 누를 수 있는 카드면 그 설비가 조회 대상이 된다.
  */
-export function ChildGrid({ stats, selectedId, dateLabel, emptyLabel }: ChildGridProps) {
+export function ChildGrid({ stats, selectedId, dateLabel, emptyLabel, interactive = true }: ChildGridProps) {
   const selectNode = useSelectNode();
+  const Shell = interactive ? motion.button : motion.div;
 
   if (stats.length === 0) return <EmptyState title="하위 설비가 없습니다" description={emptyLabel} />;
 
@@ -41,15 +48,18 @@ export function ChildGrid({ stats, selectedId, dateLabel, emptyLabel }: ChildGri
         const isSelected = node.id === selectedId;
 
         return (
-          <motion.button
+          <Shell
             key={node.id}
-            type="button"
+            // 누를 수 없을 때는 버튼이 아니다. disabled 버튼으로 두면 브라우저 기본 회색 글자가
+            // 딸려 오고, 읽을거리인 카드가 꺼진 것처럼 보인다.
+            {...(interactive
+              ? { type: 'button' as const, onClick: () => selectNode(node.id), 'aria-pressed': isSelected }
+              : {})}
             className={cn(styles.inverterCard, {
               [styles['inverterCard--selected']]: isSelected,
               [styles['inverterCard--abnormal']]: isAbnormal(node.status),
+              [styles['inverterCard--static']]: !interactive,
             })}
-            onClick={() => selectNode(node.id)}
-            aria-pressed={isSelected}
             initial={{ opacity: 0, y: 10 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
@@ -106,7 +116,7 @@ export function ChildGrid({ stats, selectedId, dateLabel, emptyLabel }: ChildGri
                 {formatPercent(siblingTotal > 0 ? stat.generationKwh / siblingTotal : 0, 1)}
               </span>
             </span>
-          </motion.button>
+          </Shell>
         );
       })}
     </div>

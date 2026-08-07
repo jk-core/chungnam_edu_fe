@@ -1,9 +1,10 @@
+import dayjs from 'dayjs';
 import { useState } from 'react';
 import { ALERT_TYPES, alertDurationMinutes } from '@/mocks/alerts';
 import { Badge, SEVERITY_LABEL, SEVERITY_TONE } from '@/components/common/Badge';
 import { Button } from '@/components/common/Button';
 import { Card } from '@/components/common/Card';
-import { DateRangePicker } from '@/components/common/DateRangePicker';
+import { DatePicker } from '@/components/common/DatePicker';
 import { DownloadIcon } from '@/components/common/Icon';
 import { EmptyState } from '@/components/common/EmptyState';
 import { Pagination } from '@/components/common/Pagination';
@@ -20,6 +21,7 @@ import { toast } from '@/stores/toastStore';
 import { usePlantScope } from '@/hooks/usePlantScope';
 import type { AlertRecord, AlertType } from '@/interface/alert';
 import type { Column } from '@/components/common/Table';
+import type { Granularity } from '@/utils/date';
 import type { CsvColumn } from '@/utils/export';
 import type { Severity } from '@/interface/energy';
 import styles from '../Alerts.module.scss';
@@ -52,6 +54,12 @@ const HANDLED_OPTIONS = [
   { value: 'handled', label: '조치 완료' },
 ];
 
+const UNIT_OPTIONS: { value: Granularity; label: string }[] = [
+  { value: 'day', label: '일별' },
+  { value: 'month', label: '월별' },
+  { value: 'year', label: '연도별' },
+];
+
 const SORT_OPTIONS = [
   { value: 'recent', label: '최신순' },
   { value: 'oldest', label: '오래된순' },
@@ -66,6 +74,23 @@ export function ListTab() {
   const [view, setView] = useState<ViewMode>('table');
   const [page, setPage] = useState(1);
   const [selected, setSelected] = useState<AlertRecord | null>(null);
+
+  /*
+   * 조회 기간은 일·월·연 단위로 고른다 (SFR-022-01/02).
+   * 고르는 달력 안에 그 날짜의 날씨(월·연은 발전시간)가 함께 나온다 —
+   * 알림이 뜬 날 발전이 어땠는지 같은 자리에서 읽으라는 뜻이다.
+   */
+  const [unit, setUnit] = useState<Granularity>('month');
+  const [anchor, setAnchor] = useState<Date>(() => range.end);
+
+  const applyPeriod = (nextUnit: Granularity, nextAnchor: Date) => {
+    const cursor = dayjs(nextAnchor);
+
+    setUnit(nextUnit);
+    setAnchor(nextAnchor);
+    setRange({ start: cursor.startOf(nextUnit).toDate(), end: cursor.endOf(nextUnit).toDate() });
+    setPage(1);
+  };
 
   const stats = summarize(results);
 
@@ -209,7 +234,13 @@ export function ListTab() {
       <Reveal delay={0.06}>
         <Card eyebrow="Filter" title="조회 조건" padding="md" variant="outline">
           <div className={styles.filters}>
-            <DateRangePicker value={range} onChange={setRange} label="조회 기간" />
+            <SegmentedControl
+              label="조회 단위"
+              options={UNIT_OPTIONS}
+              value={unit}
+              onChange={(value) => applyPeriod(value, anchor)}
+            />
+            <DatePicker value={anchor} onChange={(value) => applyPeriod(unit, value)} granularity={unit} label="기준일" />
             <Select
               label="유형"
               hideLabel

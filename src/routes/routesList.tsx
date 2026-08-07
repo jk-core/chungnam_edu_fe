@@ -10,11 +10,9 @@ import { PATH } from './routes';
 import type { RouteObject } from 'react-router-dom';
 
 // 차트 라이브러리를 함께 들고 오는 화면들은 첫 화면 번들에서 떼어 낸다.
-const StatisticsPage = lazy(() => import('@/pages/Statistics'));
-const CollectionPage = lazy(() => import('@/pages/Collection'));
+const EnergyPage = lazy(() => import('@/pages/Energy'));
+const GuidePage = lazy(() => import('@/pages/Guide'));
 const AiDiagnosisPage = lazy(() => import('@/pages/AiDiagnosis'));
-const AlertsPage = lazy(() => import('@/pages/Alerts'));
-const ReportsPage = lazy(() => import('@/pages/Reports'));
 const MyPage = lazy(() => import('@/pages/MyPage'));
 const LoginPage = lazy(() => import('@/pages/Login'));
 const SolarEduPage = lazy(() => import('@/pages/SolarEdu'));
@@ -57,11 +55,16 @@ export const routes: RouteObject[] = [
           {
             element: <SubPageLayout />,
             children: [
-              { path: 'statistics/:tab', element: <StatisticsPage /> },
-              { path: 'collection/:tab', element: <CollectionPage /> },
+              { path: 'energy/:tab', element: <EnergyPage /> },
+              /*
+               * 발전통계는 조회 뎁스를 주소로 관리한다 — 발전소 한 단, 인버터 한 단.
+               * 주소만 주고받아도 같은 화면이 열리고, 뒤로 가기가 조회 단계를 되짚는다.
+               * 인버터 아래(접속반·스트링·채널)는 AI진단 몫이라 여기서는 열지 않는다.
+               */
+              { path: 'energy/statistics/:plantId', element: <EnergyPage tab="statistics" /> },
+              { path: 'energy/statistics/:plantId/:inverterId', element: <EnergyPage tab="statistics" /> },
               { path: 'ai-diagnosis/:tab', element: <AiDiagnosisPage /> },
-              { path: 'alerts/:tab', element: <AlertsPage /> },
-              { path: 'reports/:tab', element: <ReportsPage /> },
+              { path: 'guide/:tab', element: <GuidePage /> },
             ],
           },
           {
@@ -79,12 +82,20 @@ export const routes: RouteObject[] = [
             ],
           },
           // 대메뉴만 눌렀을 때는 첫 소메뉴로 보낸다.
-          { path: 'statistics', element: <Navigate to={PATH.STATISTICS_OVERVIEW} replace /> },
-          { path: 'collection', element: <Navigate to={PATH.COLLECTION_TREND} replace /> },
+          { path: 'energy', element: <Navigate to={PATH.ENERGY_STATISTICS} replace /> },
           { path: 'ai-diagnosis', element: <Navigate to={PATH.AI_DIAGNOSIS_OVERVIEW} replace /> },
-          { path: 'alerts', element: <Navigate to={PATH.ALERTS_LIST} replace /> },
-          { path: 'reports', element: <Navigate to={PATH.REPORTS_MONTHLY} replace /> },
-          // 예전에 쓰던 주소로 들어와도 이어지게 둔다.
+          { path: 'guide', element: <Navigate to={PATH.GUIDE_NOTICE} replace /> },
+          /*
+           * 사이트맵을 재편하기 전 주소들. 북마크·문서에 남아 있을 수 있어 새 자리로 넘겨 준다.
+           * 화면이 합쳐진 곳은 합쳐진 자리로 보낸다.
+           */
+          { path: 'statistics/*', element: <Navigate to={PATH.ENERGY_STATISTICS} replace /> },
+          { path: 'collection/status', element: <Navigate to={PATH.ADMIN_DATA_QUALITY} replace /> },
+          { path: 'collection/*', element: <Navigate to={PATH.ENERGY_HISTORY} replace /> },
+          { path: 'alerts/*', element: <Navigate to={PATH.AI_DIAGNOSIS_ALERTS} replace /> },
+          { path: 'reports/monthly', element: <Navigate to={PATH.AI_DIAGNOSIS_MONTHLY} replace /> },
+          { path: 'reports/board', element: <Navigate to={PATH.GUIDE_NOTICE} replace /> },
+          { path: 'reports/*', element: <Navigate to={PATH.ENERGY_FIELD_REPORT} replace /> },
           { path: 'diagnosis/*', element: <Navigate to={PATH.AI_DIAGNOSIS_OVERVIEW} replace /> },
           { path: '*', element: <Navigate to={PATH.HOME} replace /> },
         ],

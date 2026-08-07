@@ -1,6 +1,7 @@
 @use "@/styles/tokens/spacing" as s;
 @use "@/styles/tokens/typography" as t;
 @use "@/styles/utils/media" as media;
+@use "@/styles/utils/mixins" as mx;
 
 .trigger {
   display: inline-flex;
@@ -13,6 +14,8 @@
   border-radius: s.$radius-full;
   color: var(--text-strong);
   transition: border-color 0.16s ease, background-color 0.16s ease, box-shadow 0.2s ease;
+
+  @include mx.press;
 
   &:hover {
     border-color: var(--brand);

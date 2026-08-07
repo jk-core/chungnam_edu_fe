@@ -1,9 +1,11 @@
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { Button } from '@/components/common/Button';
-import { Calendar } from '@/components/common/Calendar';
 import { CalendarIcon, ChevronDownIcon } from '@/components/common/Icon';
+import { ScrollCalendar } from '@/components/common/DataCalendar/ScrollCalendar';
+import { getMonthDays, getYearMonths } from '@/mocks/weather';
 import { Modal } from '@/components/common/Modal';
 import { formatByGranularity } from '@/utils/date';
+import { usePlantScope } from '@/hooks/usePlantScope';
 import type { Granularity } from '@/utils/date';
 import styles from './DatePicker.module.scss';
 
@@ -28,8 +30,25 @@ const QUICK_LABEL: Record<Granularity, string> = {
   year: '올해',
 };
 
+/*
+  달력 칸에 얹는 값은 조회 단위에 따라 갈린다 (SFR-007-01/02, SFR-010-01/02, SFR-022-01/02).
+  일 단위는 그 날 날씨, 월·연 단위는 그 기간 발전시간 — 날짜를 고르는 자리라면 어디서든 같다.
+*/
+const HINT: Record<Granularity, string> = {
+  day: '칸마다 그 날 날씨가 함께 나옵니다. 위아래로 굴리면 지난 달과 다음 달이 이어집니다.',
+  month: '칸마다 그 달 발전시간이 함께 나옵니다. 위아래로 굴리면 다른 해가 이어집니다.',
+  year: '칸마다 그 해 발전시간이 함께 나옵니다. 위아래로 굴리면 지난 해가 이어집니다.',
+};
+
 export function DatePicker({ value, onChange, granularity, label }: DatePickerProps) {
   const [isOpen, setIsOpen] = useState(false);
+  const { plant } = usePlantScope();
+
+  // 굴려 보는 달력이라 달마다 그때그때 읽어 간다. 조회 대상이 바뀌면 그 발전소 값으로 갈린다.
+  const calendar = useMemo(() => ({
+    getDays: (year: number, month: number) => getMonthDays(plant?.id ?? null, year, month),
+    getMonths: (year: number) => getYearMonths(plant?.id ?? null, year),
+  }), [plant?.id]);
 
   const choose = (next: Date) => {
     onChange(next);
@@ -52,8 +71,9 @@ export function DatePicker({ value, onChange, granularity, label }: DatePickerPr
       <Modal
         isOpen={isOpen}
         onClose={() => setIsOpen(false)}
+        size="lg"
         title={TITLE[granularity]}
-        description="달력을 위아래로 굴리면 여러 달을 빠르게 지나갈 수 있습니다."
+        description={HINT[granularity]}
         footer={
           <div className={styles.footer}>
             <Button variant="ghost" size="sm" onClick={() => choose(new Date())}>
@@ -63,7 +83,15 @@ export function DatePicker({ value, onChange, granularity, label }: DatePickerPr
           </div>
         }
       >
-        <Calendar mode={granularity} selected={value} onSelect={choose} />
+        <ScrollCalendar
+          // 조회 단위가 바뀌면 구간 종류가 달라진다 — 상태를 이어받지 않고 새로 깐다.
+          key={granularity}
+          granularity={granularity}
+          selected={value}
+          onSelect={choose}
+          getDays={calendar.getDays}
+          getMonths={calendar.getMonths}
+        />
       </Modal>
     </>
   );

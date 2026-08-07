@@ -193,6 +193,13 @@ export const MonitorIcon = (props: IconProps) => (
   </Base>
 );
 
+/** 실적 순위 1~3위 표식 (SFR-004-09) */
+export const CrownIcon = (props: IconProps) => (
+  <Base {...props}>
+    <path d="M4 17.5h16M4.2 6.4l3.9 3.2L12 5l3.9 4.6 3.9-3.2-1.5 9.1H5.7Z" />
+  </Base>
+);
+
 export const SearchIcon = (props: IconProps) => (
   <Base {...props}>
     <circle cx="10.8" cy="10.8" r="6.3" />

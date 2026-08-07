@@ -1,14 +1,14 @@
 import dayjs from 'dayjs';
 import { useMemo, useState } from 'react';
+import { Badge } from '@/components/common/Badge';
 import { Button } from '@/components/common/Button';
 import { Card } from '@/components/common/Card';
-import { DataCalendar } from '@/components/common/DataCalendar';
 import { EmptyState } from '@/components/common/EmptyState';
 import { ExcelIcon } from '@/components/common/Icon';
 import { getInverters } from '@/mocks/equipment';
-import { getMonthDays, getYearMonths } from '@/mocks/weather';
 import { getOperationRaw, RAW_STATE_LABEL, sortRawDesc } from '@/mocks/operationRaw';
 import { getRtuOf } from '@/mocks/rtu';
+import { OPERATION_LABEL, OPERATION_TONE, RTU_LABEL, RTU_TONE } from '@/mocks/status';
 import { Pagination } from '@/components/common/Pagination';
 import { MSG } from '@/configs/messages';
 import { Reveal } from '@/components/common/Reveal';
@@ -21,20 +21,19 @@ import { usePlantScope } from '@/hooks/usePlantScope';
 import type { CsvColumn } from '@/utils/export';
 import type { OperationRaw } from '@/interface/operation';
 import shared from '../Collection.module.scss';
+import { OperationChart } from './OperationChart';
 import { CollectionFilter } from './CollectionFilter';
 import { OperationTable } from './OperationTable';
 import styles from './HistoryTab.module.scss';
 
-/** 달력을 어느 단위로 펼지 (SFR-010-01/02) */
-type CalendarView = 'day' | 'month' | 'year';
+/** 한 화면에 펼 계측 줄 수 — 하루치는 수백 건이라 나눠 본다. */
+type ViewMode = 'table' | 'chart';
 
-const CALENDAR_OPTIONS: { value: CalendarView; label: string }[] = [
-  { value: 'day', label: '일별' },
-  { value: 'month', label: '월별' },
-  { value: 'year', label: '연도별' },
+const VIEW_OPTIONS: { value: ViewMode; label: string }[] = [
+  { value: 'table', label: '표' },
+  { value: 'chart', label: '그래프' },
 ];
 
-/** 한 화면에 펼 계측 줄 수 — 하루치는 수백 건이라 나눠 본다. */
 const PAGE_SIZE = 30;
 
 /**
@@ -43,10 +42,10 @@ const PAGE_SIZE = 30;
  */
 export function HistoryTab() {
   const { plant, inverter, label } = usePlantScope();
-  const [date, setDate] = useCollectionDate();
-  const [calendarView, setCalendarView] = useState<CalendarView>('day');
+  const [date] = useCollectionDate();
   // 페이지는 조회 대상·날짜에 묶어 둔다. 대상이 바뀌면 저절로 첫 쪽으로 돌아간다.
   const [pageState, setPageState] = useState({ key: '', page: 1 });
+  const [view, setView] = useState<ViewMode>('table');
 
   const inverters = useMemo(() => getInverters(plant?.id ?? null), [plant?.id]);
   // 좌측 조회 대상에서 인버터까지 좁혔으면 그 인버터, 발전소까지면 첫 인버터를 편다.
@@ -63,19 +62,9 @@ export function HistoryTab() {
   const pageRows = raw.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE);
 
   const plantLabel = plant?.name ?? label;
-  const interval = plant ? getRtuOf(plant.id)?.intervalMinutes ?? null : null;
+  const rtu = plant ? getRtuOf(plant.id) : null;
+  const interval = rtu?.intervalMinutes ?? null;
   const intervalLabel = interval ? `${interval}분 · 하루 ${formatNumber(raw.length)}건` : `하루 ${formatNumber(raw.length)}건`;
-
-  const calendar = useMemo(() => {
-    const cursor = dayjs(date);
-
-    return {
-      year: cursor.year(),
-      month: cursor.month(),
-      days: getMonthDays(plant?.id ?? null, cursor.year(), cursor.month()),
-      months: getYearMonths(plant?.id ?? null, cursor.year()),
-    };
-  }, [date, plant?.id]);
 
   const csvColumns: CsvColumn<OperationRaw>[] = [
     { header: '수집일시', value: (row) => row.at },
@@ -113,40 +102,7 @@ export function HistoryTab() {
 
   return (
     <div className={shared.tab}>
-      <CollectionFilter trailing={<p className={shared.toolbar__count}>인버터 {inverters.length}대</p>}>
-        <SegmentedControl
-          label="조회 단위"
-          size="sm"
-          options={CALENDAR_OPTIONS}
-          value={calendarView}
-          onChange={setCalendarView}
-        />
-      </CollectionFilter>
-
-      {/*
-        일·월 단위는 날씨와 발전시간을, 연도별은 달마다 발전시간·예상 수익금을 얹는다 (SFR-010-01/02).
-        연도별은 12개월 그리드라 날짜 칸이 없어 조회일은 그 달 1일로 옮긴다.
-      */}
-      <Reveal>
-        <Card
-          eyebrow="Calendar"
-          title={calendarView === 'year' ? '월별 운전 달력' : '일자별 운전 달력'}
-          description={calendarView === 'year'
-            ? '달마다 발전시간과 예상 수익금을 보여 줍니다. 칸을 누르면 그 달로 옮겨 갑니다.'
-            : '날짜마다 그 날 날씨와 발전시간, 예상 수익금을 함께 보여 줍니다. 칸을 누르면 조회일이 바뀝니다.'}
-        >
-          <DataCalendar
-            view={calendarView === 'year' ? 'year' : 'month'}
-            year={calendar.year}
-            month={calendar.month}
-            days={calendar.days}
-            months={calendar.months}
-            selected={calendarView === 'year' ? dayjs(date).format('YYYY-MM') : dayjs(date).format('YYYY-MM-DD')}
-            onSelect={(key) => setDate(dayjs(key.length === 7 ? `${key}-01` : key).toDate())}
-            onNavigate={(year, month) => setDate(dayjs(new Date(year, month ?? dayjs(date).month(), 1)).toDate())}
-          />
-        </Card>
-      </Reveal>
+      <CollectionFilter trailing={<p className={shared.toolbar__count}>인버터 {inverters.length}대</p>} />
 
       {!selected ? (
         <Card padding="none">
@@ -162,9 +118,12 @@ export function HistoryTab() {
             title={`${plantLabel} · ${selected.name} · 운전이력`}
             description="수집주기마다 올라온 계측값을 그대로 폅니다. 결측·이상 줄은 배경으로 갈라 두었습니다."
             action={(
-              <Button variant="secondary" size="sm" iconLeft={<ExcelIcon />} onClick={download}>
-                엑셀 내려받기
-              </Button>
+              <div className={styles.actions}>
+                <SegmentedControl label="보기 방식" size="sm" options={VIEW_OPTIONS} value={view} onChange={setView} />
+                <Button variant="secondary" size="sm" iconLeft={<ExcelIcon />} onClick={download}>
+                  엑셀 내려받기
+                </Button>
+              </div>
             )}
             padding="none"
           >
@@ -186,17 +145,43 @@ export function HistoryTab() {
                 <span className={styles.criteria__key}>수집주기</span>
                 <span className={styles.criteria__value}>{intervalLabel}</span>
               </span>
+              {/*
+                통신상태와 인버터 상태를 함께 적는다 (SFR-009-01/03).
+                계측이 비어 있을 때 인버터가 선 것인지 RTU가 끊긴 것인지 여기서 갈린다.
+              */}
+              <span className={styles.criteria__item}>
+                <span className={styles.criteria__key}>통신상태</span>
+                <Badge tone={RTU_TONE[rtu?.status ?? 'normal']} withDot>
+                  {RTU_LABEL[rtu?.status ?? 'normal']}
+                </Badge>
+              </span>
+              <span className={styles.criteria__item}>
+                <span className={styles.criteria__key}>인버터 상태</span>
+                <Badge tone={OPERATION_TONE[selected.ownStatus]} withDot>
+                  {OPERATION_LABEL[selected.ownStatus]}
+                </Badge>
+              </span>
             </div>
 
-            <OperationTable rows={pageRows} threePhase={selected.phase === 'three'} />
+            {/* 표는 한 줄씩 확인하는 자리, 그래프는 하루의 모양을 보는 자리다 (SFR-010-03/04). */}
+            {view === 'table' ? (
+              <OperationTable rows={pageRows} threePhase={selected.phase === 'three'} />
+            ) : (
+              <div className={styles.chartWrap}>
+                {/* 그래프는 하루 전체를 시간 순으로 본다 — 표처럼 최신순으로 자르지 않는다. */}
+                <OperationChart rows={[...raw].reverse()} inverterName={selected.name} />
+              </div>
+            )}
 
-            <Pagination
-              page={currentPage}
-              pageCount={pageCount}
-              totalCount={raw.length}
-              onChange={setPage}
-              label="운전이력"
-            />
+            {view === 'table' ? (
+              <Pagination
+                page={currentPage}
+                pageCount={pageCount}
+                totalCount={raw.length}
+                onChange={setPage}
+                label="운전이력"
+              />
+            ) : null}
           </Card>
         </Reveal>
       )}

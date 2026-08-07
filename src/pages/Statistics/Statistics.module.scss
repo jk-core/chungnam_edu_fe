@@ -273,6 +273,17 @@
   }
 }
 
+// 눌러 봐야 갈 데가 없는 카드 — 읽을거리로만 둔다.
+.inverterCard--static {
+  cursor: default;
+
+  &:hover {
+    transform: none;
+    border-color: var(--border-subtle);
+    box-shadow: none;
+  }
+}
+
 .inverterCard--abnormal {
   border-color: color-mix(in srgb, var(--critical) 28%, transparent);
 }
@@ -630,5 +641,33 @@
     color: var(--text);
 
     @include t.body-md;
+  }
+}
+
+// ── 환경 기여도 (발전정보 요약 안으로 들여왔다) ──────────────
+.ecoGrid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: s.$space-4;
+  margin: s.$space-4 0 0;
+  padding-top: s.$space-4;
+  border-top: 1px solid var(--border-subtle);
+
+  @include media.mobile {
+    grid-template-columns: 1fr;
+  }
+
+  dt {
+    @include t.label-sm;
+
+    margin-bottom: 2px;
+    color: var(--text-faint);
+  }
+
+  dd {
+    @include t.data-md;
+
+    margin: 0;
+    color: var(--ok-text);
   }
 }

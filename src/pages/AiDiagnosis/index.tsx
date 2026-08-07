@@ -1,11 +1,13 @@
 import { Navigate, useParams } from 'react-router-dom';
 import { PATH } from '@/routes/routes';
+import { MonthlyTab } from '@/pages/Reports/components/MonthlyTab';
+import { AlertsTab } from './components/AlertsTab';
 import { DiagnosisTab } from './components/DiagnosisTab';
-import { ScheduleTab } from './components/ScheduleTab';
 
 const TABS = {
   overview: DiagnosisTab,
-  schedule: ScheduleTab,
+  monthly: MonthlyTab,
+  alerts: AlertsTab,
 } as const;
 
 type TabKey = keyof typeof TABS;

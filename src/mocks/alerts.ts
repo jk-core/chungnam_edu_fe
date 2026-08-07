@@ -26,7 +26,7 @@ const TEMPLATES: Template[] = [
     type: '통신',
     severity: 'critical',
     title: '인버터 통신 두절',
-    description: '수집장치가 인버터 응답을 15분 이상 받지 못했습니다.',
+    description: 'RTU가 인버터 응답을 15분 이상 받지 못했습니다.',
     device: '인버터 #1',
     typicalMinutes: 620,
     actionNote: '현장 통신 모뎀 재기동 후 정상 수집 확인',
@@ -96,7 +96,7 @@ const TEMPLATES: Template[] = [
     severity: 'info',
     title: '수집 지연',
     description: '계측값이 예정 시각보다 30분 이상 늦게 들어왔습니다.',
-    device: '수집장치',
+    device: 'RTU',
     typicalMinutes: 60,
   },
 ];
@@ -212,7 +212,7 @@ export const ALERT_RULES: AlertRule[] = [
   {
     id: 'RULE-01',
     label: '통신 두절',
-    description: '수집장치가 인버터 응답을 받지 못한 상태가 이어질 때',
+    description: 'RTU가 인버터 응답을 받지 못한 상태가 이어질 때',
     type: '통신',
     severity: 'critical',
     threshold: '15분 이상',

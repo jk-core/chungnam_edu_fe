@@ -5,7 +5,6 @@ import { ChevronDownIcon } from '@/components/common/Icon';
 import { OPERATION_LABEL, OPERATION_TONE } from '@/mocks/status';
 import { PATH } from '@/routes/routes';
 import { PlantPicker } from '@/components/plant/PlantPicker';
-import { PlantSummary } from '@/components/plant/PlantSummary';
 import { PlantTree } from '@/components/plant/PlantTree';
 import { REGION_TOTAL } from '@/mocks/regions';
 import { cn } from '@/utils/cn';
@@ -27,8 +26,15 @@ export function PlantScopePanel() {
   const toggleScope = useToggleScope();
   const bodyId = useId();
 
-  // AI진단은 채널을 판정 대상으로 삼지 않는다. 센트럴형은 접속반, 스트링형은 스트링이 최말단이다.
-  const disabledKinds: NodeKind[] = pathname.startsWith(PATH.AI_DIAGNOSIS) ? ['channel'] : [];
+  /*
+   * 화면마다 파고들 수 있는 깊이가 다르다.
+   * - AI진단: 스트링·접속반까지 판정한다. 채널은 계측 조회용이라 대상이 아니다.
+   * - 그 밖(발전통계·운전이력 등): 인버터까지가 조회 단위라 그 아래는 트리에서 끊는다.
+   *   흐리게 두고 못 누르게 하는 것보다, 없는 계층은 안 보이는 편이 덜 헷갈린다.
+   */
+  const isDiagnosis = pathname.startsWith(PATH.AI_DIAGNOSIS);
+  const disabledKinds: NodeKind[] = isDiagnosis ? ['channel'] : [];
+  const stopAt: NodeKind | undefined = isDiagnosis ? undefined : 'inverter';
   const capacity = formatCapacity(node.kind === 'root' ? REGION_TOTAL.capacityKw : node.capacityKw);
 
   return (
@@ -71,16 +77,12 @@ export function PlantScopePanel() {
       <div id={bodyId} className={styles.panel__collapse} data-open={isOpen} inert={!isOpen}>
         <div className={styles.panel__clip}>
           <div className={styles.panel__inner}>
+            {/* 선택 버튼과 대상 요약은 한 덩어리다 — 좁은 컬럼에서 따로 두면 자리만 먹는다. */}
             <div className={styles.panel__pick}>
-              <PlantPicker variant="block" />
-
-              {/* 요약은 은은한 바탕으로 묶어 선택기·트리와 구획을 나눈다. */}
-              <div className={styles.panel__summary}>
-                <PlantSummary orientation="column" />
-              </div>
+              <PlantPicker variant="summary" />
             </div>
 
-            <PlantTree disabledKinds={disabledKinds} />
+            <PlantTree disabledKinds={disabledKinds} stopAt={stopAt} />
           </div>
         </div>
       </div>

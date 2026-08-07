@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import { useParams } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import { SolarEduLayout } from '@/layouts/SolarEduLayout';
 import { DayCurvePanel } from '@/components/solar-edu/DayCurvePanel';
 import { HeadlineStrip } from '@/components/solar-edu/HeadlineStrip';
@@ -9,6 +9,10 @@ import { SunPathPanel } from '@/components/solar-edu/SunPathPanel';
 import { buildEduStats, EDU_FACTS } from '@/mocks/solarEdu';
 import { getDayWeather } from '@/mocks/weather';
 import { getNode } from '@/mocks/tree';
+import { getSchoolById, SCHOOLS } from '@/mocks/schools';
+import { buildPath } from '@/routes/buildPath';
+import { PATH } from '@/routes/routes';
+import { formatNumber } from '@/utils/format';
 import { TODAY } from '@/mocks/today';
 import { useAutoPager } from '@/hooks/useAutoPager';
 import { useAutoRefresh } from '@/hooks/useAutoRefresh';
@@ -66,6 +70,7 @@ function kstHourOf(date: Date): number {
  */
 function SolarEduPage() {
   const { orgId } = useParams<{ orgId: string }>();
+  const navigate = useNavigate();
   // 한 줄씩 넘기는 것도 쪽 넘김이라, 관제 화면과 같은 장치를 쓴다 — 눌러서 되돌려 볼 수 있다.
   const fact = useAutoPager({ total: EDU_FACTS.length, perPage: 1, intervalMs: FACT_MS });
   // 화면을 주기적으로 되그린다. 실제 API 로 바뀌면 이 틱이 재조회 시점이 된다 (SFR-005-09).
@@ -85,9 +90,31 @@ function SolarEduPage() {
   const stats = useMemo(() => buildEduStats(node, nowHour), [node, nowHour]);
   const weather = useMemo(() => getDayWeather(node.plantId, TODAY.toDate()).kind, [node]);
 
+  // 상황판은 학교마다 걸린다 — 어느 학교를 띄울지 여기서 고른다 (회의 결정).
+  const plant = node.plantId ? getSchoolById(node.plantId) : null;
+  const scopeInfo = plant
+    ? `설비용량 ${formatNumber(plant.capacityKw, 1)}kW · 인버터 ${plant.inverterCount}대 · ${plant.installedAt} 설치`
+    : `관내 ${formatNumber(SCHOOLS.length)}개 학교를 합쳐서 봅니다`;
+
   return (
     <SolarEduLayout
       scopeLabel={node.fullName}
+      scopeInfo={scopeInfo}
+      scopePicker={(
+        <select
+          className={styles.schoolPicker}
+          value={node.plantId ?? ''}
+          aria-label="학교 고르기"
+          onChange={(event) => navigate(event.target.value ? buildPath.solarEdu(event.target.value) : PATH.SOLAR_EDU)}
+        >
+          <option value="">충청남도 전체</option>
+          {SCHOOLS.map((school) => (
+            <option key={school.id} value={school.id}>
+              {school.name}
+            </option>
+          ))}
+        </select>
+      )}
       weather={weather}
       isLive={stats.isLive}
       clock={timeFormat.format(now)}

@@ -10,6 +10,10 @@ interface CollectionHealthProps {
   rows: CollectionStatus[];
   /** 품질 기준(95%)에 못 미쳐 AI 학습에서 빠진 개소 */
   belowThreshold: number;
+  /** 마지막으로 값이 들어온 시각 (SFR-004-04) */
+  collectedAt: string;
+  /** 수집이 늦고 있는지 — 늦으면 시각을 경고색으로 적는다 */
+  isStale: boolean;
 }
 
 /**
@@ -19,7 +23,7 @@ interface CollectionHealthProps {
  * 관제 화면에서 가장 먼저 무너지는 것이 수집이고, 연동률 95% 는 이 사업의 검수 기준이자
  * AI 학습에 데이터를 쓸 수 있는지를 가르는 선이라 그 선을 눈금으로 그려 둔다.
  */
-export function CollectionHealth({ rows, belowThreshold }: CollectionHealthProps) {
+export function CollectionHealth({ rows, belowThreshold, collectedAt, isStale }: CollectionHealthProps) {
   const expected = rows.reduce((sum, row) => sum + row.expected, 0);
   const missing = rows.reduce((sum, row) => sum + row.missing, 0);
   const rate = expected > 0 ? (expected - missing) / expected : 0;
@@ -30,6 +34,10 @@ export function CollectionHealth({ rows, belowThreshold }: CollectionHealthProps
     <div className={styles.health}>
       <p className={styles.health__head}>
         <span className={styles.health__label}>수집 연동 현황</span>
+        {/* 지금 보는 값이 언제 것인지 (SFR-004-04) — 헤더에서 이 자리로 옮겼다 */}
+        <span className={isStale ? styles['health__stamp--stale'] : styles.health__stamp}>
+          최근 수집 {collectedAt}
+        </span>
         <span className={meetsTarget ? styles.health__rate : styles['health__rate--low']}>
           {formatPercent(rate, 1)}
         </span>
@@ -56,7 +64,7 @@ export function CollectionHealth({ rows, belowThreshold }: CollectionHealthProps
         <span className={styles.health__missing}>미수신 {formatNumber(missing)}건</span>
       </p>
 
-      {/* 인버터 고장과 수집장치 고장은 원인이 달라 따로 센다 (SFR-009-03) */}
+      {/* 인버터 고장과 RTU 고장은 원인이 달라 따로 센다 (SFR-009-03) */}
       <ul className={styles.health__rtu}>
         {RTU_ORDER.map((status) => (
           <li key={status} className={styles.health__rtuItem}>
@@ -64,7 +72,7 @@ export function CollectionHealth({ rows, belowThreshold }: CollectionHealthProps
               className={`${styles.health__dot} ${styles[`health__dot--${RTU_TONE[status]}`]}`}
               aria-hidden="true"
             />
-            수집장치 {RTU_LABEL[status]}
+            RTU {RTU_LABEL[status]}
             <span className={styles.health__rtuValue}>{formatNumber(rtu[status])}</span>
           </li>
         ))}

@@ -43,6 +43,37 @@
   font-family: var(--font-data);
 }
 
+/*
+  1~3위 왕관. 금·은·동은 색만 다르고 모양은 같아, 색을 못 가리는 자리에서는
+  옆에 숨겨 둔 "1위" 글자가 대신 읽힌다 (COR-003).
+*/
+.rank__medal {
+  display: grid;
+  place-items: center;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+}
+
+.medal--gold {
+  background-color: color-mix(in srgb, #d4a017 24%, transparent);
+  color: #b8860b;
+}
+
+.medal--silver {
+  background-color: color-mix(in srgb, #8c93a3 24%, transparent);
+  color: #6f7686;
+}
+
+.medal--bronze {
+  background-color: color-mix(in srgb, #b06a35 24%, transparent);
+  color: #96551f;
+}
+
+.srOnly {
+  @include mx.sr-only;
+}
+
 .rank__body {
   min-width: 0;
 }

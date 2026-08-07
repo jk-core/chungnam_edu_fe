@@ -1,14 +1,26 @@
+import { useState } from 'react';
 import { Badge } from '@/components/common/Badge';
 import { isAbnormal, OPERATION_LABEL, OPERATION_RANK, OPERATION_TONE } from '@/mocks/status';
 import { formatDuration, formatNumber } from '@/utils/format';
-import { useAutoPager } from '@/hooks/useAutoPager';
 import type { CollectionStatus } from '@/interface/collection';
 import type { School } from '@/interface/energy';
-import { PagerBar } from './PagerBar';
+import { SegmentedControl } from '@/components/common/SegmentedControl';
 import styles from './FaultList.module.scss';
 
-/** 한 쪽이 머무는 시간 — 목록을 훑을 만큼은 준다 */
-const PAGE_MS = 7000;
+/*
+  정렬 기준 (SFR-004-13).
+
+  기본은 상태 우선 — 값이 아예 끊긴 통신단절이 맨 위, 그 다음이 경고·주의다.
+  다만 "어느 설비가 가장 오래 손을 안 탔나", "큰 설비부터 보자" 같은 판단도 자주 필요해
+  운영자가 축을 바꿔 볼 수 있게 둔다.
+*/
+type SortKey = 'status' | 'stale' | 'capacity';
+
+const SORT_OPTIONS: { value: SortKey; label: string }[] = [
+  { value: 'status', label: '상태순' },
+  { value: 'stale', label: '미수신순' },
+  { value: 'capacity', label: '용량순' },
+];
 
 interface FaultListProps {
   /** 전체 발전소 — 이 중 이상 상태만 추린다 */
@@ -26,14 +38,25 @@ interface FaultListProps {
  * 값이 아예 끊긴 통신단절이 맨 위, 그 다음이 경고·주의다.
  */
 export function FaultList({ plants, collection }: FaultListProps) {
+  const [sort, setSort] = useState<SortKey>('status');
+
+  const byStatus = (a: School, b: School) =>
+    OPERATION_RANK[a.status] - OPERATION_RANK[b.status] || b.capacityKw - a.capacityKw;
+
   const faults = plants
     .filter((plant) => isAbnormal(plant.status))
-    .sort((a, b) => OPERATION_RANK[a.status] - OPERATION_RANK[b.status] || b.capacityKw - a.capacityKw);
+    .sort((a, b) => {
+      if (sort === 'stale') {
+        const delay = (plant: School) => collection.get(plant.id)?.delayMinutes ?? 0;
 
-  // 벽면 모니터에는 굴려 줄 사람이 없다. 칸에 담기는 만큼만 두고 나머지는 저절로 넘긴다.
-  const {
-    frameRef, itemRef, from, to, page, pageCount, turnKey, paused, togglePause, goTo, next, prev,
-  } = useAutoPager<HTMLDivElement, HTMLLIElement>({ total: faults.length, intervalMs: PAGE_MS });
+        // 오래 끊긴 것부터. 같으면 상태 우선순위로 갈라 준다.
+        return delay(b) - delay(a) || byStatus(a, b);
+      }
+
+      if (sort === 'capacity') return b.capacityKw - a.capacityKw || byStatus(a, b);
+
+      return byStatus(a, b);
+    });
 
   if (faults.length === 0) {
     return <p className={styles.empty}>지금 손봐야 할 설비가 없습니다.</p>;
@@ -41,33 +64,32 @@ export function FaultList({ plants, collection }: FaultListProps) {
 
   return (
     <div className={styles.wrap}>
-      <div ref={frameRef} className={styles.frame}>
-        {/* 쪽이 갈릴 때마다 새로 만들어야 옆에서 밀려 들어오는 움직임이 다시 돈다 */}
-        <ul key={turnKey} className={styles.list}>
-          {faults.slice(from, to).map((plant, index) => {
+      <div className={styles.sort}>
+        <span className={styles.sort__label}>정렬</span>
+        <SegmentedControl label="정렬 기준" size="sm" options={SORT_OPTIONS} value={sort} onChange={setSort} />
+      </div>
+
+      {/* 손으로 굴려 다 볼 수 있게 둔다 — 쪽을 넘기면 지나간 줄을 다시 찾기 어렵다. */}
+      <div className={styles.frame}>
+        <ul className={styles.list}>
+          {faults.map((plant) => {
             const status = collection.get(plant.id);
 
             return (
-              <li
-                key={plant.id}
-                ref={index === 0 ? itemRef : undefined}
-                className={`${styles.row} ${styles[`row--${OPERATION_TONE[plant.status]}`]}`}
-              >
+              <li key={plant.id} className={`${styles.row} ${styles[`row--${OPERATION_TONE[plant.status]}`]}`}>
                 <span className={styles.row__main}>
                   <span className={styles.row__name}>{plant.name}</span>
                   <span className={styles.row__region}>{plant.regionName}</span>
                 </span>
 
-                <Badge tone={OPERATION_TONE[plant.status]} withDot>
-                  {OPERATION_LABEL[plant.status]}
-                </Badge>
-
+                {/*
+                  발전량은 여기서 답할 질문이 아니다 — 이 목록은 "무엇이 얼마나 급한가" 만 본다.
+                  상태와, 값이 언제부터 안 들어오는지만 위아래로 둔다.
+                */}
                 <span className={styles.row__figures}>
-                  <span className={styles.row__kwh}>
-                    {formatNumber(plant.todayKwh)}
-                    <span className={styles.row__unit}>kWh</span>
-                  </span>
-                  {/* 값이 언제부터 안 들어오는지가 대응 순서를 가른다 */}
+                  <Badge tone={OPERATION_TONE[plant.status]} withDot>
+                    {OPERATION_LABEL[plant.status]}
+                  </Badge>
                   <span className={status && status.delayMinutes > 15 ? styles.row__stale : styles.row__delay}>
                     {status ? `${formatDuration(status.delayMinutes)} 전 수신` : '수집 정보 없음'}
                   </span>
@@ -78,14 +100,7 @@ export function FaultList({ plants, collection }: FaultListProps) {
         </ul>
       </div>
 
-      <PagerBar
-        page={page}
-        pageCount={pageCount}
-        turnKey={turnKey}
-        intervalMs={PAGE_MS}
-        total={faults.length}
-        controls={{ paused, onTogglePause: togglePause, onGo: goTo, onPrev: prev, onNext: next }}
-      />
+      <p className={styles.count}>전체 {formatNumber(faults.length)}건</p>
     </div>
   );
 }

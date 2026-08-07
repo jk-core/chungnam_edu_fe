@@ -10,6 +10,9 @@ import {
   WEEKDAY_LABELS,
 } from '@/utils/date';
 import { cn } from '@/utils/cn';
+import { getMonthDays } from '@/mocks/weather';
+import { usePlantScope } from '@/hooks/usePlantScope';
+import { WeatherIcon } from '@/components/common/DataCalendar/WeatherIcon';
 import type { Granularity } from '@/utils/date';
 import styles from './Calendar.module.scss';
 
@@ -38,6 +41,7 @@ interface CalendarProps {
 export function Calendar({ mode, selected, range, preview, onPreview, onSelect }: CalendarProps) {
   const scrollRef = useRef<HTMLDivElement>(null);
   const anchorRef = useRef<HTMLDivElement>(null);
+  const { plant } = usePlantScope();
 
   const months = useMemo(
     () => (mode === 'day' ? listMonths(DAY_CALENDAR_MIN, CALENDAR_MAX) : []),
@@ -109,44 +113,63 @@ export function Calendar({ mode, selected, range, preview, onPreview, onSelect }
 
       <div className={styles.calendar__scroller} ref={scrollRef} tabIndex={0} role="group" aria-label="달력">
         {mode === 'day'
-          ? months.map((month) => (
-            <section
-              key={month.key}
-              className={styles.calendar__section}
-              ref={month.key === anchorKey ? anchorRef : undefined}
-            >
-              <h3 className={styles.calendar__monthTitle}>{month.label}</h3>
-              <div className={styles.calendar__grid}>
-                {buildMonthGrid(month.year, month.month).map((date, index) => {
-                  if (!date) return <span key={`empty-${index}`} className={styles.calendar__empty} />;
+          ? months.map((month) => {
+            /*
+              그 달 날씨를 한 번만 읽어 날짜로 꺼내 쓴다 (SFR-007-01).
+              목업이 날짜별로 값을 캐시하므로 달마다 다시 만들어도 값이 흔들리지 않는다.
+            */
+            const weather = new Map(
+              getMonthDays(plant?.id ?? null, month.year, month.month)
+                .map((item) => [Number(item.date.slice(8, 10)), item.kind]),
+            );
 
-                  const state = dayState(date);
-                  const isToday = date.isSame(dayjs(), 'day');
+            return (
+              <section
+                key={month.key}
+                className={styles.calendar__section}
+                ref={month.key === anchorKey ? anchorRef : undefined}
+              >
+                <h3 className={styles.calendar__monthTitle}>{month.label}</h3>
+                <div className={styles.calendar__grid}>
+                  {buildMonthGrid(month.year, month.month).map((date, index) => {
+                    if (!date) return <span key={`empty-${index}`} className={styles.calendar__empty} />;
 
-                  return (
-                    <button
-                      key={date.format('YYYY-MM-DD')}
-                      type="button"
-                      className={cn(styles.day, {
-                        [styles['day--selected']]: state.selected,
-                        [styles['day--start']]: state.start,
-                        [styles['day--end']]: state.end,
-                        [styles['day--inRange']]: state.inRange,
-                        [styles['day--today']]: isToday,
-                        [styles['day--weekend']]: date.day() === 0 || date.day() === 6,
-                      })}
-                      aria-pressed={state.selected}
-                      aria-label={`${date.year()}년 ${date.month() + 1}월 ${date.date()}일`}
-                      onClick={() => onSelect(date.toDate())}
-                      onMouseEnter={() => onPreview?.(date.toDate())}
-                    >
-                      {date.date()}
-                    </button>
-                  );
-                })}
-              </div>
-            </section>
-          ))
+                    const state = dayState(date);
+                    const isToday = date.isSame(dayjs(), 'day');
+                    const kind = weather.get(date.date()) ?? null;
+
+                    return (
+                      <button
+                        key={date.format('YYYY-MM-DD')}
+                        type="button"
+                        className={cn(styles.day, {
+                          [styles['day--selected']]: state.selected,
+                          [styles['day--start']]: state.start,
+                          [styles['day--end']]: state.end,
+                          [styles['day--inRange']]: state.inRange,
+                          [styles['day--today']]: isToday,
+                          [styles['day--weekend']]: date.day() === 0 || date.day() === 6,
+                        })}
+                        aria-pressed={state.selected}
+                        aria-label={`${date.year()}년 ${date.month() + 1}월 ${date.date()}일`}
+                        onClick={() => onSelect(date.toDate())}
+                        onMouseEnter={() => onPreview?.(date.toDate())}
+                      >
+                        <span className={styles.day__number}>{date.date()}</span>
+                        {kind ? (
+                          <WeatherIcon
+                            kind={kind}
+                            size={12}
+                            className={cn(styles.day__weather, styles[`day__weather--${kind}`])}
+                          />
+                        ) : null}
+                      </button>
+                    );
+                  })}
+                </div>
+              </section>
+            );
+          })
           : null}
 
         {mode === 'month'

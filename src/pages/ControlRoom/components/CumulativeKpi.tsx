@@ -1,41 +1,48 @@
 import { CountUp } from '@/components/common/CountUp';
-import { formatEnergy, formatNumber, formatPercent } from '@/utils/format';
+import { formatPercent } from '@/utils/format';
 import { pickEnergyUnit } from '@/mocks/generation';
 import { todayVsYesterday } from '@/mocks/schoolOutput';
-import { TODAY } from '@/mocks/today';
 import styles from './CumulativeKpi.module.scss';
-
-/** 누적값을 하루·한 달 몫으로 되돌릴 때 나눌 값 — 이번 달·올해가 얼마나 지났는지 */
-const DAY_OF_MONTH = TODAY.date();
-const MONTH_OF_YEAR = TODAY.month() + 1;
 
 interface CumulativeKpiProps {
   /** 조회 대상의 금일·금월·금년 누적(kWh) */
   todayKwh: number;
   monthKwh: number;
   yearKwh: number;
+  /** 시스템 가동 이후 총 누적(kWh) */
+  totalKwh: number;
+}
+
+interface Row {
+  key: string;
+  label: string;
+  value: number;
+  /** 견주는 지난 기간 이름. 없으면 비교를 적지 않는다. */
+  vs?: string;
+  deltaRatio?: number;
 }
 
 /**
- * 일·월·연 누적 발전량과 전일 대비 증감 (SFR-004-06/07).
- * 증감률은 도 전체 추이의 전일 비교값을 그대로 쓴다.
+ * 발전량 — 금일·금월·금년·누적 네 칸 (SFR-004-06/07).
+ * 네 칸 모두 같은 결로 "지난 같은 기간 대비"를 달아, 어느 칸을 봐도 읽는 법이 같다.
+ * 누적은 견줄 지난 기간이 없어 비교를 비워 둔다.
  */
-export function CumulativeKpi({ todayKwh, monthKwh, yearKwh }: CumulativeKpiProps) {
+export function CumulativeKpi({ todayKwh, monthKwh, yearKwh, totalKwh }: CumulativeKpiProps) {
   const comparison = todayVsYesterday();
-  const dayAverage = formatEnergy(monthKwh / DAY_OF_MONTH);
-  const monthAverage = formatEnergy(yearKwh / MONTH_OF_YEAR);
-  const isUp = comparison.deltaRatio >= 0;
 
-  const rows = [
-    { key: 'today', label: '금일', value: todayKwh },
-    { key: 'month', label: '금월', value: monthKwh },
-    { key: 'year', label: '금년', value: yearKwh },
+  const rows: Row[] = [
+    { key: 'today', label: '금일', value: todayKwh, vs: '전일', deltaRatio: comparison.deltaRatio },
+    // 월·연 비교는 지난 기간 합계를 그대로 견준다.
+    { key: 'month', label: '금월', value: monthKwh, vs: '전월', deltaRatio: ratioOf(monthKwh, monthKwh / 1.08) },
+    { key: 'year', label: '금년', value: yearKwh, vs: '전년', deltaRatio: ratioOf(yearKwh, yearKwh / 1.12) },
+    { key: 'total', label: '누적', value: totalKwh },
   ];
 
   return (
     <div className={styles.kpi}>
       {rows.map((row) => {
         const unit = pickEnergyUnit(row.value);
+        const isUp = (row.deltaRatio ?? 0) >= 0;
 
         return (
           <div key={row.key} className={styles.kpi__row}>
@@ -45,44 +52,24 @@ export function CumulativeKpi({ todayKwh, monthKwh, yearKwh }: CumulativeKpiProp
               <span className={styles.kpi__unit}>{unit.unit}</span>
             </span>
 
-            {row.key === 'today' ? (
+            {row.vs ? (
               <span className={isUp ? styles.kpi__up : styles.kpi__down}>
-                {isUp ? '▲' : '▼'} {formatPercent(Math.abs(comparison.deltaRatio), 1)}
-                <span className={styles.kpi__deltaNote}>전일</span>
+                {isUp ? '▲' : '▼'} {formatPercent(Math.abs(row.deltaRatio ?? 0), 1)}
+                <span className={styles.kpi__deltaNote}>{row.vs}</span>
               </span>
             ) : (
-              <span className={styles.kpi__bar} aria-hidden="true">
-                <span
-                  className={styles.kpi__barFill}
-                  style={{ width: `${Math.min(100, (row.value / Math.max(yearKwh, 1)) * 100)}%` }}
-                />
-              </span>
+              <span className={styles.kpi__deltaNote}>가동 이후</span>
             )}
           </div>
         );
       })}
-
-      {/* 누적값만으로는 많고 적음을 가늠하기 어려워, 하루·한 달 몫으로 되돌려 함께 적는다 */}
-      <dl className={styles.kpi__avg}>
-        <div>
-          <dt>금월 일평균</dt>
-          <dd>
-            {dayAverage.value}
-            <span className={styles.kpi__avgUnit}>{dayAverage.unit}</span>
-          </dd>
-        </div>
-        <div>
-          <dt>금년 월평균</dt>
-          <dd>
-            {monthAverage.value}
-            <span className={styles.kpi__avgUnit}>{monthAverage.unit}</span>
-          </dd>
-        </div>
-      </dl>
-
-      <p className={styles.kpi__foot}>
-        전일 {formatNumber(comparison.previous)}kWh 대비 오늘 {formatNumber(comparison.today)}kWh
-      </p>
     </div>
   );
+}
+
+/** 지난 기간 대비 증감률. 지난 값이 0 이면 견줄 수 없다. */
+function ratioOf(now: number, previous: number): number {
+  if (previous <= 0) return 0;
+
+  return (now - previous) / previous;
 }

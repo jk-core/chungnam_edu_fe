@@ -21,45 +21,37 @@
   gap: s.$space-3;
 }
 
-.search {
-  position: relative;
-  flex: 1;
-  min-width: 220px;
+// 걸어 둔 조건 되짚기
+.chips {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: s.$space-2;
+  list-style: none;
 }
 
-.search__icon {
-  position: absolute;
-  top: 50%;
-  left: s.$space-3;
-  color: var(--text-faint);
-  transform: translateY(-50%);
-  pointer-events: none;
+.chips__item {
+  @include t.caption;
+
+  padding: 3px s.$space-3;
+  border-radius: s.$radius-full;
+  background-color: var(--brand-soft);
+  color: var(--brand-contrast);
 }
 
-.search__input {
-  @include t.body-sm;
+.chips__clear {
+  @include t.caption;
 
-  width: 100%;
-  height: 40px;
-  padding: 0 s.$space-3 0 s.$space-9;
-  border: 1px solid var(--border);
-  border-radius: s.$radius-sm;
-  background-color: var(--surface);
-  color: var(--text-strong);
+  padding: 3px s.$space-2;
+  border-radius: s.$radius-full;
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: background-color 0.14s ease, color 0.14s ease;
 
-  &::placeholder {
-    color: var(--text-faint);
+  &:hover {
+    background-color: var(--surface-hover);
+    color: var(--text);
   }
-
-  &:focus-visible {
-    outline: none;
-    border-color: var(--brand);
-    box-shadow: var(--shadow-focus);
-  }
-}
-
-.filters__select {
-  min-width: 132px;
 }
 
 .filters__meta {
@@ -135,7 +127,7 @@
   }
 
   &:hover .row__go,
-  &:focus-visible .row__go {
+  :root[data-input="keyboard"] &:focus-visible .row__go {
     opacity: 1;
     transform: none;
   }

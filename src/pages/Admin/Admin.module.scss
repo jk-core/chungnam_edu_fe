@@ -457,3 +457,35 @@
 
   color: var(--text-muted);
 }
+
+// 스트링 일괄 편집 — 한 줄이 스트링 하나다. 표가 아니라 입력 줄이라 그리드로 세운다
+.stringList {
+  display: flex;
+  flex-direction: column;
+}
+
+.stringRow {
+  display: grid;
+  grid-template-columns: 90px minmax(0, 1fr) 110px 110px auto;
+  align-items: end;
+  gap: s.$space-3;
+  padding: s.$space-3 0;
+  border-bottom: 1px solid var(--border-subtle);
+
+  &:last-child {
+    border-bottom: 0;
+  }
+
+  @include media.tablet {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+.stringFoot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: s.$space-3;
+  margin-top: s.$space-4;
+}

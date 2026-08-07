@@ -24,7 +24,12 @@ type Filter = 'all' | BoardKind;
 const KIND_LABEL: Record<BoardKind, string> = { notice: '공지사항', qna: 'Q&A' };
 
 /** 공지사항·Q&A 게시판 (SFR-025) */
-export function BoardTab() {
+interface BoardTabProps {
+  /** 들어온 주소가 정한 첫 분류. 화면 안에서는 그대로 갈아 볼 수 있다. */
+  initialKind?: BoardKind;
+}
+
+export function BoardTab({ initialKind }: BoardTabProps = {}) {
   const user = useAuthUser();
   const write = useBoardStore((state) => state.write);
   const comment = useBoardStore((state) => state.comment);
@@ -34,7 +39,7 @@ export function BoardTab() {
   const patched = useBoardStore((state) => state.patched);
   const deleted = useBoardStore((state) => state.deleted);
 
-  const [filter, setFilter] = useState<Filter>('all');
+  const [filter, setFilter] = useState<Filter>(initialKind ?? 'all');
   const [openId, setOpenId] = useState<string | null>(null);
   const [isWriting, setIsWriting] = useState(false);
   const [commentBody, setCommentBody] = useState('');

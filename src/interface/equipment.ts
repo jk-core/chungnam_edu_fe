@@ -38,7 +38,7 @@ export interface Inverter {
   status: OperationStatus;
   /** 인버터 자체의 발전 상태 — 통신 문제를 걷어 낸 값 (SFR-009-03) */
   ownStatus: OperationStatus;
-  /** 이 인버터를 물고 있는 수집장치 상태 */
+  /** 이 인버터를 물고 있는 RTU 상태 */
   rtuStatus: RtuStatus;
   /** 검출된 고장코드. 정상이면 null */
   faultCode: DiagnosisFaultCode | null;
@@ -111,4 +111,9 @@ export interface PerformancePoint {
   actualKwh: number;
   /** 기대 발전량(kWh) */
   expectedKwh: number;
+  /**
+   * 발전성능비 PR(0~1) = 실측 ÷ 기대.
+   * 일사량으로 계산한 기대 발전량 대비 실제로 얼마나 만들었는지 — 설비 규모와 무관하게 견줄 수 있다.
+   */
+  pr: number;
 }

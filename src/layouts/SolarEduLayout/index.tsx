@@ -11,6 +11,10 @@ import type { ReactNode } from 'react';
 interface SolarEduLayoutProps {
   /** 조회 대상 이름 — 학교를 지정했으면 그 학교, 아니면 도 전체 */
   scopeLabel: string;
+  /** 학교를 고르는 손잡이. 상황판마다 다른 학교를 띄우기 위해 둔다. */
+  scopePicker?: ReactNode;
+  /** 학교 기본 정보 — 설비용량·설치일 등 한 줄 요약 */
+  scopeInfo?: string;
   weather: WeatherKind;
   /** 계측값이 들어오고 있는지 (SFR-005-10) */
   isLive: boolean;
@@ -36,6 +40,8 @@ interface SolarEduLayoutProps {
  */
 export function SolarEduLayout({
   scopeLabel,
+  scopePicker,
+  scopeInfo,
   weather,
   isLive,
   clock,
@@ -53,8 +59,12 @@ export function SolarEduLayout({
       <header className={styles.top}>
         <div className={styles.bar}>
           <div>
-            <p className={styles.bar__scope}>{scopeLabel}</p>
+            <p className={styles.bar__scope}>
+              {scopeLabel}
+              {scopePicker}
+            </p>
             <h1 className={styles.bar__title}>우리 학교 지붕이 만드는 전기</h1>
+            {scopeInfo ? <p className={styles.bar__info}>{scopeInfo}</p> : null}
           </div>
 
           <div className={styles.bar__right}>

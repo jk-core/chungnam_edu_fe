@@ -1,6 +1,7 @@
 @use "@/styles/tokens/spacing" as s;
 @use "@/styles/tokens/typography" as t;
 @use "@/styles/utils/media" as media;
+@use "@/styles/utils/mixins" as mx;
 
 .calendar {
   display: flex;
@@ -44,7 +45,7 @@
     height: 42dvh;
   }
 
-  &:focus-visible {
+  @include mx.keyboard-focus {
     outline: 2px solid var(--brand);
     outline-offset: -2px;
   }
@@ -93,8 +94,10 @@
 .day {
   position: relative;
   display: flex;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
+  gap: 1px;
   aspect-ratio: 1;
   min-height: 34px;
   background: none;
@@ -184,4 +187,30 @@
   border-color: var(--brand);
   color: var(--text-on-brand);
   font-weight: 700;
+}
+
+// 날짜 칸에 날씨를 얹는다 (SFR-007-01) — 숫자를 위, 아이콘을 아래에 둔다.
+.day__number {
+  line-height: 1;
+}
+
+.day__weather {
+  opacity: 0.85;
+}
+
+.day__weather--clear {
+  color: var(--solar);
+}
+
+.day__weather--partlyCloudy {
+  color: var(--brand);
+}
+
+.day__weather--cloudy,
+.day__weather--snow {
+  color: var(--text-faint);
+}
+
+.day__weather--rain {
+  color: var(--chart-irradiance);
 }

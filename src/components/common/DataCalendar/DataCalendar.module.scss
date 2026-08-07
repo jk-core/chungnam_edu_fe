@@ -9,6 +9,29 @@
   gap: s.$space-4;
 }
 
+// 여러 달·해를 이어 붙여 굴려 보는 자리 (ScrollCalendar)
+.scroll {
+  max-height: min(58vh, 520px);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+
+.scroll__section {
+  padding-bottom: s.$space-5;
+}
+
+// 어느 달을 보고 있는지 굴리는 동안에도 붙잡아 둔다.
+.scroll__label {
+  @include t.label-md;
+
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  padding: s.$space-2 0;
+  background-color: var(--surface-raised);
+  color: var(--text-strong);
+}
+
 .head {
   display: flex;
   align-items: center;
@@ -213,6 +236,63 @@
   @include media.mobile {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
+}
+
+/*
+  연도 목록. 한 줄에 넷씩 세 줄이 기본이고, 굴리면 네 해씩 이어 붙는다 —
+  칸 수를 4의 약수로만 둬야 마지막 줄에 한두 칸만 남는 빈자리가 생기지 않는다.
+*/
+.yearList {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: s.$space-2;
+
+  @include media.mobile {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+.yearCell {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: s.$space-3 s.$space-2;
+  border: 1px solid var(--border-subtle);
+  border-radius: s.$radius-sm;
+  background-color: var(--surface);
+  text-align: center;
+  transition: border-color 0.16s ease, background-color 0.16s ease;
+
+  &:hover {
+    border-color: var(--brand-soft-border);
+    background-color: var(--brand-soft);
+  }
+}
+
+.yearCell--selected {
+  border-color: var(--brand);
+  background-color: var(--brand-soft);
+  box-shadow: var(--shadow-focus);
+}
+
+.yearCell__label {
+  @include t.label-sm;
+
+  color: var(--text-muted);
+}
+
+.yearCell__hours {
+  @include t.data-md;
+
+  color: var(--text-strong);
+  font-variant-numeric: tabular-nums;
+}
+
+.yearCell__unit {
+  @include t.caption;
+
+  margin-left: 2px;
+  color: var(--text-muted);
 }
 
 .monthCell {

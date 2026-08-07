@@ -191,7 +191,7 @@ button.name__toggle {
 .chip--clickable {
   cursor: pointer;
 
-  &:focus-visible {
+  @include mx.keyboard-focus {
     outline-offset: -2px;
   }
 

@@ -139,3 +139,18 @@
 .health__dot--critical {
   background-color: var(--critical);
 }
+
+// 마지막으로 값이 들어온 시각 (SFR-004-04)
+.health__stamp,
+.health__stamp--stale {
+  @include t.caption;
+
+  margin-left: auto;
+  color: var(--text-faint);
+  font-family: var(--font-data);
+}
+
+// 수집이 늦으면 시각을 경고색으로 적는다.
+.health__stamp--stale {
+  color: var(--caution-text);
+}

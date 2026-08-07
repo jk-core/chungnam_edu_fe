@@ -1,6 +1,7 @@
 @use "@/styles/tokens/spacing" as s;
 @use "@/styles/tokens/typography" as t;
 @use "@/styles/utils/media" as media;
+@use "@/styles/utils/mixins" as mx;
 
 .gnb {
   @include media.tablet {
@@ -82,8 +83,11 @@
   border-radius: s.$radius-sm;
   transition: background-color 0.14s ease;
 
-  &:hover,
-  &:focus-visible {
+  &:hover {
+    background-color: var(--brand-soft);
+  }
+
+  @include mx.keyboard-focus {
     background-color: var(--brand-soft);
   }
 }

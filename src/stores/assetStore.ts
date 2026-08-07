@@ -15,6 +15,10 @@ interface AssetState {
   createPlant: (asset: PlantAsset, entry: AssetChange) => void;
   nextPlantId: () => string;
 
+  /** 삭제한 발전소 id (SFR-016-05) — 딸린 설비도 함께 감춘다 */
+  plantDeleted: string[];
+  removePlant: (plantId: string, entry: AssetChange) => void;
+
   /** 발전소 등록 정보 변경분 (SFR-016) */
   assetPatched: Record<string, Partial<PlantAsset>>;
   /** 수정 이력 — 저장할 때마다 앞에 쌓인다 (SFR-016-06) */
@@ -52,6 +56,15 @@ const useAssetStore = create<AssetState>()(
         })),
       // 시드는 학교 id 를 쓰므로 새 발전소는 겹치지 않는 앞자리를 둔다.
       nextPlantId: () => `NEW-${String(get().plantCreated.length + 1).padStart(3, '0')}`,
+
+      plantDeleted: [],
+      // 발전소를 지워도 누가 언제 지웠는지는 이력에 남긴다.
+      removePlant: (plantId, entry) =>
+        set((state) => ({
+          plantDeleted: [...new Set([...state.plantDeleted, plantId])],
+          plantCreated: state.plantCreated.filter((item) => item.plantId !== plantId),
+          changes: [entry, ...state.changes],
+        })),
 
       assetPatched: {},
       changes: [],
@@ -128,6 +141,14 @@ export function mergeAsset(
   const seed = created.find((item) => item.plantId === plantId) ?? getSeedAsset(plantId);
 
   return seed ? { ...seed, ...patched[plantId] } : null;
+}
+
+/**
+ * 삭제한 발전소 id 목록 (SFR-016-05).
+ * 장비 6종 화면이 저마다 이 목록으로 자기 줄을 걸러 낸다 — 발전소가 사라지면 딸린 설비도 감춘다.
+ */
+export function useDeletedPlants(): string[] {
+  return useAssetStore((state) => state.plantDeleted);
 }
 
 /** 시드 + 사용자 저장분이 합쳐진 수정 이력 */

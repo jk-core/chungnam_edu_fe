@@ -1,17 +1,18 @@
 import { useMemo, useState } from 'react';
 import { Badge } from '@/components/common/Badge';
 import { OPERATION_LABEL, OPERATION_TONE, RTU_LABEL, RTU_TONE } from '@/mocks/status';
-import { CheckIcon, SchoolIcon } from '@/components/common/Icon';
+import { CheckIcon, SchoolIcon, SearchIcon } from '@/components/common/Icon';
 import { EmptyState } from '@/components/common/EmptyState';
+import { KIND_LABEL } from '@/mocks/tree';
 import { Modal } from '@/components/common/Modal';
 import { REGIONS } from '@/mocks/regions';
-import { ROOT_ID } from '@/mocks/tree';
 import { SCHOOLS } from '@/mocks/schools';
 import { Select } from '@/components/common/Select';
 import { cn } from '@/utils/cn';
-import { formatNumber } from '@/utils/format';
+import { formatCapacity, formatNumber } from '@/utils/format';
 import { useAllowedPlantIds } from '@/hooks/useScopeClamp';
-import { useSelectedNode, useSelectNode } from '@/stores/plantStore';
+import { usePlantScope } from '@/hooks/usePlantScope';
+import { useSelectNode } from '@/stores/plantStore';
 import styles from './PlantPicker.module.scss';
 
 const REGION_OPTIONS = [
@@ -20,8 +21,11 @@ const REGION_OPTIONS = [
 ];
 
 interface PlantPickerProps {
-  /** block 은 좌측 컬럼에 들어가는 전체 폭 카드형 트리거다. */
-  variant?: 'inline' | 'block';
+  /**
+   * summary 는 좌측 컬럼용 — 선택 버튼과 대상 요약(주소·용량·상태)을 한 줄에 합친다.
+   * 따로 두면 좁은 컬럼에서 같은 내용이 두 번 자리를 먹는다.
+   */
+  variant?: 'inline' | 'summary';
 }
 
 /**
@@ -29,7 +33,7 @@ interface PlantPickerProps {
  * 발전소 아래 인버터·접속반·스트링·채널은 좌측 설비 구조 트리에서 고른다.
  */
 export function PlantPicker({ variant = 'inline' }: PlantPickerProps) {
-  const node = useSelectedNode();
+  const { node, plant } = usePlantScope();
   const selectNode = useSelectNode();
   const [isOpen, setIsOpen] = useState(false);
   const [query, setQuery] = useState('');
@@ -51,8 +55,9 @@ export function PlantPicker({ variant = 'inline' }: PlantPickerProps) {
     });
   }, [query, regionCode, isScoped, allowedIds]);
 
-  const isRoot = node.kind === 'root';
   const currentPlantId = node.plantId;
+  // 용량은 지금 보고 있는 계층 기준이다. 인버터까지 좁히면 그 인버터 용량이 나온다.
+  const capacity = formatCapacity(node.capacityKw);
 
   const choose = (id: string) => {
     selectNode(id);
@@ -61,18 +66,63 @@ export function PlantPicker({ variant = 'inline' }: PlantPickerProps) {
 
   return (
     <>
-      <button type="button" className={cn(styles.trigger, styles[`trigger--${variant}`])} onClick={() => setIsOpen(true)}>
-        <span className={styles.trigger__icon}>
-          <SchoolIcon />
-        </span>
-        <span className={styles.trigger__text}>
-          <span className={styles.trigger__eyebrow}>발전소</span>
-          <span className={styles.trigger__name}>
-            {isRoot ? '충청남도 전체' : (SCHOOLS.find((school) => school.id === currentPlantId)?.name ?? '')}
+      {variant === 'summary' ? (
+        <button
+          type="button"
+          className={cn(styles.trigger, styles['trigger--summary'])}
+          onClick={() => setIsOpen(true)}
+          aria-label={`조회 대상 ${node.name}. 누르면 발전소를 바꿉니다.`}
+        >
+          <span className={styles.trigger__icon}>
+            <SearchIcon />
           </span>
-        </span>
-        <span className={styles.trigger__action}>변경</span>
-      </button>
+
+          <span className={styles.trigger__text}>
+            <span className={styles.trigger__name}>{node.name}</span>
+            {/* 주소는 길면 잘리고 용량은 끝까지 남는다 — 좁은 칸에서 먼저 지킬 값이다. */}
+            <span className={styles.trigger__meta}>
+              <span className={styles.trigger__address}>{plant?.address ?? ''}</span>
+              <span className={styles.trigger__capacity}>
+                <span className={styles.trigger__dot} aria-hidden="true">·</span>
+                {capacity.value} {capacity.unit}
+              </span>
+            </span>
+          </span>
+
+          <span className={styles.trigger__status}>
+            <span className={styles.trigger__statusRow}>
+              <span className={styles.trigger__statusLabel}>
+                {KIND_LABEL[node.kind]}
+              </span>
+              <Badge tone={OPERATION_TONE[node.status]} withDot>
+                {OPERATION_LABEL[node.status]}
+              </Badge>
+            </span>
+
+            <span className={styles.trigger__statusRow}>
+              <span className={styles.trigger__statusLabel}>일사량계</span>
+              {plant ? (
+                <Badge tone={RTU_TONE[plant.pyranometerStatus]} withDot>
+                  {RTU_LABEL[plant.pyranometerStatus]}
+                </Badge>
+              ) : null}
+            </span>
+          </span>
+        </button>
+      ) : (
+        <button type="button" className={styles.trigger} onClick={() => setIsOpen(true)}>
+          <span className={styles.trigger__icon}>
+            <SchoolIcon />
+          </span>
+          <span className={styles.trigger__text}>
+            <span className={styles.trigger__eyebrow}>발전소</span>
+            <span className={styles.trigger__name}>
+              {SCHOOLS.find((school) => school.id === currentPlantId)?.name ?? ''}
+            </span>
+          </span>
+          <span className={styles.trigger__action}>변경</span>
+        </button>
+      )}
 
       <Modal
         isOpen={isOpen}
@@ -95,22 +145,12 @@ export function PlantPicker({ variant = 'inline' }: PlantPickerProps) {
           <Select label="시·군" value={regionCode} options={REGION_OPTIONS} onChange={setRegionCode} hideLabel />
         </div>
 
-        {/* 전체 합산 조회는 교육청 계정의 권한이다. */}
-        {!isScoped ? (
-          <button
-            type="button"
-            className={cn(styles.all, { [styles['all--selected']]: isRoot })}
-            onClick={() => choose(ROOT_ID)}
-          >
-            <span className={styles.all__text}>
-              <span className={styles.all__name}>충청남도 전체</span>
-              <span className={styles.all__meta}>관내 {formatNumber(SCHOOLS.length)}개 발전소를 합산해서 봅니다</span>
-            </span>
-            {isRoot ? <CheckIcon className={styles.all__check} /> : null}
-          </button>
-        ) : (
-          <p className={styles.count}>담당 학교의 발전소만 조회할 수 있습니다.</p>
-        )}
+        {/*
+          300개 전체 합산 조회는 화면으로 열지 않는다.
+          카드·차트·타임라인을 전 학교로 펴면 읽히지도 않고 응답도 무겁다 —
+          전체 집계가 필요하면 통합관제 상황판이나 관리자 콘솔에서 본다.
+        */}
+        {isScoped ? <p className={styles.count}>담당 학교의 발전소만 조회할 수 있습니다.</p> : null}
 
         <p className={styles.count}>{formatNumber(results.length)}개 발전소</p>
 

@@ -2,6 +2,7 @@ import { useEffect, useId, useMemo, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import { AnimatePresence, motion } from 'motion/react';
 import { Link } from 'react-router-dom';
+import { useDismissable } from '@/hooks/useDismissable';
 import { ALERT_RECORDS, alertDurationMinutes } from '@/mocks/alerts';
 import { Badge, SEVERITY_LABEL, SEVERITY_TONE } from '@/components/common/Badge';
 import { CloseIcon } from '@/components/common/Icon';
@@ -33,20 +34,13 @@ export function AlertPanel({ isOpen, onClose }: AlertPanelProps) {
   // 헤더 종에 붙는 숫자와 같은 셈법이어야 한다 — 목록을 20건으로 자른 것과 무관하게 전체를 센다.
   const pending = ALERT_RECORDS.filter((alert) => !alert.handled).length;
 
-  // ESC 로 닫고, 열리면 패널로 포커스를 옮긴다.
+  // 바깥을 누르거나 ESC 를 치면 닫는다.
+  useDismissable(isOpen, panelRef, onClose);
+
+  // 열리면 패널로 포커스를 옮긴다.
   useEffect(() => {
-    if (!isOpen) return;
-
-    panelRef.current?.focus();
-
-    const onKeyDown = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') onClose();
-    };
-
-    window.addEventListener('keydown', onKeyDown);
-
-    return () => window.removeEventListener('keydown', onKeyDown);
-  }, [isOpen, onClose]);
+    if (isOpen) panelRef.current?.focus();
+  }, [isOpen]);
 
   return createPortal(
     <AnimatePresence>
@@ -85,7 +79,7 @@ export function AlertPanel({ isOpen, onClose }: AlertPanelProps) {
                 {items.map((alert) => (
                   <li key={alert.id}>
                     <Link
-                      to={PATH.ALERTS_LIST}
+                      to={PATH.AI_DIAGNOSIS_ALERTS}
                       className={styles.item}
                       onClick={onClose}
                     >
@@ -109,7 +103,7 @@ export function AlertPanel({ isOpen, onClose }: AlertPanelProps) {
           </div>
 
           <footer className={styles.panel__foot}>
-            <Link to={PATH.ALERTS_LIST} className={styles.panel__more} onClick={onClose}>
+            <Link to={PATH.AI_DIAGNOSIS_ALERTS} className={styles.panel__more} onClick={onClose}>
               알림이력 전체 보기
             </Link>
           </footer>

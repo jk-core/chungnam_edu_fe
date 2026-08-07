@@ -1,5 +1,6 @@
 @use "@/styles/tokens/spacing" as s;
 @use "@/styles/tokens/typography" as t;
+@use "@/styles/utils/mixins" as mx;
 
 .segmented {
   display: inline-flex;
@@ -22,6 +23,7 @@
   color: var(--text-muted);
   transition: color 0.18s ease;
 
+  @include mx.press;
   @include t.label-md;
 
   &:hover {

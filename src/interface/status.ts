@@ -19,7 +19,7 @@ export type OperationStatus =
   | 'commLost';
 
 /**
- * 데이터수집장치·환경센서의 연계 상태 (SFR-017-01).
+ * 데이터RTU·환경센서의 연계 상태 (SFR-017-01).
  * SFR-009-03 이 요구하는 "인버터 고장과 RTU 고장 구분"이 이 축으로 갈린다.
  */
 export type RtuStatus = 'normal' | 'abnormal' | 'disconnected';

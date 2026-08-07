@@ -1,0 +1,73 @@
+@use "@/styles/tokens/spacing" as s;
+@use "@/styles/tokens/typography" as t;
+@use "@/styles/utils/mixins" as mx;
+
+// 미수신 인버터 목록 (SFR-004-05)
+.missing {
+  display: flex;
+  flex-direction: column;
+  gap: s.$space-2;
+  min-height: 0;
+  padding-top: s.$space-3;
+  border-top: 1px solid var(--border-subtle);
+}
+
+.missing__head {
+  display: flex;
+  align-items: center;
+  gap: s.$space-1;
+  color: var(--critical-text);
+
+  @include t.caption;
+}
+
+.missing__label {
+  flex: 1;
+}
+
+.missing__count {
+  color: var(--text-faint);
+  font-family: var(--font-data);
+}
+
+.missing__none {
+  @include t.body-sm;
+
+  color: var(--text-muted);
+}
+
+// 판 높이를 넘기면 굴려서 본다.
+.missing__list {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  max-height: 132px;
+  list-style: none;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+
+.missing__row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: s.$space-2;
+  padding: 3px s.$space-2;
+  border-radius: s.$radius-xs;
+  background-color: var(--critical-soft);
+}
+
+.missing__name {
+  @include t.label-sm;
+  @include mx.truncate;
+
+  color: var(--text-strong);
+}
+
+.missing__meta {
+  @include t.caption;
+
+  flex-shrink: 0;
+  color: var(--text-muted);
+  font-family: var(--font-data);
+}

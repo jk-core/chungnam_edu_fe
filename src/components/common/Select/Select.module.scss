@@ -47,7 +47,7 @@
     border-color: var(--border-strong);
   }
 
-  &:focus-visible {
+  @include mx.keyboard-focus {
     border-color: var(--brand);
     box-shadow: var(--shadow-focus);
     outline: none;

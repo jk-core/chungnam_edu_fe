@@ -55,7 +55,7 @@ function buildTimeline(node: ScopeNode): FaultTimeline {
       phase: 'detected',
       at: startedAt.format('YYYY-MM-DD HH:mm'),
       note: source === 'system'
-        ? '수집장치 미응답이 15분을 넘어 통신단절로 판정했습니다.'
+        ? 'RTU 미응답이 15분을 넘어 통신단절로 판정했습니다.'
         : `AI 고장분류가 ${withParticle(fault?.label ?? '진단 효율 저하', '로')} 분류했습니다.`,
       manual: false,
     },

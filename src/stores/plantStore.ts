@@ -1,15 +1,16 @@
 import { create } from 'zustand';
 import { createJSONStorage, persist } from 'zustand/middleware';
-import { getNode, getNodePath, hasNode, ROOT_ID } from '@/mocks/tree';
+import { getNode, getNodePath, hasNode } from '@/mocks/tree';
+import { SCHOOLS } from '@/mocks/schools';
 import type { ScopeNode } from '@/mocks/tree';
 
 interface PlantState {
   /**
-   * 조회 중인 발전소 id. null 이면 도 전체다.
+   * 조회 중인 발전소 id.
    * 새로고침·페이지 이동 뒤에도 남는 값은 이것뿐이다 — 인버터 아래까지 들고 다니면
    * 어느 화면에서 무엇을 보고 있는지 따라가기 어려워진다.
    */
-  selectedPlantId: string | null;
+  selectedPlantId: string;
   /**
    * 지금 화면에서 파고든 계층(인버터·접속반·스트링·채널).
    * 저장하지 않으므로 다른 화면으로 옮기면 발전소 계층으로 되돌아간다.
@@ -28,30 +29,42 @@ interface PlantState {
   toggleScope: () => void;
 }
 
-/** 발전소 계층 노드 id. 도 전체면 루트. */
-const plantScopeOf = (plantId: string | null) => plantId ?? ROOT_ID;
+/*
+  조회는 늘 발전소 한 곳에서 시작한다.
+
+  도 전체 합산 조회는 제공하지 않는다 — 300개 설비를 한 판에 접으면 카드도 차트도
+  읽히지 않고, 요구사항이 말하는 조회 단위도 발전소부터다. 전체 집계가 필요한 자리는
+  통합관제 상황판과 홈 지도가 따로 맡는다.
+*/
+const DEFAULT_PLANT_ID = SCHOOLS[0].id;
+
+/** 저장값이 비었거나 없는 발전소를 가리키면 첫 발전소로 되돌린다. */
+const plantOrDefault = (plantId: string | null | undefined) =>
+  (plantId && hasNode(plantId) ? plantId : DEFAULT_PLANT_ID);
 
 const usePlantStore = create<PlantState>()(
   persist(
     (set) => ({
-      selectedPlantId: null,
-      selectedNodeId: ROOT_ID,
+      selectedPlantId: DEFAULT_PLANT_ID,
+      selectedNodeId: DEFAULT_PLANT_ID,
       selectNode: (id) =>
-        set(() => {
-          const nodeId = hasNode(id) ? id : ROOT_ID;
+        set((state) => {
+          const candidate = hasNode(id) ? getNode(id) : null;
+          // 루트(도 전체)를 가리키면 보고 있던 발전소에 그대로 머문다.
+          const nodeId = candidate && candidate.kind !== 'root' ? candidate.id : state.selectedPlantId;
 
-          // 어느 계층을 골랐든 소속 발전소를 함께 기억한다. 루트를 고르면 도 전체로 돌아간다.
+          // 어느 계층을 골랐든 소속 발전소를 함께 기억한다.
           // 트리는 고른 자리로 가는 길만 남긴다 — 형제를 갈아탈 때 앞서 펼쳐 둔 가지가
           // 그대로 남아 있으면 어디를 보고 있는지 흐려진다.
           return {
             selectedNodeId: nodeId,
-            selectedPlantId: getNode(nodeId).plantId,
+            selectedPlantId: plantOrDefault(getNode(nodeId).plantId),
             expandedIds: getNodePath(nodeId).map((item) => item.id),
           };
         }),
       resetDepth: () =>
         set((state) => {
-          const scopeId = plantScopeOf(state.selectedPlantId);
+          const scopeId = state.selectedPlantId;
 
           // 이미 발전소 계층이면 그대로 둔다 — 불필요한 재렌더를 만들지 않는다.
           return state.selectedNodeId === scopeId ? state : { selectedNodeId: scopeId, expandedIds: [] };
@@ -79,10 +92,8 @@ const usePlantStore = create<PlantState>()(
       onRehydrateStorage: () => (state) => {
         if (!state) return;
 
-        const plantId = state.selectedPlantId;
-
-        state.selectedPlantId = plantId !== null && hasNode(plantId) ? plantId : null;
-        state.selectedNodeId = plantScopeOf(state.selectedPlantId);
+        state.selectedPlantId = plantOrDefault(state.selectedPlantId);
+        state.selectedNodeId = state.selectedPlantId;
       },
     },
   ),

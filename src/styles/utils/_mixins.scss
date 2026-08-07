@@ -49,6 +49,41 @@
   outline-offset: $offset;
 }
 
+/*
+  키보드로 다닐 때만 켜지는 포커스 표시.
+
+  `outline` 은 전역 규칙이 포인터 입력에서 꺼 주지만(styles/base/_global.scss),
+  테두리·그림자로 포커스를 그리는 자리는 스스로 꺼야 마우스 클릭 뒤 흔적이 남지 않는다.
+*/
+@mixin keyboard-focus {
+  :root[data-input="keyboard"] &:focus-visible {
+    @content;
+  }
+}
+
+/*
+  누르는 순간에만 도는 눌림 반응.
+
+  포커스 표시를 키보드 전용으로 돌려 놓았으니, 마우스로 누른 사실은 이 반응이 알려 준다.
+  움직임을 줄이기로 한 환경에서는 크기를 건드리지 않는다.
+*/
+@mixin press($scale: 0.96) {
+  /*
+    전환은 `:active` 안에서만 건다. 바깥에 `transition` 을 쓰면 컴포넌트가 이미 잡아 둔
+    색·테두리 전환을 통째로 덮어써 버린다. 손을 떼면 바로 제자리로 돌아온다.
+  */
+  &:active:not(:disabled) {
+    transform: scale($scale);
+    transition: transform 0.07s ease-out;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    &:active:not(:disabled) {
+      transform: none;
+    }
+  }
+}
+
 @mixin card-surface {
   background-color: var(--surface);
   border: 1px solid var(--border-subtle);
