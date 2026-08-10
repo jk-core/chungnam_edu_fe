@@ -1,5 +1,6 @@
 import dayjs from 'dayjs';
 import { useMemo, useState } from 'react';
+import { Button } from '@/components/common/Button';
 import { Card } from '@/components/common/Card';
 import { EChart } from '@/components/common/EChart';
 import {
@@ -12,8 +13,10 @@ import {
   pickEnergyUnit,
 } from '@/mocks/generation';
 import { childKindOf, getNodePath, KIND_LABEL } from '@/mocks/tree';
+import { DownloadIcon } from '@/components/common/Icon';
 import { Reveal } from '@/components/common/Reveal';
 import { SegmentedControl } from '@/components/common/SegmentedControl';
+import { Table } from '@/components/common/Table';
 import { AXIS_NAME_GAP, LEGEND_GRID_TOP, seriesPalette, topLegend } from '@/utils/chart';
 import { MSG } from '@/configs/messages';
 import { exportCsv } from '@/utils/export';
@@ -26,13 +29,16 @@ import { usePlantScope } from '@/hooks/usePlantScope';
 import { useStatisticsScopeRoute } from '@/hooks/useStatisticsScopeRoute';
 import { useSelectNode } from '@/stores/plantStore';
 import { useStatisticsDate } from '@/stores/filterStore';
+import type { Column } from '@/components/common/Table';
 import type { PeriodKey } from '@/mocks/generation';
 import type { CsvColumn } from '@/utils/export';
 import styles from '../Statistics.module.scss';
+import { aggregateByBasis, BASIS_LABEL } from './statBasis';
 import { ChildGrid } from './ChildGrid';
 import { InverterTimeTable } from './InverterTimeTable';
 import { PeriodFilter } from './PeriodFilter';
 import type { EChartsOption } from 'echarts';
+import type { BasisRow, StatBasis } from './statBasis';
 
 type DetailView = 'chart' | 'table';
 
@@ -68,6 +74,8 @@ export function OverviewTab() {
   useStatisticsScopeRoute();
 
   const [period, setPeriod] = useState<PeriodKey>('day');
+  // 무엇을 기준으로 묶어 볼지 (SFR-008-04)
+  const [basis, setBasis] = useState<StatBasis>('device');
   const [detailView, setDetailView] = useState<DetailView>('chart');
   const [date, setDate] = useStatisticsDate();
   const { node, label, factor } = usePlantScope();
@@ -78,6 +86,8 @@ export function OverviewTab() {
 
   const stat = useMemo(() => getNodeStat(node, period, date), [node, period, date]);
   const childStats = useMemo(() => getChildStats(node, period, date), [node, period, date]);
+  // 지역별·교육청별은 조회 대상 트리와 상관없이 도 전체를 묶어 센다.
+  const basisRows = useMemo(() => aggregateByBasis(basis, period, date), [basis, period, date]);
 
   // 하나 전 같은 기간 — 전일·전월·전년 비교에 쓴다 (SFR-007-03).
   const previousDate = useMemo(
@@ -122,6 +132,56 @@ export function OverviewTab() {
   const detailUnit = pickEnergyUnit(Math.max(...stat.series, 1));
   // 발전량이 왜 많고 적었는지는 그날 들어온 햇빛의 양이 답한다.
   const totalIrradiance = detail.reduce((sum, point) => sum + point.irradiance, 0);
+
+  const basisColumns: Column<BasisRow>[] = [
+    { key: 'name', header: BASIS_LABEL[basis], render: (row) => <strong>{row.name}</strong> },
+    { key: 'count', header: '발전소', width: '90px', align: 'right', render: (row) => `${formatNumber(row.count)}개소` },
+    {
+      key: 'capacity',
+      header: '설비용량',
+      width: '120px',
+      align: 'right',
+      render: (row) => `${formatNumber(row.capacityKw, 1)} kW`,
+    },
+    {
+      key: 'generation',
+      header: '발전량',
+      width: '140px',
+      align: 'right',
+      render: (row) => {
+        const unit = pickEnergyUnit(row.generationKwh);
+
+        return `${formatNumber(row.generationKwh / unit.divider, 1)} ${unit.unit}`;
+      },
+    },
+    {
+      key: 'utilization',
+      header: '설비이용률',
+      width: '110px',
+      align: 'right',
+      render: (row) => formatPercent(row.utilization),
+    },
+  ];
+
+  const downloadBasis = () => {
+    if (basisRows.length === 0) {
+      toast.error(MSG.noResult);
+
+      return;
+    }
+
+    const columns: CsvColumn<BasisRow>[] = [
+      { header: BASIS_LABEL[basis], value: (row) => row.name },
+      { header: '발전소 수', value: (row) => row.count },
+      { header: '설비용량(kW)', value: (row) => Math.round(row.capacityKw * 10) / 10 },
+      { header: '발전량(kWh)', value: (row) => Math.round(row.generationKwh) },
+      { header: '설비이용률', value: (row) => formatPercent(row.utilization) },
+    ];
+    const filename = `발전집계_${BASIS_LABEL[basis]}별_${describeDetail(period, date)}`;
+
+    exportCsv(filename, columns, basisRows);
+    toast.success(MSG.downloadStart(filename));
+  };
 
   const download = () => {
     if (stat.series.length === 0) {
@@ -290,8 +350,36 @@ export function OverviewTab() {
         onPeriodChange={setPeriod}
         date={date}
         onDateChange={setDate}
+        basis={basis}
+        onBasisChange={setBasis}
         onDownload={download}
       />
+
+      {/*
+        지역별·교육청별 집계 (SFR-008-04).
+        설비별은 아래 계층을 파고들지만, 이 둘은 도 전체를 한 표로 묶어 어디가 앞서고 뒤지는지 본다.
+      */}
+      {basisRows.length > 0 ? (
+        <Reveal>
+          <Card
+            eyebrow="Basis"
+            title={`${BASIS_LABEL[basis]}별 발전 집계`}
+            description={`${meta.label} 기준 · ${basisRows.length}개 ${BASIS_LABEL[basis]}를 발전량 순으로 늘어놓았습니다. 설비이용률은 용량 대비 실제 발전량입니다.`}
+            action={(
+              <Button variant="secondary" size="sm" iconLeft={<DownloadIcon />} onClick={downloadBasis}>
+                집계 내려받기
+              </Button>
+            )}
+          >
+            <Table
+              caption={`${BASIS_LABEL[basis]}별 발전 집계`}
+              columns={basisColumns}
+              rows={basisRows}
+              getRowKey={(row) => row.key}
+            />
+          </Card>
+        </Reveal>
+      ) : null}
 
       {/* 지금 어느 계층을 보고 있는지, 위로 어떻게 올라가는지 */}
       <nav className={styles.scopePath} aria-label="조회 계층">

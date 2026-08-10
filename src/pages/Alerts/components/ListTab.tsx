@@ -186,7 +186,7 @@ export function ListTab() {
     },
     {
       key: 'handled',
-      header: '조치',
+      header: '조치여부',
       align: 'right',
       width: '104px',
       render: (row) => (
@@ -194,6 +194,21 @@ export function ListTab() {
           {row.handled ? (row.manual ? '수동 조치' : '자동 복구') : '미조치'}
         </Badge>
       ),
+    },
+    {
+      // 요구 표출항목에 조치완료 시각이 있다 (SFR-022-03). 누가 닫았는지도 같은 칸에 받쳐 준다.
+      key: 'resolvedAt',
+      header: '조치완료 시간',
+      width: '150px',
+      hideOnTablet: true,
+      render: (row) => (row.resolvedAt ? (
+        <span className={styles.cellStack}>
+          <span className={styles.cellData}>{row.resolvedAt}</span>
+          {row.handler ? <span className={styles.cellSub}>{row.handler}</span> : null}
+        </span>
+      ) : (
+        <span className={styles.cellSub}>진행 중</span>
+      )),
     },
   ];
 

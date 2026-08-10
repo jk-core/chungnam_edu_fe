@@ -5,8 +5,8 @@ import type { FieldReport, ReportState } from '@/interface/fieldReport';
 /**
  * 현장보고서 접근 통제 (SFR-021-16).
  *
- * - 교육기관 담당자: 담당 학교 보고서를 쓰고 제출까지 한다. 남의 보고서는 열지 못한다.
- * - 교육청 담당자: 전체를 열람하고 검토·확인으로 넘긴다. 작성은 현장 몫이라 막는다.
+ * - 교육기관 담당자: 담당 학교 보고서를 쓰고 제출까지 한다. 반려된 건은 고쳐서 다시 낸다.
+ * - 교육청 담당자: 전체를 열람하고 검토·확인으로 넘기거나 반려한다. 작성은 현장 몫이라 막는다.
  * - 관리자: 전부 할 수 있다.
  */
 export interface FieldPermission {
@@ -16,12 +16,19 @@ export interface FieldPermission {
   canShare: boolean;
   /** 이 보고서를 다음 단계로 넘길 수 있는지 */
   canAdvance: (report: FieldReport) => boolean;
+  /** 이 보고서를 반려로 되돌릴 수 있는지 (SFR-021-08) */
+  canReject: (report: FieldReport) => boolean;
+  /** 이 보고서를 다시 열어 고칠 수 있는지 (SFR-021-09) */
+  canEdit: (report: FieldReport) => boolean;
   /** 이 보고서를 열람할 수 있는지 */
   canRead: (report: FieldReport) => boolean;
 }
 
 /** 현장이 직접 넘길 수 있는 마지막 단계 — 그 뒤 검토·확인은 교육청 몫이다. */
 const FIELD_LAST_STATE: ReportState = 'submitted';
+
+/** 검토 쪽에서 되돌릴 수 있는 자리 — 아직 확인이 끝나지 않은 것만 반려한다. */
+const REJECTABLE: ReportState[] = ['submitted', 'reviewing'];
 
 export function getFieldPermission(user: AuthUser | null): FieldPermission {
   const role = user?.role ?? 'institution';
@@ -34,9 +41,12 @@ export function getFieldPermission(user: AuthUser | null): FieldPermission {
   if (role === 'office') {
     return {
       canWrite: false,
-      writeBlockedReason: '작성은 학교 담당자 권한입니다. 제출된 보고서를 검토·확인할 수 있습니다.',
+      writeBlockedReason: '작성은 학교 담당자 권한입니다. 제출된 보고서를 검토·확인하거나 반려할 수 있습니다.',
       canShare: true,
-      canAdvance: (report) => report.state !== 'draft' && !isLast(report.state),
+      canAdvance: (report) => report.state !== 'draft' && report.state !== 'rejected' && !isLast(report.state),
+      canReject: (report) => REJECTABLE.includes(report.state),
+      // 검토자는 남의 보고서 내용을 고치지 않는다 — 되돌려 보내고 현장이 고친다.
+      canEdit: () => false,
       canRead,
     };
   }
@@ -46,12 +56,24 @@ export function getFieldPermission(user: AuthUser | null): FieldPermission {
       canWrite: true,
       canShare: true,
       // 제출까지만 — 검토·확인은 교육청이 판단한다.
-      canAdvance: (report) => canRead(report) && STATE_ORDER.indexOf(report.state) < STATE_ORDER.indexOf(FIELD_LAST_STATE),
+      canAdvance: (report) => canRead(report)
+        && report.state !== 'rejected'
+        && STATE_ORDER.indexOf(report.state) < STATE_ORDER.indexOf(FIELD_LAST_STATE),
+      canReject: () => false,
+      // 작성중이거나 되돌아온 건만 고친다. 확인까지 끝난 보고서는 손대지 않는다.
+      canEdit: (report) => canRead(report) && (report.state === 'draft' || report.state === 'rejected'),
       canRead,
     };
   }
 
-  return { canWrite: true, canShare: true, canAdvance: (report) => !isLast(report.state), canRead };
+  return {
+    canWrite: true,
+    canShare: true,
+    canAdvance: (report) => report.state !== 'rejected' && !isLast(report.state),
+    canReject: (report) => REJECTABLE.includes(report.state),
+    canEdit: (report) => report.state !== 'confirmed',
+    canRead,
+  };
 }
 
 function isLast(state: ReportState): boolean {

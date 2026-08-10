@@ -3,6 +3,7 @@ import { PATH } from '@/routes/routes';
 import { AccountsTab } from './components/AccountsTab';
 import { DataQualityTab } from './components/DataQualityTab';
 import { DevicesTab } from './components/DevicesTab';
+import { FieldReportsTab } from './components/FieldReportsTab';
 import { IntegrationsTab } from './components/IntegrationsTab';
 import { LoginPolicyTab } from './components/LoginPolicyTab';
 import { PlantsTab } from './components/PlantsTab';
@@ -14,6 +15,7 @@ import { UsersTab } from './components/UsersTab';
 const TABS = {
   plants: PlantsTab,
   devices: DevicesTab,
+  'field-reports': FieldReportsTab,
   users: UsersTab,
   accounts: AccountsTab,
   integrations: IntegrationsTab,

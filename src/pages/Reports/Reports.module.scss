@@ -356,3 +356,130 @@
   margin-left: s.$space-2;
   color: var(--text-faint);
 }
+
+// ── 현장보고서 개편 (SFR-021) ───────────────────────────────
+
+// 목록 한 줄 — 비교 체크박스와 본문 버튼이 나란히 선다
+.rowWrap {
+  display: flex;
+  align-items: center;
+  gap: s.$space-3;
+}
+
+.rowPick__label {
+  @include mx.sr-only;
+}
+
+.rowPick {
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+  padding: s.$space-2;
+  cursor: pointer;
+}
+
+// 표준 점검표의 대분류 — 문항 묶음이 어디서 갈리는지 보여 준다
+.sectionHead {
+  @include t.label-sm;
+
+  margin: s.$space-4 0 s.$space-2;
+  padding-bottom: s.$space-2;
+  border-bottom: 1px solid var(--border-subtle);
+  color: var(--brand);
+}
+
+// 반려 알림 — 무엇을 고쳐야 하는지가 가장 먼저 읽혀야 한다
+.reject {
+  display: flex;
+  flex-direction: column;
+  gap: s.$space-2;
+  padding: s.$space-4;
+  border: 1px solid var(--critical);
+  border-radius: s.$radius-md;
+  background-color: var(--critical-soft);
+}
+
+.reject__title {
+  @include t.label-sm;
+
+  color: var(--critical-text);
+}
+
+.repeat__scope {
+  @include t.caption;
+
+  color: var(--text-muted);
+  font-weight: 400;
+}
+
+// PDF 로 담을 지면을 화면 밖에 세워 둔다 — 크기가 살아 있어야 캡처된다
+.offscreen {
+  position: fixed;
+  top: 0;
+  left: -20000px;
+  pointer-events: none;
+}
+
+// 두 보고서를 좌우로 견준다 (SFR-021-12)
+.compare {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: s.$space-4;
+
+  @include media.mobile {
+    grid-template-columns: 1fr;
+  }
+}
+
+.compare__head {
+  @include t.label-md;
+
+  padding-bottom: s.$space-2;
+  border-bottom: 1px solid var(--border-subtle);
+  color: var(--text-strong);
+}
+
+.compare__meta {
+  @include t.caption;
+
+  display: block;
+  margin-top: 2px;
+  color: var(--text-muted);
+  font-weight: 400;
+}
+
+.compareRow {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 96px 96px;
+  gap: s.$space-3;
+  align-items: center;
+  padding: s.$space-2 s.$space-3;
+  border-radius: s.$radius-sm;
+}
+
+// 결과가 갈린 줄만 눈에 띄게 — 같은 줄까지 물들이면 무엇이 달라졌는지 안 보인다
+.compareRow--diff {
+  background-color: var(--caution-soft);
+}
+
+.compareRow__label {
+  @include t.body-sm;
+
+  color: var(--text);
+}
+
+.compareRow__value {
+  @include t.caption;
+
+  color: var(--text-strong);
+  text-align: center;
+}
+
+.compareLegend {
+  @include t.caption;
+
+  display: flex;
+  gap: s.$space-4;
+  margin-bottom: s.$space-3;
+  color: var(--text-muted);
+}

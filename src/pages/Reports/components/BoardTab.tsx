@@ -5,7 +5,7 @@ import { Card } from '@/components/common/Card';
 import { ConfirmDialog } from '@/components/common/ConfirmDialog';
 import { EmptyState } from '@/components/common/EmptyState';
 import { FileIcon, PlusIcon } from '@/components/common/Icon';
-import { FormRow, FormSection, RadioGroup, TextArea, TextField } from '@/components/common/Form';
+import { FileUpload, FormRow, FormSection, RadioGroup, TextArea, TextField } from '@/components/common/Form';
 import { Modal } from '@/components/common/Modal';
 import { MSG } from '@/configs/messages';
 import { daysAhead, NOW, TODAY } from '@/mocks/today';
@@ -17,6 +17,7 @@ import { toast } from '@/stores/toastStore';
 import { useAuthUser } from '@/stores/authStore';
 import useBoardStore from '@/stores/boardStore';
 import type { BoardKind, BoardPost } from '@/interface/board';
+import type { UploadFile } from '@/components/common/Form';
 import styles from '../Reports.module.scss';
 
 type Filter = 'all' | BoardKind;
@@ -24,6 +25,22 @@ type Filter = 'all' | BoardKind;
 const KIND_LABEL: Record<BoardKind, string> = { notice: '공지사항', qna: 'Q&A' };
 
 /** 공지사항·Q&A 게시판 (SFR-025) */
+/** 게시판 첨부로 받는 갈래 (SFR-025-06) — 이미지와 문서를 함께 받는다. */
+const ATTACH_ACCEPT = [
+  'image/*',
+  '.pdf',
+  '.hwp',
+  '.hwpx',
+  '.doc',
+  '.docx',
+  '.xls',
+  '.xlsx',
+  '.csv',
+  '.ppt',
+  '.pptx',
+  '.zip',
+].join(',');
+
 interface BoardTabProps {
   /** 들어온 주소가 정한 첫 분류. 화면 안에서는 그대로 갈아 볼 수 있다. */
   initialKind?: BoardKind;
@@ -52,6 +69,8 @@ export function BoardTab({ initialKind }: BoardTabProps = {}) {
     body: '',
     usePopup: 'no' as 'yes' | 'no',
     popupEnd: daysAhead(14),
+    /** 첨부파일 — 이미지·문서·엑셀을 함께 받는다 (SFR-025-06) */
+    files: [] as UploadFile[],
   });
 
   const posts = useMemo(() => {
@@ -89,7 +108,7 @@ export function BoardTab({ initialKind }: BoardTabProps = {}) {
       at: NOW.format('YYYY-MM-DD HH:mm'),
       pinned: false,
       views: 0,
-      attachments: [],
+      attachments: draft.files.map((file) => file.name),
       comments: [],
       // 공지만 메인 화면 팝업으로 띄울 수 있다 (SFR-025-02/03).
       popup:
@@ -101,7 +120,7 @@ export function BoardTab({ initialKind }: BoardTabProps = {}) {
     write(post);
     toast.success(MSG.createSuccess(KIND_LABEL[draft.kind]));
     setIsWriting(false);
-    setDraft({ kind: 'notice', title: '', body: '', usePopup: 'no', popupEnd: daysAhead(14) });
+    setDraft({ kind: 'notice', title: '', body: '', usePopup: 'no', popupEnd: daysAhead(14), files: [] });
   };
 
   const addComment = () => {
@@ -287,6 +306,20 @@ export function BoardTab({ initialKind }: BoardTabProps = {}) {
               required
               error={error?.includes('내용') ? error : undefined}
               maxLength={2000}
+            />
+          </FormSection>
+
+          {/* 이미지·엑셀 등 첨부파일 (SFR-025-06) */}
+          <FormSection legend="첨부파일">
+            <FileUpload
+              label="파일 올리기"
+              value={draft.files}
+              onChange={(files) => setDraft({ ...draft, files })}
+              accept={ATTACH_ACCEPT}
+              maxCount={5}
+              maxSizeMb={10}
+              hint="이미지·PDF·한글·엑셀 문서를 5개까지, 파일마다 10MB 까지 올릴 수 있습니다."
+              onError={(message) => toast.error(message)}
             />
           </FormSection>
 

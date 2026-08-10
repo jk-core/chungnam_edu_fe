@@ -11,6 +11,7 @@ import { usePlantScope } from '@/hooks/usePlantScope';
 import { usePrint } from '@/hooks/usePrint';
 import { useReportPdf } from '@/hooks/useReportPdf';
 import { useStatisticsDate } from '@/stores/filterStore';
+import useFieldReportStore, { mergeFieldReports } from '@/stores/fieldReportStore';
 import styles from '../Reports.module.scss';
 import { pageCountOf, ReportSheet } from './monthly/ReportSheet';
 import sheetStyles from './monthly/Report.module.scss';
@@ -32,11 +33,26 @@ export function MonthlyTab() {
   const sheetRef = useRef<HTMLDivElement>(null);
   const stageRef = useRef<HTMLDivElement>(null);
 
+  const fieldCreated = useFieldReportStore((state) => state.created);
+  const fieldPatched = useFieldReportStore((state) => state.patched);
+  const fieldDeleted = useFieldReportStore((state) => state.deleted);
+
   const cursor = dayjs(date);
   const year = cursor.year();
   const month = cursor.month();
   // `getMonthlyReport` 는 결과를 캐시하므로 매 렌더 불러도 다시 셈하지 않는다.
   const report = plant ? getMonthlyReport(plant.id, year, month) : null;
+
+  /*
+    이 달, 이 발전소에서 올라온 현장보고서 (SFR-019-07).
+    작성중인 것은 뺀다 — 아직 제출도 안 한 내용이 월간보고서에 실리면 안 된다.
+  */
+  const monthKey = cursor.format('YYYY-MM');
+  const fieldReports = plant
+    ? mergeFieldReports(fieldCreated, fieldPatched, fieldDeleted)
+      .filter((item) => item.schoolId === plant.id && item.state !== 'draft' && item.date.startsWith(monthKey))
+      .sort((a, b) => a.date.localeCompare(b.date))
+    : [];
 
   /*
     지면은 A4 실제 크기라 화면보다 넓다. 창에 맞춰 통째로 줄여 보여 준다 —
@@ -119,7 +135,7 @@ export function MonthlyTab() {
           className={`${sheetStyles.sheet} ${sheetStyles['sheet--scaled']}`}
           style={{ transform: `scale(${scale})` }}
         >
-          <ReportSheet report={report} />
+          <ReportSheet report={report} fieldReports={fieldReports} />
         </div>
       </div>
     </div>

@@ -42,6 +42,7 @@ export const PATH = {
   ADMIN: '/admin',
   ADMIN_PLANTS: '/admin/plants',
   ADMIN_DEVICES: '/admin/devices',
+  ADMIN_FIELD_REPORTS: '/admin/field-reports',
   ADMIN_USERS: '/admin/users',
   ADMIN_ACCOUNTS: '/admin/accounts',
   ADMIN_INTEGRATIONS: '/admin/integrations',

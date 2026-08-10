@@ -2,6 +2,7 @@ import dayjs from 'dayjs';
 import { FAULT_CODES, getFaultCode } from '@/mocks/faultCodes';
 import { formatDelta, formatNumber } from '@/utils/format';
 import type { DiagnosisFaultCode } from '@/interface/equipment';
+import type { FieldReport } from '@/interface/fieldReport';
 import type { MonthlyReport } from '@/mocks/reports';
 import { DiagnosisChart, InverterHoursChart, StringEfficiencyChart, TrendChart } from './ReportCharts';
 import { ReportPage } from './ReportPage';
@@ -15,8 +16,8 @@ import styles from './Report.module.scss';
   인버터가 4대면 8장이 된다.
 */
 
-/** 인버터 세부 진단을 뺀 고정 장 수 (개요·요약·조치방안·고장코드표) */
-const FIXED_PAGES = 4;
+/** 인버터 세부 진단을 뺀 고정 장 수 (개요·요약·조치방안·현장 조치내역·고장코드표) */
+const FIXED_PAGES = 5;
 
 /** 세부 진단이 시작되는 쪽번호 */
 const DETAIL_FROM = 3;
@@ -49,9 +50,11 @@ export function pageCountOf(report: MonthlyReport): number {
 
 interface ReportSheetProps {
   report: MonthlyReport;
+  /** 이 달에 이 발전소에서 올라온 현장보고서 (SFR-019-07, SFR-021-20) */
+  fieldReports: FieldReport[];
 }
 
-export function ReportSheet({ report }: ReportSheetProps) {
+export function ReportSheet({ report, fieldReports }: ReportSheetProps) {
   const total = pageCountOf(report);
   const title = `${report.schoolName} 월간 발전 보고서`;
   const period = `${report.year}년 ${report.month + 1}월`;
@@ -84,6 +87,17 @@ export function ReportSheet({ report }: ReportSheetProps) {
     .values()]
     .map((item) => ({ ...item, names: [...item.names] }))
     .sort((a, b) => a.code - b.code);
+
+  /* 이상으로 잡힌 점검 항목만 한 줄씩 편다 — 조치내역 표 아래에 근거로 붙는다. */
+  const fieldAbnormal = fieldReports.flatMap((item) => item.checklist
+    .filter((check) => check.result === 'abnormal')
+    .map((check) => ({
+      key: `${item.id}-${check.id}`,
+      date: item.date,
+      section: check.section,
+      label: check.label,
+      note: check.note,
+    })));
 
   const page = { title, period, total };
 
@@ -284,7 +298,7 @@ export function ReportSheet({ report }: ReportSheetProps) {
       })}
 
       {/* 조치방안과 점검 안내 (SFR-019-06/07, SFR-020-04) */}
-      <ReportPage {...page} page={total - 1} heading="4. 조치방안과 점검 안내">
+      <ReportPage {...page} page={total - 2} heading="4. 조치방안과 점검 안내">
         <Section no={1} title="조치방안 제안">
           <ol className={styles.list}>
             {report.recommendations.map((item) => (
@@ -356,8 +370,83 @@ export function ReportSheet({ report }: ReportSheetProps) {
         </Section>
       </ReportPage>
 
+      {/*
+        현장에서 실제로 무엇을 했는지 (SFR-019-07, SFR-021-20).
+        위 4장이 "무엇을 하면 좋겠다"는 제안이라면, 이 장은 현장보고서에 적힌 "무엇을 했다"의 기록이다.
+      */}
+      <ReportPage {...page} page={total - 1} heading="5. 현장 조치내역" spread>
+        <Section no={1} title="이번 달 현장 점검 조치">
+          {fieldReports.length === 0 ? (
+            <p className={styles.block__text}>
+              이번 달에 확정된 현장보고서가 없습니다. 현장보고서를 제출하면 조치 내용이 여기에 함께 실립니다.
+            </p>
+          ) : (
+            <table className={styles.table}>
+              <colgroup>
+                <col style={{ width: '104px' }} />
+                <col style={{ width: '150px' }} />
+                <col style={{ width: '90px' }} />
+                <col />
+              </colgroup>
+              <thead>
+                <tr>
+                  <th scope="col">점검일</th>
+                  <th scope="col">점검 설비</th>
+                  <th scope="col">이상</th>
+                  <th scope="col">조치 내용</th>
+                </tr>
+              </thead>
+              <tbody>
+                {fieldReports.map((item) => (
+                  <tr key={item.id}>
+                    <td>{item.date}</td>
+                    <td>
+                      {item.devices.length > 0
+                        ? item.devices.map((device) => device.name).join(', ')
+                        : item.targetName}
+                    </td>
+                    <td>{item.checklist.filter((check) => check.result === 'abnormal').length}건</td>
+                    <td>{item.actionNote || '별도 조치 없음'}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          )}
+        </Section>
+
+        <Section no={2} title="이상으로 확인된 점검 항목">
+          {fieldAbnormal.length === 0 ? (
+            <p className={styles.block__text}>이상으로 확인된 점검 항목이 없습니다.</p>
+          ) : (
+            <table className={styles.table}>
+              <colgroup>
+                <col style={{ width: '104px' }} />
+                <col style={{ width: '170px' }} />
+                <col />
+              </colgroup>
+              <thead>
+                <tr>
+                  <th scope="col">점검일</th>
+                  <th scope="col">분류</th>
+                  <th scope="col">항목 · 확인 내용</th>
+                </tr>
+              </thead>
+              <tbody>
+                {fieldAbnormal.map((item) => (
+                  <tr key={item.key}>
+                    <td>{item.date}</td>
+                    <td>{item.section}</td>
+                    <td>{item.label}{item.note ? ` — ${item.note}` : ''}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          )}
+        </Section>
+      </ReportPage>
+
       {/* 마지막 장 — 고장코드별 원인과 조치방안 (SFR-013-06, SFR-020-04) */}
-      <ReportPage {...page} page={total} heading="5. 전력진단 고장코드의 원인과 조치방안" spread>
+      <ReportPage {...page} page={total} heading="6. 전력진단 고장코드의 원인과 조치방안" spread>
         <table className={styles.faultTable}>
           <colgroup>
             <col style={{ width: '88px' }} />

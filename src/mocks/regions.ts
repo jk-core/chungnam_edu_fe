@@ -31,3 +31,31 @@ export const REGION_TOTAL = REGIONS.reduce(
   }),
   { schoolCount: 0, capacityKw: 0, todayKwh: 0, monthKwh: 0 },
 );
+
+/**
+ * 시·군 → 관할 교육지원청 (SFR-008-04).
+ * 충청남도교육청은 15개 시·군을 14개 교육지원청이 나눠 맡는다 — 논산시와 계룡시가 한 지원청이다.
+ * 그래서 '지역별'과 '교육청별'은 같은 표가 되지 않는다.
+ */
+const OFFICE_BY_REGION: Record<string, string> = {
+  cheonan: '천안',
+  asan: '아산',
+  seosan: '서산',
+  dangjin: '당진',
+  nonsan: '논산계룡',
+  gyeryong: '논산계룡',
+  gongju: '공주',
+  boryeong: '보령',
+  hongseong: '홍성',
+  yesan: '예산',
+  buyeo: '부여',
+  geumsan: '금산',
+  seocheon: '서천',
+  taean: '태안',
+  cheongyang: '청양',
+};
+
+/** 시·군 코드로 교육지원청 이름을 찾는다. */
+export function educationOfficeOf(regionCode: string): string {
+  return `${OFFICE_BY_REGION[regionCode] ?? '충청남도'}교육지원청`;
+}

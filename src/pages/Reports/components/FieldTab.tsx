@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useMemo, useRef, useState } from 'react';
 import { Badge } from '@/components/common/Badge';
 import { Button } from '@/components/common/Button';
 import { Card } from '@/components/common/Card';
@@ -13,9 +13,9 @@ import {
 } from '@/components/common/Form';
 import {
   CHECK_LABEL,
-  CHECKLIST_TEMPLATES,
   findRepeatIssues,
-  getTemplate,
+  flattenTemplate,
+  REPEAT_WINDOW_DAYS,
   REPORT_STATE_LABEL,
   STATE_ORDER,
 } from '@/mocks/fieldReport';
@@ -24,31 +24,39 @@ import { EmptyState } from '@/components/common/EmptyState';
 import { Modal } from '@/components/common/Modal';
 import { MSG } from '@/configs/messages';
 import { NOW, TODAY } from '@/mocks/today';
-import { PlusIcon, PrinterIcon, UserIcon } from '@/components/common/Icon';
+import { DownloadIcon, PlusIcon, PrinterIcon, UserIcon } from '@/components/common/Icon';
 import { Reveal } from '@/components/common/Reveal';
 import { Select } from '@/components/common/Select';
 import { cn } from '@/utils/cn';
-import { mergeFieldReports } from '@/stores/fieldReportStore';
+import { mergeFieldReports, mergeTemplates } from '@/stores/fieldReportStore';
 import { toast } from '@/stores/toastStore';
 import { useAuthUser } from '@/stores/authStore';
 import { usePlantScope } from '@/hooks/usePlantScope';
 import { usePrint } from '@/hooks/usePrint';
+import { useReportPdf } from '@/hooks/useReportPdf';
 import useFieldReportStore from '@/stores/fieldReportStore';
 import type { BadgeTone } from '@/components/common/Badge';
-import type { CheckResult, FieldReport, ReportState } from '@/interface/fieldReport';
+import type { CheckResult, FieldReport, InspectedDevice, ReportState, ReportTemplate } from '@/interface/fieldReport';
 import type { ManagedUser } from '@/interface/account';
 import { ScheduleTab } from '@/pages/AiDiagnosis/components/ScheduleTab';
 import type { UploadFile } from '@/components/common/Form';
 import styles from '../Reports.module.scss';
+import { FieldCompareModal } from './field/FieldCompareModal';
+import { FieldReportSheet } from './field/FieldReportSheet';
 import { FieldShareModal } from './FieldShareModal';
 import { getFieldPermission } from './fieldPermission';
+import sheetStyles from './monthly/Report.module.scss';
 
 const STATE_TONE: Record<ReportState, BadgeTone> = {
   draft: 'neutral',
   submitted: 'brand',
   reviewing: 'caution',
   confirmed: 'ok',
+  rejected: 'critical',
 };
+
+/** 점검 설비로 고를 수 있는 갈래 (SFR-021-06) */
+const DEVICE_KINDS = ['인버터', 'RTU', '접속반', '모듈 어레이', '일사량계', '기타'];
 
 interface DraftState {
   id: string;
@@ -59,9 +67,13 @@ interface DraftState {
   actionNote: string;
   results: Record<string, CheckResult | null>;
   notes: Record<string, string>;
+  /** 점검한 설비와 설비별 특이사항 (SFR-021-06) */
+  devices: InspectedDevice[];
   photos: UploadFile[];
   /** 사진 id → 점검 항목 id. 비어 있으면 보고서 전체에 붙은 사진이다 (SFR-021-06). */
   photoLinks: Record<string, string>;
+  /** 되돌아온 보고서를 고쳐 다시 내는 중인지 (SFR-021-09) */
+  resubmitOf: FieldReport | null;
 }
 
 /**
@@ -72,6 +84,8 @@ export function FieldTab() {
   const { plant, label } = usePlantScope();
   const user = useAuthUser();
   const print = usePrint();
+  const { download, busy } = useReportPdf();
+  const sheetRef = useRef<HTMLDivElement>(null);
   const save = useFieldReportStore((state) => state.save);
   const patch = useFieldReportStore((state) => state.patch);
   const nextId = useFieldReportStore((state) => state.nextId);
@@ -79,6 +93,7 @@ export function FieldTab() {
   const created = useFieldReportStore((state) => state.created);
   const patched = useFieldReportStore((state) => state.patched);
   const deleted = useFieldReportStore((state) => state.deleted);
+  const templatePatched = useFieldReportStore((state) => state.templatePatched);
 
   const [openId, setOpenId] = useState<string | null>(null);
   const [isWriting, setIsWriting] = useState(false);
@@ -86,8 +101,15 @@ export function FieldTab() {
   const [error, setError] = useState<string | undefined>(undefined);
   const [confirming, setConfirming] = useState<'draft' | 'submit' | null>(null);
   const [sharing, setSharing] = useState<FieldReport | null>(null);
+  const [rejecting, setRejecting] = useState<FieldReport | null>(null);
+  const [rejectReason, setRejectReason] = useState('');
+  // 나란히 견줄 두 건 (SFR-021-12)
+  const [picked, setPicked] = useState<string[]>([]);
+  const [comparing, setComparing] = useState(false);
 
   const permission = getFieldPermission(user);
+  const templates = useMemo(() => mergeTemplates(templatePatched), [templatePatched]);
+  const templateOf = (id: string) => templates.find((item) => item.id === id) ?? templates[0];
 
   const reports = useMemo(() => {
     const all = mergeFieldReports(created, patched, deleted).filter(permission.canRead);
@@ -99,22 +121,56 @@ export function FieldTab() {
 
   const repeats = useMemo(() => findRepeatIssues(reports), [reports]);
   const detail = reports.find((item) => item.id === openId) ?? null;
-  const template = draft ? getTemplate(draft.templateId) : null;
+  const template: ReportTemplate | null = draft ? templateOf(draft.templateId) : null;
+  const questions = template ? flattenTemplate(template) : [];
+  const pickedReports = picked.map((id) => reports.find((item) => item.id === id)).filter(Boolean) as FieldReport[];
 
   const startWriting = () => {
     setDraft({
       id: nextId(),
-      templateId: CHECKLIST_TEMPLATES[0].id,
+      templateId: templates[0].id,
       targetName: plant?.name ?? '',
       inspector: user?.name ?? '',
       summary: '',
       actionNote: '',
       results: {},
       notes: {},
+      devices: [],
       photos: [],
       photoLinks: {},
+      resubmitOf: null,
     });
     setError(undefined);
+    setIsWriting(true);
+  };
+
+  /** 되돌아온(또는 작성중인) 보고서를 그대로 열어 고친다 (SFR-021-09) */
+  const startEditing = (report: FieldReport) => {
+    setDraft({
+      id: report.id,
+      templateId: report.templateId,
+      targetName: report.targetName,
+      inspector: report.inspector,
+      summary: report.summary,
+      actionNote: report.actionNote,
+      results: Object.fromEntries(report.checklist.map((item) => [item.id, item.result])),
+      notes: Object.fromEntries(report.checklist.map((item) => [item.id, item.note])),
+      devices: report.devices,
+      // 이미 올린 사진은 파일 자체를 다시 받아 오지 않는다 — 이름만 들고 목록에 남긴다.
+      photos: report.photos.map((photo) => ({
+        id: photo.id,
+        name: photo.name,
+        size: 0,
+        type: 'image/jpeg',
+        previewUrl: null,
+      })),
+      photoLinks: Object.fromEntries(
+        report.photos.filter((photo) => photo.itemId).map((photo) => [photo.id, photo.itemId as string]),
+      ),
+      resubmitOf: report,
+    });
+    setError(undefined);
+    setOpenId(null);
     setIsWriting(true);
   };
 
@@ -128,7 +184,7 @@ export function FieldTab() {
       return false;
     }
 
-    const missing = template.items.findIndex((_, index) => !draft.results[`${template.id}-${index}`]);
+    const missing = questions.findIndex((item) => !draft.results[item.id]);
 
     if (missing >= 0) {
       setError(MSG.selectRequired(`${missing + 1}번 점검 항목`));
@@ -142,41 +198,59 @@ export function FieldTab() {
   };
 
   const buildReport = (state: ReportState): FieldReport | null => {
-    if (!draft || !template || !plant) return null;
+    if (!draft || !template) return null;
 
-    const checklist = template.items.map((itemLabel, index) => {
-      const id = `${template.id}-${index}`;
+    const origin = draft.resubmitOf;
+    const school = origin ?? plant;
 
-      return { id, label: itemLabel, result: draft.results[id] ?? null, note: draft.notes[id] ?? '' };
-    });
+    if (!school) return null;
+
+    const checklist = questions.map((item) => ({
+      ...item,
+      result: draft.results[item.id] ?? null,
+      note: draft.notes[item.id] ?? '',
+    }));
     const abnormal = checklist.filter((item) => item.result === 'abnormal').length;
+    // 되돌아온 건을 다시 내는 것이면 제출 횟수를 올리고 반려 사유를 지운다.
+    const resubmitting = Boolean(origin && origin.state === 'rejected' && state !== 'draft');
 
     return {
       id: draft.id,
-      schoolId: plant.id,
-      schoolName: plant.name,
+      schoolId: origin?.schoolId ?? plant?.id ?? '',
+      schoolName: origin?.schoolName ?? plant?.name ?? '',
       templateId: template.id,
+      templateVersion: template.version,
       inspectType: template.inspectType,
       targetKind: template.targetKind,
-      targetName: draft.targetName || plant.name,
+      targetName: draft.targetName || (origin?.schoolName ?? plant?.name ?? ''),
       inspector: draft.inspector,
-      date: TODAY.format('YYYY-MM-DD'),
+      date: origin?.date ?? TODAY.format('YYYY-MM-DD'),
       state,
       checklist,
+      devices: draft.devices,
       photos: draft.photos.map((file) => ({
         id: file.id,
         name: file.name,
-        itemId: draft.photoLinks[file.id] ?? null,
+        itemId: draft.photoLinks[file.id] || null,
       })),
       summary:
         draft.summary
         || (abnormal > 0 ? `점검 항목 ${abnormal}건에서 이상을 확인했습니다.` : '점검 항목 전체 정상입니다.'),
       actionNote: draft.actionNote,
+      rejectReason: resubmitting ? '' : origin?.rejectReason ?? '',
+      resubmitCount: (origin?.resubmitCount ?? 0) + (resubmitting ? 1 : 0),
       history: [
+        ...(origin?.history ?? []),
         {
           at: NOW.format('YYYY-MM-DD HH:mm'),
           actor: draft.inspector,
-          change: state === 'draft' ? '임시 저장했습니다.' : '제출했습니다.',
+          change: state === 'draft'
+            ? '임시 저장했습니다.'
+            : resubmitting
+              ? '수정 후 재기안했습니다.'
+              : origin
+                ? '수정해 다시 제출했습니다.'
+                : '제출했습니다.',
         },
       ],
     };
@@ -193,6 +267,18 @@ export function FieldTab() {
     setDraft(null);
   };
 
+  /** 이력 한 줄을 붙여 상태를 옮긴다 — 진행·반려가 같은 형식을 쓴다. */
+  const move = (report: FieldReport, next: ReportState, change: string, extra?: Partial<FieldReport>) => {
+    patch(report.id, {
+      state: next,
+      ...extra,
+      history: [
+        ...report.history,
+        { at: NOW.format('YYYY-MM-DD HH:mm'), actor: user?.name ?? '담당자', change },
+      ],
+    });
+  };
+
   /** 확인완료 직전까지 다음 단계로 넘긴다 (SFR-021-08) */
   const advance = (report: FieldReport) => {
     const index = STATE_ORDER.indexOf(report.state);
@@ -201,18 +287,18 @@ export function FieldTab() {
 
     const next = STATE_ORDER[index + 1];
 
-    patch(report.id, {
-      state: next,
-      history: [
-        ...report.history,
-        {
-          at: NOW.format('YYYY-MM-DD HH:mm'),
-          actor: user?.name ?? '담당자',
-          change: `${REPORT_STATE_LABEL[next]}(으)로 바꿨습니다.`,
-        },
-      ],
-    });
+    move(report, next, `${REPORT_STATE_LABEL[next]}(으)로 바꿨습니다.`);
     toast.success(`${REPORT_STATE_LABEL[next]}(으)로 처리했습니다.`);
+  };
+
+  /** 검토에서 되돌려 보낸다 — 현장이 고쳐 다시 낸다 (SFR-021-08/09) */
+  const reject = () => {
+    if (!rejecting || !rejectReason.trim()) return;
+
+    move(rejecting, 'rejected', `반려했습니다. — ${rejectReason.trim()}`, { rejectReason: rejectReason.trim() });
+    toast.success(`${rejecting.schoolName} 보고서를 반려했습니다.`);
+    setRejecting(null);
+    setRejectReason('');
   };
 
   /** 공유한 사실을 이력에 남긴다 (SFR-021-18) */
@@ -230,6 +316,11 @@ export function FieldTab() {
     toast.success(`${recipients.length}명에게 공유했습니다.`);
   };
 
+  /** 목록에서 견줄 두 건을 고른다 — 셋째를 누르면 가장 먼저 고른 것을 놓는다. */
+  const togglePick = (id: string) => {
+    setPicked((prev) => (prev.includes(id) ? prev.filter((item) => item !== id) : [...prev, id].slice(-2)));
+  };
+
   return (
     <div className={styles.tab}>
       <div className={cn(styles.toolbar, 'no-print')}>
@@ -242,6 +333,13 @@ export function FieldTab() {
           ) : null}
         </div>
         <div className={styles.toolbar__actions}>
+          <Button
+            variant="secondary"
+            onClick={() => setComparing(true)}
+            disabled={pickedReports.length < 2}
+          >
+            선택한 2건 비교{picked.length > 0 ? ` (${picked.length}/2)` : ''}
+          </Button>
           {permission.canWrite ? (
             <Button iconLeft={<PlusIcon />} onClick={startWriting} disabled={!plant}>
               보고서 작성
@@ -262,10 +360,13 @@ export function FieldTab() {
       {repeats.length > 0 ? (
         <Reveal>
           <div className={styles.repeat}>
-            <p className={styles.repeat__title}>같은 항목이 반복해 이상으로 나왔습니다</p>
+            <p className={styles.repeat__title}>
+              같은 항목이 반복해 이상으로 나왔습니다
+              <span className={styles.repeat__scope}> · 최근 {REPEAT_WINDOW_DAYS / 365}년, 같은 발전소 기준</span>
+            </p>
             {repeats.map((item) => (
-              <p key={`${item.schoolName}-${item.label}`} className={styles.repeat__item}>
-                {item.schoolName} · {item.label} — {item.count}회
+              <p key={`${item.schoolId}-${item.label}`} className={styles.repeat__item}>
+                {item.schoolName} · {item.label} — {item.count}회 (최근 {item.lastDate})
               </p>
             ))}
           </div>
@@ -276,29 +377,39 @@ export function FieldTab() {
         <Card
           eyebrow="Reports"
           title="점검 보고서 목록"
-          description="보고서를 누르면 점검 항목과 상태 이력을 펼쳐 봅니다. 과거 보고서와 견주어 반복 이슈를 찾습니다."
+          description="보고서를 누르면 점검 항목과 상태 이력을 펼쳐 봅니다. 왼쪽 칸으로 두 건을 골라 나란히 견줄 수 있습니다."
         >
           {reports.length === 0 ? (
             <EmptyState title="보고서가 없습니다" description="위 버튼으로 첫 보고서를 작성해 보세요." />
           ) : (
             <div className={styles.list}>
               {reports.map((report) => (
-                <button key={report.id} type="button" className={styles.row} onClick={() => setOpenId(report.id)}>
-                  <span className={styles.row__body}>
-                    <span className={styles.row__title}>
-                      {report.schoolName} · {getTemplate(report.templateId).label}
+                <div key={report.id} className={styles.rowWrap}>
+                  <label className={styles.rowPick}>
+                    <input
+                      type="checkbox"
+                      checked={picked.includes(report.id)}
+                      onChange={() => togglePick(report.id)}
+                    />
+                    <span className={styles.rowPick__label}>{report.date} 보고서 비교 대상으로 고르기</span>
+                  </label>
+                  <button type="button" className={styles.row} onClick={() => setOpenId(report.id)}>
+                    <span className={styles.row__body}>
+                      <span className={styles.row__title}>
+                        {report.schoolName} · {templateOf(report.templateId).label}
+                      </span>
+                      <span className={styles.row__meta}>
+                        {report.date} · 점검자 {report.inspector} · {report.summary}
+                      </span>
                     </span>
-                    <span className={styles.row__meta}>
-                      {report.date} · 점검자 {report.inspector} · {report.summary}
+                    <span className={styles.row__right}>
+                      <Badge tone="neutral">{report.inspectType}</Badge>
+                      <Badge tone={STATE_TONE[report.state]} withDot>
+                        {REPORT_STATE_LABEL[report.state]}
+                      </Badge>
                     </span>
-                  </span>
-                  <span className={styles.row__right}>
-                    <Badge tone="neutral">{report.inspectType}</Badge>
-                    <Badge tone={STATE_TONE[report.state]} withDot>
-                      {REPORT_STATE_LABEL[report.state]}
-                    </Badge>
-                  </span>
-                </button>
+                  </button>
+                </div>
               ))}
             </div>
           )}
@@ -312,21 +423,39 @@ export function FieldTab() {
         title={detail ? `${detail.schoolName} 점검 보고서` : ''}
         description={
           detail
-            ? `${detail.date} · ${getTemplate(detail.templateId).label} · 점검자 ${detail.inspector}`
+            ? `${detail.date} · ${templateOf(detail.templateId).label} v${detail.templateVersion} · 점검자 ${detail.inspector}`
             : undefined
         }
         footer={detail ? (
           <>
             <Button
               variant="secondary"
+              iconLeft={<DownloadIcon />}
+              onClick={() => download(sheetRef, `현장보고서_${detail.schoolName}_${detail.date}`)}
+              disabled={busy}
+            >
+              {busy ? '내려받는 중…' : 'PDF 내려받기'}
+            </Button>
+            <Button
+              variant="secondary"
               iconLeft={<PrinterIcon />}
               onClick={() => print(`현장보고서_${detail.schoolName}_${detail.date}`)}
             >
-              PDF 로 저장
+              인쇄
             </Button>
             {permission.canShare ? (
               <Button variant="secondary" iconLeft={<UserIcon />} onClick={() => setSharing(detail)}>
                 관계자 공유
+              </Button>
+            ) : null}
+            {permission.canEdit(detail) ? (
+              <Button variant="secondary" onClick={() => startEditing(detail)}>
+                {detail.state === 'rejected' ? '수정 후 재기안' : '수정'}
+              </Button>
+            ) : null}
+            {permission.canReject(detail) ? (
+              <Button variant="ghost" onClick={() => setRejecting(detail)}>
+                반려
               </Button>
             ) : null}
             {permission.canAdvance(detail) ? (
@@ -358,18 +487,42 @@ export function FieldTab() {
               })}
             </div>
 
+            {detail.state === 'rejected' ? (
+              <div className={styles.reject}>
+                <p className={styles.reject__title}>반려됨 · 고쳐서 다시 제출해 주세요</p>
+                <p className={styles.post__body}>{detail.rejectReason}</p>
+              </div>
+            ) : null}
+
             <p className={styles.post__body}>{detail.summary}</p>
 
-            {detail.checklist.map((item) => (
-              <div
-                key={item.id}
-                className={cn(styles.checkItem, { [styles['checkItem--abnormal']]: item.result === 'abnormal' })}
-              >
-                <p className={styles.checkItem__label}>{item.label}</p>
-                <p className={styles.post__meta}>
-                  <span>{item.result ? CHECK_LABEL[item.result] : '미기재'}</span>
-                  {item.note ? <span>{item.note}</span> : null}
-                </p>
+            {/* 어느 설비를 봤는지 (SFR-021-06) */}
+            {detail.devices.length > 0 ? (
+              <div className={styles.checkItem}>
+                <p className={styles.checkItem__label}>점검 설비</p>
+                {detail.devices.map((device) => (
+                  <p key={device.id} className={styles.post__meta}>
+                    <span>{device.kind} · {device.name}</span>
+                    {device.note ? <span>{device.note}</span> : null}
+                  </p>
+                ))}
+              </div>
+            ) : null}
+
+            {detail.checklist.map((item, index) => (
+              <div key={item.id}>
+                {index === 0 || item.section !== detail.checklist[index - 1].section ? (
+                  <p className={styles.sectionHead}>{item.section}</p>
+                ) : null}
+                <div
+                  className={cn(styles.checkItem, { [styles['checkItem--abnormal']]: item.result === 'abnormal' })}
+                >
+                  <p className={styles.checkItem__label}>{item.label}</p>
+                  <p className={styles.post__meta}>
+                    <span>{item.result ? CHECK_LABEL[item.result] : '미기재'}</span>
+                    {item.note ? <span>{item.note}</span> : null}
+                  </p>
+                </div>
               </div>
             ))}
 
@@ -414,8 +567,8 @@ export function FieldTab() {
         isOpen={isWriting}
         onClose={() => setIsWriting(false)}
         size="lg"
-        title="현장 점검 보고서 작성"
-        description={`${plant?.name ?? ''} · ${TODAY.format('YYYY년 M월 D일')}`}
+        title={draft?.resubmitOf ? '현장 점검 보고서 수정' : '현장 점검 보고서 작성'}
+        description={`${draft?.resubmitOf?.schoolName ?? plant?.name ?? ''} · ${draft?.resubmitOf?.date ?? TODAY.format('YYYY-MM-DD')}`}
         footer={(
           <>
             <Button variant="secondary" onClick={() => setConfirming('draft')}>
@@ -426,22 +579,29 @@ export function FieldTab() {
                 if (validate()) setConfirming('submit');
               }}
             >
-              제출
+              {draft?.resubmitOf?.state === 'rejected' ? '재기안' : '제출'}
             </Button>
           </>
         )}
       >
         {draft && template ? (
           <div className={styles.form}>
+            {draft.resubmitOf?.state === 'rejected' ? (
+              <div className={styles.reject}>
+                <p className={styles.reject__title}>반려 사유</p>
+                <p className={styles.post__body}>{draft.resubmitOf.rejectReason}</p>
+              </div>
+            ) : null}
+
             <FormSection legend="점검 개요" hint="양식을 고르면 아래 체크리스트가 그 양식으로 바뀝니다.">
               <FormRow cols={2}>
                 <Select
                   label="점검 양식"
                   value={draft.templateId}
                   onChange={(value) => setDraft({ ...draft, templateId: value, results: {}, notes: {} })}
-                  options={CHECKLIST_TEMPLATES.map((item) => ({
+                  options={templates.map((item) => ({
                     value: item.id,
-                    label: `${item.label} (${item.inspectType})`,
+                    label: `${item.label} (${item.inspectType} · v${item.version})`,
                   }))}
                 />
                 <TextField
@@ -461,39 +621,115 @@ export function FieldTab() {
                   error={error?.includes('점검자') ? error : undefined}
                   width="md"
                 />
-                <TextField label="점검일" value={TODAY.format('YYYY-MM-DD')} onChange={() => {}} readOnly width="md" />
+                <TextField
+                  label="점검일"
+                  value={draft.resubmitOf?.date ?? TODAY.format('YYYY-MM-DD')}
+                  onChange={() => {}}
+                  readOnly
+                  width="md"
+                />
               </FormRow>
+            </FormSection>
+
+            {/*
+              점검한 설비를 따로 적는다 (SFR-021-06).
+              점검 항목은 "무엇을 봤는가"이고, 여기는 "어느 설비를 봤는가"다 — 사진·이상 이력이 이 축으로 묶인다.
+            */}
+            <FormSection legend="점검 설비" hint="이번 점검에서 실제로 본 설비와 설비별 특이사항을 적습니다.">
+              {draft.devices.map((device, index) => (
+                <FormRow key={device.id} cols={3}>
+                  <Select
+                    label={`${index + 1}번 설비 구분`}
+                    value={device.kind}
+                    options={DEVICE_KINDS.map((kind) => ({ value: kind, label: kind }))}
+                    onChange={(value) => setDraft({
+                      ...draft,
+                      devices: draft.devices.map((item) => (item.id === device.id ? { ...item, kind: value } : item)),
+                    })}
+                  />
+                  <TextField
+                    label={`${index + 1}번 설비명`}
+                    value={device.name}
+                    onChange={(value) => setDraft({
+                      ...draft,
+                      devices: draft.devices.map((item) => (item.id === device.id ? { ...item, name: value } : item)),
+                    })}
+                  />
+                  <TextField
+                    label={`${index + 1}번 특이사항`}
+                    value={device.note}
+                    onChange={(value) => setDraft({
+                      ...draft,
+                      devices: draft.devices.map((item) => (item.id === device.id ? { ...item, note: value } : item)),
+                    })}
+                    placeholder="없으면 비워 둡니다"
+                  />
+                </FormRow>
+              ))}
+              <div className={styles.toolbar__actions}>
+                <Button
+                  size="sm"
+                  variant="secondary"
+                  iconLeft={<PlusIcon />}
+                  onClick={() => setDraft({
+                    ...draft,
+                    devices: [
+                      ...draft.devices,
+                      { id: `dev-${draft.id}-${draft.devices.length + 1}`, kind: DEVICE_KINDS[0], name: '', note: '' },
+                    ],
+                  })}
+                >
+                  설비 추가
+                </Button>
+                {draft.devices.length > 0 ? (
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    onClick={() => setDraft({ ...draft, devices: draft.devices.slice(0, -1) })}
+                  >
+                    마지막 줄 삭제
+                  </Button>
+                ) : null}
+              </div>
             </FormSection>
 
             <FormSection
               legend="점검 항목"
               hint="항목마다 정상·이상·해당없음 중 하나를 골라 주세요. 전부 골라야 제출할 수 있습니다."
             >
-              {template.items.map((itemLabel, index) => {
-                const id = `${template.id}-${index}`;
-                const result = draft.results[id] ?? null;
+              {questions.map((question, index) => {
+                const result = draft.results[question.id] ?? null;
+                const isFirstOfSection = index === 0 || question.section !== questions[index - 1].section;
 
                 return (
-                  <div
-                    key={id}
-                    className={cn(styles.checkItem, { [styles['checkItem--abnormal']]: result === 'abnormal' })}
-                  >
-                    <RadioGroup
-                      legend={`${index + 1}. ${itemLabel}`}
-                      value={result}
-                      onChange={(value) => setDraft({ ...draft, results: { ...draft.results, [id]: value } })}
-                      options={CHECK_OPTIONS}
-                      required
-                      error={error?.includes(`${index + 1}번`) ? error : undefined}
-                    />
-                    {result === 'abnormal' ? (
-                      <TextField
-                        label="이상 내용"
-                        value={draft.notes[id] ?? ''}
-                        onChange={(value) => setDraft({ ...draft, notes: { ...draft.notes, [id]: value } })}
-                        placeholder="무엇이 어떻게 이상한지 적어 주세요."
+                  <div key={question.id}>
+                    {isFirstOfSection ? <p className={styles.sectionHead}>{question.section}</p> : null}
+                    <div
+                      className={cn(styles.checkItem, { [styles['checkItem--abnormal']]: result === 'abnormal' })}
+                    >
+                      <RadioGroup
+                        legend={`${index + 1}. ${question.label}`}
+                        value={result}
+                        onChange={(value) => setDraft({
+                          ...draft,
+                          results: { ...draft.results, [question.id]: value },
+                        })}
+                        options={CHECK_OPTIONS}
+                        required
+                        error={error?.includes(`${index + 1}번`) ? error : undefined}
                       />
-                    ) : null}
+                      {result === 'abnormal' ? (
+                        <TextField
+                          label="이상 내용"
+                          value={draft.notes[question.id] ?? ''}
+                          onChange={(value) => setDraft({
+                            ...draft,
+                            notes: { ...draft.notes, [question.id]: value },
+                          })}
+                          placeholder="무엇이 어떻게 이상한지 적어 주세요."
+                        />
+                      ) : null}
+                    </div>
                   </div>
                 );
               })}
@@ -511,7 +747,7 @@ export function FieldTab() {
                 사진마다 어느 점검 항목을 찍은 것인지 붙여 둔다 (SFR-021-06).
                 나중에 보고서를 다시 열었을 때 "이 사진이 무엇에 대한 자료인지" 를 답한다.
               */}
-              {draft.photos.length > 0 && template ? (
+              {draft.photos.length > 0 ? (
                 <ul className={styles.photoLinks}>
                   {draft.photos.map((file) => (
                     <li key={file.id} className={styles.photoLinks__row}>
@@ -522,9 +758,9 @@ export function FieldTab() {
                         value={draft.photoLinks[file.id] ?? ''}
                         options={[
                           { value: '', label: '보고서 전체' },
-                          ...template.items.map((itemLabel, index) => ({
-                            value: `${template.id}-${index}`,
-                            label: itemLabel,
+                          ...questions.map((question) => ({
+                            value: question.id,
+                            label: `${question.section} · ${question.label}`,
                           })),
                         ]}
                         onChange={(value) => setDraft({
@@ -573,7 +809,53 @@ export function FieldTab() {
         onClose={() => setConfirming(null)}
       />
 
+      {/* 반려는 사유가 있어야 한다 — 현장이 무엇을 고쳐야 할지 알아야 다시 낼 수 있다 (SFR-021-08). */}
+      <Modal
+        isOpen={rejecting !== null}
+        onClose={() => setRejecting(null)}
+        size="md"
+        title="보고서 반려"
+        description={rejecting ? `${rejecting.schoolName} · ${rejecting.date}` : undefined}
+        footer={(
+          <>
+            <Button variant="secondary" onClick={() => setRejecting(null)}>
+              취소
+            </Button>
+            <Button onClick={reject} disabled={!rejectReason.trim()}>
+              반려
+            </Button>
+          </>
+        )}
+      >
+        <TextArea
+          label="반려 사유"
+          value={rejectReason}
+          onChange={setRejectReason}
+          required
+          placeholder="무엇을 고쳐서 다시 내야 하는지 적어 주세요."
+          maxLength={300}
+        />
+      </Modal>
+
+      <FieldCompareModal
+        isOpen={comparing && pickedReports.length === 2}
+        reports={pickedReports}
+        onClose={() => setComparing(false)}
+      />
+
       <FieldShareModal report={sharing} onClose={() => setSharing(null)} onShare={share} />
+
+      {/*
+        PDF 로 담을 지면. 화면 밖에 세워 두고 내려받을 때만 캡처한다 (SFR-021-18) —
+        `display: none` 이면 크기가 0이라 캡처되지 않아 자리만 밀어 둔다.
+      */}
+      {detail ? (
+        <div aria-hidden className={styles.offscreen}>
+          <div ref={sheetRef} className={sheetStyles.sheet}>
+            <FieldReportSheet report={detail} />
+          </div>
+        </div>
+      ) : null}
 
       {/* 점검 일정은 현장 점검과 한 흐름이라 보고서 아래 붙여 둔다 (SFR-021-19). */}
       <ScheduleTab />

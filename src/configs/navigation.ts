@@ -144,6 +144,12 @@ export const ADMIN_NAVIGATION: NavSection = {
       ],
     },
     {
+      label: '현장보고서 관리',
+      path: PATH.ADMIN_FIELD_REPORTS,
+      description: '전체 현장보고서를 훑어 검토·확인·반려로 정리하고, 점검 양식 문항을 고쳐 새 판으로 냅니다.',
+      requirements: ['SFR-021-08', 'SFR-021-14'],
+    },
+    {
       label: '사용자 관리',
       path: PATH.ADMIN_USERS,
       description: '설비 담당자와 권한을 관리합니다. 개인정보는 마스킹해 보여 줍니다.',
