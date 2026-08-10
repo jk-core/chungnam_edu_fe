@@ -12,12 +12,18 @@ const TABS = {
 
 type TabKey = keyof typeof TABS;
 
-function AiDiagnosisPage() {
+interface AiDiagnosisPageProps {
+  /** 조회 뎁스를 주소에 담는 자리는 `:tab` 이 비어 있어, 라우트가 어느 탭인지 알려 준다. */
+  tab?: TabKey;
+}
+
+function AiDiagnosisPage({ tab: fixed }: AiDiagnosisPageProps) {
   const { tab } = useParams<{ tab: string }>();
+  const key = fixed ?? tab;
 
-  if (!tab || !(tab in TABS)) return <Navigate to={PATH.AI_DIAGNOSIS_OVERVIEW} replace />;
+  if (!key || !(key in TABS)) return <Navigate to={PATH.AI_DIAGNOSIS_OVERVIEW} replace />;
 
-  const Tab = TABS[tab as TabKey];
+  const Tab = TABS[key as TabKey];
 
   return <Tab />;
 }

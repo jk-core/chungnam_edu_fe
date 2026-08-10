@@ -51,6 +51,7 @@ export function DeviceJunctionBoxes() {
   const saveJunction = useEquipmentStore((state) => state.saveJunction);
   const removeJunction = useEquipmentStore((state) => state.removeJunction);
   const nextId = useEquipmentStore((state) => state.nextId);
+  const nextSeq = useEquipmentStore((state) => state.nextSeq);
   const deletedPlants = useDeletedPlants();
   const actor = useAuthUser();
 
@@ -152,6 +153,7 @@ export function DeviceJunctionBoxes() {
     const before = isNew ? null : allRows.find((row) => row.id === draft.id) ?? null;
     const saved: JunctionBoxMaster = {
       id: draft.id ?? nextId('JB'),
+      connectBoxId: before?.connectBoxId ?? nextSeq(),
       inverterId: draft.inverterId,
       name: draft.name.trim(),
       seriesCount: Number(draft.seriesCount),
@@ -186,7 +188,14 @@ export function DeviceJunctionBoxes() {
         </span>
       ),
     },
-    { key: 'name', header: '접속반', width: '160px', render: (row) => row.name },
+    {
+      key: 'connectBoxId',
+      header: '접속반 ID',
+      width: '90px',
+      hideOnTablet: true,
+      render: (row) => <span className={styles.stackCell__sub}>{row.connectBoxId}</span>,
+    },
+    { key: 'name', header: '접속반', width: '150px', render: (row) => row.name },
     { key: 'series', header: '모듈 직렬', align: 'right', width: '100px', render: (row) => `${row.seriesCount}직렬` },
     { key: 'parallel', header: '모듈 병렬', align: 'right', width: '100px', render: (row) => `${row.parallelCount}병렬` },
     {

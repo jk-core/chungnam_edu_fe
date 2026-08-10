@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react';
 import { motion } from 'motion/react';
-import { AlertIcon, ChevronRightIcon, MonitorIcon } from '@/components/common/Icon';
+import { AlertIcon, CheckIcon, ChevronRightIcon, MonitorIcon } from '@/components/common/Icon';
 import { Badge } from '@/components/common/Badge';
 import { Card } from '@/components/common/Card';
 import { DIAG_EFFICIENCY_CRITICAL, DIAG_EFFICIENCY_WARN } from '@/mocks/equipment';
@@ -295,7 +295,10 @@ function UnitTile({ card, index, parentName, onOpenFault, onOpen }: UnitTileProp
         <Badge tone={OPERATION_TONE[node.status]}>{OPERATION_LABEL[node.status]}</Badge>
       </header>
 
-      {/* 정상이면 헤더 배지로 충분하다 — 같은 말을 밴드로 되풀이하지 않는다. */}
+      {/*
+        차트 위 한 줄은 늘 있어야 지금 이 설비가 어떤 상태인지 카드마다 같은 자리에서 읽힌다.
+        이상이면 눌러서 원인·조치로, 정상이면 눌 곳 없는 안내로 둔다.
+      */}
       {fault && fault.code > 0 ? (
         <button
           type="button"
@@ -310,7 +313,15 @@ function UnitTile({ card, index, parentName, onOpenFault, onOpen }: UnitTileProp
           <span className={styles.unitAlert__cause}>{fault.summary}</span>
           <ChevronRightIcon width={12} height={12} aria-hidden />
         </button>
-      ) : null}
+      ) : (
+        <p className={cn(styles.unitAlert, styles['unitAlert--running'])}>
+          <CheckIcon width={13} height={13} aria-hidden />
+          <span className={styles.unitAlert__cause}>
+            정상 · 진단 효율이 기준 안에 있습니다
+            {card.belowDays > 0 ? ` (최근 미달 ${card.belowDays}일)` : ''}
+          </span>
+        </p>
+      )}
 
       <div className={styles.unit__spark}>
         <Sparkline

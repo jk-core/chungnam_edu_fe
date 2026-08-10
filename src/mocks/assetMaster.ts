@@ -1,6 +1,8 @@
 import type { AssetChange, ModuleSpec, PlantAsset } from '@/interface/asset';
 import { SCHOOLS } from './schools';
+import { SEED_USERS } from './accounts';
 import { createRandom, hashSeed, pickOne } from './random';
+import { regionCodeOf } from './manageCodes';
 import { stampAgo } from './today';
 
 const BUILDERS = [
@@ -20,6 +22,12 @@ const CUSTOMER_SURNAME = ['김', '이', '박', '최', '정', '한', '오', '서'
 const CUSTOMER_GIVEN = ['민준', '서연', '지후', '현우', '수빈', '예린', '도윤', '하은'];
 
 const INVERTER_MODELS = ['HSI-50KTL', 'SG-33CX', 'DAS-50TL', 'OSI-60KP'];
+const ADDRESS_DETAILS = ['본관 옥상', '체육관 옥상', '급식동 옥상', '별관 옥상', '주차장 캐노피'];
+
+/** 담당자로 등록된 계정을 발전소에 이어 준다 — 서버의 `userId` 자리다. */
+const OWNER_BY_PLANT = new Map(
+  SEED_USERS.flatMap((user) => user.plantIds.map((plantId) => [plantId, user.userId] as const)),
+);
 const MODULE_MODELS = ['HN-455JD', 'QP-460MB', 'LS-450NW'];
 const MODULE_WATT: Record<string, number> = { 'HN-455JD': 455, 'QP-460MB': 460, 'LS-450NW': 450 };
 
@@ -56,8 +64,12 @@ function buildAsset(schoolIndex: number): PlantAsset {
 
   return {
     plantId: school.id,
+    // 서버 번호는 1부터 이어 붙되, 학교 id 와 섞이지 않게 앞자리를 띄운다.
+    powerPlantId: 10000 + schoolIndex + 1,
     plantName: school.name,
+    regionCode: regionCodeOf(school.regionCode),
     address: school.address,
+    addressDetail: pickOne(next, ADDRESS_DETAILS),
     installedAt: school.installedAt,
     builder: pickOne(next, BUILDERS),
     monitoring: pickOne(next, MONITORS),
@@ -65,6 +77,9 @@ function buildAsset(schoolIndex: number): PlantAsset {
       name: `${pickOne(next, CUSTOMER_SURNAME)}${pickOne(next, CUSTOMER_GIVEN)}`,
       phone: `010-${String(1000 + Math.floor(next() * 9000))}-${String(1000 + Math.floor(next() * 9000))}`,
     },
+    userId: OWNER_BY_PLANT.get(school.id) ?? null,
+    // 일사량계는 학교마다 한 대씩 서 있고, 번호가 학교 순서를 따른다.
+    irradId: schoolIndex + 1,
     inverterModel: pickOne(next, INVERTER_MODELS),
     module: {
       model: moduleModel,
@@ -72,6 +87,7 @@ function buildAsset(schoolIndex: number): PlantAsset {
       panelCount: fitted.panelCount,
       seriesCount: fitted.seriesCount,
     },
+    etc: '',
   };
 }
 
@@ -91,8 +107,9 @@ export const SEED_ASSET_CHANGES: AssetChange[] = [
     plantName: SEED_ASSETS[3].plantName,
     at: stampAgo(6, '15:12'),
     actor: '김도현',
-    field: '모니터링 업체',
-    before: '솔라뷰시스템',
+    field: '유지관리 업체',
+    // 지금 값과 겹치지 않는 업체를 이전 값으로 둔다 — 같으면 이력이 바뀐 게 없어 보인다.
+    before: MONITORS.find((item) => item.name !== SEED_ASSETS[3].monitoring.name)?.name ?? MONITORS[0].name,
     after: SEED_ASSETS[3].monitoring.name,
   },
   {

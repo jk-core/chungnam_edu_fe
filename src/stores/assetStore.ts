@@ -35,6 +35,8 @@ interface AssetState {
   patchUser: (id: string, change: Partial<ManagedUser>, entries: UserChange[]) => void;
   removeUser: (id: string, entry: UserChange) => void;
   nextUserId: () => string;
+  /** 서버가 새로 매길 사용자 번호를 흉내 낸다 (userId) */
+  nextUserSeq: () => number;
 
   /** 로그인 설정 덮어쓰기 (SFR-026) */
   policy: LoginPolicy;
@@ -115,6 +117,8 @@ const useAssetStore = create<AssetState>()(
       removeUser: (id, entry) =>
         set((state) => ({ userDeleted: [...state.userDeleted, id], userChanges: [entry, ...state.userChanges] })),
       nextUserId: () => `usr-${String(9100 + get().userCreated.length)}`,
+      // 시드가 쓰는 1~수십 번대를 피해 9000 위에서 센다.
+      nextUserSeq: () => 9000 + get().userCreated.length + 1,
 
       policy: LOGIN_POLICY,
       savePolicy: (policy) => set({ policy }),

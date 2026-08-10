@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom';
 import { CloseIcon, ExpandIcon } from '@/components/common/Icon';
+import { cn } from '@/utils/cn';
 import { WeatherIcon } from '@/components/common/DataCalendar/WeatherIcon';
 import { WEATHER_META } from '@/mocks/weather';
 import { PATH } from '@/routes/routes';
@@ -15,6 +16,10 @@ interface SolarEduLayoutProps {
   scopePicker?: ReactNode;
   /** 학교 기본 정보 — 설비용량·설치일 등 한 줄 요약 */
   scopeInfo?: string;
+  /** 눈높이(초·중·고)를 고르는 손잡이 (SFR-005-04) */
+  levelPicker?: ReactNode;
+  /** 화면 뒤에 까는 그림. 초등 판이 하늘을 깐다 (SFR-005-06) */
+  backdrop?: ReactNode;
   weather: WeatherKind;
   /** 계측값이 들어오고 있는지 (SFR-005-10) */
   isLive: boolean;
@@ -42,6 +47,8 @@ export function SolarEduLayout({
   scopeLabel,
   scopePicker,
   scopeInfo,
+  levelPicker,
+  backdrop,
   weather,
   isLive,
   clock,
@@ -55,14 +62,18 @@ export function SolarEduLayout({
   const { isFullscreen, toggle: toggleFullscreen } = useFullscreen();
 
   return (
-    <div className={styles.edu}>
+    <div className={cn(styles.edu, { [styles['edu--backdrop']]: Boolean(backdrop) })}>
+      {backdrop}
+
       <header className={styles.top}>
         <div className={styles.bar}>
           <div>
-            <p className={styles.bar__scope}>
+            {/* 손잡이(선택기·세그먼트)를 품으므로 문단이 아니라 묶음으로 둔다 */}
+            <div className={styles.bar__scope}>
               {scopeLabel}
               {scopePicker}
-            </p>
+              {levelPicker}
+            </div>
             <h1 className={styles.bar__title}>우리 학교 지붕이 만드는 전기</h1>
             {scopeInfo ? <p className={styles.bar__info}>{scopeInfo}</p> : null}
           </div>

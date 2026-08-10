@@ -1095,12 +1095,24 @@
   cursor: pointer;
 }
 
-.unit__head,
-.unitAlert,
-.unit__spark,
-.unit__metrics {
+/*
+  카드 전체가 그 설비로 내려가는 버튼이다 (`unit__overlay`).
+  본문을 통째로 위 층에 올리면 그 버튼이 덮여 카드를 눌러도 아무 일이 없다.
+  그래서 위 층에는 정말 눌러야 하는 것 — 원인·조치를 여는 이상 밴드 — 만 올린다.
+*/
+button.unitAlert {
   position: relative;
   z-index: 1;
+}
+
+// 나머지는 글자만 있는 자리라 클릭을 그대로 흘려보낸다.
+.unit__head,
+.unit__spark,
+.unit__metrics,
+p.unitAlert {
+  position: relative;
+  z-index: 0;
+  pointer-events: none;
 }
 
 .unit__head {

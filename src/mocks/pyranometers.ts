@@ -18,6 +18,8 @@ export const SEED_PYRANOMETERS: Pyranometer[] = SCHOOLS.map((school, index) => {
 
   return {
     id: `pyr-${school.id}`,
+    // 서버가 매기는 번호는 1부터 이어 붙는다 (irradId).
+    irradId: index + 1,
     plantId: school.id,
     plantName: school.name,
     name: `${school.name} 일사량계`,

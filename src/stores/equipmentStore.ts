@@ -74,6 +74,8 @@ interface EquipmentState {
   removePyranometer: (id: string, entry: DeviceChange) => void;
 
   nextId: (prefix: string) => string;
+  /** 서버가 새로 매길 숫자 번호를 흉내 낸다 (cid·moduleId·connectBoxId·stringId·irradId) */
+  nextSeq: () => number;
 }
 
 /** 등록·수정을 한 갈래로 처리한다 — 새 항목이면 목록에, 아니면 변경분에 얹는다. */
@@ -229,6 +231,8 @@ const useEquipmentStore = create<EquipmentState>()(
 
       // 시드 id 와 겹치지 않게 접두어를 달아 준다.
       nextId: (prefix) => `${prefix}-${String(get().deviceChanges.length + 1).padStart(3, '0')}-${Date.now() % 10000}`,
+      // 시드가 쓰는 번호대(1~수백)를 피해 9000 위에서 센다.
+      nextSeq: () => 9000 + get().deviceChanges.length + 1,
     }),
     { name: 'cne-equipment', storage: createJSONStorage(() => localStorage) },
   ),

@@ -72,6 +72,7 @@ export function DeviceModuleMasters() {
   const saveModule = useEquipmentStore((state) => state.saveModule);
   const removeModule = useEquipmentStore((state) => state.removeModule);
   const nextId = useEquipmentStore((state) => state.nextId);
+  const nextSeq = useEquipmentStore((state) => state.nextSeq);
   const actor = useAuthUser();
 
   const [keyword, setKeyword] = useState('');
@@ -91,7 +92,9 @@ export function DeviceModuleMasters() {
     const trimmed = keyword.trim();
 
     return trimmed
-      ? allModules.filter((item) => item.name.includes(trimmed) || item.maker.includes(trimmed))
+      ? allModules.filter((item) => item.name.includes(trimmed)
+        || item.maker.includes(trimmed)
+        || String(item.moduleId).includes(trimmed))
       : allModules;
   }, [allModules, keyword]);
 
@@ -142,6 +145,7 @@ export function DeviceModuleMasters() {
     const before = isNew ? null : allModules.find((item) => item.id === draft.id) ?? null;
     const saved: ModuleProduct = {
       id: draft.id ?? nextId('MOD'),
+      moduleId: before?.moduleId ?? nextSeq(),
       name: draft.name.trim(),
       maker: draft.maker.trim(),
       wattPerPanel: Number(draft.wattPerPanel),
@@ -179,6 +183,13 @@ export function DeviceModuleMasters() {
   };
 
   const columns: Column<ModuleProduct>[] = [
+    {
+      key: 'moduleId',
+      header: '모듈 ID',
+      width: '90px',
+      hideOnTablet: true,
+      render: (row) => <span className={styles.stackCell__sub}>{row.moduleId}</span>,
+    },
     {
       key: 'name',
       header: '모듈명 · 업체',

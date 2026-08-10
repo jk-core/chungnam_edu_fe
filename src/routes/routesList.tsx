@@ -64,6 +64,16 @@ export const routes: RouteObject[] = [
               { path: 'energy/statistics/:plantId', element: <EnergyPage tab="statistics" /> },
               { path: 'energy/statistics/:plantId/:inverterId', element: <EnergyPage tab="statistics" /> },
               { path: 'ai-diagnosis/:tab', element: <AiDiagnosisPage /> },
+              /*
+                발전진단도 조회 뎁스를 주소에 남긴다 — 발전소·인버터·그 아래 회로가 각자 주소를 갖는다.
+                `:tab` 하나로는 이 자리들이 잡히지 않아 따로 등록한다 (SFR-013).
+              */
+              { path: 'ai-diagnosis/overview/:plantId', element: <AiDiagnosisPage tab="overview" /> },
+              { path: 'ai-diagnosis/overview/:plantId/:inverterId', element: <AiDiagnosisPage tab="overview" /> },
+              {
+                path: 'ai-diagnosis/overview/:plantId/:inverterId/:unitId',
+                element: <AiDiagnosisPage tab="overview" />,
+              },
               { path: 'guide/:tab', element: <GuidePage /> },
             ],
           },

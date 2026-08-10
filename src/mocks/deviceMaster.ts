@@ -41,6 +41,8 @@ export const SEED_INVERTER_MASTERS: InverterMaster[] = INVERTERS.map((inverter, 
 
   return {
     inverterId: inverter.id,
+    // 설비 식별자(cid)는 서버가 매기는 11자리 숫자다 — 목록·검색이 이 값을 쓴다.
+    cid: 10192000000 + index + 1,
     plantId: inverter.schoolId,
     name: inverter.name,
     maker: INVERTER_MAKERS[index % INVERTER_MAKERS.length],
@@ -55,17 +57,27 @@ export const SEED_INVERTER_MASTERS: InverterMaster[] = INVERTERS.map((inverter, 
     parallel1: parallel,
     series2: 0,
     parallel2: 0,
+    equipmentCapacity: Math.round(inverter.capacityKw * 1000) / 1000,
     note: '',
     installedAt: `${installedAt}-01`,
     operatedAt: `${installedAt}-15`,
   };
 });
 
+/**
+ * 서버가 매기는 일련번호를 흉내 낸다.
+ * 인버터 순번과 그 안 순번을 섞어, 목업을 다시 만들어도 같은 값이 나오게 한다.
+ */
+function boxSeq(inverterId: string, index: number): number {
+  return INVERTERS.findIndex((item) => item.id === inverterId) * 100 + index + 1;
+}
+
 export const SEED_JUNCTION_BOXES: JunctionBoxMaster[] = INVERTERS.flatMap((inverter) => {
   const master = SEED_INVERTER_MASTERS.find((item) => item.inverterId === inverter.id);
 
-  return inverter.junctionBoxes.map((box) => ({
+  return inverter.junctionBoxes.map((box, index) => ({
     id: box.id,
+    connectBoxId: boxSeq(inverter.id, index),
     inverterId: inverter.id,
     name: box.name,
     seriesCount: master?.series1 ?? 18,
@@ -79,6 +91,7 @@ export const SEED_STRINGS: StringMaster[] = INVERTERS.flatMap((inverter) => {
 
   return inverter.strings.map((unit, index) => ({
     id: unit.id,
+    stringId: boxSeq(inverter.id, index),
     inverterId: inverter.id,
     seq: index + 1,
     name: unit.name,

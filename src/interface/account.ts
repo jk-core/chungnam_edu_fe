@@ -24,11 +24,16 @@ export interface AuthUser {
 /** 사용자 관리 화면이 다루는 설비 담당자 (SFR-018) */
 export interface ManagedUser {
   id: string;
+  /** 서버가 매기는 사용자 번호 (userId) */
+  userId: number;
+  /** 로그인 계정 (loginId) */
+  loginId: string;
   name: string;
   role: Role;
   orgName: string;
   department: string;
   email: string;
+  /** 휴대전화번호 (cellPhone) */
   phone: string;
   plantIds: string[];
   /** 마지막 로그인 — 없으면 null */

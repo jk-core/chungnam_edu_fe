@@ -23,6 +23,52 @@
     radial-gradient(70% 50% at 78% -10%, var(--sky-glow) 0%, transparent 62%),
     linear-gradient(180deg, var(--sky-top) 0%, var(--paper) 58%);
 
+  /*
+    배경 그림을 깔면 그쪽이 하늘을 그린다 — 기본 그라디언트를 걷어 색이 겹치지 않게 한다.
+
+    깔린 하늘과 그 위 카드는 테마와 무관하게 밝다. 어두운 테마의 밝은 글씨를 그대로 쓰면
+    흰 카드 위에서 글자가 사라지므로, 이 판 안에서만 밝은 바탕용 색으로 고정한다.
+  */
+  &.edu--backdrop {
+    --text: #1d2b41;
+    --text-strong: #0e1a2b;
+    --text-muted: #3b4d6b;
+    --text-faint: #536683;
+    --surface: #fff;
+    --surface-sunken: #eef2f8;
+    --surface-hover: #e4ecf7;
+    --sky-top: #eaf1fa;
+    --border: #d6dfec;
+    --border-subtle: #e4eaf3;
+    --solar: #f5a524;
+    --solar-deep: #e08c0c;
+    --solar-soft: #fff7e8;
+    --solar-text: #8b5404;
+    --brand-contrast: #073b73;
+
+    background: none;
+
+    /*
+      변수를 다시 매어도 body 에서 이미 계산돼 내려온 `color` 는 그대로다.
+      여기서 한 번 더 선언해, 자기 색을 정하지 않고 상속에 기대는 글자까지 밝은 바탕용으로 돌린다.
+    */
+    color: var(--text);
+
+    /*
+      헤더는 하늘 위에 바로 놓여 옅은 글씨가 묻힌다. 카드와 같은 결의 판을 깔아
+      학교 정보·시계·버튼까지 밝은 바탕 위에서 읽히게 한다.
+    */
+    .top {
+      padding: s.$space-4 s.$space-5;
+      border: 1px solid rgb(255 255 255 / 70%);
+      border-bottom: 1px solid rgb(255 255 255 / 70%);
+      border-radius: s.$radius-lg;
+      background-color: rgb(255 255 255 / 82%);
+      box-shadow: 0 10px 30px rgb(31 56 92 / 12%);
+      backdrop-filter: blur(6px);
+    }
+  }
+
   @include media.kiosk {
     padding: s.$space-6 s.$space-8;
   }
@@ -37,7 +83,10 @@
 
 // ── 고정 영역 ──────────────────────────────────────────────
 // 대상과 지금 이 순간의 수치. 씬이 갈려도 여기는 그대로 남는다.
+// 배경 그림 위에 놓이도록 자리를 잡아 준다 — 그러지 않으면 absolute 인 배경이 헤더를 덮는다.
 .top {
+  position: relative;
+  z-index: 1;
   display: flex;
   flex-direction: column;
   gap: s.$space-4;
@@ -143,6 +192,8 @@
 // ── 알고 계셨나요 한 줄 ────────────────────────────────────
 // 위쪽 수치 바로 아래에 놓는 롤링 배너. 일정 시간마다 문구가 밀려 올라오며 갈린다.
 .ticker {
+  position: relative;
+  z-index: 1;
   display: flex;
   align-items: center;
   gap: s.$space-4;
@@ -223,6 +274,8 @@
 
 // ── 본문 ───────────────────────────────────────────────────
 .body {
+  position: relative;
+  z-index: 1;
   flex: 1;
   min-height: 0;
   margin-top: s.$space-4;

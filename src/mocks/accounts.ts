@@ -70,9 +70,12 @@ function buildManagedUsers(): ManagedUser[] {
   const next = createRandom(hashSeed('cne-users-2026'));
 
   // 교육청 계정 두 자리 + 학교 담당자. 데모 로그인 계정과 같은 인물은 그대로 싣는다.
-  const office: ManagedUser[] = ACCOUNTS.map((account) => ({
+  const office: ManagedUser[] = ACCOUNTS.map((account, index) => ({
     ...account,
-    phone: account.role === 'admin' ? '041-640-0114' : '041-640-0132',
+    // 서버는 사용자 번호와 로그인 계정을 따로 갖는다 (userId · loginId).
+    userId: index + 1,
+    loginId: account.id.replace('cne-', ''),
+    phone: account.role === 'admin' ? '010-2841-0114' : '010-3517-0132',
     lastLoginAt: stampAgo(account.role === 'institution' ? 1 : 0, `09:0${Math.round(pickNumber(next, 0, 9))}`),
     locked: false,
   }));
@@ -83,12 +86,14 @@ function buildManagedUsers(): ManagedUser[] {
 
     return {
       id: `mgr-${school.id}`,
+      userId: ACCOUNTS.length + index + 1,
+      loginId: `mgr${String(index + 11)}`,
       name,
       role: 'institution',
       orgName: school.name,
       department: pickOne(next, DEPARTMENTS),
       email: `mgr${String(index + 11)}@school.cne.go.kr`,
-      phone: `041-${String(500 + Math.round(pickNumber(next, 0, 399)))}-${String(1000 + Math.round(pickNumber(next, 0, 8999)))}`,
+      phone: `010-${String(3000 + Math.round(pickNumber(next, 0, 6999)))}-${String(1000 + Math.round(pickNumber(next, 0, 8999)))}`,
       plantIds: [school.id],
       lastLoginAt: neverLoggedIn
         ? null

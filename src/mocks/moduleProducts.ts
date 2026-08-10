@@ -10,6 +10,7 @@ import type { ModuleProduct } from '@/interface/deviceMaster';
 export const SEED_MODULES: ModuleProduct[] = [
   {
     id: 'mod-hn455',
+    moduleId: 1,
     name: 'HN-455JD',
     maker: '한화큐셀',
     wattPerPanel: 455,
@@ -23,6 +24,7 @@ export const SEED_MODULES: ModuleProduct[] = [
   },
   {
     id: 'mod-qp460',
+    moduleId: 2,
     name: 'QP-460MB',
     maker: '큐피솔라',
     wattPerPanel: 460,
@@ -36,6 +38,7 @@ export const SEED_MODULES: ModuleProduct[] = [
   },
   {
     id: 'mod-ls450',
+    moduleId: 3,
     name: 'LS-450NW',
     maker: '엘에스솔라',
     wattPerPanel: 450,

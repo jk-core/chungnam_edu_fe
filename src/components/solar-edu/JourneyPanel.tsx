@@ -1,5 +1,5 @@
-import { EDU_TOPICS } from '@/mocks/solarEdu';
 import { cn } from '@/utils/cn';
+import type { EduContent } from '@/mocks/eduContent';
 import type { EduStats } from '@/mocks/solarEdu';
 import { TOPIC_ICONS } from './EduIcons';
 import { JourneyOverviewArt } from './JourneyOverviewArt';
@@ -12,6 +12,7 @@ const FASTEST_MS = 420;
 
 interface JourneyPanelProps {
   stats: EduStats;
+  content: EduContent['journey'];
 }
 
 /**
@@ -20,15 +21,15 @@ interface JourneyPanelProps {
  * 단계를 하나씩 넘겨 보여 주면 앞뒤가 끊겨 전체가 한 줄로 이어진다는 것이 드러나지 않는다.
  * 계통도 한 장으로 네 단계를 다 보이고, 그 아래에서 의미·원리·환경적 효과만 짚는다.
  */
-export function JourneyPanel({ stats }: JourneyPanelProps) {
+export function JourneyPanel({ stats, content }: JourneyPanelProps) {
   const ratio = Math.min(1, Math.max(0, stats.loadRatio));
   const flowMs = Math.round(SLOWEST_MS - (SLOWEST_MS - FASTEST_MS) * ratio);
 
   return (
     <section className={styles.journey} aria-label="햇빛이 전기가 되기까지">
       <p className={styles.journey__head}>
-        햇빛이 전기가 되기까지
-        <span className={styles.journey__note}>지붕에서 교실까지 네 단계로 이어져요</span>
+        {content.head}
+        <span className={styles.journey__note}>{content.note}</span>
       </p>
 
       <div className={styles.journey__art}>
@@ -43,7 +44,7 @@ export function JourneyPanel({ stats }: JourneyPanelProps) {
       />
 
       <div className={styles.journey__topics}>
-        {EDU_TOPICS.map((topic) => (
+        {content.topics.map((topic) => (
           <div key={topic.id} className={styles.topic}>
             <p className={styles.topic__head}>
               <span className={styles.topic__icon}>{TOPIC_ICONS[topic.id]}</span>

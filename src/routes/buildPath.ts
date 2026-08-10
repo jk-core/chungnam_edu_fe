@@ -17,8 +17,17 @@ export const buildPath = {
   },
   /** 운전이력 상세 (SFR-009-04) */
   operationHistoryDetail: (id: string) => `${PATH.ENERGY_HISTORY}/${id}`,
-  /** 고장진단 상세 (SFR-013-08/09) */
-  diagnosisFaultDetail: (id: string) => `${PATH.AI_DIAGNOSIS_OVERVIEW}/${id}`,
+  /*
+    AI 진단은 발전소 → 인버터 → 접속반·스트링까지 내려간다.
+    진단 판정이 그 자리까지 나오므로 주소도 세 칸을 둔다 (SFR-013-04/07).
+  */
+  diagnosis: (plantId?: string, inverterId?: string, unitId?: string) => {
+    if (!plantId) return PATH.AI_DIAGNOSIS_OVERVIEW;
+    if (!inverterId) return `${PATH.AI_DIAGNOSIS_OVERVIEW}/${plantId}`;
+    if (!unitId) return `${PATH.AI_DIAGNOSIS_OVERVIEW}/${plantId}/${inverterId}`;
+
+    return `${PATH.AI_DIAGNOSIS_OVERVIEW}/${plantId}/${inverterId}/${unitId}`;
+  },
   /** 현장보고서 상세 (SFR-021-11) */
   fieldReportDetail: (id: string) => `${PATH.ENERGY_FIELD_REPORT}/${id}`,
   /** 게시글 상세 (SFR-025) */

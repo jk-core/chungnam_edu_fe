@@ -26,10 +26,17 @@ import { DeviceHistory } from './DeviceHistory';
 /** 한 스트링이 받을 수 있는 직렬·병렬 수 */
 const COUNT_MAX = 50;
 
-/** 표 한 줄 — 스트링 등록 정보에 소속 설비 이름을 붙인 것 */
-interface StringRow extends StringMaster {
+/**
+ * 표 한 줄 — 설비 한 대다 (`SolaStringManagePageInfo`).
+ * 스트링은 설비 단위로 한 판씩 다루므로, 목록도 설비마다 한 줄에 갯수만 보여 준다.
+ */
+interface EquipmentRow {
+  inverterId: string;
+  cid: number;
   plantName: string;
-  inverterName: string;
+  equipmentName: string;
+  stringCount: number;
+  panelCount: number;
 }
 
 /**
@@ -70,7 +77,7 @@ export function DeviceStrings() {
   const inverterPatched = useEquipmentStore((state) => state.inverterPatched);
   const inverterDeleted = useEquipmentStore((state) => state.inverterDeleted);
   const saveStrings = useEquipmentStore((state) => state.saveStrings);
-  const removeString = useEquipmentStore((state) => state.removeString);
+  const nextSeq = useEquipmentStore((state) => state.nextSeq);
   const deletedPlants = useDeletedPlants();
   const actor = useAuthUser();
 
@@ -80,7 +87,7 @@ export function DeviceStrings() {
   const [sheet, setSheet] = useState<Sheet | null>(null);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [confirming, setConfirming] = useState(false);
-  const [deleting, setDeleting] = useState<StringRow | null>(null);
+  const [deleting, setDeleting] = useState<EquipmentRow | null>(null);
 
   // 지운 발전소의 설비는 고를 수 없다 (SFR-016-05).
   const inverters = useMemo(
@@ -94,33 +101,27 @@ export function DeviceStrings() {
     [stringCreated, stringPatched, stringDeleted],
   );
 
-  const allRows = useMemo<StringRow[]>(() => {
-    const byId = new Map(inverters.map((item) => [item.inverterId, item]));
+  /** 설비 한 대에 스트링이 몇 조 달렸는지로 목록을 세운다. */
+  const allRows = useMemo<EquipmentRow[]>(() => inverters.map((inverter) => {
+    const owned = allStrings.filter((row) => row.inverterId === inverter.inverterId);
 
-    return allStrings
-      .filter((row) => byId.has(row.inverterId))
-      .map((row) => {
-        const owner = byId.get(row.inverterId);
-
-        return {
-          ...row,
-          plantName: getSchoolById(owner?.plantId ?? null)?.name ?? '소속 미지정',
-          inverterName: owner?.name ?? '',
-        };
-      })
-      // 설비끼리 묶어 두고 그 안에서 순번대로 — 표에서 구성을 이어 읽을 수 있게 한다.
-      .sort((a, b) => (a.inverterId === b.inverterId
-        ? a.seq - b.seq
-        : `${a.plantName}${a.inverterName}`.localeCompare(`${b.plantName}${b.inverterName}`)));
-  }, [allStrings, inverters]);
+    return {
+      inverterId: inverter.inverterId,
+      cid: inverter.cid,
+      plantName: getSchoolById(inverter.plantId)?.name ?? '소속 미지정',
+      equipmentName: inverter.name,
+      stringCount: owned.length,
+      panelCount: owned.reduce((sum, row) => sum + row.seriesCount * row.parallelCount, 0),
+    };
+  }), [allStrings, inverters]);
 
   const rows = useMemo(() => {
     const trimmed = keyword.trim();
 
     return trimmed
       ? allRows.filter((row) => row.plantName.includes(trimmed)
-        || row.inverterName.includes(trimmed)
-        || row.name.includes(trimmed))
+        || row.equipmentName.includes(trimmed)
+        || String(row.cid).includes(trimmed))
       : allRows;
   }, [allRows, keyword]);
 
@@ -128,18 +129,18 @@ export function DeviceStrings() {
   const currentPage = Math.min(page, pageCount);
   const pageRows = rows.slice((currentPage - 1) * pageSize, currentPage * pageSize);
 
-  /** 저장은 인버터 한 대의 목록을 통째로 갈아 끼운다 — 그 설비의 지금 목록을 가져온다. */
-  const listOf = (inverterId: string): StringMaster[] => allRows
+  /** 저장은 인버터 한 대의 목록을 통째로 갈아 끼운다 — 그 설비의 지금 스트링을 순번대로 가져온다. */
+  const listOf = (inverterId: string): StringMaster[] => allStrings
     .filter((row) => row.inverterId === inverterId)
-    .map(({ plantName, inverterName, ...row }) => row);
+    .sort((a, b) => a.seq - b.seq);
 
   const openAdd = () => {
     setErrors({});
     setSheet({ mode: 'add', inverterId: inverters[0]?.inverterId ?? '', rows: [], seq: 0 });
   };
 
-  /** 목록의 수정은 그 줄만이 아니라 같은 설비의 스트링을 모두 편집판에 올린다. */
-  const openEdit = (target: StringRow) => {
+  /** 설비 한 줄을 누르면 그 설비의 스트링을 모두 편집판에 올린다. */
+  const openEdit = (target: EquipmentRow) => {
     setErrors({});
     setSheet({
       mode: 'edit',
@@ -224,9 +225,11 @@ export function DeviceStrings() {
     if (!sheet) return;
 
     const owner = inverters.find((item) => item.inverterId === sheet.inverterId);
+    const known = new Map(listOf(sheet.inverterId).map((row) => [row.id, row.stringId]));
     const built: StringMaster[] = sheet.rows.map((row) => ({
       // 새 줄은 저장 시각과 줄 번호를 섞어 시드 id 와 겹치지 않게 한다.
       id: row.id ?? `str-${sheet.inverterId}-${Date.now().toString(36)}-${row.key}`,
+      stringId: (row.id ? known.get(row.id) : undefined) ?? nextSeq() + row.key,
       inverterId: sheet.inverterId,
       seq: Number(row.seq),
       name: row.name.trim(),
@@ -277,28 +280,38 @@ export function DeviceStrings() {
     setSheet(null);
   };
 
-  const columns: Column<StringRow>[] = [
+  const columns: Column<EquipmentRow>[] = [
+    {
+      key: 'cid',
+      header: 'CID',
+      width: '120px',
+      hideOnTablet: true,
+      render: (row) => <span className={styles.stackCell__sub}>{row.cid}</span>,
+    },
     {
       key: 'plant',
       header: '발전소 · 설비',
       render: (row) => (
         <span className={styles.stackCell}>
           <strong>{row.plantName}</strong>
-          <span className={styles.stackCell__sub}>{row.inverterName}</span>
+          <span className={styles.stackCell__sub}>{row.equipmentName}</span>
         </span>
       ),
     },
-    { key: 'seq', header: '순번', align: 'right', width: '80px', render: (row) => `${row.seq}번` },
-    { key: 'name', header: '스트링', width: '160px', render: (row) => row.name },
-    { key: 'series', header: '모듈 직렬', align: 'right', width: '100px', render: (row) => `${row.seriesCount}직렬` },
-    { key: 'parallel', header: '모듈 병렬', align: 'right', width: '100px', render: (row) => `${row.parallelCount}병렬` },
+    {
+      key: 'count',
+      header: '스트링 갯수',
+      align: 'right',
+      width: '110px',
+      render: (row) => `${formatNumber(row.stringCount)}조`,
+    },
     {
       key: 'panels',
       header: '모듈 수',
       align: 'right',
       width: '100px',
       hideOnTablet: true,
-      render: (row) => `${formatNumber(row.seriesCount * row.parallelCount)}장`,
+      render: (row) => `${formatNumber(row.panelCount)}장`,
     },
     {
       key: 'action',
@@ -308,10 +321,15 @@ export function DeviceStrings() {
       render: (row) => (
         <span className={styles.toolbar__actions}>
           <Button size="sm" variant="secondary" onClick={() => openEdit(row)}>
-            설비 단위 수정
+            {row.stringCount > 0 ? '스트링 편집' : '스트링 등록'}
           </Button>
-          <Button size="sm" variant="ghost" onClick={() => setDeleting(row)}>
-            삭제
+          <Button
+            size="sm"
+            variant="ghost"
+            disabled={row.stringCount === 0}
+            onClick={() => setDeleting(row)}
+          >
+            전체 삭제
           </Button>
         </span>
       ),
@@ -359,10 +377,10 @@ export function DeviceStrings() {
           ) : (
             <>
               <Table
-                caption="스트링 목록. 발전소와 설비, 순번, 스트링 이름, 모듈 직렬·병렬, 모듈 수 순입니다."
+                caption="설비별 스트링 목록. CID, 발전소와 설비, 스트링 갯수, 모듈 수 순입니다."
                 columns={columns}
                 rows={pageRows}
-                getRowKey={(row) => row.id}
+                getRowKey={(row) => row.inverterId}
               />
               <Pagination
                 page={currentPage}
@@ -509,18 +527,22 @@ export function DeviceStrings() {
 
       <ConfirmDialog
         isOpen={deleting !== null}
-        title={MSG.deleteConfirm(deleting?.name ?? '스트링')}
-        description="지운 스트링은 그 설비의 구성에서 빠집니다."
+        title={MSG.deleteConfirm(`${deleting?.equipmentName ?? '설비'} 스트링 ${formatNumber(deleting?.stringCount ?? 0)}조`)}
+        description="이 설비에 등록된 스트링을 모두 지웁니다. 한 조만 지우려면 스트링 편집에서 그 줄을 빼세요."
         confirmLabel="삭제"
         tone="danger"
         onConfirm={() => {
           if (!deleting) return;
 
-          removeString(deleting.id, deletedEntry(
-            { kind: 'string', id: deleting.id, name: deleting.name, actor: actor?.name ?? '관리자' },
-            `${deleting.inverterName} · ${summarize(deleting)}`,
+          const removed = listOf(deleting.inverterId);
+          // 설비 단위로 비우는 자리라, 지운 줄을 한 줄씩 이력에 남긴다.
+          const entries = removed.map((row) => deletedEntry(
+            { kind: 'string', id: row.id, name: row.name, actor: actor?.name ?? '관리자' },
+            `${deleting.equipmentName} · ${summarize(row)}`,
           ));
-          toast.success(MSG.deleteSuccess(deleting.name));
+
+          saveStrings(deleting.inverterId, [], entries);
+          toast.success(MSG.deleteSuccess(`${deleting.equipmentName} 스트링`));
           setDeleting(null);
         }}
         onClose={() => setDeleting(null)}

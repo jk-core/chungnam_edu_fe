@@ -1,12 +1,16 @@
 import { useEffect, useMemo, useState } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { SolarEduLayout } from '@/layouts/SolarEduLayout';
 import { DayCurvePanel } from '@/components/solar-edu/DayCurvePanel';
+import { EDU_LEVEL_LABEL, EDU_LEVELS, getEduContent, resolveEduLevel } from '@/mocks/eduContent';
+import { ElementaryBoard } from '@/components/solar-edu/ElementaryBoard';
 import { HeadlineStrip } from '@/components/solar-edu/HeadlineStrip';
 import { ImpactPanel } from '@/components/solar-edu/ImpactPanel';
 import { JourneyPanel } from '@/components/solar-edu/JourneyPanel';
+import { SegmentedControl } from '@/components/common/SegmentedControl';
+import { SkyBackdrop } from '@/components/solar-edu/SkyBackdrop';
 import { SunPathPanel } from '@/components/solar-edu/SunPathPanel';
-import { buildEduStats, EDU_FACTS } from '@/mocks/solarEdu';
+import { buildEduStats } from '@/mocks/solarEdu';
 import { getDayWeather } from '@/mocks/weather';
 import { getNode } from '@/mocks/tree';
 import { getSchoolById, SCHOOLS } from '@/mocks/schools';
@@ -25,6 +29,14 @@ const REFRESH_MS = 60_000;
 const FACT_MS = 11_000;
 
 const TIME_ZONE = 'Asia/Seoul';
+
+/** 눈높이를 학교급에 맡기는 값 — 세그먼트에서 고르면 `?level=` 이 붙는다. */
+const AUTO = 'auto';
+
+const LEVEL_OPTIONS = [
+  { value: AUTO, label: '자동' },
+  ...EDU_LEVELS.map((level) => ({ value: level, label: EDU_LEVEL_LABEL[level] })),
+];
 
 const timeFormat = new Intl.DateTimeFormat('ko-KR', {
   timeZone: TIME_ZONE,
@@ -71,8 +83,9 @@ function kstHourOf(date: Date): number {
 function SolarEduPage() {
   const { orgId } = useParams<{ orgId: string }>();
   const navigate = useNavigate();
-  // 한 줄씩 넘기는 것도 쪽 넘김이라, 관제 화면과 같은 장치를 쓴다 — 눌러서 되돌려 볼 수 있다.
-  const fact = useAutoPager({ total: EDU_FACTS.length, perPage: 1, intervalMs: FACT_MS });
+  // 수동으로 고른 눈높이는 URL 에 남긴다 — 모니터에 걸어 두는 화면이라 새로고침에도 살아 있어야 한다.
+  const [searchParams, setSearchParams] = useSearchParams();
+  const levelParam = searchParams.get('level');
   // 화면을 주기적으로 되그린다. 실제 API 로 바뀌면 이 틱이 재조회 시점이 된다 (SFR-005-09).
   useAutoRefresh(REFRESH_MS);
 
@@ -92,6 +105,16 @@ function SolarEduPage() {
 
   // 상황판은 학교마다 걸린다 — 어느 학교를 띄울지 여기서 고른다 (회의 결정).
   const plant = node.plantId ? getSchoolById(node.plantId) : null;
+  // 학교급이 곧 눈높이다. 화면에서 고른 값이 있으면 그쪽이 이긴다 (SFR-005-04).
+  const level = resolveEduLevel(plant, levelParam);
+  const content = getEduContent(level);
+  // 초등 판은 패널을 줄여 다시 짠 자리라, 본문 구성 자체가 갈린다.
+  const isKid = level === 'elementary';
+  const large = content.emphasis === 'large';
+
+  // 한 줄씩 넘기는 것도 쪽 넘김이라, 관제 화면과 같은 장치를 쓴다 — 눌러서 되돌려 볼 수 있다.
+  // 문구 수가 눈높이마다 달라, 총 수를 여기에 매어 둬야 인덱스가 범위를 벗어나지 않는다.
+  const fact = useAutoPager({ total: content.facts.length, perPage: 1, intervalMs: FACT_MS });
   const scopeInfo = plant
     ? `설비용량 ${formatNumber(plant.capacityKw, 1)}kW · 인버터 ${plant.inverterCount}대 · ${plant.installedAt} 설치`
     : `관내 ${formatNumber(SCHOOLS.length)}개 학교를 합쳐서 봅니다`;
@@ -105,7 +128,12 @@ function SolarEduPage() {
           className={styles.schoolPicker}
           value={node.plantId ?? ''}
           aria-label="학교 고르기"
-          onChange={(event) => navigate(event.target.value ? buildPath.solarEdu(event.target.value) : PATH.SOLAR_EDU)}
+          onChange={(event) => {
+            const base = event.target.value ? buildPath.solarEdu(event.target.value) : PATH.SOLAR_EDU;
+
+            // 고정해 둔 눈높이는 학교를 옮겨도 따라간다.
+            navigate(levelParam ? `${base}?level=${levelParam}` : base);
+          }}
         >
           <option value="">충청남도 전체</option>
           {SCHOOLS.map((school) => (
@@ -115,24 +143,41 @@ function SolarEduPage() {
           ))}
         </select>
       )}
+      backdrop={isKid ? <SkyBackdrop nowHour={nowHour} /> : undefined}
+      levelPicker={(
+        <SegmentedControl
+          value={levelParam ?? AUTO}
+          onChange={(value) => {
+            // 자동은 쿼리를 지워 학교급 매핑으로 되돌린다.
+            setSearchParams(value === AUTO ? {} : { level: value }, { replace: true });
+          }}
+          options={LEVEL_OPTIONS}
+          label="눈높이 고르기"
+          size="sm"
+        />
+      )}
       weather={weather}
       isLive={stats.isLive}
       clock={timeFormat.format(now)}
       date={dateFormat.format(now)}
-      headline={<HeadlineStrip stats={stats} />}
-      facts={EDU_FACTS}
+      headline={<HeadlineStrip stats={stats} content={content.headline} large={large} />}
+      facts={content.facts}
       factIndex={fact.page}
       onSelectFact={fact.goTo}
     >
-      <div className={styles.grid}>
-        <div className={styles.main}>
-          <SunPathPanel stats={stats} />
-          <DayCurvePanel stats={stats} />
-          <ImpactPanel scopeLabel={node.fullName} stats={stats} />
-        </div>
+      {isKid ? (
+        <ElementaryBoard scopeLabel={node.fullName} stats={stats} content={content} />
+      ) : (
+        <div className={styles.grid}>
+          <div className={styles.main}>
+            <SunPathPanel stats={stats} content={content.sunPath} large={large} />
+            <DayCurvePanel stats={stats} content={content.day} large={large} />
+            <ImpactPanel scopeLabel={node.fullName} stats={stats} content={content.impact} large={large} />
+          </div>
 
-        <JourneyPanel stats={stats} />
-      </div>
+          <JourneyPanel stats={stats} content={content.journey} />
+        </div>
+      )}
     </SolarEduLayout>
   );
 }

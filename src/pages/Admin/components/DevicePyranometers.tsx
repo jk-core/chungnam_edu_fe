@@ -63,6 +63,7 @@ export function DevicePyranometers() {
   const savePyranometer = useEquipmentStore((state) => state.savePyranometer);
   const removePyranometer = useEquipmentStore((state) => state.removePyranometer);
   const nextId = useEquipmentStore((state) => state.nextId);
+  const nextSeq = useEquipmentStore((state) => state.nextSeq);
   const deletedPlants = useDeletedPlants();
   const actor = useAuthUser();
 
@@ -92,7 +93,9 @@ export function DevicePyranometers() {
     const trimmed = keyword.trim();
 
     return trimmed
-      ? allRows.filter((row) => row.plantName.includes(trimmed) || row.name.includes(trimmed))
+      ? allRows.filter((row) => row.plantName.includes(trimmed)
+        || row.name.includes(trimmed)
+        || row.rtuCommId.includes(trimmed))
       : allRows;
   }, [allRows, keyword]);
 
@@ -142,6 +145,7 @@ export function DevicePyranometers() {
     const plantName = SCHOOLS.find((school) => school.id === draft.plantId)?.name ?? before?.plantName ?? '';
     const saved: Pyranometer = {
       id: draft.id ?? nextId('PYR'),
+      irradId: before?.irradId ?? nextSeq(),
       plantId: draft.plantId,
       plantName,
       name: draft.name.trim(),
@@ -181,6 +185,13 @@ export function DevicePyranometers() {
   };
 
   const columns: Column<Pyranometer>[] = [
+    {
+      key: 'irradId',
+      header: '일사량계 ID',
+      width: '100px',
+      hideOnTablet: true,
+      render: (row) => <span className={styles.stackCell__sub}>{row.irradId}</span>,
+    },
     {
       key: 'plant',
       header: '발전소 · 설비',
@@ -242,7 +253,7 @@ export function DevicePyranometers() {
               setKeyword(value);
               setPage(1);
             }}
-            placeholder="일사량계명으로 검색"
+            placeholder="일사량계명·RTU 통신ID 로 검색"
             width="md"
           />
           <p className={styles.toolbar__note}>총 {formatNumber(rows.length)}개</p>

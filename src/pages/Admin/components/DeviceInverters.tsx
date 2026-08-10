@@ -29,13 +29,12 @@ import { DeviceHistory } from './DeviceHistory';
 
 /** RTU 포트 범위. 3번은 일사량계 몫이라 인버터가 못 쓴다. */
 const PORT_MIN = 0;
-const PORT_MAX = 11;
+const PORT_MAX = 10;
 
 /** 표 한 줄 — 등록 정보에 발전소·모듈 이름과 산출 용량을 붙인 것 */
 interface InverterRow extends InverterMaster {
   plantName: string;
   moduleName: string;
-  capacityKw: number;
 }
 
 interface Draft {
@@ -53,6 +52,8 @@ interface Draft {
   parallel1: number | '';
   series2: number | '';
   parallel2: number | '';
+  /** 설비용량(kW) — 모듈 구성에서 산출해 채우되 손으로 고칠 수 있다 */
+  equipmentCapacity: number | '';
   note: string;
   installedAt: string;
   operatedAt: string;
@@ -72,6 +73,7 @@ export function DeviceInverters() {
   const saveInverter = useEquipmentStore((state) => state.saveInverter);
   const removeInverter = useEquipmentStore((state) => state.removeInverter);
   const nextId = useEquipmentStore((state) => state.nextId);
+  const nextSeq = useEquipmentStore((state) => state.nextSeq);
   const deletedPlants = useDeletedPlants();
   const actor = useAuthUser();
 
@@ -101,7 +103,6 @@ export function DeviceInverters() {
           ...master,
           plantName: getSchoolById(master.plantId)?.name ?? master.plantId,
           moduleName: product?.name ?? '모듈 미지정',
-          capacityKw: computeInverterCapacity(master, product?.wattPerPanel ?? 0),
         };
       });
   }, [inverterCreated, inverterPatched, inverterDeleted, modules, deletedPlants]);
@@ -127,21 +128,28 @@ export function DeviceInverters() {
   const currentPage = Math.min(page, pageCount);
   const pageRows = rows.slice((currentPage - 1) * pageSize, currentPage * pageSize);
 
-  // 폼에서 모듈·직병렬을 만질 때마다 따라 도는 산출 용량 (SFR-016-03).
-  const draftCapacity = useMemo(() => {
-    if (!draft) return null;
+  /*
+    모듈·직병렬을 만지면 설비용량을 다시 셈해 채운다 (SFR-016-03).
+    서버는 `equipmentCapacity` 를 값으로 받으므로 폼이 그 값을 들고 있어야 한다 —
+    자동으로 채우되 현장 실측이 다르면 손으로 고칠 수 있게 둔다.
+  */
+  const capacityOf = (next: Draft): number | '' => {
+    const product = modules.find((item) => item.id === next.moduleProductId);
 
-    const product = modules.find((item) => item.id === draft.moduleProductId);
+    if (!product) return next.equipmentCapacity;
 
-    if (!product) return null;
-
-    return computeInverterCapacity({
-      series1: Number(draft.series1 || 0),
-      parallel1: Number(draft.parallel1 || 0),
-      series2: Number(draft.series2 || 0),
-      parallel2: Number(draft.parallel2 || 0),
+    const value = computeInverterCapacity({
+      series1: Number(next.series1 || 0),
+      parallel1: Number(next.parallel1 || 0),
+      series2: Number(next.series2 || 0),
+      parallel2: Number(next.parallel2 || 0),
     }, product.wattPerPanel);
-  }, [draft, modules]);
+
+    return Math.round(value * 1000) / 1000;
+  };
+
+  /** 모듈 구성을 바꾼 초안 — 설비용량까지 함께 갱신해 넣는다. */
+  const setArray = (next: Draft) => setDraft({ ...next, equipmentCapacity: capacityOf(next) });
 
   const openEditor = (target: InverterRow | null) => {
     setErrors({});
@@ -161,6 +169,7 @@ export function DeviceInverters() {
         parallel1: target.parallel1,
         series2: target.series2,
         parallel2: target.parallel2,
+        equipmentCapacity: target.equipmentCapacity,
         note: target.note,
         installedAt: target.installedAt,
         operatedAt: target.operatedAt,
@@ -180,6 +189,7 @@ export function DeviceInverters() {
         parallel1: '',
         series2: 0,
         parallel2: 0,
+        equipmentCapacity: '',
         note: '',
         installedAt: '',
         operatedAt: '',
@@ -204,6 +214,9 @@ export function DeviceInverters() {
 
     if (draft.series1 === '' || draft.series1 < 1) found.series1 = MSG.requiredField('직렬 1');
     if (draft.parallel1 === '' || draft.parallel1 < 1) found.parallel1 = MSG.requiredField('병렬 1');
+    if (draft.equipmentCapacity === '' || draft.equipmentCapacity <= 0) {
+      found.equipmentCapacity = MSG.requiredField('설비용량');
+    }
 
     setErrors(found);
     if (Object.keys(found).length === 0) setConfirming(true);
@@ -216,6 +229,7 @@ export function DeviceInverters() {
     const before = isNew ? null : allRows.find((row) => row.inverterId === draft.id) ?? null;
     const saved: InverterMaster = {
       inverterId: draft.id ?? nextId('INV'),
+      cid: before?.cid ?? 10192000000 + nextSeq(),
       plantId: draft.plantId,
       name: draft.name.trim(),
       maker: draft.maker.trim(),
@@ -229,6 +243,7 @@ export function DeviceInverters() {
       parallel1: Number(draft.parallel1),
       series2: Number(draft.series2 || 0),
       parallel2: Number(draft.parallel2 || 0),
+      equipmentCapacity: Number(draft.equipmentCapacity || 0),
       note: draft.note.trim(),
       installedAt: draft.installedAt.trim(),
       // 운영일시는 설치일시를 따라간다 — 손으로 고치는 값이 아니다.
@@ -239,7 +254,7 @@ export function DeviceInverters() {
     const target = { kind: 'inverter' as const, id: saved.inverterId, name: saved.name, actor: actor?.name ?? '관리자' };
 
     const entries = isNew
-      ? createdEntry(target, `${plantName} · ${saved.maker} · ${formatNumber(draftCapacity ?? 0, 1)}kW`)
+      ? createdEntry(target, `${plantName} · ${saved.maker} · ${formatNumber(saved.equipmentCapacity, 1)}kW`)
       : diffEntries(target, [
         { label: '설비 이름', before: before?.name ?? '', after: saved.name },
         { label: '발전소', before: before?.plantName ?? '', after: plantName },
@@ -264,9 +279,9 @@ export function DeviceInverters() {
           after: `${saved.series1}×${saved.parallel1} / ${saved.series2}×${saved.parallel2}`,
         },
         {
-          label: '산출 설비용량',
-          before: before ? `${formatNumber(before.capacityKw, 1)}kW` : '',
-          after: `${formatNumber(draftCapacity ?? 0, 1)}kW`,
+          label: '설비용량',
+          before: before ? `${formatNumber(before.equipmentCapacity, 1)}kW` : '',
+          after: `${formatNumber(saved.equipmentCapacity, 1)}kW`,
         },
         { label: '설치일시', before: before?.installedAt ?? '', after: saved.installedAt },
         { label: '비고', before: before?.note ?? '', after: saved.note },
@@ -279,6 +294,13 @@ export function DeviceInverters() {
   };
 
   const columns: Column<InverterRow>[] = [
+    {
+      key: 'cid',
+      header: 'CID',
+      width: '120px',
+      hideOnTablet: true,
+      render: (row) => <span className={styles.stackCell__sub}>{row.cid}</span>,
+    },
     {
       key: 'plant',
       header: '발전소 · 인버터',
@@ -293,10 +315,10 @@ export function DeviceInverters() {
     { key: 'phase', header: '위상', width: '110px', hideOnTablet: true, render: (row) => INVERTER_PHASE_LABEL[row.phase] },
     {
       key: 'capacity',
-      header: '산출 용량',
+      header: '설비용량',
       align: 'right',
       width: '100px',
-      render: (row) => `${formatNumber(row.capacityKw, 1)}kW`,
+      render: (row) => `${formatNumber(row.equipmentCapacity, 1)}kW`,
     },
     {
       key: 'units',
@@ -347,7 +369,7 @@ export function DeviceInverters() {
               setKeyword(value);
               setPage(1);
             }}
-            placeholder="인버터명으로 검색"
+            placeholder="인버터명·CID·RTU 통신ID 로 검색"
             width="md"
           />
           <p className={styles.toolbar__note}>총 {formatNumber(rows.length)}개</p>
@@ -506,7 +528,7 @@ export function DeviceInverters() {
                 <Select
                   label="모듈 모델"
                   value={draft.moduleProductId}
-                  onChange={(value) => setDraft({ ...draft, moduleProductId: value })}
+                  onChange={(value) => setArray({ ...draft, moduleProductId: value })}
                   options={modules.map((item) => ({
                     value: item.id,
                     label: `${item.name} · ${item.wattPerPanel}W`,
@@ -517,7 +539,7 @@ export function DeviceInverters() {
                 <NumberField
                   label="직렬 1"
                   value={draft.series1}
-                  onChange={(value) => setDraft({ ...draft, series1: value })}
+                  onChange={(value) => setArray({ ...draft, series1: value })}
                   min={1}
                   unit="개"
                   required
@@ -526,7 +548,7 @@ export function DeviceInverters() {
                 <NumberField
                   label="병렬 1"
                   value={draft.parallel1}
-                  onChange={(value) => setDraft({ ...draft, parallel1: value })}
+                  onChange={(value) => setArray({ ...draft, parallel1: value })}
                   min={1}
                   unit="개"
                   required
@@ -537,26 +559,32 @@ export function DeviceInverters() {
                 <NumberField
                   label="직렬 2"
                   value={draft.series2}
-                  onChange={(value) => setDraft({ ...draft, series2: value })}
+                  onChange={(value) => setArray({ ...draft, series2: value })}
                   min={0}
                   unit="개"
                 />
                 <NumberField
                   label="병렬 2"
                   value={draft.parallel2}
-                  onChange={(value) => setDraft({ ...draft, parallel2: value })}
+                  onChange={(value) => setArray({ ...draft, parallel2: value })}
                   min={0}
                   unit="개"
                 />
               </FormRow>
 
-              <div className={styles.capacity}>
-                <span className={styles.capacity__label}>산출 설비용량</span>
-                <span className={styles.capacity__value}>
-                  {draftCapacity === null ? '—' : `${formatNumber(draftCapacity, 1)} kW`}
-                </span>
-                <span className={styles.capacity__note}>모듈 출력 × (직렬 × 병렬)로 계산합니다</span>
-              </div>
+              <FormRow cols={2}>
+                <NumberField
+                  label="설비용량"
+                  value={draft.equipmentCapacity}
+                  onChange={(value) => setDraft({ ...draft, equipmentCapacity: value })}
+                  min={0}
+                  step={0.001}
+                  unit="kW"
+                  required
+                  hint="모듈 출력 × (직렬 × 병렬)로 채워집니다"
+                  error={errors.equipmentCapacity}
+                />
+              </FormRow>
             </FormSection>
 
             <FormSection legend="비고">
@@ -575,7 +603,9 @@ export function DeviceInverters() {
       <ConfirmDialog
         isOpen={confirming}
         title={draft?.id === null ? MSG.createConfirm('인버터') : MSG.updateConfirm(draft?.name ?? '인버터')}
-        description={draftCapacity === null ? undefined : `산출 설비용량은 ${formatNumber(draftCapacity, 1)}kW 입니다.`}
+        description={draft?.equipmentCapacity === ''
+          ? undefined
+          : `설비용량은 ${formatNumber(Number(draft?.equipmentCapacity ?? 0), 1)}kW 로 저장됩니다.`}
         confirmLabel="저장"
         onConfirm={commit}
         onClose={() => setConfirming(false)}
@@ -592,7 +622,7 @@ export function DeviceInverters() {
 
           removeInverter(deleting.inverterId, deletedEntry(
             { kind: 'inverter', id: deleting.inverterId, name: deleting.name, actor: actor?.name ?? '관리자' },
-            `${deleting.plantName} · ${formatNumber(deleting.capacityKw, 1)}kW`,
+            `${deleting.plantName} · ${formatNumber(deleting.equipmentCapacity, 1)}kW`,
           ));
           toast.success(MSG.deleteSuccess(deleting.name));
           setDeleting(null);

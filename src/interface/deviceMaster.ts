@@ -8,9 +8,14 @@ import type { RtuStatus } from './status';
   시스템이 만들어 내는 값이 한 타입에 섞이면 무엇을 고칠 수 있는지가 흐려진다.
 */
 
-/** 모듈 제품 마스터 — 인버터 등록에서 이 목록을 고른다 (SFR-017-05) */
+/**
+ * 모듈 제품 마스터 — 인버터 등록에서 이 목록을 고른다 (SFR-017-05).
+ * 필드는 서버 규격(`SolaModuleEquipment`)을 따른다 — 괄호 안이 API 이름이다.
+ */
 export interface ModuleProduct {
   id: string;
+  /** 서버가 매기는 모듈 번호 (moduleId) */
+  moduleId: number;
   name: string;
   maker: string;
   /** 모듈 1장 출력(W) */
@@ -31,9 +36,11 @@ export interface ModuleProduct {
   cellType: 'single' | 'double';
 }
 
-/** 일사량계(환경센서) — 발전소마다 한 대 (SFR-016-01) */
+/** 일사량계(환경센서) — 발전소마다 한 대 (SFR-016-01). 서버 규격은 `EquipmentIrrad` 다. */
 export interface Pyranometer {
   id: string;
+  /** 서버가 매기는 일사량계 번호 (irradId) */
+  irradId: number;
   plantId: string;
   plantName: string;
   name: string;
@@ -48,9 +55,11 @@ export interface Pyranometer {
   status: RtuStatus;
 }
 
-/** 접속반 등록 정보 (SFR-017-06) */
+/** 접속반 등록 정보 (SFR-017-06). 서버 규격은 `SolaConnectBoxEquipment` 다. */
 export interface JunctionBoxMaster {
   id: string;
+  /** 서버가 매기는 접속반 번호 (connectBoxId) */
+  connectBoxId: number;
   inverterId: string;
   name: string;
   /** 모듈 직렬 개수 */
@@ -59,9 +68,11 @@ export interface JunctionBoxMaster {
   parallelCount: number;
 }
 
-/** 스트링 등록 정보 — 인버터 하나에 여러 개 (SFR-016-01) */
+/** 스트링 등록 정보 — 인버터 하나에 여러 개 (SFR-016-01). 서버 규격은 `SolaString` 이다. */
 export interface StringMaster {
   id: string;
+  /** 서버가 매기는 스트링 번호 (stringId) */
+  stringId: number;
   inverterId: string;
   /** 스트링 순번. 1부터 */
   seq: number;
@@ -79,6 +90,8 @@ export type InverterKind = 'general' | 'string' | 'central' | 'micro';
  */
 export interface InverterMaster {
   inverterId: string;
+  /** 설비를 가리키는 서버 식별자 (cid) — 화면에서도 검색 조건으로 쓴다 */
+  cid: number;
   plantId: string;
   name: string;
   /** 인버터 업체명 */
@@ -90,6 +103,11 @@ export interface InverterMaster {
   rtuPort: number | null;
   kind: InverterKind;
   phase: 'single' | 'three';
+  /**
+   * 설비용량(kW) — 서버는 값을 그대로 받는다 (equipmentCapacity).
+   * 화면은 모듈 구성에서 산출한 값을 채워 주되(SFR-016-03) 손으로 고칠 수 있게 둔다.
+   */
+  equipmentCapacity: number;
   moduleProductId: string;
   /** MPPT 1번 직렬·병렬 */
   series1: number;

@@ -4,7 +4,7 @@ import { Button } from '@/components/common/Button';
 import { Card } from '@/components/common/Card';
 import { ConfirmDialog } from '@/components/common/ConfirmDialog';
 import { EmptyState } from '@/components/common/EmptyState';
-import { FormRow, FormSection, RadioGroup, TextField } from '@/components/common/Form';
+import { FormRow, FormSection, PasswordField, RadioGroup, TextField } from '@/components/common/Form';
 import { Modal } from '@/components/common/Modal';
 import { MaskedText } from '@/components/common/MaskedText';
 import { maskEmail } from '@/utils/mask';
@@ -23,8 +23,17 @@ import type { Column } from '@/components/common/Table';
 import type { ManagedUser, Role, UserChange } from '@/interface/account';
 import styles from '../Admin.module.scss';
 
+/** 비밀번호 규칙 — 서버 정규식을 그대로 쓴다 (영문·숫자·특수문자 포함 8~20자). */
+const PASSWORD_RULE = /^(?=.*[0-9])(?=.*[a-zA-Z])(?=.*\W)(?=\S+$).{8,20}$/;
+
+/** 로그인 계정에 쓸 수 있는 글자 */
+const LOGIN_ID = /^[A-Za-z0-9_]{4,20}$/;
+
 interface Draft {
   id: string | null;
+  loginId: string;
+  /** 새 비밀번호. 수정에서 비워 두면 기존 비밀번호를 그대로 쓴다 */
+  password: string;
   name: string;
   role: Role;
   orgName: string;
@@ -35,16 +44,19 @@ interface Draft {
 
 /** 이력에 남길 항목 — 화면의 입력 항목과 이름을 맞춘다 (SFR-018-04). */
 const TRACKED: { key: keyof Draft; label: string }[] = [
+  { key: 'loginId', label: '로그인 ID' },
   { key: 'name', label: '이름' },
   { key: 'orgName', label: '소속 기관' },
   { key: 'department', label: '부서' },
   { key: 'email', label: '이메일' },
-  { key: 'phone', label: '연락처' },
+  { key: 'phone', label: '휴대전화' },
   { key: 'role', label: '권한' },
 ];
 
 const EMPTY_DRAFT: Draft = {
   id: null,
+  loginId: '',
+  password: '',
   name: '',
   role: 'institution',
   orgName: '',
@@ -63,6 +75,7 @@ export function UsersTab() {
   const patchUser = useAssetStore((state) => state.patchUser);
   const removeUser = useAssetStore((state) => state.removeUser);
   const nextUserId = useAssetStore((state) => state.nextUserId);
+  const nextUserSeq = useAssetStore((state) => state.nextUserSeq);
   const actor = useAuthUser();
 
   const [keyword, setKeyword] = useState('');
@@ -78,7 +91,10 @@ export function UsersTab() {
     const trimmed = keyword.trim();
 
     return trimmed
-      ? all.filter((user) => user.name.includes(trimmed) || user.orgName.includes(trimmed) || user.email.includes(trimmed))
+      ? all.filter((user) => user.name.includes(trimmed)
+        || user.loginId.includes(trimmed)
+        || user.orgName.includes(trimmed)
+        || user.email.includes(trimmed))
       : all;
   }, [userCreated, userPatched, userDeleted, keyword]);
 
@@ -103,6 +119,9 @@ export function UsersTab() {
       target
         ? {
           id: target.id,
+          loginId: target.loginId,
+          // 기존 비밀번호는 받아 오지 않는다 — 비워 두면 그대로 둔다는 뜻이다.
+          password: '',
           name: target.name,
           role: target.role,
           orgName: target.orgName,
@@ -117,8 +136,24 @@ export function UsersTab() {
   const submit = () => {
     if (!draft) return;
 
-    if (!draft.name.trim() || !draft.orgName.trim() || !draft.email.trim()) {
+    const isNew = draft.id === null;
+
+    if (!draft.name.trim() || !draft.orgName.trim() || !draft.email.trim() || !draft.loginId.trim()
+      || !draft.phone.trim()) {
       setError(MSG.requiredMissing);
+
+      return;
+    }
+
+    if (!LOGIN_ID.test(draft.loginId.trim())) {
+      setError('로그인 ID 는 영문·숫자·밑줄 4~20자로 넣어 주세요.');
+
+      return;
+    }
+
+    // 새 계정은 비밀번호가 있어야 하고, 수정은 비워 두면 기존 것을 그대로 쓴다.
+    if ((isNew || draft.password) && !PASSWORD_RULE.test(draft.password)) {
+      setError('비밀번호는 영문·숫자·특수문자를 섞어 8~20자로 넣어 주세요.');
 
       return;
     }
@@ -146,6 +181,8 @@ export function UsersTab() {
     const existing = isNew ? null : users.find((user) => user.id === draft.id) ?? null;
     const saved: ManagedUser = {
       id: draft.id ?? nextUserId(),
+      userId: existing?.userId ?? nextUserSeq(),
+      loginId: draft.loginId.trim(),
       name: draft.name.trim(),
       role: draft.role,
       orgName: draft.orgName.trim(),
@@ -188,13 +225,16 @@ export function UsersTab() {
   const columns: Column<ManagedUser>[] = [
     {
       key: 'name',
-      header: '이름',
-      width: '140px',
+      header: '로그인 ID · 이름',
+      width: '180px',
       render: (row) => (
-        <>
-          <strong>{row.name}</strong>
-          {row.locked ? <Badge tone="critical"> 잠금</Badge> : null}
-        </>
+        <span className={styles.stackCell}>
+          <strong>
+            {row.name}
+            {row.locked ? <Badge tone="critical"> 잠금</Badge> : null}
+          </strong>
+          <span className={styles.stackCell__sub}>{row.loginId}</span>
+        </span>
       ),
     },
     { key: 'org', header: '소속', render: (row) => `${row.orgName} · ${row.department}` },
@@ -372,10 +412,45 @@ export function UsersTab() {
               </FormRow>
               <FormRow cols={2}>
                 <TextField
-                  label="연락처"
+                  label="휴대전화"
                   value={draft.phone}
                   onChange={(value) => setDraft({ ...draft, phone: value })}
                   ime="numeric"
+                  hint="010-0000-0000"
+                  required
+                  error={error && !draft.phone.trim() ? MSG.requiredField('휴대전화') : undefined}
+                />
+              </FormRow>
+            </FormSection>
+
+            <FormSection
+              legend="로그인 정보"
+              hint={draft.id === null
+                ? '로그인 ID 로 접속합니다. 등록 후에는 담당자가 직접 비밀번호를 바꿀 수 있습니다.'
+                : '비밀번호를 비워 두면 기존 비밀번호를 그대로 둡니다.'}
+            >
+              <FormRow cols={2}>
+                <TextField
+                  label="로그인 ID"
+                  value={draft.loginId}
+                  onChange={(value) => setDraft({ ...draft, loginId: value })}
+                  ime="latin"
+                  hint="영문·숫자·밑줄 4~20자"
+                  required
+                  error={error && (!draft.loginId.trim() || !LOGIN_ID.test(draft.loginId.trim()))
+                    ? '영문·숫자·밑줄 4~20자로 넣어 주세요.'
+                    : undefined}
+                />
+                <PasswordField
+                  label="비밀번호"
+                  value={draft.password}
+                  onChange={(value) => setDraft({ ...draft, password: value })}
+                  width="full"
+                  hint={draft.id === null ? '영문·숫자·특수문자 8~20자' : '바꿀 때만 입력'}
+                  required={draft.id === null}
+                  error={error && (draft.id === null || Boolean(draft.password)) && !PASSWORD_RULE.test(draft.password)
+                    ? '영문·숫자·특수문자를 섞어 8~20자로 넣어 주세요.'
+                    : undefined}
                 />
               </FormRow>
             </FormSection>
