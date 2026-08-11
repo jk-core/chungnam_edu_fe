@@ -34,6 +34,9 @@ const REFRESH_MS = 60_000;
 /** 이 화면이 다루는 범위 — 늘 도 전체다 */
 const SCOPE_LABEL = '충청남도 전체';
 
+/** 가운데 지도 높이(px) — 상황판 한가운데를 차지하는 크기다 */
+const MAIN_MAP_HEIGHT = 430;
+
 /**
  * 통합관제 상황판 (SFR-004).
  *
@@ -68,7 +71,7 @@ function ControlRoomPage() {
     return { rows, byId: new Map(rows.map((row) => [row.schoolId, row])), stale, latest };
   }, []);
 
-  // 품질 기준(95%)에 못 미쳐 AI 학습에서 빠지는 개소 (SFR-012-10/11).
+  // 수집 품질이 기준(95%)에 못 미치는 개소 (SFR-012-10).
   const quality = useMemo(
     () => summarizeQuality(getQualityStatus(null, TODAY.toDate(), TODAY.toDate())),
     [],
@@ -170,8 +173,23 @@ function ControlRoomPage() {
           </section>
         </div>
 
-        {/* 가운데 — 어느 축으로 봐도 같은 목록 */}
+        {/*
+          가운데 — 관내 전체 지도.
+          상황판에서 가장 먼저 답해야 할 물음이 "어디가 어떤가"라, 지도를 가운데 크게 세우고
+          숫자 판들을 양옆으로 둘렀다. 정상까지 함께 찍어 분포가 보이게 한다 (SFR-004-01/14).
+        */}
         <div className={styles.col}>
+          <section className={styles.panel} aria-label="관내 발전소 현황 지도">
+            <div className={styles.panel__head}>
+              <h2 className={styles.panel__title}>관내 발전소 현황</h2>
+              <span className={styles.panel__note}>
+                {formatNumber(rows.length)}개소 · 이상 {formatNumber(abnormalCount)}개소
+              </span>
+            </div>
+            <FaultMap plants={rows} scope="all" height={MAIN_MAP_HEIGHT} selectable />
+          </section>
+
+          {/* 표는 가운데 넓은 자리에 둔다 — 다섯 칸짜리 표를 좁은 컬럼에 밀어 넣으면 줄이 접힌다 */}
           <section className={`${styles.panel} ${styles.col__grow}`} aria-label="발전 현황 집계">
             <div className={styles.panel__head}>
               <h2 className={styles.panel__title}>발전 현황 집계</h2>
@@ -179,13 +197,6 @@ function ControlRoomPage() {
             </div>
 
             <AggregationPanel schools={rows} />
-          </section>
-
-          <section className={styles.panel} aria-label="시간대별 발전량">
-            <div className={styles.panel__head}>
-              <h2 className={styles.panel__title}>시간대별 발전량 · 권역 집계</h2>
-            </div>
-            <LiveTrendChart schools={rows} date={TODAY.toDate()} />
           </section>
         </div>
 
@@ -199,14 +210,20 @@ function ControlRoomPage() {
             <RankingStrip schools={rows} />
           </section>
 
-          {/* 지도는 어디가 아픈지, 목록은 무엇이 얼마나 아픈지를 답한다 */}
+          <section className={styles.panel} aria-label="시간대별 발전량">
+            <div className={styles.panel__head}>
+              <h2 className={styles.panel__title}>시간대별 발전량 · 권역 집계</h2>
+            </div>
+            <LiveTrendChart schools={rows} date={TODAY.toDate()} />
+          </section>
+
+          {/* 지도가 어디가 아픈지를 답했으면, 여기서는 무엇이 얼마나 아픈지를 답한다 */}
           <section className={`${styles.panel} ${styles.col__grow}`} aria-label="장애 발생 현황">
             <div className={styles.panel__head}>
               <h2 className={styles.panel__title}>장애 발생 현황</h2>
               <span className={styles.panel__note}>이상 {formatNumber(abnormalCount)}개소</span>
             </div>
 
-            <FaultMap plants={rows} />
             <FaultList plants={rows} collection={collection.byId} />
           </section>
         </div>

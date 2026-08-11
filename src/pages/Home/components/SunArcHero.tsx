@@ -5,9 +5,9 @@ import { ArrowUpRightIcon, PulseIcon } from '@/components/common/Icon';
 import { Button } from '@/components/common/Button';
 import { CountUp } from '@/components/common/CountUp';
 import { PATH } from '@/routes/routes';
-import { getAccumulatedAt, getOutputAt, PEAK_OUTPUT, SUNSET_HOUR } from '@/mocks/generation';
+import { getAccumulatedAt, getOutputAt, SUNSET_HOUR } from '@/mocks/generation';
 import { REGION_TOTAL } from '@/mocks/regions';
-import { formatCapacity, formatDate, formatEnergy, formatNumber, formatTime } from '@/utils/format';
+import { formatDate, formatEnergy, formatNumber, formatPercent, formatTime } from '@/utils/format';
 import { SunArc } from './SunArc';
 import styles from './SunArcHero.module.scss';
 
@@ -28,8 +28,8 @@ export function SunArcHero() {
   const now = useClock();
   const nowHour = now.getHours() + now.getMinutes() / 60;
   const currentKw = getOutputAt(nowHour);
-  const current = formatCapacity(currentKw);
-  const peak = formatCapacity(PEAK_OUTPUT.kw);
+  // 출력은 kW 절대값보다 "지금 설비를 얼마나 쓰고 있나"가 한눈에 읽힌다 — 총 설비용량 대비 비율로 낸다.
+  const currentRatio = REGION_TOTAL.capacityKw > 0 ? currentKw / REGION_TOTAL.capacityKw : 0;
   const accumulated = getAccumulatedAt(nowHour);
   const today = formatEnergy(accumulated);
   const isAfterSunset = nowHour >= SUNSET_HOUR;
@@ -79,7 +79,7 @@ export function SunArcHero() {
               <CountUp value={Number(today.value.replace(/,/g, ''))} fractionDigits={1} startOnView={false} />
               <span className={styles.hero__unit}>{today.unit}</span>
             </p>
-            <p className={styles.hero__figureLabel}>오늘 누적 발전량</p>
+            <p className={styles.hero__figureLabel}>금일 발전량</p>
           </motion.div>
 
           <motion.dl
@@ -92,14 +92,8 @@ export function SunArcHero() {
               <dt>현재 출력</dt>
               <dd>
                 <PulseIcon className={styles.hero__metaIcon} />
-                {isAfterSunset ? '일몰 · 발전 종료' : `${current.value} ${current.unit}`}
-              </dd>
-            </div>
-            <div className={styles.hero__metaItem}>
-              <dt>최고 출력</dt>
-              <dd>
-                {peak.value} {peak.unit}
-                <span className={styles.hero__metaSub}>{PEAK_OUTPUT.hour}시</span>
+                {isAfterSunset ? '일몰 · 발전 종료' : formatPercent(currentRatio, 1)}
+                {isAfterSunset ? null : <span className={styles.hero__metaSub}>총 설비용량 대비</span>}
               </dd>
             </div>
           </motion.dl>
@@ -110,14 +104,14 @@ export function SunArcHero() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.55, delay: 0.3 }}
           >
-            <Link to={PATH.ENERGY_STATISTICS}>
+            <Link to={PATH.CONTROL}>
               <Button size="lg" iconRight={<ArrowUpRightIcon />}>
-                발전통계 보기
+                통합관제 보기
               </Button>
             </Link>
-            <Link to={PATH.AI_DIAGNOSIS_OVERVIEW}>
+            <Link to={PATH.ENERGY_STATISTICS}>
               <Button size="lg" variant="secondary">
-                설비 진단 열기
+                발전통계 보기
               </Button>
             </Link>
           </motion.div>

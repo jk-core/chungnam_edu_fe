@@ -8,7 +8,7 @@ import styles from './CollectionHealth.module.scss';
 interface CollectionHealthProps {
   /** 발전소별 수집 현황 */
   rows: CollectionStatus[];
-  /** 품질 기준(95%)에 못 미쳐 AI 학습에서 빠진 개소 */
+  /** 수집 품질이 기준(95%)에 못 미친 개소 */
   belowThreshold: number;
   /** 마지막으로 값이 들어온 시각 (SFR-004-04) */
   collectedAt: string;
@@ -78,7 +78,7 @@ export function CollectionHealth({ rows, belowThreshold, collectedAt, isStale }:
         ))}
         <li className={styles.health__rtuItem}>
           <span className={`${styles.health__dot} ${styles['health__dot--critical']}`} aria-hidden="true" />
-          AI 학습 제외
+          품질 기준 미달
           <span className={styles.health__rtuValue}>{formatNumber(belowThreshold)}</span>
         </li>
       </ul>

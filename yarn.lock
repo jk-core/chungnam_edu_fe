@@ -144,7 +144,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@babel/runtime@npm:^7.12.5, @babel/runtime@npm:^7.28.6":
+"@babel/runtime@npm:^7.12.5, @babel/runtime@npm:^7.22.15, @babel/runtime@npm:^7.28.6":
   version: 7.29.7
   resolution: "@babel/runtime@npm:7.29.7"
   checksum: 10c0/ca11572f7146b21e0bde6a9ed4bb6a89eafbee5f0944c7eb54d0d8a2dac962c33638a1d611e14faa71dfbb92b4b5f9236232208568a6b7d5c6f3f39ddb91771e
@@ -1798,6 +1798,7 @@ __metadata:
     postcss-scss: "npm:^4.0.9"
     react: "npm:^19.2.8"
     react-dom: "npm:^19.2.8"
+    react-kakao-maps-sdk: "npm:^1.2.1"
     react-router-dom: "npm:^7.18.1"
     sass: "npm:^1.102.0"
     stylelint: "npm:^17.14.1"
@@ -4432,6 +4433,20 @@ __metadata:
   languageName: node
   linkType: hard
 
+"react-kakao-maps-sdk@npm:^1.2.1":
+  version: 1.2.1
+  resolution: "react-kakao-maps-sdk@npm:1.2.1"
+  dependencies:
+    "@babel/runtime": "npm:^7.22.15"
+    use-sync-external-store: "npm:^1.6.0"
+  peerDependencies:
+    kakao.maps.d.ts: ^0.1.40
+    react: ^16.8.0 || ^17.0.0 || ^18.0.0 || ^19.0.0
+    react-dom: ^16.8.0 || ^17.0.0 || ^18.0.0 || ^19.0.0
+  checksum: 10c0/92774aeddcb9c72c630b0e7c5d46f963fceea14f2a883ef9266cde88c827754fb6047bc5ea7ce1432a33a25618de80a9efc6f73bffd5cab8d8ff2d149a37c9b5
+  languageName: node
+  linkType: hard
+
 "react-router-dom@npm:^7.18.1":
   version: 7.18.1
   resolution: "react-router-dom@npm:7.18.1"
@@ -5517,6 +5532,15 @@ __metadata:
   dependencies:
     punycode: "npm:^2.1.0"
   checksum: 10c0/4ef57b45aa820d7ac6496e9208559986c665e49447cb072744c13b66925a362d96dd5a46c4530a6b8e203e5db5fe849369444440cb22ecfc26c679359e5dfa3c
+  languageName: node
+  linkType: hard
+
+"use-sync-external-store@npm:^1.6.0":
+  version: 1.6.0
+  resolution: "use-sync-external-store@npm:1.6.0"
+  peerDependencies:
+    react: ^16.8.0 || ^17.0.0 || ^18.0.0 || ^19.0.0
+  checksum: 10c0/35e1179f872a53227bdf8a827f7911da4c37c0f4091c29b76b1e32473d1670ebe7bcd880b808b7549ba9a5605c233350f800ffab963ee4a4ee346ee983b6019b
   languageName: node
   linkType: hard
 

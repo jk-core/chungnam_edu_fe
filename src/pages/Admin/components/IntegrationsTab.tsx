@@ -102,9 +102,9 @@ export function IntegrationsTab() {
   };
 
   const columns: Column<IntegrationLog>[] = [
-    { key: 'at', header: '전송 시각', width: '140px', render: (row) => row.at },
-    { key: 'payload', header: '전문', render: (row) => <strong>{row.payload}</strong> },
-    { key: 'rows', header: '건수', align: 'right', width: '90px', hideOnTablet: true, render: (row) => formatNumber(row.rowCount) },
+    { key: 'at', header: '전송 시각', width: '160px', render: (row) => <strong>{row.at}</strong> },
+    { key: 'target', header: '전송 대상', width: '140px', hideOnTablet: true, render: (row) => row.target },
+    { key: 'rows', header: '전송 건수', align: 'right', width: '110px', render: (row) => `${formatNumber(row.rowCount)}건` },
     {
       key: 'result',
       header: '결과',
@@ -129,7 +129,7 @@ export function IntegrationsTab() {
               variant="secondary"
               onClick={() => {
                 markResent(row.id);
-                toast.success(`${row.at} ${row.payload} 전문을 재송신했습니다.`);
+                toast.success(`${row.at} 전송분을 재송신했습니다.`);
               }}
             >
               재송신
@@ -209,7 +209,7 @@ export function IntegrationsTab() {
         <Card
           eyebrow="REMS"
           title="교육부 전송 이력"
-          description="최근 30일, 하루 4회 전문을 보냅니다. 실패 건은 사유 확인 후 재송신합니다."
+          description="최근 30일, 하루 4회 수집 데이터를 가공 없이 그대로 보냅니다. 실패 건은 사유 확인 후 재송신합니다."
         >
           <Table
             caption="교육부 연계 전송 이력"

@@ -20,6 +20,17 @@ export function MobileDrawer({ isOpen, onClose, onOpenHelp }: MobileDrawerProps)
   const navigation = useVisibleNavigation();
   const panelRef = useRef<HTMLDivElement>(null);
 
+  /*
+    닫기 콜백은 부르는 쪽에서 인라인 함수로 넘겨 렌더마다 참조가 바뀐다.
+    의존성에 그대로 두면 효과가 렌더마다 다시 걸리며 포커스를 서랍으로 되돌리고,
+    `previousOverflow` 도 'hidden' 으로 다시 잡혀 닫은 뒤 배경 스크롤이 풀리지 않는다.
+  */
+  const closeRef = useRef(onClose);
+
+  useEffect(() => {
+    closeRef.current = onClose;
+  });
+
   useEffect(() => {
     if (!isOpen) return;
 
@@ -30,7 +41,7 @@ export function MobileDrawer({ isOpen, onClose, onOpenHelp }: MobileDrawerProps)
 
     const handleKeyDown = (event: KeyboardEvent) => {
       if (event.key === 'Escape') {
-        onClose();
+        closeRef.current();
 
         return;
       }
@@ -59,7 +70,7 @@ export function MobileDrawer({ isOpen, onClose, onOpenHelp }: MobileDrawerProps)
       document.body.style.overflow = previousOverflow;
       document.removeEventListener('keydown', handleKeyDown);
     };
-  }, [isOpen, onClose]);
+  }, [isOpen]);
 
   return (
     <AnimatePresence>

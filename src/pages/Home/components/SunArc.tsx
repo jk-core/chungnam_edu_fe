@@ -159,9 +159,13 @@ export function SunArc({ nowHour }: SunArcProps) {
           <motion.circle
             cx={sun.x}
             cy={sun.y}
-            r={11}
             className={styles.arc__pulse}
             fill="none"
+            /*
+              시작값을 적어 두지 않으면 첫 프레임에 `r` 이 비어 SVG 가 값을 못 읽는다.
+              `r` 은 스타일이 아니라 속성이라 CSS 로 기본값을 깔아 둘 수도 없다.
+            */
+            initial={{ r: 11, opacity: 0.5 }}
             animate={{ r: [11, 26], opacity: [0.5, 0] }}
             transition={{ duration: 2.6, repeat: Infinity, ease: 'easeOut' }}
           />

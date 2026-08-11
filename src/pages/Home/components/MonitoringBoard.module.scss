@@ -206,12 +206,6 @@
   text-align: center;
 }
 
-// ── 마커 팝업 (SFR-007-06~08) ──────────────────────────────
-.popup__name {
-  @include t.label-md;
-
-  color: var(--text-strong);
-}
 
 .popup__meta {
   @include t.caption;
@@ -220,25 +214,9 @@
   color: var(--text-muted);
 }
 
-.popup__badges {
-  display: flex;
-  gap: s.$space-2;
-  margin-top: s.$space-2;
-}
 
-.popup__section {
-  margin-top: s.$space-3;
-}
 
-.popup__sectionTitle {
-  @include t.caption;
 
-  color: var(--text-faint);
-}
-
-.popup__spark {
-  margin-top: s.$space-1;
-}
 
 .popup__stats {
   display: flex;
@@ -265,33 +243,6 @@
   font-variant-numeric: tabular-nums;
 }
 
-// 팝업에서 이어지는 이동 — 지도 선택은 그대로 두고 여기서만 넘어간다
-.popup__go {
-  @include t.label-sm;
-
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  width: 100%;
-  margin-top: s.$space-3;
-  padding: s.$space-2 s.$space-3;
-  justify-content: center;
-  border: 1px solid var(--brand-soft-border);
-  border-radius: s.$radius-sm;
-  background-color: var(--brand-soft);
-  color: var(--brand-contrast);
-  cursor: pointer;
-  transition: background-color 0.16s ease, transform 0.16s ease;
-
-  &:hover {
-    background-color: var(--brand);
-    color: var(--text-on-brand);
-  }
-
-  &:active {
-    transform: scale(0.98);
-  }
-}
 
 @include media.reduced-motion {
   .row,
@@ -420,3 +371,8 @@
   border-top: 1px solid var(--border-subtle);
   color: var(--text-muted);
 }
+
+
+
+
+

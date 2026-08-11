@@ -11,12 +11,11 @@
   min-height: 0;
 }
 
-// 칸에 담기는 것보다 많으면 굴려서 본다.
+// 칸에 담기는 만큼만 보여 주고 나머지는 쪽을 넘겨 보여 준다 — 잘린 줄이 비죽 나오지 않게 감춘다.
 .frame {
   flex: 1;
   min-height: 0;
-  overflow-y: auto;
-  overscroll-behavior: contain;
+  overflow: hidden;
 }
 
 // 쪽이 넘어갈 때 다음 줄들이 옆에서 밀려 들어온다 — 집계표가 넘어가는 결과 맞춘다.
@@ -24,13 +23,30 @@
   display: flex;
   flex-direction: column;
   gap: s.$space-1;
+  animation: rows-slide 0.45s cubic-bezier(0.22, 0.68, 0.32, 1) both;
+
+  @include media.reduced-motion {
+    animation: none;
+  }
+}
+
+@keyframes rows-slide {
+  from {
+    opacity: 0;
+    transform: translateX(28px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
 }
 
 .row {
   display: flex;
   align-items: center;
   gap: s.$space-2;
-  padding: s.$space-2;
+  padding: s.$space-2 s.$space-3;
   border: 1px solid var(--border-subtle);
   border-radius: s.$radius-sm;
   background-color: var(--surface-sunken);
@@ -62,10 +78,14 @@
   background-color: var(--offline-soft);
 }
 
+/*
+  한 줄에 이름과 시·군을 나란히 둔다.
+  자동으로 넘어가는 목록이라 줄이 낮을수록 한 쪽에 더 담기고, 그만큼 덜 기다린다.
+*/
 .row__main {
   display: flex;
-  flex-direction: column;
-  gap: 1px;
+  align-items: baseline;
+  gap: s.$space-2;
   flex: 1;
   min-width: 0;
 }
@@ -79,16 +99,17 @@
 
 .row__region {
   @include t.caption;
+  @include mx.truncate;
 
+  flex-shrink: 0;
   color: var(--text-faint);
 }
 
-// 상태 칩과 그 아래 마지막 수신 시각
+// 상태 칩과 마지막 수신 시각
 .row__figures {
   display: flex;
-  flex-direction: column;
-  align-items: flex-end;
-  gap: 3px;
+  align-items: center;
+  gap: s.$space-2;
   flex-shrink: 0;
 }
 

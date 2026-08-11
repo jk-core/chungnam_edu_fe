@@ -1,6 +1,6 @@
 import { Badge } from '@/components/common/Badge';
 import { Card } from '@/components/common/Card';
-import { DB_HEALTH, OPEN_INCIDENTS, RESOURCE_CRITICAL, RESOURCE_INCIDENTS, RESOURCE_WARNING, resourceLevel, SERVER_ROLE_LABEL, SERVERS, worstLevel } from '@/mocks/serverHealth';
+import { DB_HEALTH, RESOURCE_CRITICAL, RESOURCE_INCIDENTS, RESOURCE_WARNING, resourceLevel, SERVER_ROLE_LABEL, SERVERS, worstLevel } from '@/mocks/serverHealth';
 import { EChart } from '@/components/common/EChart';
 import { NOW } from '@/mocks/today';
 import { Reveal } from '@/components/common/Reveal';
@@ -120,21 +120,6 @@ export function ServerHealthTab() {
 
   return (
     <div className={styles.tab}>
-      {OPEN_INCIDENTS.length > 0 ? (
-        <Reveal>
-          <div className={styles.alertBar}>
-            <p className={styles.alertBar__title}>
-              임계선을 넘은 자원이 {OPEN_INCIDENTS.length}건 있습니다
-            </p>
-            {OPEN_INCIDENTS.map((item) => (
-              <p key={item.id} className={styles.alertBar__item}>
-                {item.serverName} · {item.metric} {formatNumber(item.value)}% — {item.note}
-              </p>
-            ))}
-          </div>
-        </Reveal>
-      ) : null}
-
       <Reveal delay={0.04}>
         <div className={`${styles.summary} ${styles['summary--three']}`}>
           <StatCard label="가동 서버" value={SERVERS.length - down} unit={`대 / ${SERVERS.length}대`} accent />

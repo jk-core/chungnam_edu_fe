@@ -24,11 +24,11 @@ interface DataCalendarProps {
   onNavigate?: (year: number, month?: number) => void;
   /**
    * 칸에 절감액까지 얹을지.
-   * 요구사항은 일 단위 조회에 날씨와 발전시간을, 월·연 단위에 발전시간과 예상 수익금을
+   * 요구사항은 일 단위 조회에 날씨와 발전시간을, 월·연 단위에 발전시간과 절감액을
    * 요구한다 (SFR-007-01/02, SFR-010-01/02, SFR-022-01/02). 그래서 발전시간은 늘 두고
    * 금액만 여닫는다.
    */
-  showRevenue?: boolean;
+  showSaving?: boolean;
 }
 
 /**
@@ -44,7 +44,7 @@ export function DataCalendar({
   months = [],
   selected,
   onSelect,
-  onNavigate, showRevenue = true }: DataCalendarProps) {
+  onNavigate, showSaving = true }: DataCalendarProps) {
   const byDate = new Map(days.map((day) => [day.date, day]));
   const label = view === 'month' ? `${year}년 ${month + 1}월` : `${year}년`;
 
@@ -89,7 +89,7 @@ export function DataCalendar({
       {view === 'month' ? (
         <table className={styles.table}>
           <caption className={styles.table__caption}>
-            {label} 일자별 날씨 · 발전시간{showRevenue ? ' · 절감액' : ''}
+            {label} 일자별 날씨 · 발전시간{showSaving ? ' · 절감액' : ''}
           </caption>
           <thead>
             <tr>
@@ -121,7 +121,7 @@ export function DataCalendar({
 
                   const key = cell.format('YYYY-MM-DD');
                   const data = byDate.get(key);
-                  const revenue = data ? formatCurrency(data.revenueWon) : null;
+                  const saving = data ? formatCurrency(data.savingWon) : null;
                   const isToday = key === TODAY.format('YYYY-MM-DD');
 
                   return (
@@ -135,8 +135,8 @@ export function DataCalendar({
                         onClick={() => onSelect?.(key)}
                         aria-current={key === selected ? 'date' : undefined}
                         aria-label={data
-                          ? showRevenue
-                            ? `${cell.format('M월 D일')}, ${WEATHER_META[data.kind].label}, 발전시간 ${data.generationHours}시간, 절감액 ${formatNumber(data.revenueWon)}원`
+                          ? showSaving
+                            ? `${cell.format('M월 D일')}, ${WEATHER_META[data.kind].label}, 발전시간 ${data.generationHours}시간, 절감액 ${formatNumber(data.savingWon)}원`
                             : `${cell.format('M월 D일')}, ${WEATHER_META[data.kind].label}, 발전시간 ${data.generationHours}시간`
                           : cell.format('M월 D일')}
                       >
@@ -158,10 +158,10 @@ export function DataCalendar({
                           ) : null}
                         </span>
                         {data ? <span className={styles.cell__hours}>{data.generationHours.toFixed(1)}h</span> : null}
-                        {showRevenue && revenue ? (
+                        {showSaving && saving ? (
                           <span className={styles.cell__revenue}>
-                            {revenue.value}
-                            {revenue.unit}
+                            {saving.value}
+                            {saving.unit}
                           </span>
                         ) : null}
                       </button>
@@ -175,7 +175,7 @@ export function DataCalendar({
       ) : (
         <div className={styles.yearGrid} role="group" aria-label={`${year}년 월별 발전시간·절감액`}>
           {months.map((item, index) => {
-            const revenue = formatCurrency(item.revenueWon);
+            const saving = formatCurrency(item.savingWon);
 
             return (
               <button
@@ -183,7 +183,7 @@ export function DataCalendar({
                 type="button"
                 className={cn(styles.monthCell, { [styles['monthCell--selected']]: item.month === selected })}
                 onClick={() => onSelect?.(item.month)}
-                aria-label={`${index + 1}월, ${WEATHER_META[item.kind].label} 우세, 발전시간 ${item.generationHours}시간, 절감액 ${formatNumber(item.revenueWon)}원`}
+                aria-label={`${index + 1}월, ${WEATHER_META[item.kind].label} 우세, 발전시간 ${item.generationHours}시간, 절감액 ${formatNumber(item.savingWon)}원`}
               >
                 <span className={styles.monthCell__top}>
                   <span className={styles.monthCell__label}>{index + 1}월</span>
@@ -198,8 +198,8 @@ export function DataCalendar({
                   <span className={styles.monthCell__unit}>시간</span>
                 </span>
                 <span className={styles.monthCell__revenue}>
-                  {revenue.value}
-                  {revenue.unit}
+                  {saving.value}
+                  {saving.unit}
                 </span>
               </button>
             );
@@ -209,7 +209,7 @@ export function DataCalendar({
 
       <p className={styles.foot}>
         <span>발전시간 = 발전량 ÷ 설비용량</span>
-        <span>예상 수익금 {TARIFF_NOTE}</span>
+        <span>{TARIFF_NOTE}</span>
       </p>
     </div>
   );

@@ -162,9 +162,9 @@ export const ADMIN_NAVIGATION: NavSection = {
       requirements: ['SFR-023-01', 'SFR-023-02', 'SFR-023-03'],
     },
     {
-      label: '연계이력 관리',
+      label: '교육부 연계이력',
       path: PATH.ADMIN_INTEGRATIONS,
-      description: '교육부 전송 성공·실패 이력과 재송신을 다룹니다.',
+      description: '교육부로 보낸 수집 데이터(raw)의 성공·실패 이력과 재송신을 다룹니다.',
       requirements: ['SFR-027-01', 'SFR-027-02', 'SFR-027-03', 'SFR-027-04', 'SFR-027-05', 'SFR-027-06', 'SFR-027-07'],
     },
     {
@@ -182,14 +182,8 @@ export const ADMIN_NAVIGATION: NavSection = {
     {
       label: '데이터 품질',
       path: PATH.ADMIN_DATA_QUALITY,
-      description: '설비별·기간별 수집 품질과 AI 학습 제외 건을 확인합니다.',
+      description: '설비별·기간별 수집 데이터의 품질률과 기준 미달 발전소를 확인합니다.',
       requirements: ['SFR-003-05', 'SFR-003-06', 'SFR-003-07', 'SFR-012-10', 'SFR-012-11'],
-    },
-    {
-      label: '보안 관제',
-      path: PATH.ADMIN_SECURITY,
-      description: '접속 현황과 로그인 실패 추이를 살핍니다.',
-      requirements: ['SER-001-18', 'SER-001-19'],
     },
     {
       label: '서버 자원 현황',

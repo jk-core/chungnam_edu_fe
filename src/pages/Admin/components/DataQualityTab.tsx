@@ -2,8 +2,9 @@ import { useMemo, useState } from 'react';
 import { Badge } from '@/components/common/Badge';
 import { Card } from '@/components/common/Card';
 import { DateRangePicker } from '@/components/common/DateRangePicker';
-import { getQualityStatus, QUALITY_CODES, QUALITY_META, QUALITY_THRESHOLD, summarizeQuality } from '@/mocks/quality';
+import { getQualityStatus, QUALITY_THRESHOLD, summarizeQuality } from '@/mocks/quality';
 import { OPERATION_LABEL, OPERATION_TONE } from '@/mocks/status';
+import { DEFAULT_PAGE_SIZE, Pagination } from '@/components/common/Pagination';
 import { Reveal } from '@/components/common/Reveal';
 import { StatCard } from '@/components/common/StatCard';
 import { Table } from '@/components/common/Table';
@@ -14,29 +15,22 @@ import type { DateRangeValue } from '@/components/common/DateRangePicker';
 import type { QualityStatus } from '@/interface/diagnosisDetail';
 import styles from '../Admin.module.scss';
 
-/** 데이터 품질 관리 (SFR-012-10) — 품질 기준 미달은 AI 학습에서 뺀다 (SFR-012-11). */
+/** 데이터 품질 관리 (SFR-012-10) — 발전소마다 수집 데이터가 얼마나 온전히 들어왔는지 본다. */
 export function DataQualityTab() {
   const [range, setRange] = useState<DateRangeValue>({
     start: TODAY.subtract(6, 'day').toDate(),
     end: TODAY.toDate(),
   });
 
+  const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(DEFAULT_PAGE_SIZE);
+
   const rows = useMemo(() => getQualityStatus(null, range.start, range.end), [range]);
   const total = useMemo(() => summarizeQuality(rows), [rows]);
 
-  // 어떤 유형이 잦은지 코드별 합계로 본다.
-  const byCode = useMemo(
-    () =>
-      QUALITY_CODES.filter((code) => code !== 'ok')
-        .map((code) => ({
-          code,
-          count: rows.reduce((sum, row) => sum + row.byCode[code], 0),
-        }))
-        .sort((a, b) => b.count - a.count),
-    [rows],
-  );
-
-  const maxCode = Math.max(1, ...byCode.map((item) => item.count));
+  const pageCount = Math.max(1, Math.ceil(rows.length / pageSize));
+  const currentPage = Math.min(page, pageCount);
+  const pageRows = rows.slice((currentPage - 1) * pageSize, currentPage * pageSize);
 
   const columns: Column<QualityStatus>[] = [
     {
@@ -84,26 +78,21 @@ export function DataQualityTab() {
       hideOnTablet: true,
       render: (row) => `${formatNumber(row.validRows)} / ${formatNumber(row.totalRows)}`,
     },
-    {
-      key: 'excluded',
-      header: 'AI 학습 제외',
-      align: 'right',
-      width: '120px',
-      render: (row) =>
-        row.excludedFromTraining > 0 ? (
-          <Badge tone="caution">{formatNumber(row.excludedFromTraining)}건</Badge>
-        ) : (
-          <span className={styles.matrixDash}>—</span>
-        ),
-    },
   ];
 
   return (
     <div className={styles.tab}>
       <div className={styles.toolbar}>
-        <DateRangePicker value={range} onChange={setRange} label="품질 조회 기간" />
+        <DateRangePicker
+          value={range}
+          onChange={(value) => {
+            setRange(value);
+            setPage(1);
+          }}
+          label="품질 조회 기간"
+        />
         <p className={styles.toolbar__note}>
-          품질 기준 {Math.round(QUALITY_THRESHOLD * 100)}% — 못 미치면 AI 학습에서 제외합니다.
+          품질 기준 {Math.round(QUALITY_THRESHOLD * 100)}% · 총 {formatNumber(rows.length)}개소
         </p>
       </div>
 
@@ -112,36 +101,7 @@ export function DataQualityTab() {
           <StatCard label="전체 품질률" value={total.qualityRate * 100} unit="%" fractionDigits={1} accent />
           <StatCard label="검증 대상" value={total.totalRows} unit="건" />
           <StatCard label="기준 미달 발전소" value={total.belowThreshold} unit="개소" />
-          <StatCard label="AI 학습 제외" value={total.excludedRows} unit="건" />
         </div>
-      </Reveal>
-
-      <Reveal delay={0.05}>
-        <Card
-          eyebrow="Code"
-          title="상태 코드별 검출 건수"
-          description="어떤 유형의 불량 데이터가 잦은지 봅니다. 코드는 수집 정합성 검증 규칙과 1:1 입니다."
-        >
-          <div className={styles.history}>
-            {byCode.map((item) => (
-              <div key={item.code} className={styles.historyItem}>
-                <Badge tone={QUALITY_META[item.code].severity === 'critical' ? 'critical' : QUALITY_META[item.code].severity === 'caution' ? 'caution' : 'neutral'}>
-                  {QUALITY_META[item.code].label}
-                </Badge>
-                <span className={styles.historyItem__body}>{QUALITY_META[item.code].detail}</span>
-                <span className={styles.rate} style={{ width: 220 }}>
-                  <span className={styles.rate__track}>
-                    <span
-                      className={styles.rate__bar}
-                      style={{ width: `${Math.round((item.count / maxCode) * 100)}%` }}
-                    />
-                  </span>
-                  <span className={styles.rate__value}>{formatNumber(item.count)}</span>
-                </span>
-              </div>
-            ))}
-          </div>
-        </Card>
       </Reveal>
 
       <Reveal delay={0.08}>
@@ -153,9 +113,21 @@ export function DataQualityTab() {
           <Table
             caption="발전소별 수집 품질"
             columns={columns}
-            rows={rows}
+            rows={pageRows}
             getRowKey={(row) => row.schoolId}
             getRowClassName={(row) => (row.qualityRate < QUALITY_THRESHOLD ? styles.rowAlert : undefined)}
+          />
+          <Pagination
+            page={currentPage}
+            pageCount={pageCount}
+            totalCount={rows.length}
+            onChange={setPage}
+            label="발전소별 품질"
+            pageSize={pageSize}
+            onPageSizeChange={(size) => {
+              setPageSize(size);
+              setPage(1);
+            }}
           />
         </Card>
       </Reveal>

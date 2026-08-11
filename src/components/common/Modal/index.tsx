@@ -27,6 +27,18 @@ export function Modal({ isOpen, onClose, title, description, size = 'md', childr
   const panelRef = useRef<HTMLDivElement>(null);
   const returnFocusRef = useRef<HTMLElement | null>(null);
 
+  /*
+    닫기 콜백은 부르는 쪽에서 인라인 함수로 넘기는 일이 흔해 렌더마다 참조가 바뀐다.
+    그대로 의존성에 두면 이 효과가 렌더마다 풀렸다 다시 걸리고, 그때마다 포커스를
+    첫 조작 대상으로 되돌린다 — 폼에 한 글자 칠 때마다 커서가 닫기 버튼으로 튄다.
+    부르는 쪽을 고치는 대신 최신 함수를 상자에 담아 두어, 효과는 열고 닫을 때만 돌게 한다.
+  */
+  const closeRef = useRef(onClose);
+
+  useEffect(() => {
+    closeRef.current = onClose;
+  });
+
   useEffect(() => {
     if (!isOpen) return;
 
@@ -46,7 +58,7 @@ export function Modal({ isOpen, onClose, title, description, size = 'md', childr
     const handleKeyDown = (event: KeyboardEvent) => {
       if (event.key === 'Escape') {
         event.stopPropagation();
-        onClose();
+        closeRef.current();
 
         return;
       }
@@ -79,7 +91,7 @@ export function Modal({ isOpen, onClose, title, description, size = 'md', childr
       document.removeEventListener('keydown', handleKeyDown);
       returnFocusRef.current?.focus();
     };
-  }, [isOpen, onClose]);
+  }, [isOpen]);
 
   return createPortal(
     <AnimatePresence>

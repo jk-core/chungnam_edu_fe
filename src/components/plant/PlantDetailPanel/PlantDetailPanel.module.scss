@@ -1,0 +1,122 @@
+@use "@/styles/tokens/spacing" as s;
+@use "@/styles/tokens/typography" as t;
+
+/*
+  고른 발전소 설명 (SFR-007-06~09).
+  지도 옆 칸을 통째로 쓰므로 말풍선 시절보다 담을 수 있는 것이 많다.
+*/
+
+// ── 마커 팝업 (SFR-007-06~08) ──────────────────────────────
+.name {
+  @include t.label-md;
+
+  color: var(--text-strong);
+}
+
+.badges {
+  display: flex;
+  gap: s.$space-2;
+  margin-top: s.$space-2;
+}
+
+.section {
+  margin-top: s.$space-3;
+}
+
+.sectionTitle {
+  @include t.caption;
+
+  color: var(--text-faint);
+}
+
+.spark {
+  margin-top: s.$space-1;
+}
+
+// 팝업에서 이어지는 이동 — 지도 선택은 그대로 두고 여기서만 넘어간다
+.go {
+  @include t.label-sm;
+
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  width: 100%;
+  margin-top: s.$space-3;
+  padding: s.$space-2 s.$space-3;
+  justify-content: center;
+  border: 1px solid var(--brand-soft-border);
+  border-radius: s.$radius-sm;
+  background-color: var(--brand-soft);
+  color: var(--brand-contrast);
+  cursor: pointer;
+  transition: background-color 0.16s ease, transform 0.16s ease;
+
+  &:hover {
+    background-color: var(--brand);
+    color: var(--text-on-brand);
+  }
+
+  &:active {
+    transform: scale(0.98);
+  }
+}
+
+/*
+  ── 고른 발전소 설명 ────────────────────────────────────────
+  지도 옆 칸을 통째로 쓰므로 말풍선 시절보다 담을 수 있는 것이 많다.
+*/
+.panel {
+  display: flex;
+  flex-direction: column;
+  gap: s.$space-3;
+}
+
+.address {
+  @include t.caption;
+
+  display: flex;
+  align-items: flex-start;
+  gap: s.$space-1;
+  color: var(--text-muted);
+
+  svg {
+    flex-shrink: 0;
+    margin-top: 1px;
+  }
+}
+
+// 설비와 오늘 실적을 두 칸으로 나눠 훑기 쉽게 둔다
+.facts {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: s.$space-2 s.$space-3;
+  padding-top: s.$space-3;
+  border-top: 1px solid var(--border-subtle);
+}
+
+.fact {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+
+  dt {
+    @include t.caption;
+
+    color: var(--text-muted);
+  }
+
+  dd {
+    @include t.label-md;
+
+    color: var(--text-strong);
+    font-variant-numeric: tabular-nums;
+  }
+}
+
+.foot {
+  @include t.caption;
+
+  padding-top: s.$space-2;
+  border-top: 1px solid var(--border-subtle);
+  color: var(--text-faint);
+}

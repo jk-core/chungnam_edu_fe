@@ -7,8 +7,7 @@ export interface IntegrationLog {
   at: string;
   /** 전송 대상 시스템 */
   target: string;
-  /** 무엇을 보냈는지 — 일 발전량, 설비 현황 등 */
-  payload: string;
+  /** 이번 회차에 보낸 수집 데이터 행 수 — 가공 없이 원본을 그대로 보낸다 */
   rowCount: number;
   result: IntegrationResult;
   /** HTTP 응답 코드 */

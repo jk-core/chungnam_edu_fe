@@ -37,7 +37,7 @@ const TONE_CLASS: Record<OperationStatus, string> = {
  * 실제 행정경계 위에 발전소를 위경도로 투영해 찍는다.
  * 경계 경로와 마커에 같은 변환을 걸어 두 층이 어긋나지 않게 한다.
  *
- * 네이버 지도 키가 없거나 외부망이 막힌 자리에서 쓰는 기본 지도다 ([useNaverMaps]).
+ * 카카오맵 키가 없거나 외부망이 막힌 자리에서 쓰는 기본 지도다 ([useKakaoMaps]).
  */
 export function SvgGeoMap({ plants, renderPopup, selectedId, onSelect, height = 460, fallback }: GeoMapProps) {
   const [zoom, setZoom] = useState(1);
@@ -155,16 +155,9 @@ export function SvgGeoMap({ plants, renderPopup, selectedId, onSelect, height = 
     setOpenId(null);
   };
 
-  const popupPosition = openMarker
-    ? {
-      left: `${((toRatio(openMarker.x, 'x') - 0.5) * zoom + 0.5 + pan.x) * 100}%`,
-      top: `${((toRatio(openMarker.y, 'y') - 0.5) * zoom + 0.5 + pan.y) * 100}%`,
-    }
-    : undefined;
-
   return (
-    <div>
-      <div className={styles.map} style={{ height }}>
+    <div className={styles.shell}>
+      <div className={styles.map} style={{ minHeight: height }}>
         <div
           className={styles.map__viewport}
           style={{ height }}
@@ -307,15 +300,6 @@ export function SvgGeoMap({ plants, renderPopup, selectedId, onSelect, height = 
           </aside>
         ) : null}
 
-        {openMarker ? (
-          <div ref={popupRef} className={styles.popup} style={popupPosition} role="dialog" aria-label={`${openMarker.label} 상세`}>
-            <button type="button" className={styles.popup__close} onClick={() => setOpenId(null)} aria-label="팝업 닫기">
-              <CloseIcon width={16} height={16} />
-            </button>
-            {renderPopup(openMarker.data)}
-          </div>
-        ) : null}
-
         <div className={styles.controls}>
           <button
             type="button"
@@ -350,6 +334,20 @@ export function SvgGeoMap({ plants, renderPopup, selectedId, onSelect, height = 
         </ul>
 
         <p className={styles.zoomNote}>×{zoom.toFixed(1)}</p>
+        {/* 고른 발전소 설명은 누를 때만 지도 위로 얹힌다 (SFR-007-06~09) */}
+        {openMarker ? (
+          <aside ref={popupRef} className={styles.side} aria-label={`${openMarker.label} 상세`}>
+            <button
+              type="button"
+              className={styles.side__close}
+              onClick={() => setOpenId(null)}
+              aria-label="설명 닫기"
+            >
+              <CloseIcon width={16} height={16} />
+            </button>
+            {renderPopup(openMarker.data)}
+          </aside>
+        ) : null}
       </div>
 
       {/* 화면에는 띄우지 않지만 스크린리더·인쇄에는 같은 내용을 남긴다 (COR-003). */}

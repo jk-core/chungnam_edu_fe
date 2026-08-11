@@ -49,7 +49,6 @@ export const PATH = {
   ADMIN_LOGIN_POLICY: '/admin/login-policy',
   ADMIN_USAGE: '/admin/usage',
   ADMIN_DATA_QUALITY: '/admin/data-quality',
-  ADMIN_SECURITY: '/admin/security',
   ADMIN_SERVER_HEALTH: '/admin/server-health',
 } as const;
 

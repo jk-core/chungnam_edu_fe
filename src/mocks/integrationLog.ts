@@ -5,18 +5,17 @@ import { TODAY } from './today';
 
 const TARGET = '교육부 REMS';
 
-const PAYLOADS = [
-  { name: '일 발전량', rows: SCHOOLS.length },
-  { name: '시간대별 발전량', rows: SCHOOLS.length * 24 },
-  { name: '설비 현황', rows: SCHOOLS.length },
-  { name: '고장·알림 현황', rows: 40 },
-];
+/*
+  전송은 가공하지 않은 수집 데이터(raw)를 그대로 넘긴다 — 전문 종류를 나누지 않는다.
+  하루 네 번, 직전 6시간치를 모아 보낸다.
+*/
+const SEND_HOURS = [0, 6, 12, 18];
 
 const FAIL_REASONS = [
   '응답 지연(타임아웃 30초 초과)',
   '인증 토큰 만료',
   '수신측 점검 시간(503)',
-  '전문 형식 검증 실패(필드 누락)',
+  '데이터 형식 검증 실패(필드 누락)',
 ];
 
 function buildLogs(): IntegrationLog[] {
@@ -24,11 +23,11 @@ function buildLogs(): IntegrationLog[] {
   const rows: IntegrationLog[] = [];
   let sequence = 0;
 
-  // 최근 30일, 하루 4회(전문 종류별 1회) 전송한다.
+  // 최근 30일, 하루 4회 전송한다.
   for (let day = 29; day >= 0; day -= 1) {
     const date = TODAY.subtract(day, 'day');
 
-    PAYLOADS.forEach((payload, payloadIndex) => {
+    SEND_HOURS.forEach((hour) => {
       sequence += 1;
       const roll = next();
       // 실패의 절반쯤은 자동 재시도로 회복된 상태로 둔다.
@@ -37,10 +36,10 @@ function buildLogs(): IntegrationLog[] {
 
       rows.push({
         id: `IT-${String(sequence).padStart(4, '0')}`,
-        at: date.hour(5 + payloadIndex * 5).minute(Math.round(pickNumber(next, 0, 40))).format('YYYY-MM-DD HH:mm'),
+        at: date.hour(hour).minute(Math.round(pickNumber(next, 0, 40))).format('YYYY-MM-DD HH:mm'),
         target: TARGET,
-        payload: payload.name,
-        rowCount: payload.rows,
+        // 6시간치 15분 주기 계측을 발전소 수만큼 모은다.
+        rowCount: SCHOOLS.length * 24 + Math.round(pickNumber(next, -120, 120)),
         result,
         responseCode: failed ? pickOne(next, [408, 401, 503, 422]) : 200,
         latencyMs: Math.round(pickNumber(next, failed ? 4000 : 180, failed ? 30000 : 1400)),

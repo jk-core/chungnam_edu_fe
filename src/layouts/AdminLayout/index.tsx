@@ -21,10 +21,12 @@ export default function AdminLayout() {
         <div className={styles.admin__headInner}>
           <div className={styles.admin__badgeRow}>
             <Breadcrumb
-              items={[
-                { label: ADMIN_NAVIGATION.label, path: ADMIN_NAVIGATION.children[0].path },
-                { label: child?.label ?? ADMIN_NAVIGATION.label },
-              ]}
+              items={child
+                ? [
+                  { label: ADMIN_NAVIGATION.label, path: ADMIN_NAVIGATION.children[0].path },
+                  { label: child.label },
+                ]
+                : [{ label: ADMIN_NAVIGATION.label }]}
             />
             <span className={styles.admin__intranet}>
               <ShieldIcon width={14} height={14} />

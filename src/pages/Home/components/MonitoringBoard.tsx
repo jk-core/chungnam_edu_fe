@@ -1,19 +1,16 @@
 import { useMemo, useState } from 'react';
 import { motion } from 'motion/react';
 import { useNavigate } from 'react-router-dom';
-import { Badge } from '@/components/common/Badge';
 import { Button } from '@/components/common/Button';
 import { Card } from '@/components/common/Card';
-import { currentOutputOf, hourlySeriesOf } from '@/mocks/schoolOutput';
 import { GeoMap } from '@/components/common/GeoMap';
 import { ALL, EMPTY_FILTERS, matchPlants, PlantSearchModal } from '@/components/plant/PlantSearchModal';
-import { SUNRISE_HOUR } from '@/mocks/generation';
 import { NOW } from '@/mocks/today';
-import { isAbnormal, OPERATION_LABEL, OPERATION_ORDER, OPERATION_TONE } from '@/mocks/status';
+import { isAbnormal, OPERATION_LABEL, OPERATION_ORDER } from '@/mocks/status';
 import { REGIONS } from '@/mocks/regions';
+import { PlantDetailPanel } from '@/components/plant/PlantDetailPanel';
 import { Reveal } from '@/components/common/Reveal';
-import { ChevronRightIcon, SearchIcon } from '@/components/common/Icon';
-import { Sparkline } from '@/components/common/Sparkline';
+import { SearchIcon } from '@/components/common/Icon';
 import { formatNumber, formatPercent } from '@/utils/format';
 import { getCollectionStatus } from '@/mocks/collection';
 import { PATH } from '@/routes/routes';
@@ -117,11 +114,14 @@ export function MonitoringBoard() {
               <GeoMap
                 plants={rows}
                 selectedId={selectedId}
-                // 도면에서 바로 그 발전소 발전통계로 넘어간다.
-                onSelect={openPlant}
+                /*
+                  마커를 누르면 옆 칸에 설명만 편다.
+                  누르자마자 화면을 넘겨 버리면 무엇을 골랐는지 볼 틈이 없다 —
+                  넘어가는 일은 설명 안 "발전 현황 보기"가 맡는다.
+                */
                 // 지도를 못 읽는 환경에서는 검색 모달의 발전소 목록으로 같은 내용을 훑을 수 있다.
                 fallback={<p>지도를 볼 수 없다면 위 발전소 검색에서 같은 목록을 조건별로 확인할 수 있습니다.</p>}
-                renderPopup={(plant) => <PlantPopup plant={plant} onOpen={() => openPlant(plant)} />}
+                renderPopup={(plant) => <PlantDetailPanel plant={plant} onOpen={() => openPlant(plant)} />}
               />
             </div>
           </div>
@@ -211,53 +211,3 @@ function StatusDonut({ rows }: { rows: School[] }) {
 }
 
 /** 마커 팝업 — 설비 기본정보 · 시간대별 발전량 · 효율 추이와 현재 상태 (SFR-007-06~08) */
-function PlantPopup({ plant, onOpen }: { plant: School; onOpen: () => void }) {
-  const series = hourlySeriesOf(plant);
-
-  return (
-    <div>
-      <p className={styles.popup__name}>{plant.name}</p>
-      <p className={styles.popup__meta}>
-        {plant.regionName} · {formatNumber(plant.capacityKw, 1)}kW · 인버터 {plant.inverterCount}대
-      </p>
-
-      <div className={styles.popup__badges}>
-        <Badge tone={OPERATION_TONE[plant.status]} withDot>
-          {OPERATION_LABEL[plant.status]}
-        </Badge>
-        <Badge tone="neutral">{plant.level}</Badge>
-      </div>
-
-      <div className={styles.popup__section}>
-        <p className={styles.popup__sectionTitle}>
-          시간대별 발전량 ({Math.floor(SUNRISE_HOUR)}시 ~ 20시)
-        </p>
-        <Sparkline
-          values={series}
-          tone={isAbnormal(plant.status) ? 'critical' : 'solar'}
-          width={212}
-          height={40}
-          animate={false}
-          filled
-          className={styles.popup__spark}
-        />
-      </div>
-
-      <div className={styles.popup__stats}>
-        <span className={styles.popup__stat}>
-          <span className={styles.popup__statLabel}>실시간 출력</span>
-          <span className={styles.popup__statValue}>{formatNumber(currentOutputOf(plant), 1)} kW</span>
-        </span>
-        <span className={styles.popup__stat}>
-          <span className={styles.popup__statLabel}>이용률</span>
-          <span className={styles.popup__statValue}>{formatPercent(plant.utilization, 1)}</span>
-        </span>
-      </div>
-
-      <button type="button" className={styles.popup__go} onClick={onOpen}>
-        발전 현황 보기
-        <ChevronRightIcon width={14} height={14} aria-hidden />
-      </button>
-    </div>
-  );
-}

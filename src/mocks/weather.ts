@@ -2,7 +2,7 @@ import dayjs from 'dayjs';
 import type { DayWeather, MonthWeather, WeatherKind } from '@/interface/weather';
 import { MONTH_FACTOR } from './generation';
 import { REGION_TOTAL } from './regions';
-import { estimateRevenue } from './tariff';
+import { estimateSaving } from './tariff';
 import { getSchoolById } from './schools';
 import { createRandom, hashSeed, pickNumber } from './random';
 
@@ -35,7 +35,7 @@ function pickWeather(next: () => number, month: number): WeatherKind {
 
 const dayCache = new Map<string, DayWeather>();
 
-/** 하루치 날씨·발전시간·수익. 발전소를 지정하지 않으면 도 전체 기준이다. */
+/** 하루치 날씨·발전시간·절감액. 발전소를 지정하지 않으면 도 전체 기준이다. */
 export function getDayWeather(schoolId: string | null, date: Date): DayWeather {
   const ymd = dayjs(date).format('YYYY-MM-DD');
   const key = `${schoolId ?? 'all'}-${ymd}`;
@@ -64,7 +64,7 @@ export function getDayWeather(schoolId: string | null, date: Date): DayWeather {
     irradianceWm2,
     generationHours,
     generationKwh,
-    revenueWon: estimateRevenue(generationKwh),
+    savingWon: estimateSaving(generationKwh),
   };
 
   dayCache.set(key, value);
@@ -97,7 +97,7 @@ export function getYearMonths(schoolId: string | null, year: number): MonthWeath
       month: `${year}-${String(month + 1).padStart(2, '0')}`,
       generationHours: Math.round(days.reduce((sum, day) => sum + day.generationHours, 0) * 10) / 10,
       generationKwh: days.reduce((sum, day) => sum + day.generationKwh, 0),
-      revenueWon: days.reduce((sum, day) => sum + day.revenueWon, 0),
+      savingWon: days.reduce((sum, day) => sum + day.savingWon, 0),
       kind,
     };
   });

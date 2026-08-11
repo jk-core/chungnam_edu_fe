@@ -3,8 +3,21 @@
 @use "@/styles/utils/media" as media;
 @use "@/styles/utils/mixins" as mx;
 
+/*
+  지도 껍데기.
+  옆에 나란히 선 판(도넛 등)이 더 크면 이 칸도 그만큼 늘어나는데, 안쪽 지도가 고정 높이면
+  아래가 빈 채로 남아 둘의 키가 안 맞아 보인다. 넘겨받은 높이는 최소치로만 쓰고
+  남는 세로는 지도가 채운다.
+*/
+.shell {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
 .map {
   position: relative;
+  flex: 1;
   border: 1px solid var(--map-border);
   border-radius: s.$radius-md;
   background:
@@ -16,6 +29,7 @@
 .map__viewport {
   position: relative;
   width: 100%;
+  height: 100%;
   touch-action: none;
   cursor: grab;
 
@@ -454,7 +468,7 @@
 }
 
 // ── 네이버 지도 (SFR-007-05) ───────────────────────────────
-.naver {
+.kakao {
   width: 100%;
   height: 100%;
 }
@@ -466,6 +480,148 @@
   border-radius: s.$radius-sm;
   overflow: hidden;
 }
+
+// 지도 자체는 감싼 칸을 그대로 채운다
+.mini__canvas {
+  width: 100%;
+  height: 100%;
+}
+
+/*
+  ── 발전소 마커 ─────────────────────────────────────────────
+  `react-kakao-maps-sdk` 의 `CustomOverlayMap` 안쪽은 그대로 리액트 트리라,
+  지도 SDK 에 HTML 문자열을 넘기던 시절과 달리 여기 모듈 스타일이 닿는다.
+*/
+.pin {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  height: 24px;
+  padding: 0 9px 0 7px;
+  border: 1px solid var(--border-subtle);
+  border-radius: 999px;
+  background-color: var(--surface-raised);
+  box-shadow: var(--shadow-sm);
+  cursor: pointer;
+  white-space: nowrap;
+  transition: transform 0.16s ease, border-color 0.16s ease;
+}
+
+.pin:hover {
+  z-index: 30;
+  border-color: var(--brand);
+  transform: scale(1.06);
+}
+
+.pin__name {
+  color: var(--text-strong);
+  font-family: var(--font-sans);
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 1;
+}
+
+.pin__dot {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background-color: var(--text-faint);
+  flex-shrink: 0;
+}
+
+.pin--ok .pin__dot {
+  background-color: var(--ok);
+}
+
+.pin--brand .pin__dot {
+  background-color: var(--brand);
+}
+
+.pin--caution .pin__dot {
+  background-color: var(--caution);
+}
+
+.pin--critical .pin__dot {
+  background-color: var(--critical);
+}
+
+.pin--offline .pin__dot {
+  background-color: var(--offline);
+}
+
+// 고른 발전소는 이름표째 브랜드색으로 뒤집어 어느 것인지 바로 찾게 한다
+.pin--selected {
+  z-index: 30;
+  border-color: var(--brand);
+  background-color: var(--brand);
+}
+
+.pin--selected .pin__name {
+  color: var(--text-on-brand);
+}
+
+// 브랜드 면 위에서는 상태점이 묻힌다 — 테를 둘러 살려 준다.
+.pin--selected .pin__dot {
+  box-shadow: 0 0 0 1.5px var(--text-on-brand);
+}
+
+// 이상 설비는 고리를 하나 더 둘러 색에만 기대지 않게 한다 (COR-003).
+// 굵기는 전역 맥동 시계를 따라간다 — 화면의 다른 경고와 박자가 어긋나지 않는다.
+.pin__ring {
+  position: absolute;
+  left: 3px;
+  width: 17px;
+  height: 17px;
+  border: 1px solid var(--critical);
+  border-radius: 50%;
+  opacity: calc(0.28 + 0.42 * var(--pulse));
+  transform: scale(calc(1 + 0.12 * var(--pulse)));
+}
+
+.cluster {
+  position: relative;
+  display: grid;
+  place-items: center;
+  min-width: 28px;
+  height: 28px;
+  padding: 0 8px;
+  border: 2px solid var(--brand);
+  border-radius: 999px;
+  background-color: var(--surface-raised);
+  color: var(--brand-contrast);
+  font-family: var(--font-data);
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 1;
+  box-shadow: var(--shadow-sm);
+  cursor: pointer;
+  transition: transform 0.16s ease;
+}
+
+.cluster:hover {
+  transform: scale(1.08);
+}
+
+// 묶음 안에 이상 설비가 섞였다는 표식
+.cluster__flag {
+  position: absolute;
+  top: -2px;
+  right: -2px;
+  width: 8px;
+  height: 8px;
+  border: 1.5px solid var(--surface-raised);
+  border-radius: 50%;
+  background-color: var(--critical);
+}
+
+@include media.reduced-motion {
+  .pin,
+  .cluster {
+    transition: none;
+  }
+}
+
 
 // 실지도에서는 말풍선을 마커 위에 얹지 않는다. 지도를 끌 때마다 위치를 다시 잡아야 해서
 // 꼬리가 어긋나기 쉽다. 내용은 그대로 두고 자리만 왼쪽 아래로 고정한다.
@@ -515,3 +671,69 @@
 }
 
 // ── 대체 표 (COR-003) ──────────────────────────────────────
+
+/*
+  ── 고른 발전소 설명 ────────────────────────────────────────
+  자리를 미리 비워 두지 않고, 누를 때만 지도 위로 미끄러져 나온다.
+  아무도 고르지 않은 동안 빈 칸이 지도를 좁히는 것이 아까워서다 —
+  지도는 늘 전폭을 쓰고, 설명은 필요할 때만 그 위에 얹힌다.
+*/
+.side {
+  position: absolute;
+  top: s.$space-3;
+  right: s.$space-3;
+  bottom: s.$space-3;
+  z-index: 6;
+  display: flex;
+  flex-direction: column;
+  width: 296px;
+  max-width: calc(100% - #{s.$space-6});
+  padding: s.$space-4;
+  border: 1px solid var(--border);
+  border-radius: s.$radius-md;
+  background-color: var(--surface-raised);
+  box-shadow: var(--shadow-lg);
+  overflow-y: auto;
+  animation: geo-side-in 0.2s ease-out;
+
+  @include media.mobile {
+    width: auto;
+    left: s.$space-3;
+  }
+}
+
+@keyframes geo-side-in {
+  from {
+    opacity: 0;
+    transform: translateX(16px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@include media.reduced-motion {
+  .side {
+    animation: none;
+  }
+}
+
+// 설명을 닫고 지도를 온전히 본다
+.side__close {
+  position: absolute;
+  top: s.$space-2;
+  right: s.$space-2;
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  border-radius: s.$radius-full;
+  color: var(--text-muted);
+
+  &:hover {
+    background-color: var(--surface-sunken);
+    color: var(--text-strong);
+  }
+}

@@ -14,13 +14,13 @@
  */
 .grid {
   display: grid;
-  grid-template-columns: 340px minmax(0, 1fr) 400px;
+  grid-template-columns: 300px minmax(0, 1fr) 420px;
   gap: s.$space-4;
   height: 100%;
   min-height: 0;
 
   @include media.kiosk {
-    grid-template-columns: 380px minmax(0, 1fr) 440px;
+    grid-template-columns: 340px minmax(0, 1fr) 460px;
     gap: s.$space-5;
   }
 

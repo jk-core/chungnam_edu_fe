@@ -1,10 +1,12 @@
 import { useState } from 'react';
 import { Badge } from '@/components/common/Badge';
 import { isAbnormal, OPERATION_LABEL, OPERATION_RANK, OPERATION_TONE } from '@/mocks/status';
-import { formatDuration, formatNumber } from '@/utils/format';
+import { formatDuration } from '@/utils/format';
 import type { CollectionStatus } from '@/interface/collection';
 import type { School } from '@/interface/energy';
 import { SegmentedControl } from '@/components/common/SegmentedControl';
+import { useAutoPager } from '@/hooks/useAutoPager';
+import { PagerBar } from './PagerBar';
 import styles from './FaultList.module.scss';
 
 /*
@@ -15,6 +17,9 @@ import styles from './FaultList.module.scss';
   운영자가 축을 바꿔 볼 수 있게 둔다.
 */
 type SortKey = 'status' | 'stale' | 'capacity';
+
+/** 한 쪽이 머무는 시간 — 이름과 상태를 읽어 낼 만큼은 준다 */
+const PAGE_MS = 7000;
 
 const SORT_OPTIONS: { value: SortKey; label: string }[] = [
   { value: 'status', label: '상태순' },
@@ -58,9 +63,15 @@ export function FaultList({ plants, collection }: FaultListProps) {
       return byStatus(a, b);
     });
 
+  const {
+    frameRef, itemRef, from, to, page, pageCount, turnKey, paused, togglePause, goTo, next, prev,
+  } = useAutoPager<HTMLDivElement, HTMLLIElement>({ total: faults.length, intervalMs: PAGE_MS });
+
   if (faults.length === 0) {
     return <p className={styles.empty}>지금 손봐야 할 설비가 없습니다.</p>;
   }
+
+  const visible = faults.slice(from, to);
 
   return (
     <div className={styles.wrap}>
@@ -69,14 +80,22 @@ export function FaultList({ plants, collection }: FaultListProps) {
         <SegmentedControl label="정렬 기준" size="sm" options={SORT_OPTIONS} value={sort} onChange={setSort} />
       </div>
 
-      {/* 손으로 굴려 다 볼 수 있게 둔다 — 쪽을 넘기면 지나간 줄을 다시 찾기 어렵다. */}
-      <div className={styles.frame}>
-        <ul className={styles.list}>
-          {faults.map((plant) => {
+      {/*
+        벽면 모니터에는 스크롤을 굴려 줄 사람이 없다 — 칸에 담기는 만큼만 보여 주고
+        나머지는 스스로 넘겨, 지나가며 보는 사람도 전체를 볼 수 있게 한다 (SFR-004-14).
+      */}
+      <div ref={frameRef} className={styles.frame}>
+        {/* 쪽이 갈릴 때마다 새로 만들어야 옆에서 밀려 들어오는 움직임이 다시 돈다 */}
+        <ul key={turnKey} className={styles.list}>
+          {visible.map((plant, index) => {
             const status = collection.get(plant.id);
 
             return (
-              <li key={plant.id} className={`${styles.row} ${styles[`row--${OPERATION_TONE[plant.status]}`]}`}>
+              <li
+                key={plant.id}
+                ref={index === 0 ? itemRef : undefined}
+                className={`${styles.row} ${styles[`row--${OPERATION_TONE[plant.status]}`]}`}
+              >
                 <span className={styles.row__main}>
                   <span className={styles.row__name}>{plant.name}</span>
                   <span className={styles.row__region}>{plant.regionName}</span>
@@ -100,7 +119,14 @@ export function FaultList({ plants, collection }: FaultListProps) {
         </ul>
       </div>
 
-      <p className={styles.count}>전체 {formatNumber(faults.length)}건</p>
+      <PagerBar
+        page={page}
+        pageCount={pageCount}
+        turnKey={turnKey}
+        intervalMs={PAGE_MS}
+        total={faults.length}
+        controls={{ paused, onTogglePause: togglePause, onGo: goTo, onPrev: prev, onNext: next }}
+      />
     </div>
   );
 }

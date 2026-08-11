@@ -25,7 +25,8 @@ export function Breadcrumb({ items }: BreadcrumbProps) {
           const isLast = index === items.length - 1;
 
           return (
-            <li key={item.label} className={styles.breadcrumb__item}>
+            // 같은 이름이 두 번 오는 자리가 있다(대메뉴만 있고 소메뉴가 아직 안 잡힌 순간).
+            <li key={`${item.label}-${index}`} className={styles.breadcrumb__item}>
               <ChevronRightIcon className={styles.breadcrumb__separator} />
               {item.path && !isLast ? (
                 <Link to={item.path} className={styles.breadcrumb__link}>

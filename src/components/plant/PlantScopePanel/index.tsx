@@ -5,6 +5,7 @@ import { ChevronDownIcon } from '@/components/common/Icon';
 import { OPERATION_LABEL, OPERATION_TONE } from '@/mocks/status';
 import { PATH } from '@/routes/routes';
 import { PlantPicker } from '@/components/plant/PlantPicker';
+import { PlantScopeMap } from '@/components/plant/PlantScopeMap';
 import { PlantTree } from '@/components/plant/PlantTree';
 import { REGION_TOTAL } from '@/mocks/regions';
 import { cn } from '@/utils/cn';
@@ -77,6 +78,9 @@ export function PlantScopePanel() {
       <div id={bodyId} className={styles.panel__collapse} data-open={isOpen} inert={!isOpen}>
         <div className={styles.panel__clip}>
           <div className={styles.panel__inner}>
+            {/* 이름을 몰라도 자리로 찾아 들어갈 수 있게, 검색 버튼 위에 지도를 얹는다. */}
+            <PlantScopeMap />
+
             {/* 선택 버튼과 대상 요약은 한 덩어리다 — 좁은 컬럼에서 따로 두면 자리만 먹는다. */}
             <div className={styles.panel__pick}>
               <PlantPicker variant="summary" />
