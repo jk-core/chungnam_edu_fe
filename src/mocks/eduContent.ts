@@ -6,7 +6,7 @@ import type { School, SchoolLevel } from '@/interface/energy';
 import { ELEMENTARY_CONTENT } from './eduElementary';
 import { FULL_SUN_WM2 } from './solarEdu';
 import { MIDDLE_CONTENT } from './eduMiddle';
-import type { EduScene, ElementaryImpact } from './eduElementary';
+import type { EduBenefit, EduScene, ElementaryImpact } from './eduElementary';
 import type { MiddleBenefitContent, MiddlePrincipleContent, MiddleProductionContent } from './eduMiddle';
 import type { EduStats } from './solarEdu';
 
@@ -264,9 +264,14 @@ interface EduContentBase {
  */
 export interface ElementaryContent extends EduContentBase {
   level: 'elementary';
+  /** 세 장의 이름 — 아래 점 네비가 이 순서를 따른다 */
+  chapters: { id: string; label: string }[];
+  /** 1장 — 전기가 만들어지는 순서 */
   scenes: EduScene[];
-  /** 마지막 걸음에 함께 세우는 환산 칩 */
+  /** 2장 — 오늘 만든 전기로 무엇을 할 수 있나 */
   impact: ElementaryImpact;
+  /** 3장 — 태양광은 왜 좋은가 */
+  benefits: EduBenefit[];
 }
 
 /** 중등 — 원리·발전량·이점 세 카드 (`eduMiddle.ts`) */

@@ -530,24 +530,61 @@
   flex-shrink: 0;
 }
 
-.pin--ok .pin__dot {
-  background-color: var(--ok);
+/*
+  상태색을 변수 하나에 담아 두면 점·테두리·바탕이 함께 물든다.
+  이상 표시를 더할 때 색을 여기저기 다시 적지 않아도 된다.
+*/
+.pin--ok {
+  --pin-tone: var(--ok);
 }
 
-.pin--brand .pin__dot {
-  background-color: var(--brand);
+.pin--brand {
+  --pin-tone: var(--brand);
 }
 
-.pin--caution .pin__dot {
-  background-color: var(--caution);
+.pin--caution {
+  --pin-tone: var(--caution);
 }
 
-.pin--critical .pin__dot {
-  background-color: var(--critical);
+.pin--critical {
+  --pin-tone: var(--critical);
 }
 
-.pin--offline .pin__dot {
-  background-color: var(--offline);
+.pin--offline {
+  --pin-tone: var(--offline);
+}
+
+.pin__dot {
+  background-color: var(--pin-tone, var(--text-faint));
+}
+
+/*
+  이상 설비는 이름표째 상태색으로 물들고 숨 쉬듯 점등된다 (SFR-004-14, COR-003).
+
+  멀쩡한 발전소가 128개 찍힌 지도에서 점 하나만 색이 달라서는 눈에 걸리지 않는다.
+  바탕까지 물들이면 흘깃 봐도 어느 것이 문제인지 찾아진다. 깜빡임은 전역 맥동 시계를 따라가
+  화면의 다른 경고와 박자가 어긋나지 않는다.
+*/
+.pin--alert {
+  border-color: var(--pin-tone);
+
+  /*
+    바탕은 상태색을 표면색에 **섞어** 만든다. 상태 soft 색을 그대로 쓰면 어두운 테마에서 반투명이라
+    아래 지도 타일이 비쳐 이름이 묻힌다. 섞어 두면 어느 테마에서도 불투명한 판이 남는다.
+  */
+  background-color: color-mix(in srgb, var(--pin-tone) 16%, var(--surface-raised));
+  box-shadow:
+    var(--shadow-sm),
+    0 0 0 calc(1px + 3px * var(--pulse)) color-mix(in srgb, var(--pin-tone) 34%, transparent);
+}
+
+/*
+  이름 글자는 손대지 않는다 — 기본 마커와 같은 진한 색 그대로다.
+  상태색으로 물들이면 12px 글씨가 지도 위에서 읽히지 않는다. 상태는 테두리·바탕·점이 이미 말하고 있다.
+*/
+.pin--alert .pin__dot {
+  opacity: calc(0.55 + 0.45 * var(--pulse));
+  box-shadow: 0 0 calc(3px * var(--pulse)) var(--pin-tone);
 }
 
 // 고른 발전소는 이름표째 브랜드색으로 뒤집어 어느 것인지 바로 찾게 한다
@@ -603,7 +640,11 @@
   transform: scale(1.08);
 }
 
-// 묶음 안에 이상 설비가 섞였다는 표식
+/*
+  묶음 안에 이상 설비가 섞였다는 표식.
+  묶여 있으면 어느 것이 문제인지는 보이지 않으므로, 이 점이 반짝여 "여기를 펼쳐 보라" 고 알린다.
+  단일 마커와 같은 맥동 시계를 쓴다.
+*/
 .cluster__flag {
   position: absolute;
   top: -2px;
@@ -613,6 +654,8 @@
   border: 1.5px solid var(--surface-raised);
   border-radius: 50%;
   background-color: var(--critical);
+  opacity: calc(0.5 + 0.5 * var(--pulse));
+  box-shadow: 0 0 0 calc(2px * var(--pulse)) color-mix(in srgb, var(--critical) 32%, transparent);
 }
 
 @include media.reduced-motion {

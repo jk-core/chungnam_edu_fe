@@ -59,12 +59,15 @@ export function PlantMapLayer({ plants, level, selectedId, onSelect, onOpenClust
         if (single) {
           const plant = single.data;
           const selected = plant.id === selectedId;
+          // 이상 설비는 이름표째 상태색으로 물들고 점등된다 — 색점 하나로는 128개 사이에서 눈에 걸리지 않는다.
+          const alert = isAbnormal(plant.status);
 
           return (
             <CustomOverlayMap key={plant.id} position={position} xAnchor={0.5} yAnchor={0.5} zIndex={10} clickable>
               <button
                 type="button"
                 className={cn(styles.pin, styles[`pin--${TONE_CLASS[plant.status]}`], {
+                  [styles['pin--alert']]: alert,
                   [styles['pin--selected']]: selected,
                 })}
                 title={`${plant.name} · ${plant.regionName} · ${OPERATION_LABEL[plant.status]}`}
@@ -73,8 +76,8 @@ export function PlantMapLayer({ plants, level, selectedId, onSelect, onOpenClust
                 tabIndex={-1}
                 onClick={() => onSelect?.(plant)}
               >
-                {/* 이상 설비는 고리를 하나 더 둘러 색에만 기대지 않게 한다 (COR-003) */}
-                {isAbnormal(plant.status) ? <i className={styles.pin__ring} aria-hidden /> : null}
+                {/* 색에만 기대지 않도록 고리를 하나 더 두른다 (COR-003) */}
+                {alert ? <i className={styles.pin__ring} aria-hidden /> : null}
                 <i className={styles.pin__dot} aria-hidden />
                 <span className={styles.pin__name}>{plant.name}</span>
               </button>
