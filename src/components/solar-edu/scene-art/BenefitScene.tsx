@@ -1,5 +1,7 @@
 import { cn } from '@/utils/cn';
 import type { BenefitArt } from '@/mocks/eduElementary';
+import { Box, Building, SolarPanel, Sun, Window } from './SceneParts';
+import { CastShadow, SceneDefs } from './SceneDefs';
 import styles from './SceneArt.module.scss';
 import type { CSSProperties, ReactNode } from 'react';
 
@@ -45,6 +47,8 @@ export function BenefitScene({ focus, bubbleAt, bubble }: BenefitSceneProps) {
       preserveAspectRatio="xMidYMid meet"
       role="presentation"
     >
+      <SceneDefs />
+
       <path d="M0 296h900v5H0Z" fill="var(--border-subtle)" />
 
       {SPOTS.map((spot) => (
@@ -82,28 +86,18 @@ export function BenefitScene({ focus, bubbleAt, bubble }: BenefitSceneProps) {
 function FreeArt() {
   return (
     <g>
-      <circle className={styles.sunGlow} cx="78" cy="56" r="46" fill="var(--solar)" fillOpacity="0.2" />
-      <circle cx="78" cy="56" r="28" fill="var(--solar)" stroke="var(--solar-deep)" strokeWidth="2.4" />
-      <g className={styles.sunRays} style={{ transformOrigin: '78px 56px' }} stroke="var(--solar-deep)" strokeWidth="3.4" strokeLinecap="round">
-        <path d="M78 12v9M78 91v9M34 56h9M113 56h9" />
-        <path d="M47 25l6 6M103 81l6 6M47 87l6-6M103 31l6-6" />
-      </g>
+      <Sun cx={72} cy={54} r={26} glowClass={styles.sunGlow} rayClass={styles.sunRays} />
 
+      {/* 해에서 판으로 끝없이 내려오는 빛 */}
       <g fill="var(--solar-deep)">
         <circle className={styles.freeDrop} r="6" />
         <circle className={styles.freeDrop} style={delay(0.7)} r="6" />
         <circle className={styles.freeDrop} style={delay(1.4)} r="6" />
       </g>
 
-      <path d="M150 168 186 116h108l-36 52Z" fill="var(--brand)" stroke="var(--brand-contrast)" strokeWidth="2.4" />
-      <g stroke="var(--paper)" strokeOpacity="0.5" strokeWidth="1.6">
-        <path d="M174 133h108M162 150h108" />
-      </g>
-      <g stroke="var(--text-faint)" strokeWidth="5" strokeLinecap="round">
-        <path d="M180 168v14M258 168v14" />
-      </g>
+      <SolarPanel x={148} y={110} scale={0.62} glow={0.24} />
 
-      <text x="150" y="30" fill="var(--ok-text)" fontSize="22" textAnchor="middle" fontWeight="700">0원</text>
+      <text x="150" y="28" fill="var(--ok-text)" fontSize="22" textAnchor="middle" fontWeight="700">0원</text>
     </g>
   );
 }
@@ -112,26 +106,28 @@ function FreeArt() {
 function CleanArt() {
   return (
     <g>
-      <g fill="var(--text-faint)" fillOpacity="0.45">
-        <circle className={styles.smoke} cx="66" cy="96" r="13" />
-        <circle className={styles.smoke} style={delay(1)} cx="66" cy="96" r="13" />
-        <circle className={styles.smoke} style={delay(2)} cx="66" cy="96" r="13" />
-      </g>
-      <path d="M52 168V96h28v72Z" fill="var(--text-faint)" fillOpacity="0.35" stroke="var(--border-strong)" strokeWidth="2.4" />
-      <path d="M30 168v-38h22v38Z" fill="var(--text-faint)" fillOpacity="0.22" stroke="var(--border-strong)" strokeWidth="2.4" />
-
-      <g className={styles.cross} stroke="var(--critical)" strokeWidth="5" strokeLinecap="round">
-        <path d="M36 84 88 128M88 84 36 128" />
+      {/* 태우는 발전소 — 연기가 오르다 사라진다 */}
+      <g fill="var(--text-faint)" fillOpacity="0.4">
+        <circle className={styles.smoke} cx="62" cy="92" r="13" />
+        <circle className={styles.smoke} style={delay(1)} cx="62" cy="92" r="13" />
+        <circle className={styles.smoke} style={delay(2)} cx="62" cy="92" r="13" />
       </g>
 
-      <path d="M168 168 200 122h96l-32 46Z" fill="var(--brand)" stroke="var(--brand-contrast)" strokeWidth="2.4" />
-      <g stroke="var(--paper)" strokeOpacity="0.5" strokeWidth="1.6">
-        <path d="M190 137h96M179 152h96" />
+      <CastShadow cx={58} cy={172} rx={44} ry={9} />
+      <Box x={48} y={96} w={30} h={72} depth={9} radius={2} dim />
+      <Box x={20} y={130} w={26} h={38} depth={9} radius={2} dim />
+
+      <g className={styles.cross} stroke="var(--critical)" strokeWidth="5.5" strokeLinecap="round">
+        <path d="M30 86 92 132M92 86 30 132" />
       </g>
+
+      {/* 대신 이쪽 — 조용하고 깨끗한 판 */}
+      <SolarPanel x={166} y={116} scale={0.6} glow={0.2} />
+
       <g fill="var(--ok)">
-        <path className={styles.sparkle} d="M232 92l4 10 10 4-10 4-4 10-4-10-10-4 10-4Z" />
-        <path className={styles.sparkle} style={delay(0.9)} d="M282 68l3 7 7 3-7 3-3 7-3-7-7-3 7-3Z" />
-        <path className={styles.sparkle} style={delay(1.6)} d="M186 74l3 7 7 3-7 3-3 7-3-7-7-3 7-3Z" />
+        <path className={styles.sparkle} d="M232 88l4 10 10 4-10 4-4 10-4-10-10-4 10-4Z" />
+        <path className={styles.sparkle} style={delay(0.9)} d="M282 64l3 7 7 3-7 3-3 7-3-7-7-3 7-3Z" />
+        <path className={styles.sparkle} style={delay(1.6)} d="M186 70l3 7 7 3-7 3-3 7-3-7-7-3 7-3Z" />
       </g>
     </g>
   );
@@ -141,23 +137,21 @@ function CleanArt() {
 function QuietArt() {
   return (
     <g>
-      <path d="M96 168 128 122h96l-32 46Z" fill="var(--brand)" stroke="var(--brand-contrast)" strokeWidth="2.4" />
-      <g stroke="var(--paper)" strokeOpacity="0.5" strokeWidth="1.6">
-        <path d="M118 137h96M107 152h96" />
-      </g>
-      <g stroke="var(--text-faint)" strokeWidth="5" strokeLinecap="round">
-        <path d="M126 168v14M204 168v14" />
-      </g>
+      <SolarPanel x={94} y={116} scale={0.6} glow={0.2} />
 
+      {/* 퍼져 나가려는 소리 — 이내 사라진다 */}
       <g stroke="var(--text-faint)" strokeWidth="4" strokeLinecap="round" fill="none">
-        <path className={styles.wave} d="M186 74q14 14 0 28" />
-        <path className={styles.wave} style={delay(0.5)} d="M200 60q26 28 0 56" />
-        <path className={styles.wave} style={delay(1)} d="M214 46q38 42 0 84" />
+        <path className={styles.wave} d="M186 72q14 14 0 28" />
+        <path className={styles.wave} style={delay(0.5)} d="M200 58q26 28 0 56" />
+        <path className={styles.wave} style={delay(1)} d="M214 44q38 42 0 84" />
       </g>
 
-      <circle cx="150" cy="74" r="30" fill="var(--surface)" stroke="var(--border-strong)" strokeWidth="2.4" />
-      <path d="M138 62v24l-12-6v-12Z" fill="var(--text-faint)" />
-      <path d="M144 64 162 84M162 64 144 84" stroke="var(--critical)" strokeWidth="5" strokeLinecap="round" />
+      <CastShadow cx={150} cy={106} rx={34} ry={7} />
+      <circle cx="150" cy="72" r="30" fill="var(--surface)" />
+      <circle cx="150" cy="72" r="30" fill="url(#edu-shine)" />
+      <circle cx="150" cy="72" r="30" fill="none" stroke="var(--border-strong)" strokeWidth="2.4" />
+      <path d="M138 60v24l-12-6v-12Z" fill="var(--text-faint)" />
+      <path d="M144 62 162 82M162 62 144 82" stroke="var(--critical)" strokeWidth="5" strokeLinecap="round" />
     </g>
   );
 }
@@ -166,25 +160,34 @@ function QuietArt() {
 function RoofArt() {
   return (
     <g>
-      <path d="M60 172V96h180v76Z" fill="var(--surface)" stroke="var(--border-strong)" strokeWidth="2.4" />
-      <path d="M50 96h200v-12H50Z" fill="var(--surface-sunken)" stroke="var(--border-strong)" strokeWidth="2" />
+      <Building x={58} y={96} w={176} h={76} depth={18}>
+        <Window x={18} y={14} w={24} h={22} />
+        <Window x={58} y={14} w={24} h={22} />
+        <Window x={98} y={14} w={24} h={22} />
+        <Window x={138} y={14} w={24} h={22} />
+        <Window x={18} y={46} w={24} h={22} />
+        <Window x={58} y={46} w={24} h={22} />
+        <Window x={98} y={46} w={24} h={22} />
 
-      <g fill="var(--solar)" fillOpacity="0.65">
-        <rect x="76" y="110" width="24" height="22" rx="3" />
-        <rect x="116" y="110" width="24" height="22" rx="3" />
-        <rect x="156" y="110" width="24" height="22" rx="3" />
-        <rect x="196" y="110" width="24" height="22" rx="3" />
-        <rect x="76" y="142" width="24" height="22" rx="3" />
-        <rect x="116" y="142" width="24" height="22" rx="3" />
-        <rect x="156" y="142" width="24" height="22" rx="3" />
-      </g>
-      <path d="M196 142h24v30h-24Z" fill="var(--brand)" fillOpacity="0.35" stroke="var(--border-strong)" strokeWidth="1.6" />
+        <rect x="138" y="46" width="24" height="30" rx="2" fill="var(--brand)" fillOpacity="0.42" />
+        <rect x="138" y="46" width="24" height="30" rx="2" fill="url(#edu-shade)" />
+        <rect x="138" y="46" width="24" height="30" rx="2" fill="none" stroke="var(--border-strong)" strokeWidth="1.6" />
+      </Building>
 
-      <g fill="var(--brand)" stroke="var(--brand-contrast)" strokeWidth="1.8">
-        <path className={styles.land} d="M74 82 96 54h44l-22 28Z" />
-        <path className={styles.land} style={delay(0.4)} d="M136 82 158 54h44l-22 28Z" />
-        <path className={styles.land} style={delay(0.8)} d="M198 82 220 54h44l-22 28Z" />
-      </g>
+      {/* 지붕 위로 내려앉는 판 석 장 */}
+      {/*
+        자리 잡기는 SVG transform 이, 오르내리는 움직임은 CSS 가 맡는다.
+        한 요소에 둘을 겹치면 CSS 가 SVG 값을 통째로 덮어써 판이 제자리를 잃는다.
+      */}
+      {[0, 1, 2].map((slot) => (
+        <g key={slot} transform={`translate(${72 + slot * 62} 48) scale(0.26)`}>
+          <g className={styles.land} style={delay(slot * 0.4)}>
+            <path d="M0 86 56 0h150l-56 86Z" fill="var(--brand)" />
+            <path d="M0 86 56 0h150l-56 86Z" fill="url(#edu-glass)" />
+            <path d="M0 86 56 0h150l-56 86Z" fill="none" stroke="var(--brand-contrast)" strokeWidth="6" />
+          </g>
+        </g>
+      ))}
     </g>
   );
 }

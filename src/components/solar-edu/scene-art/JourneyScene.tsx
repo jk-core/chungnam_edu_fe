@@ -1,5 +1,7 @@
 import { cn } from '@/utils/cn';
 import { SUNRISE_HOUR, SUNSET_HOUR } from '@/mocks/generation';
+import { Box, Building, SolarPanel, Sun, Window } from './SceneParts';
+import { SceneDefs } from './SceneDefs';
 import styles from './SceneArt.module.scss';
 import type { CSSProperties, ReactNode } from 'react';
 
@@ -51,27 +53,14 @@ export function JourneyScene({ step, nowHour, loadRatio, bubbleAt, bubble }: Jou
       role="presentation"
     >
       {/* 땅 — 그림들이 놓일 바닥이라 처음부터 깔려 있다 */}
+      <SceneDefs />
+
       <path d="M0 322h900v6H0Z" fill="var(--border-subtle)" />
 
       {/* ── 1. 햇빛 ─────────────────────────────────────── */}
       <g className={shown(0)}>
         {isDay ? (
-          <g>
-            <circle className={styles.sunGlow} cx={sunX} cy={sunY} r="52" fill="var(--solar)" fillOpacity="0.22" />
-            <circle cx={sunX} cy={sunY} r="30" fill="var(--solar)" stroke="var(--solar-deep)" strokeWidth="2.4" />
-            <g
-              className={styles.sunRays}
-              style={{ transformOrigin: `${sunX}px ${sunY}px` }}
-              stroke="var(--solar-deep)"
-              strokeWidth="3.4"
-              strokeLinecap="round"
-            >
-              <path d={`M${sunX} ${sunY - 46}v9M${sunX} ${sunY + 37}v9M${sunX - 46} ${sunY}h9M${sunX + 37} ${sunY}h9`} />
-              <path
-                d={`M${sunX - 33} ${sunY - 33}l7 7M${sunX + 26} ${sunY + 26}l7 7M${sunX - 33} ${sunY + 33}l7-7M${sunX + 26} ${sunY - 26}l7-7`}
-              />
-            </g>
-          </g>
+          <Sun cx={sunX} cy={sunY} r={30} glowClass={styles.sunGlow} rayClass={styles.sunRays} />
         ) : (
           <text x="200" y="90" fill="var(--text-muted)" fontSize="19" textAnchor="middle">
             지금은 해가 쉬는 시간이에요
@@ -112,15 +101,10 @@ export function JourneyScene({ step, nowHour, loadRatio, bubbleAt, bubble }: Jou
           ))}
         </g>
 
-        <path d="M108 300 164 214h150l-56 86Z" fill="var(--brand)" stroke="var(--brand-contrast)" strokeWidth="2.4" />
-        <path d="M108 300 164 214h150l-56 86Z" fill="var(--solar)" fillOpacity={glow} />
-        <g stroke="var(--paper)" strokeOpacity="0.5" strokeWidth="1.6">
-          <path d="M150 235h150M136 257h150M122 279h150" />
-        </g>
-        <path className={styles.sweep} d="M108 300 164 214h150l-56 86Z" fill="var(--paper)" fillOpacity="0.45" />
-        <g stroke="var(--text-faint)" strokeWidth="5" strokeLinecap="round">
-          <path d="M148 300v22M268 300v22" />
-        </g>
+        <SolarPanel x={108} y={214} glow={glow}>
+          {/* 판 위를 훑고 지나는 빛 */}
+          <path className={styles.sweep} d="M0 86 56 0h150l-56 86Z" fill="var(--paper)" fillOpacity="0.4" />
+        </SolarPanel>
 
         <SceneTag x={196} y={344} label="태양전지" />
       </g>
@@ -143,13 +127,15 @@ export function JourneyScene({ step, nowHour, loadRatio, bubbleAt, bubble }: Jou
           DC
         </text>
 
-        <path d="M448 214h96v96h-96Z" rx="8" fill="var(--surface)" stroke="var(--border-strong)" strokeWidth="2.4" />
-        <path d="M462 230h68v34h-68Z" fill="var(--brand)" fillOpacity="0.28" />
-        {/* 들쭉날쭉하게 들어와 매끄럽게 나가는 모양을 창 안에 그려 둔다 */}
-        <path d="M466 254 476 238 486 254 496 238" stroke="var(--solar-deep)" strokeWidth="2.4" strokeLinecap="round" />
-        <path d="M500 248q7 -14 14 0t14 0" stroke="var(--ok)" strokeWidth="2.4" strokeLinecap="round" />
-        <circle className={styles.blink} cx="466" cy="288" r="5" fill="var(--ok)" />
-        <circle className={styles.blink} cx="484" cy="288" r="5" fill="var(--ok)" style={delay(0.7)} />
+        <Box x={448} y={214} w={96} h={96} depth={16} radius={8}>
+          {/* 들쭉날쭉하게 들어와 매끄럽게 나가는 모양을 창 안에 그려 둔다 */}
+          <rect x="14" y="16" width="68" height="34" rx="4" fill="var(--brand)" fillOpacity="0.24" />
+          <rect x="14" y="16" width="68" height="34" rx="4" fill="url(#edu-shade)" />
+          <path d="M18 40 28 24 38 40 48 24" stroke="var(--solar-deep)" strokeWidth="2.4" strokeLinecap="round" fill="none" />
+          <path d="M52 34q7 -14 14 0t14 0" stroke="var(--ok)" strokeWidth="2.4" strokeLinecap="round" fill="none" />
+          <circle className={styles.blink} cx="18" cy="74" r="5" fill="var(--ok)" />
+          <circle className={styles.blink} cx="36" cy="74" r="5" fill="var(--ok)" style={delay(0.7)} />
+        </Box>
 
         <SceneTag x={496} y={344} label="인버터" />
       </g>
@@ -171,43 +157,43 @@ export function JourneyScene({ step, nowHour, loadRatio, bubbleAt, bubble }: Jou
           AC
         </text>
 
-        <path d="M620 322V186h228v136Z" fill="var(--surface)" stroke="var(--border-strong)" strokeWidth="2.4" />
-        <path d="M606 186h256v-16H606Z" fill="var(--surface-sunken)" stroke="var(--border-strong)" strokeWidth="2" />
-
-        {/* 지붕에도 판이 석 장 — 이 전기가 어디서 왔는지 잊지 않게 */}
-        <g fill="var(--brand)" stroke="var(--brand-contrast)" strokeWidth="1.6">
-          <path d="M634 168 654 146h44l-20 22Z" />
-          <path d="M704 168 724 146h44l-20 22Z" />
-          <path d="M774 168 794 146h44l-20 22Z" />
-        </g>
-
-        {/* 창문이 차례로 켜진다 — 전기가 실제로 쓰이고 있다는 뜻이다 */}
-        <g fill="var(--solar)">
+        <Building x={620} y={186} w={228} h={136} depth={24}>
+          {/* 창문이 차례로 켜진다 — 전기가 실제로 쓰이고 있다는 뜻이다 */}
           {[0, 1, 2, 3, 4].map((slot) => (
-            <rect
+            <Window
               key={`upper-${slot}`}
+              x={20 + slot * 42}
+              y={20}
+              w={30}
+              h={34}
               className={styles.window}
               style={delay(slot * 0.22)}
-              x={640 + slot * 42}
-              y={206}
-              width="30"
-              height="34"
-              rx="3"
             />
           ))}
           {[0, 1, 2, 3, 4].map((slot) => (
-            <rect
+            <Window
               key={`lower-${slot}`}
+              x={20 + slot * 42}
+              y={72}
+              w={30}
+              h={34}
               className={styles.window}
               style={delay(1.1 + slot * 0.22)}
-              x={640 + slot * 42}
-              y={258}
-              width="30"
-              height="34"
-              rx="3"
             />
           ))}
+        </Building>
+
+        {/* 지붕에도 판이 석 장 — 이 전기가 어디서 왔는지 잊지 않게 */}
+        <g>
+          {[0, 1, 2].map((slot) => (
+            <g key={slot} transform={`translate(${634 + slot * 70} 146) scale(0.3)`}>
+              <path d="M0 86 56 0h150l-56 86Z" fill="var(--brand)" />
+              <path d="M0 86 56 0h150l-56 86Z" fill="url(#edu-glass)" />
+              <path d="M0 86 56 0h150l-56 86Z" fill="none" stroke="var(--brand-contrast)" strokeWidth="5" />
+            </g>
+          ))}
         </g>
+
         <SceneTag x={734} y={344} label="교실" />
       </g>
 

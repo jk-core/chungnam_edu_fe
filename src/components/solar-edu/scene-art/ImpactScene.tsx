@@ -1,5 +1,7 @@
 import { cn } from '@/utils/cn';
 import type { ImpactItemId } from '@/mocks/eduElementary';
+import { Box, Building, Conifer, Window } from './SceneParts';
+import { CastShadow, SceneDefs } from './SceneDefs';
 import styles from './SceneArt.module.scss';
 import type { CSSProperties, ReactNode } from 'react';
 
@@ -42,6 +44,8 @@ export function ImpactScene({ focus, bubbleAt, bubble }: ImpactSceneProps) {
       preserveAspectRatio="xMidYMid meet"
       role="presentation"
     >
+      <SceneDefs />
+
       <path d="M0 322h900v6H0Z" fill="var(--border-subtle)" />
 
       {/* ── 나무 ─────────────────────────────────────────── */}
@@ -49,12 +53,7 @@ export function ImpactScene({ focus, bubbleAt, bubble }: ImpactSceneProps) {
         {GROVE.map((tree) => (
           <g key={tree.x} transform={`translate(${tree.x} ${tree.y}) scale(${tree.scale})`}>
             <g className={styles.grown} style={delay(tree.at)}>
-              <g className={styles.sway} style={delay(tree.at * 2)}>
-                <path d="M0 -104 28 -64H-28Z" fill="var(--ok)" />
-                <path d="M0 -82 34 -36H-34Z" fill="var(--ok)" fillOpacity="0.88" />
-                <path d="M0 -58 40 -8H-40Z" fill="var(--ok)" fillOpacity="0.76" />
-              </g>
-              <path d="M-7 -8h14v16H-7Z" fill="#8a6240" />
+              <Conifer swayClass={styles.sway} style={delay(tree.at * 2)} />
             </g>
           </g>
         ))}
@@ -64,9 +63,12 @@ export function ImpactScene({ focus, bubbleAt, bubble }: ImpactSceneProps) {
 
       {/* ── 에어컨 ───────────────────────────────────────── */}
       <g className={tone('gadget')}>
-        <rect x="392" y="196" width="116" height="46" rx="9" fill="var(--surface)" stroke="var(--border-strong)" strokeWidth="2.4" />
-        <path d="M404 232h92" stroke="var(--border-strong)" strokeWidth="2.4" strokeLinecap="round" />
-        <circle cx="492" cy="212" r="4" fill="var(--ok)" />
+        <Box x={392} y={196} w={116} h={46} depth={13} radius={9}>
+          <rect x="12" y="10" width="92" height="12" rx="5" fill="var(--surface-sunken)" />
+          <path d="M10 36h96" stroke="var(--border-strong)" strokeOpacity="0.6" strokeWidth="2" strokeLinecap="round" />
+          <circle cx="100" cy="16" r="3.6" fill="var(--ok)" />
+          <circle cx="100" cy="16" r="3.6" fill="url(#edu-shine)" />
+        </Box>
 
         {/* 바람은 아래로 곧게 내려온다 */}
         <g stroke="var(--ai-scan)" strokeWidth="4" strokeLinecap="round" fill="none">
@@ -80,15 +82,24 @@ export function ImpactScene({ focus, bubbleAt, bubble }: ImpactSceneProps) {
 
       {/* ── 집 ───────────────────────────────────────────── */}
       <g className={tone('house')}>
-        <path d="M736 178 828 246H644Z" fill="var(--brand)" fillOpacity="0.5" stroke="var(--brand-contrast)" strokeWidth="2.4" />
-        <path d="M664 246h144v76H664Z" fill="var(--surface)" stroke="var(--border-strong)" strokeWidth="2.4" />
+        <CastShadow cx={744} cy={326} rx={104} ry={13} />
 
-        <g fill="var(--solar)">
-          <rect className={styles.litWindow} x="686" y="262" width="30" height="26" rx="4" />
-          <rect className={styles.litWindow} style={delay(1.1)} x="756" y="262" width="30" height="26" rx="4" />
-          <rect className={styles.litWindow} style={delay(2.2)} x="686" y="300" width="30" height="22" rx="4" />
-        </g>
-        <path d="M756 300h30v22h-30Z" fill="var(--brand)" fillOpacity="0.35" stroke="var(--border-strong)" strokeWidth="1.8" />
+        {/* 박공 지붕 — 두 면을 갈라야 뾰족한 지붕으로 읽힌다 */}
+        <path d="M736 172 836 244H636Z" fill="var(--brand)" />
+        <path d="M736 172 836 244h-100Z" fill="#0b1524" fillOpacity="0.2" />
+        <path d="M736 172 836 244H636Z" fill="url(#edu-shine)" fillOpacity="0.6" />
+        <path d="M736 172 836 244H636Z" fill="none" stroke="var(--brand-contrast)" strokeWidth="2.2" strokeLinejoin="round" />
+
+        <Building x={664} y={244} w={144} h={78} depth={0}>
+          <Window x={22} y={18} w={30} h={26} className={styles.litWindow} />
+          <Window x={92} y={18} w={30} h={26} className={styles.litWindow} style={delay(1.1)} />
+          <Window x={22} y={56} w={30} h={22} className={styles.litWindow} style={delay(2.2)} />
+
+          {/* 현관 */}
+          <rect x="92" y="56" width="30" height="22" rx="2" fill="var(--brand)" fillOpacity="0.42" />
+          <rect x="92" y="56" width="30" height="22" rx="2" fill="url(#edu-shade)" />
+          <rect x="92" y="56" width="30" height="22" rx="2" fill="none" stroke="var(--border-strong)" strokeWidth="1.6" />
+        </Building>
 
         <SceneLabel x={736} y={348} label="한 집이 쓰는 날" />
       </g>
