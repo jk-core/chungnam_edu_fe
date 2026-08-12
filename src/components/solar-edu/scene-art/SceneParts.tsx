@@ -128,8 +128,18 @@ export function Box({
  * 정면과 옆면을 갈라 세우고 옥상을 얹는다. 창은 유리처럼 위쪽이 밝다.
  */
 /** 옥상 슬래브 두께 */
-const ROOF = 13;
+const ROOF = 14;
 
+/** 슬래브가 처마처럼 내미는 폭 */
+const EAVE = 7;
+
+/**
+ * 건물 한 채.
+ *
+ * 정면과 옆면을 갈라 세우고 그 위에 옥상 슬래브를 얹는다. 슬래브는 앞면·윗면·옆면 세 면을 다 그려야
+ * 건물에 얹힌 판으로 읽힌다 — 앞면만 그리면 벽에 붙인 띠처럼 보이고, 윗면이 없으면 그 위에 무언가
+ * 올려놓을 자리가 없어 태양광 판이 공중에 뜬다.
+ */
 export function Building({
   x,
   y,
@@ -148,65 +158,201 @@ export function Building({
   flat?: boolean;
   children?: ReactNode;
 }) {
+  const d = depth;
+  const body = `M${w} 0 ${w + d} ${-d}v${h}L${w} ${h}Z`;
+
+  /** 슬래브 윗면 — 여기가 태양광 판이 놓이는 바닥이다 */
+  const slabTop = `M${-EAVE} ${-ROOF} ${d - EAVE} ${-d - ROOF}h${w + EAVE * 2}L${w + EAVE} ${-ROOF}Z`;
+  const slabSide = `M${w + EAVE} ${-ROOF} ${w + d + EAVE} ${-d - ROOF}v${ROOF}L${w + EAVE} 0Z`;
+
+  /*
+    내민 처마의 밑면.
+
+    슬래브가 벽보다 옆으로 EAVE 만큼 나와 있으니, 벽 옆면의 윗모서리와 슬래브 옆면의 아랫모서리는
+    나란하되 어긋난 두 선이다. 그 사이를 메우지 않으면 띠 모양으로 배경이 새어 나오고, 벽 윗모서리가
+    슬래브를 뚫고 나온 것처럼 보인다. 실제로 그 자리에 보이는 것은 처마의 밑바닥이다 — 가장 어둡다.
+  */
+  const slabUnder = `M${w} 0 ${w + d} ${-d}h${EAVE}L${w + EAVE} 0Z`;
+
   return (
     <g transform={`translate(${x} ${y})`}>
-      <CastShadow cx={w / 2 + depth / 2} cy={h + 6} rx={w * 0.62} ry={11} />
+      <CastShadow cx={w / 2 + d / 2} cy={h + 6} rx={w * 0.62} ry={11} />
 
-      {/*
-        옥상.
+      {/* 몸통 옆면 — 옥상보다 먼저 그려 뒤로 물린다 */}
+      <path d={body} fill="var(--surface)" />
+      <path d={body} fill="url(#edu-side)" />
 
-        얇은 선 하나로는 지붕으로 읽히지 않는다. 슬래브에 두께를 주어 처마처럼 양옆으로 조금 내밀면
-        "사람이 올라설 수 있는 옥상" 이 된다.
-      */}
-      {flat ? null : (
-        <g>
-          <path
-            d={`M-9 ${-ROOF} ${depth - 9} ${-depth - ROOF}h${w + 18}L${w + 9} ${-ROOF}Z`}
-            fill="var(--surface-sunken)"
-          />
-          <path
-            d={`M-9 ${-ROOF} ${depth - 9} ${-depth - ROOF}h${w + 18}L${w + 9} ${-ROOF}Z`}
-            fill="url(#edu-shine)"
-          />
-          <rect x={-9} y={-ROOF} width={w + 18} height={ROOF} rx="2" fill="var(--surface)" />
-          <rect x={-9} y={-ROOF} width={w + 18} height={ROOF} rx="2" fill="url(#edu-shade)" />
-          <rect
-            x={-9}
-            y={-ROOF}
-            width={w + 18}
-            height={ROOF}
-            rx="2"
-            fill="none"
-            stroke="var(--border-strong)"
-            strokeWidth="2"
-          />
-
-          {/* 옆면으로 돌아가는 옥상 */}
-          <path
-            d={`M${w + 9} ${-ROOF} ${w + depth + 9} ${-depth - ROOF}v${ROOF}L${w + 9} 0Z`}
-            fill="var(--surface)"
-          />
-          <path
-            d={`M${w + 9} ${-ROOF} ${w + depth + 9} ${-depth - ROOF}v${ROOF}L${w + 9} 0Z`}
-            fill="url(#edu-side)"
-          />
-        </g>
-      )}
-
-      {/* 옆면 */}
-      <path d={`M${w} 0 ${w + depth} ${-depth}v${h}L${w} ${h}Z`} fill="var(--surface)" />
-      <path d={`M${w} 0 ${w + depth} ${-depth}v${h}L${w} ${h}Z`} fill="url(#edu-side)" />
-
-      {/* 정면 */}
+      {/* 몸통 정면 */}
       <rect x="0" y="0" width={w} height={h} fill="var(--surface)" />
       <rect x="0" y="0" width={w} height={h} fill="url(#edu-shine)" />
+
+      {/*
+        몸통 테두리는 슬래브보다 **먼저** 긋는다.
+        나중에 그으면 슬래브에 가려져야 할 벽 윗모서리가 옥상 위로 겹쳐 그어진다.
+      */}
       <path
-        d={`M0 0h${w}v${h}H0Z M${w} 0 ${w + depth} ${-depth}v${h}L${w} ${h}`}
+        d={`M0 0h${w}v${h}H0Z ${body}`}
         fill="none"
         stroke="var(--border-strong)"
         strokeWidth="2"
         strokeLinejoin="round"
       />
+
+      {flat ? null : (
+        <g>
+          {/* 처마 밑면 */}
+          <path d={slabUnder} fill="var(--surface-sunken)" />
+          <path d={slabUnder} fill="#0b1524" fillOpacity="0.3" />
+
+          {/* 슬래브 윗면 — 판이 놓이는 바닥 */}
+          <path d={slabTop} fill="var(--surface-sunken)" />
+          <path d={slabTop} fill="url(#edu-shine)" />
+
+          {/* 슬래브 옆면 */}
+          <path d={slabSide} fill="var(--surface-sunken)" />
+          <path d={slabSide} fill="url(#edu-side)" />
+
+          {/* 슬래브 앞면 — 처마가 되어 벽 위로 그늘을 드리운다 */}
+          <rect x={-EAVE} y={-ROOF} width={w + EAVE * 2} height={ROOF} fill="var(--surface)" />
+          <rect x={-EAVE} y={-ROOF} width={w + EAVE * 2} height={ROOF} fill="url(#edu-shade)" />
+
+          <path
+            d={`M${-EAVE} ${-ROOF}h${w + EAVE * 2}v${ROOF}H${-EAVE}Z ${slabTop} M${w + EAVE} ${-ROOF} ${w + d + EAVE} ${-d - ROOF}v${ROOF} M${w} 0 ${w + d} ${-d}h${EAVE}`}
+            fill="none"
+            stroke="var(--border-strong)"
+            strokeWidth="1.8"
+            strokeLinejoin="round"
+          />
+        </g>
+      )}
+
+      {children}
+    </g>
+  );
+}
+
+/**
+ * 옥상에 눕는 태양광 판.
+ *
+ * 세워 둔 `SolarPanel` 을 줄여 얹으면 판의 기울기와 옥상의 기울기가 달라 지붕을 뚫고 뜬 것처럼 보인다.
+ * 옥상은 뒤로 갈수록 오른쪽 위로 물러나므로(1, -1), 판도 같은 방향으로 누워야 그 면에 놓인 것이 된다.
+ * 앞 모서리에만 두께를 두어 종이가 아니라 판으로 읽히게 했다.
+ */
+export function RoofPanel({
+  x,
+  y,
+  w = 60,
+  d = 16,
+  className,
+  style,
+}: {
+  /** 판의 앞왼쪽 모서리 */
+  x: number;
+  y: number;
+  w?: number;
+  /** 옥상 안쪽으로 물러나는 깊이 */
+  d?: number;
+  className?: string;
+  style?: React.CSSProperties;
+}) {
+  const top = `M0 0h${w}l${d} ${-d}h${-w}Z`;
+
+  return (
+    <g transform={`translate(${x} ${y})`}>
+      {/* 자리 잡기와 움직임을 층으로 나눈다 — 한 요소에 겹치면 CSS 가 SVG transform 을 덮어쓴다 */}
+      <g className={className} style={style}>
+        <path d={`M0 0h${w}v3H0Z`} fill="var(--brand-contrast)" />
+
+        <path d={top} fill="var(--brand)" />
+        <g stroke="var(--paper)" strokeOpacity="0.3" strokeWidth="1">
+          <path d={`M${d / 2} ${-d / 2}h${w}`} />
+          <path d={`M${w / 3} 0l${d} ${-d}M${(w * 2) / 3} 0l${d} ${-d}`} />
+        </g>
+        <path d={top} fill="url(#edu-glass)" />
+        <path d={top} fill="none" stroke="var(--brand-contrast)" strokeWidth="1.6" strokeLinejoin="round" />
+      </g>
+    </g>
+  );
+}
+
+/**
+ * 살림집 한 채.
+ *
+ * 학교와 달리 뾰족한 지붕을 인다. 처마를 내밀고 용마루를 세우고 굴뚝을 하나 올려야 "집" 으로 읽힌다 —
+ * 삼각형과 사각형만으로는 도형이지 집이 아니다.
+ */
+export function House({
+  x,
+  y,
+  w = 148,
+  h = 82,
+  children,
+}: {
+  x: number;
+  y: number;
+  w?: number;
+  h?: number;
+  children?: ReactNode;
+}) {
+  const peak = 62;
+  const eave = 14;
+  const roof = `M${w / 2} ${-peak}L${w + eave} 4H${-eave}Z`;
+
+  /*
+    굴뚝은 지붕 뒤에서 솟는 것으로 그린다 — 비탈 위에 얹으려면 비탈면과 만나는 자리를 따로 오려야 하는데,
+    그러고도 결국 잘린 밑동만 보인다.
+
+    다만 밑동이 짧으면 지붕면보다 위에서 끝나 밑변 선이 지붕 한가운데에 떠 보인다. 그래서 굴뚝의
+    오른쪽 모서리에서 비탈이 지나는 높이를 재고, 그보다 더 내려가도록 길이를 잡는다.
+  */
+  const slope = (peak + 4) / (w / 2 + eave);
+  const stackX = w * 0.66;
+  const stackW = 20;
+  const stackBottom = -peak + (stackX + stackW - w / 2) * slope + 8;
+  const stackTop = -peak - 16;
+
+  return (
+    <g transform={`translate(${x} ${y})`}>
+      <CastShadow cx={w / 2} cy={h + 8} rx={w * 0.66} ry={11} />
+
+      {/* 벽 — 지붕보다 먼저 세운다. 나중에 그리면 벽 윗변 선이 지붕 위로 겹쳐 그어진다 */}
+      <rect x="0" y="0" width={w} height={h} rx="3" fill="var(--surface)" />
+      <rect x="0" y="0" width={w} height={h} rx="3" fill="url(#edu-shine)" />
+      <rect x="0" y="0" width={w} height={h} rx="3" fill="url(#edu-shade)" />
+      <rect
+        x="0.9"
+        y="0.9"
+        width={w - 1.8}
+        height={h - 1.8}
+        rx="3"
+        fill="none"
+        stroke="var(--border-strong)"
+        strokeWidth="1.8"
+      />
+
+      {/* 굴뚝 */}
+      <g>
+        <rect x={stackX} y={stackTop} width={stackW} height={stackBottom - stackTop} fill="var(--surface)" />
+        <rect x={stackX} y={stackTop} width={stackW} height={stackBottom - stackTop} fill="url(#edu-shade)" />
+        <rect x={stackX - 3.5} y={stackTop - 8} width={stackW + 7} height="8" rx="2" fill="var(--surface-sunken)" />
+        <rect x={stackX - 3.5} y={stackTop - 8} width={stackW + 7} height="8" rx="2" fill="url(#edu-shine)" />
+        <path
+          d={`M${stackX} ${stackBottom}V${stackTop}h${stackW}v${stackBottom - stackTop} M${stackX - 3.5} ${stackTop - 8}h${stackW + 7}v8h${-stackW - 7}Z`}
+          fill="none"
+          stroke="var(--border-strong)"
+          strokeWidth="1.6"
+          strokeLinejoin="round"
+        />
+      </g>
+
+      {/* 지붕 — 오른쪽 비탈을 눌러 두 면으로 갈라 놓는다. 벽과 굴뚝 밑동을 함께 덮는다 */}
+      <path d={roof} fill="var(--brand)" />
+      <path d={`M${w / 2} ${-peak}L${w + eave} 4H${w / 2}Z`} fill="#0b1524" fillOpacity="0.18" />
+      <path d={roof} fill="url(#edu-shine)" fillOpacity="0.55" />
+
+      {/* 용마루와 처마 끝 */}
+      <path d={roof} fill="none" stroke="var(--brand-contrast)" strokeWidth="2.4" strokeLinejoin="round" />
+      <path d={`M${-eave} 4h${w + eave * 2}`} stroke="var(--brand-contrast)" strokeWidth="3.4" strokeLinecap="round" />
 
       {children}
     </g>

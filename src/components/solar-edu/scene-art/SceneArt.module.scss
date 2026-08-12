@@ -369,9 +369,15 @@
   animation: benefit-drop 2.1s linear infinite;
 }
 
-/* 굴뚝에서 피어오르다 사라지는 연기 */
+/*
+  굴뚝에서 빠져나가는 연기.
+  곧게 위로만 오르면 연기가 아니라 거품처럼 보인다. 굴뚝 입에서 나와 위로 오르며 옆으로 밀려
+  퍼지다 흩어지는 것이 연기가 실제로 하는 일이다.
+*/
 .smoke {
-  animation: benefit-smoke 3s ease-out infinite;
+  animation: benefit-smoke 3.4s ease-out infinite;
+  transform-box: fill-box;
+  transform-origin: center;
 }
 
 /* 이제 이렇게 하지 않는다는 가위표 */
@@ -414,13 +420,17 @@
 
 @keyframes benefit-smoke {
   0% {
-    opacity: 0.5;
-    transform: translateY(0) scale(0.6);
+    opacity: 0;
+    transform: translate(0, 4px) scale(0.34);
+  }
+
+  18% {
+    opacity: 0.55;
   }
 
   100% {
     opacity: 0;
-    transform: translateY(-56px) scale(1.5);
+    transform: translate(34px, -62px) scale(1.6);
   }
 }
 

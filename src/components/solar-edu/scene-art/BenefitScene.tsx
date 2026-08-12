@@ -1,6 +1,6 @@
 import { cn } from '@/utils/cn';
 import type { BenefitArt } from '@/mocks/eduElementary';
-import { Box, Building, SolarPanel, Sun, Window } from './SceneParts';
+import { Box, Building, RoofPanel, SolarPanel, Sun, Window } from './SceneParts';
 import { CastShadow, SceneDefs } from './SceneDefs';
 import styles from './SceneArt.module.scss';
 import type { CSSProperties, ReactNode } from 'react';
@@ -106,16 +106,19 @@ function FreeArt() {
 function CleanArt() {
   return (
     <g>
-      {/* 태우는 발전소 — 연기가 오르다 사라진다 */}
-      <g fill="var(--text-faint)" fillOpacity="0.4">
-        <circle className={styles.smoke} cx="62" cy="92" r="13" />
-        <circle className={styles.smoke} style={delay(1)} cx="62" cy="92" r="13" />
-        <circle className={styles.smoke} style={delay(2)} cx="62" cy="92" r="13" />
-      </g>
-
       <CastShadow cx={58} cy={172} rx={44} ry={9} />
       <Box x={48} y={96} w={30} h={72} radius={4} dim />
       <Box x={20} y={130} w={26} h={38} radius={4} dim />
+
+      {/*
+        연기는 굴뚝 입(63, 94)에서 나온다. 굴뚝보다 먼저 그리면 벽 뒤에서 솟는 것처럼 보이므로
+        굴뚝을 세운 뒤에 얹는다.
+      */}
+      <g fill="var(--text-faint)" fillOpacity="0.4">
+        <circle className={styles.smoke} cx="63" cy="94" r="12" />
+        <circle className={styles.smoke} style={delay(1.1)} cx="63" cy="94" r="12" />
+        <circle className={styles.smoke} style={delay(2.2)} cx="63" cy="94" r="12" />
+      </g>
 
       <g className={styles.cross} stroke="var(--critical)" strokeWidth="5.5" strokeLinecap="round">
         <path d="M30 86 92 132M92 86 30 132" />
@@ -172,22 +175,20 @@ function RoofArt() {
         <rect x="138" y="46" width="24" height="30" rx="2" fill="var(--brand)" fillOpacity="0.42" />
         <rect x="138" y="46" width="24" height="30" rx="2" fill="url(#edu-shade)" />
         <rect x="138" y="46" width="24" height="30" rx="2" fill="none" stroke="var(--border-strong)" strokeWidth="1.6" />
-      </Building>
 
-      {/* 지붕 위로 내려앉는 판 석 장 */}
-      {/*
-        자리 잡기는 SVG transform 이, 오르내리는 움직임은 CSS 가 맡는다.
-        한 요소에 둘을 겹치면 CSS 가 SVG 값을 통째로 덮어써 판이 제자리를 잃는다.
-      */}
-      {[0, 1, 2].map((slot) => (
-        <g key={slot} transform={`translate(${72 + slot * 62} 48) scale(0.26)`}>
-          <g className={styles.land} style={delay(slot * 0.4)}>
-            <path d="M0 86 56 0h150l-56 86Z" fill="var(--brand)" />
-            <path d="M0 86 56 0h150l-56 86Z" fill="url(#edu-glass)" />
-            <path d="M0 86 56 0h150l-56 86Z" fill="none" stroke="var(--brand-contrast)" strokeWidth="6" />
-          </g>
-        </g>
-      ))}
+        {/* 옥상 위로 내려앉는 판 석 장 */}
+        {[0, 1, 2].map((slot) => (
+          <RoofPanel
+            key={`roof-${slot}`}
+            x={7 + slot * 58}
+            y={-17}
+            w={52}
+            d={12}
+            className={styles.land}
+            style={delay(slot * 0.4)}
+          />
+        ))}
+      </Building>
     </g>
   );
 }

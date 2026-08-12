@@ -1,7 +1,7 @@
 import { cn } from '@/utils/cn';
 import type { ImpactItemId } from '@/mocks/eduElementary';
-import { Box, Building, Conifer, Window } from './SceneParts';
-import { CastShadow, SceneDefs } from './SceneDefs';
+import { Box, Conifer, House, Window } from './SceneParts';
+import { SceneDefs } from './SceneDefs';
 import styles from './SceneArt.module.scss';
 import type { CSSProperties, ReactNode } from 'react';
 
@@ -92,24 +92,18 @@ export function ImpactScene({ focus, bubbleAt, bubble }: ImpactSceneProps) {
 
       {/* ── 집 ───────────────────────────────────────────── */}
       <g className={tone('house')}>
-        <CastShadow cx={744} cy={326} rx={104} ry={13} />
+        <House x={662} y={240} w={148} h={82}>
+          {/* 창은 십자 창틀을 둬야 유리 한 장이 아니라 창으로 읽힌다 */}
+          <PaneWindow x={22} y={16} className={styles.litWindow} />
+          <PaneWindow x={92} y={16} className={styles.litWindow} style={delay(1.1)} />
+          <PaneWindow x={22} y={52} className={styles.litWindow} style={delay(2.2)} />
 
-        {/* 박공 지붕 — 두 면을 갈라야 뾰족한 지붕으로 읽힌다 */}
-        <path d="M736 172 836 244H636Z" fill="var(--brand)" />
-        <path d="M736 172 836 244h-100Z" fill="#0b1524" fillOpacity="0.2" />
-        <path d="M736 172 836 244H636Z" fill="url(#edu-shine)" fillOpacity="0.6" />
-        <path d="M736 172 836 244H636Z" fill="none" stroke="var(--brand-contrast)" strokeWidth="2.2" strokeLinejoin="round" />
-
-        <Building x={664} y={244} w={144} h={78} depth={0} flat>
-          <Window x={22} y={18} w={30} h={26} className={styles.litWindow} />
-          <Window x={92} y={18} w={30} h={26} className={styles.litWindow} style={delay(1.1)} />
-          <Window x={22} y={56} w={30} h={22} className={styles.litWindow} style={delay(2.2)} />
-
-          {/* 현관 */}
-          <rect x="92" y="56" width="30" height="22" rx="2" fill="var(--brand)" fillOpacity="0.42" />
-          <rect x="92" y="56" width="30" height="22" rx="2" fill="url(#edu-shade)" />
-          <rect x="92" y="56" width="30" height="22" rx="2" fill="none" stroke="var(--border-strong)" strokeWidth="1.6" />
-        </Building>
+          {/* 현관 — 손잡이 하나로 문이 된다 */}
+          <rect x="92" y="52" width="34" height="30" rx="3" fill="var(--brand)" fillOpacity="0.45" />
+          <rect x="92" y="52" width="34" height="30" rx="3" fill="url(#edu-shine)" />
+          <rect x="92" y="52" width="34" height="30" rx="3" fill="none" stroke="var(--brand-contrast)" strokeWidth="1.8" />
+          <circle cx="120" cy="68" r="2.6" fill="var(--solar)" />
+        </House>
 
         <SceneLabel x={736} y={348} label="한 집이 쓰는 날" />
       </g>
@@ -120,6 +114,18 @@ export function ImpactScene({ focus, bubbleAt, bubble }: ImpactSceneProps) {
         </foreignObject>
       ) : null}
     </svg>
+  );
+}
+
+/** 십자 창틀을 가진 창 — 유리 한 장보다 집 창문답다 */
+function PaneWindow({ x, y, className, style }: { x: number; y: number; className?: string; style?: CSSProperties }) {
+  return (
+    <g className={className} style={style}>
+      <Window x={x} y={y} w={34} h={30} />
+      <g stroke="var(--solar-deep)" strokeOpacity="0.4" strokeWidth="1.4">
+        <path d={`M${x + 17} ${y}v30M${x} ${y + 15}h34`} />
+      </g>
+    </g>
   );
 }
 

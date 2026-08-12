@@ -1,6 +1,6 @@
 import { cn } from '@/utils/cn';
 import { SUNRISE_HOUR, SUNSET_HOUR } from '@/mocks/generation';
-import { Box, Building, SolarPanel, Sun, Window } from './SceneParts';
+import { Box, Building, RoofPanel, SolarPanel, Sun, Window } from './SceneParts';
 import { SceneDefs } from './SceneDefs';
 import styles from './SceneArt.module.scss';
 import type { CSSProperties, ReactNode } from 'react';
@@ -181,18 +181,12 @@ export function JourneyScene({ step, nowHour, loadRatio, bubbleAt, bubble }: Jou
               style={delay(1.1 + slot * 0.22)}
             />
           ))}
-        </Building>
 
-        {/* 지붕에도 판이 석 장 — 이 전기가 어디서 왔는지 잊지 않게 */}
-        <g>
+          {/* 옥상에도 판이 석 장 — 이 전기가 어디서 왔는지 잊지 않게 */}
           {[0, 1, 2].map((slot) => (
-            <g key={slot} transform={`translate(${634 + slot * 70} 146) scale(0.3)`}>
-              <path d="M0 86 56 0h150l-56 86Z" fill="var(--brand)" />
-              <path d="M0 86 56 0h150l-56 86Z" fill="url(#edu-glass)" />
-              <path d="M0 86 56 0h150l-56 86Z" fill="none" stroke="var(--brand-contrast)" strokeWidth="5" />
-            </g>
+            <RoofPanel key={`roof-${slot}`} x={15 + slot * 72} y={-19} w={64} d={16} />
           ))}
-        </g>
+        </Building>
 
         <SceneTag x={734} y={344} label="교실" />
       </g>
