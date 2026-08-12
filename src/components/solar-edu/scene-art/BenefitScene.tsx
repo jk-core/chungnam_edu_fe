@@ -114,8 +114,8 @@ function CleanArt() {
       </g>
 
       <CastShadow cx={58} cy={172} rx={44} ry={9} />
-      <Box x={48} y={96} w={30} h={72} depth={9} radius={2} dim />
-      <Box x={20} y={130} w={26} h={38} depth={9} radius={2} dim />
+      <Box x={48} y={96} w={30} h={72} radius={4} dim />
+      <Box x={20} y={130} w={26} h={38} radius={4} dim />
 
       <g className={styles.cross} stroke="var(--critical)" strokeWidth="5.5" strokeLinecap="round">
         <path d="M30 86 92 132M92 86 30 132" />

@@ -63,18 +63,28 @@ export function ImpactScene({ focus, bubbleAt, bubble }: ImpactSceneProps) {
 
       {/* ── 에어컨 ───────────────────────────────────────── */}
       <g className={tone('gadget')}>
-        <Box x={392} y={196} w={116} h={46} depth={13} radius={9}>
-          <rect x="12" y="10" width="92" height="12" rx="5" fill="var(--surface-sunken)" />
-          <path d="M10 36h96" stroke="var(--border-strong)" strokeOpacity="0.6" strokeWidth="2" strokeLinecap="round" />
-          <circle cx="100" cy="16" r="3.6" fill="var(--ok)" />
-          <circle cx="100" cy="16" r="3.6" fill="url(#edu-shine)" />
+        <Box x={392} y={192} w={116} h={48} radius={16}>
+          {/* 위쪽 흡입 그릴 */}
+          <rect x="14" y="11" width="76" height="12" rx="6" fill="var(--surface-sunken)" />
+          <g stroke="var(--border-strong)" strokeOpacity="0.35" strokeWidth="1.2">
+            <path d="M22 17h60" />
+          </g>
+
+          {/* 아래쪽 토출구 — 바람이 나오는 긴 홈 */}
+          <rect x="10" y="32" width="96" height="9" rx="4.5" fill="var(--surface-sunken)" />
+          <rect x="10" y="32" width="96" height="9" rx="4.5" fill="url(#edu-shade)" />
+          <path d="M14 36.5h88" stroke="var(--border-strong)" strokeOpacity="0.45" strokeWidth="1.4" strokeLinecap="round" />
+
+          {/* 켜져 있다는 표시등 */}
+          <circle cx="100" cy="17" r="4" fill="var(--ok)" />
+          <circle cx="100" cy="17" r="4" fill="url(#edu-shine)" />
         </Box>
 
         {/* 바람은 아래로 곧게 내려온다 */}
         <g stroke="var(--ai-scan)" strokeWidth="4" strokeLinecap="round" fill="none">
-          <path className={styles.breeze} d="M418 250q7 9 0 18t0 18" />
-          <path className={styles.breeze} style={delay(0.4)} d="M450 250q7 9 0 18t0 18" />
-          <path className={styles.breeze} style={delay(0.8)} d="M482 250q7 9 0 18t0 18" />
+          <path className={styles.breeze} d="M418 248q7 9 0 18t0 18" />
+          <path className={styles.breeze} style={delay(0.4)} d="M450 248q7 9 0 18t0 18" />
+          <path className={styles.breeze} style={delay(0.8)} d="M482 248q7 9 0 18t0 18" />
         </g>
 
         <SceneLabel x={450} y={348} label="에어컨을 켜 둘 수 있어요" />
@@ -90,7 +100,7 @@ export function ImpactScene({ focus, bubbleAt, bubble }: ImpactSceneProps) {
         <path d="M736 172 836 244H636Z" fill="url(#edu-shine)" fillOpacity="0.6" />
         <path d="M736 172 836 244H636Z" fill="none" stroke="var(--brand-contrast)" strokeWidth="2.2" strokeLinejoin="round" />
 
-        <Building x={664} y={244} w={144} h={78} depth={0}>
+        <Building x={664} y={244} w={144} h={78} depth={0} flat>
           <Window x={22} y={18} w={30} h={26} className={styles.litWindow} />
           <Window x={92} y={18} w={30} h={26} className={styles.litWindow} style={delay(1.1)} />
           <Window x={22} y={56} w={30} h={22} className={styles.litWindow} style={delay(2.2)} />

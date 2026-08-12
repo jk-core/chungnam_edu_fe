@@ -127,7 +127,7 @@ export function JourneyScene({ step, nowHour, loadRatio, bubbleAt, bubble }: Jou
           DC
         </text>
 
-        <Box x={448} y={214} w={96} h={96} depth={16} radius={8}>
+        <Box x={448} y={214} w={96} h={96} radius={14}>
           {/* 들쭉날쭉하게 들어와 매끄럽게 나가는 모양을 창 안에 그려 둔다 */}
           <rect x="14" y="16" width="68" height="34" rx="4" fill="var(--brand)" fillOpacity="0.24" />
           <rect x="14" y="16" width="68" height="34" rx="4" fill="url(#edu-shade)" />

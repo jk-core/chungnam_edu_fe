@@ -70,16 +70,18 @@ export function SolarPanel({
 }
 
 /**
- * 상자 한 덩이 (인버터·에어컨 같은 것).
- * 정면·윗면·옆면 세 면을 갈라 놓아야 벽에 붙은 판때기가 아니라 부피를 가진 기계로 보인다.
+ * 둥근 기계 한 덩이 (인버터·에어컨 같은 것).
+ *
+ * 뒤로 각진 면을 덧대 입체를 만들면 둥근 모서리와 어긋나 상자가 삐죽 튀어나온 것처럼 보인다.
+ * 실제 기계는 모서리가 둥글게 말려 있으므로, 같은 둥근 모양을 아래로 한 겹 깔아 두께를 만들고
+ * 윗머리를 밝혀 부피를 낸다.
  */
 export function Box({
   x,
   y,
   w,
   h,
-  depth = 14,
-  radius = 6,
+  radius = 12,
   /** 태우는 설비처럼 뒤로 물러나야 하는 것은 어둡게 칠한다 */
   dim = false,
   children,
@@ -88,33 +90,29 @@ export function Box({
   y: number;
   w: number;
   h: number;
-  depth?: number;
   radius?: number;
   dim?: boolean;
   children?: ReactNode;
 }) {
   const face = dim ? 'var(--text-faint)' : 'var(--surface)';
-  const back = dim ? 'var(--text-faint)' : 'var(--surface-sunken)';
 
   return (
     <g transform={`translate(${x} ${y})`} opacity={dim ? 0.55 : 1}>
-      <CastShadow cx={w / 2} cy={h + 8} rx={w * 0.56} ry={9} />
+      <CastShadow cx={w / 2} cy={h + 11} rx={w * 0.54} ry={9} />
 
-      {/* 윗면과 옆면 — 정면보다 먼저 그려 뒤로 물린다 */}
-      <path d={`M0 0 ${depth} ${-depth}h${w}L${w} 0Z`} fill={back} />
-      <path d={`M0 0 ${depth} ${-depth}h${w}L${w} 0Z`} fill="url(#edu-shine)" />
-      <path d={`M${w} 0 ${w + depth} ${-depth}v${h}L${w} ${h}Z`} fill={back} />
-      <path d={`M${w} 0 ${w + depth} ${-depth}v${h}L${w} ${h}Z`} fill="url(#edu-side)" />
+      {/* 두께 — 같은 둥근 모양을 아래로 한 겹 깔아 아랫배를 만든다 */}
+      <rect x="2.5" y="7" width={w - 5} height={h} rx={radius} fill="var(--border-strong)" opacity="0.7" />
 
-      {/* 정면 */}
+      {/* 본체 */}
       <rect x="0" y="0" width={w} height={h} rx={radius} fill={face} />
       <rect x="0" y="0" width={w} height={h} rx={radius} fill="url(#edu-shine)" />
+      <rect x="0" y="0" width={w} height={h} rx={radius} fill="url(#edu-shade)" />
       <rect
-        x="0.9"
-        y="0.9"
-        width={w - 1.8}
-        height={h - 1.8}
-        rx={radius}
+        x="1"
+        y="1"
+        width={w - 2}
+        height={h - 2}
+        rx={radius - 1}
         fill="none"
         stroke="var(--border-strong)"
         strokeWidth="1.8"
@@ -129,12 +127,17 @@ export function Box({
  * 건물 한 채.
  * 정면과 옆면을 갈라 세우고 옥상을 얹는다. 창은 유리처럼 위쪽이 밝다.
  */
+/** 옥상 슬래브 두께 */
+const ROOF = 13;
+
 export function Building({
   x,
   y,
   w,
   h,
   depth = 22,
+  /** 지붕을 따로 얹는 집처럼, 옥상이 필요 없을 때 */
+  flat = false,
   children,
 }: {
   x: number;
@@ -142,15 +145,53 @@ export function Building({
   w: number;
   h: number;
   depth?: number;
+  flat?: boolean;
   children?: ReactNode;
 }) {
   return (
     <g transform={`translate(${x} ${y})`}>
       <CastShadow cx={w / 2 + depth / 2} cy={h + 6} rx={w * 0.62} ry={11} />
 
-      {/* 옥상 슬래브 — 살짝 내밀어 처마를 만든다 */}
-      <path d={`M-6 0 ${depth - 6} ${-depth}h${w + 12}L${w + 6} 0Z`} fill="var(--surface-sunken)" />
-      <path d={`M-6 0 ${depth - 6} ${-depth}h${w + 12}L${w + 6} 0Z`} fill="url(#edu-shine)" />
+      {/*
+        옥상.
+
+        얇은 선 하나로는 지붕으로 읽히지 않는다. 슬래브에 두께를 주어 처마처럼 양옆으로 조금 내밀면
+        "사람이 올라설 수 있는 옥상" 이 된다.
+      */}
+      {flat ? null : (
+        <g>
+          <path
+            d={`M-9 ${-ROOF} ${depth - 9} ${-depth - ROOF}h${w + 18}L${w + 9} ${-ROOF}Z`}
+            fill="var(--surface-sunken)"
+          />
+          <path
+            d={`M-9 ${-ROOF} ${depth - 9} ${-depth - ROOF}h${w + 18}L${w + 9} ${-ROOF}Z`}
+            fill="url(#edu-shine)"
+          />
+          <rect x={-9} y={-ROOF} width={w + 18} height={ROOF} rx="2" fill="var(--surface)" />
+          <rect x={-9} y={-ROOF} width={w + 18} height={ROOF} rx="2" fill="url(#edu-shade)" />
+          <rect
+            x={-9}
+            y={-ROOF}
+            width={w + 18}
+            height={ROOF}
+            rx="2"
+            fill="none"
+            stroke="var(--border-strong)"
+            strokeWidth="2"
+          />
+
+          {/* 옆면으로 돌아가는 옥상 */}
+          <path
+            d={`M${w + 9} ${-ROOF} ${w + depth + 9} ${-depth - ROOF}v${ROOF}L${w + 9} 0Z`}
+            fill="var(--surface)"
+          />
+          <path
+            d={`M${w + 9} ${-ROOF} ${w + depth + 9} ${-depth - ROOF}v${ROOF}L${w + 9} 0Z`}
+            fill="url(#edu-side)"
+          />
+        </g>
+      )}
 
       {/* 옆면 */}
       <path d={`M${w} 0 ${w + depth} ${-depth}v${h}L${w} ${h}Z`} fill="var(--surface)" />
