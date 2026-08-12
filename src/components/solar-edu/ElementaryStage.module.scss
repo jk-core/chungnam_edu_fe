@@ -1,0 +1,249 @@
+@use "@/styles/tokens/spacing" as s;
+@use "@/styles/tokens/typography" as t;
+@use "@/styles/utils/media" as media;
+@use "@/styles/utils/mixins" as mx;
+
+/*
+  초등 판 무대.
+
+  위쪽 넓은 자리가 그림 한 장이고, 그 아래 한 줄이 지금 걸음의 이야기다.
+  그림은 걸음이 나아가도 지워지지 않고 쌓이므로, 자리를 넉넉히 잡아 마지막에 여정 전체가 들어가게 한다.
+*/
+.stage {
+  display: flex;
+  flex-direction: column;
+  gap: s.$space-4;
+  height: 100%;
+  min-height: 0;
+}
+
+.canvas {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: 1;
+  min-height: 0;
+  padding: s.$space-4 s.$space-5;
+  border: 1px solid var(--border-subtle);
+  border-radius: s.$radius-lg;
+
+  /*
+    뒤에 깔린 하늘이 은은히 비치게 두되, 저녁 하늘처럼 짙은 색이 올라와도 그림이 묻히지 않을 만큼만 비운다.
+    색은 두 테마 모두 표면색에서 만든다.
+  */
+  background-color: color-mix(in srgb, var(--surface) 92%, transparent);
+  box-shadow: var(--shadow-sm);
+}
+
+.foot {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: s.$space-5;
+  flex-shrink: 0;
+
+  @include media.tablet {
+    grid-template-columns: 1fr;
+  }
+}
+
+.say {
+  display: flex;
+  align-items: center;
+  gap: s.$space-4;
+  min-width: 0;
+  animation: say-in 0.45s cubic-bezier(0.22, 0.68, 0.32, 1) both;
+}
+
+/* 몇 번째 걸음인지 — 이야기에 끝이 있다는 것을 알려 준다 */
+.say__step {
+  @include t.data-lg;
+
+  display: flex;
+  align-items: baseline;
+  flex-shrink: 0;
+  color: var(--solar-deep);
+}
+
+.say__total {
+  @include t.label-md;
+
+  color: var(--text-faint);
+}
+
+.say__body {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.say__title {
+  @include t.display-lg;
+
+  color: var(--text-strong);
+}
+
+.say__line {
+  @include t.body-lg;
+
+  color: var(--text);
+  font-size: 20px;
+}
+
+/* 걸음마다 수치는 하나뿐이다 — 더 넣으면 그림을 보지 않고 숫자를 읽으려 든다 */
+.readout {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  flex-shrink: 0;
+  padding: s.$space-2 s.$space-5;
+  border-radius: s.$radius-md;
+  background-color: var(--solar-soft);
+}
+
+.readout__label {
+  @include t.label-md;
+
+  color: var(--solar-text);
+}
+
+.readout__value {
+  @include t.data-xl;
+
+  display: flex;
+  align-items: baseline;
+  gap: s.$space-2;
+  color: var(--text-strong);
+}
+
+.readout__unit {
+  @include t.label-md;
+
+  color: var(--text-muted);
+}
+
+/* ── 마지막 걸음의 환산 칩 ────────────────────────────────── */
+.chips {
+  display: flex;
+  gap: s.$space-3;
+  list-style: none;
+  animation: say-in 0.45s cubic-bezier(0.22, 0.68, 0.32, 1) both;
+
+  @include media.tablet {
+    flex-wrap: wrap;
+  }
+}
+
+.chip {
+  display: flex;
+  align-items: center;
+  gap: s.$space-2;
+  padding: s.$space-2 s.$space-4;
+  border-radius: s.$radius-md;
+  background-color: var(--surface-sunken);
+}
+
+.chip__icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  flex-shrink: 0;
+  border-radius: s.$radius-full;
+  background-color: var(--surface);
+  color: var(--ok-text);
+
+  svg {
+    width: 20px;
+    height: 20px;
+  }
+}
+
+.chip__label {
+  @include t.label-md;
+
+  color: var(--text-muted);
+}
+
+.chip__value {
+  @include t.data-md;
+
+  display: flex;
+  align-items: baseline;
+  gap: 3px;
+  color: var(--text-strong);
+}
+
+.chip__unit {
+  @include t.caption;
+
+  color: var(--text-muted);
+}
+
+/* ── 걸음 넘김 점 ─────────────────────────────────────────── */
+.dots {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: s.$space-3;
+  flex-shrink: 0;
+  list-style: none;
+}
+
+.dot,
+.dot--active {
+  @include mx.press;
+
+  display: block;
+  height: 12px;
+  padding: 0;
+  border: 0;
+  border-radius: s.$radius-full;
+  cursor: pointer;
+  transition: background-color 0.3s ease, width 0.3s ease;
+}
+
+.dot {
+  width: 12px;
+  background-color: var(--border-strong);
+
+  &:hover {
+    background-color: var(--solar-soft);
+  }
+}
+
+.dot--active {
+  width: 34px;
+  background-color: var(--solar);
+}
+
+@keyframes say-in {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/*
+  움직임을 줄여 달라고 한 사람에게도 걸음은 계속 나아가야 한다 —
+  멈추면 다섯 걸음 가운데 하나만 보고 마는 셈이라 화면이 제 몫을 못 한다 (SFR-005-08).
+  글이 갈아 끼워질 때의 등장 효과만 걷어 낸다.
+*/
+@include media.reduced-motion {
+  .say,
+  .chips {
+    animation: none;
+  }
+
+  .dot,
+  .dot--active {
+    transition: none;
+  }
+}

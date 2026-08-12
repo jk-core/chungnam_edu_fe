@@ -1,15 +1,13 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { SolarEduLayout } from '@/layouts/SolarEduLayout';
-import { DayCurvePanel } from '@/components/solar-edu/DayCurvePanel';
 import { EDU_LEVEL_LABEL, EDU_LEVELS, getEduContent, resolveEduLevel } from '@/mocks/eduContent';
-import { ElementaryBoard } from '@/components/solar-edu/ElementaryBoard';
+import { ElementaryStage } from '@/components/solar-edu/ElementaryStage';
 import { HeadlineStrip } from '@/components/solar-edu/HeadlineStrip';
-import { ImpactPanel } from '@/components/solar-edu/ImpactPanel';
-import { JourneyPanel } from '@/components/solar-edu/JourneyPanel';
+import { HighBoard } from '@/components/solar-edu/HighBoard';
+import { MiddleBoard } from '@/components/solar-edu/MiddleBoard';
 import { SegmentedControl } from '@/components/common/SegmentedControl';
 import { SkyBackdrop } from '@/components/solar-edu/SkyBackdrop';
-import { SunPathPanel } from '@/components/solar-edu/SunPathPanel';
 import { buildEduStats } from '@/mocks/solarEdu';
 import { getDayWeather } from '@/mocks/weather';
 import { getNode } from '@/mocks/tree';
@@ -108,13 +106,18 @@ function SolarEduPage() {
   // 학교급이 곧 눈높이다. 화면에서 고른 값이 있으면 그쪽이 이긴다 (SFR-005-04).
   const level = resolveEduLevel(plant, levelParam);
   const content = getEduContent(level);
-  // 초등 판은 패널을 줄여 다시 짠 자리라, 본문 구성 자체가 갈린다.
-  const isKid = level === 'elementary';
-  const large = content.emphasis === 'large';
+  // 세 판은 본문 구성 자체가 갈린다 — 하늘을 까는 것은 그림이 주인공인 초등 판뿐이다.
+  const isKid = content.level === 'elementary';
 
-  // 한 줄씩 넘기는 것도 쪽 넘김이라, 관제 화면과 같은 장치를 쓴다 — 눌러서 되돌려 볼 수 있다.
-  // 문구 수가 눈높이마다 달라, 총 수를 여기에 매어 둬야 인덱스가 범위를 벗어나지 않는다.
-  const fact = useAutoPager({ total: content.facts.length, perPage: 1, intervalMs: FACT_MS });
+  /*
+    아래를 도는 "알고 계셨나요" 한 줄. 초등 판에는 두지 않는다 —
+    본문이 이미 걸음마다 큰 글씨 한 줄을 바꿔 달고 있어, 읽을 곳이 둘이 되면 오히려 산만하다.
+
+    한 줄씩 넘기는 것도 쪽 넘김이라 관제 화면과 같은 장치를 쓴다. 문구 수가 눈높이마다 달라
+    총 수를 여기에 매어 둬야 인덱스가 범위를 벗어나지 않는다.
+  */
+  const facts = isKid ? [] : content.facts;
+  const fact = useAutoPager({ total: facts.length, perPage: 1, intervalMs: FACT_MS });
   const scopeInfo = plant
     ? `설비용량 ${formatNumber(plant.capacityKw, 1)}kW · 인버터 ${plant.inverterCount}대 · ${plant.installedAt} 설치`
     : `관내 ${formatNumber(SCHOOLS.length)}개 학교를 합쳐서 봅니다`;
@@ -160,23 +163,17 @@ function SolarEduPage() {
       isLive={stats.isLive}
       clock={timeFormat.format(now)}
       date={dateFormat.format(now)}
-      headline={<HeadlineStrip stats={stats} content={content.headline} large={large} />}
-      facts={content.facts}
+      headline={<HeadlineStrip stats={stats} content={content.headline} large={content.emphasis === 'large'} />}
+      facts={facts}
       factIndex={fact.page}
       onSelectFact={fact.goTo}
     >
-      {isKid ? (
-        <ElementaryBoard scopeLabel={node.fullName} stats={stats} content={content} />
+      {content.level === 'elementary' ? (
+        <ElementaryStage stats={stats} content={content} />
+      ) : content.level === 'middle' ? (
+        <MiddleBoard scopeLabel={node.fullName} stats={stats} content={content} />
       ) : (
-        <div className={styles.grid}>
-          <div className={styles.main}>
-            <SunPathPanel stats={stats} content={content.sunPath} large={large} />
-            <DayCurvePanel stats={stats} content={content.day} large={large} />
-            <ImpactPanel scopeLabel={node.fullName} stats={stats} content={content.impact} large={large} />
-          </div>
-
-          <JourneyPanel stats={stats} content={content.journey} />
-        </div>
+        <HighBoard scopeLabel={node.fullName} stats={stats} content={content} />
       )}
     </SolarEduLayout>
   );

@@ -1,8 +1,7 @@
 import { CountUp } from '@/components/common/CountUp';
-import { cn } from '@/utils/cn';
 import { impactOf } from '@/mocks/eduContent';
 import { growthStage, kwhToTrees } from '@/utils/eco';
-import type { EduContent } from '@/mocks/eduContent';
+import type { ImpactContent } from '@/mocks/eduContent';
 import type { EduStats } from '@/mocks/solarEdu';
 import { GrowingTree } from './GrowingTree';
 import { IMPACT_ICONS } from './EduIcons';
@@ -14,20 +13,19 @@ const FULL_GROWTH_HOURS = 5;
 interface ImpactPanelProps {
   scopeLabel: string;
   stats: EduStats;
-  content: EduContent['impact'];
-  large?: boolean;
+  content: ImpactContent;
 }
 
 /**
  * 오늘 만든 전기가 무슨 뜻인지 (SFR-005-03/05/06).
  * 나무는 발전량에 따라 자란다 — 수치가 바뀌면 그림도 함께 바뀌는 자리다.
  */
-export function ImpactPanel({ scopeLabel, stats, content, large }: ImpactPanelProps) {
+export function ImpactPanel({ scopeLabel, stats, content }: ImpactPanelProps) {
   const trees = kwhToTrees(stats.dayKwh);
   const stage = growthStage(stats.equivalentHours / FULL_GROWTH_HOURS);
 
   return (
-    <section className={cn(styles.panel, styles['panel--tall'], { [styles['panel--large']]: large })}>
+    <section className={styles.panel}>
       <p className={styles.panel__head}>
         {content.head}
         <span className={styles.panel__note}>{content.note(scopeLabel, stats)}</span>

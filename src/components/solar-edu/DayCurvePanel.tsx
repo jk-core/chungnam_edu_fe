@@ -3,8 +3,7 @@ import { EChart } from '@/components/common/EChart';
 import { LEGEND_GRID_TOP, topLegend } from '@/utils/chart';
 import { formatNumber } from '@/utils/format';
 import { useChartPalette } from '@/hooks/useChartPalette';
-import { cn } from '@/utils/cn';
-import type { EduContent } from '@/mocks/eduContent';
+import type { DayContent } from '@/mocks/eduContent';
 import type { EduStats } from '@/mocks/solarEdu';
 import styles from './SolarEdu.module.scss';
 import type { EChartsOption } from 'echarts';
@@ -16,8 +15,7 @@ const MIN_CHART_HEIGHT = 150;
 
 interface DayCurvePanelProps {
   stats: EduStats;
-  large?: boolean;
-  content: EduContent['day'];
+  content: DayContent;
 }
 
 /**
@@ -26,7 +24,7 @@ interface DayCurvePanelProps {
  * 막대를 세우면 값을 하나씩 읽게 되므로 채워진 곡선으로 그린다 — 하루의 모양이 먼저 보이고,
  * 곡선 아래 넓이가 곧 만든 양이 된다. 일사 곡선을 겹쳐, 발전량이 햇빛을 따라간다는 것도 함께 보인다.
  */
-export function DayCurvePanel({ stats, content, large }: DayCurvePanelProps) {
+export function DayCurvePanel({ stats, content }: DayCurvePanelProps) {
   const palette = useChartPalette();
   const slotRef = useRef<HTMLDivElement>(null);
   // 화면 크기에 맞춰 차트를 늘린다 — echarts 는 퍼센트 높이를 못 받아 실측값을 넘긴다.
@@ -124,7 +122,7 @@ export function DayCurvePanel({ stats, content, large }: DayCurvePanelProps) {
   };
 
   return (
-    <section className={cn(styles.panel, { [styles['panel--large']]: large })}>
+    <section className={styles.panel}>
       <p className={styles.panel__head}>
         {content.head}
         <span className={styles.panel__note}>{content.note(stats)}</span>

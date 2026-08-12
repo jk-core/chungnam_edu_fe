@@ -1,5 +1,5 @@
 import { cn } from '@/utils/cn';
-import styles from './AiAnalysis.module.scss';
+import styles from './AiOrbit.module.scss';
 import type { CSSProperties } from 'react';
 
 interface AiOrbitProps {
@@ -13,6 +13,8 @@ interface AiOrbitProps {
  * AI 분석을 상징하는 오빗 마크.
  * motion 대신 CSS 애니메이션을 쓴다 — rAF 는 문서가 가려지면 멈춰
  * 다시 돌아왔을 때 어정쩡한 프레임에 굳어 있기 때문이다.
+ *
+ * 관제 상황판과 교육용 대시보드가 함께 쓰므로 공용 자리에 둔다.
  */
 export function AiOrbit({ size = 40, active = false, className }: AiOrbitProps) {
   return (

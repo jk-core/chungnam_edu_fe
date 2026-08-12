@@ -1,0 +1,332 @@
+@use "@/styles/tokens/spacing" as s;
+@use "@/styles/tokens/typography" as t;
+@use "@/styles/utils/media" as media;
+@use "@/styles/utils/mixins" as mx;
+
+/*
+  중등 판 배치.
+
+  왼쪽 위가 원리, 왼쪽 아래가 발전량, 오른쪽이 이점이다. 원리 칸이 가장 넓은 것은 이 판이 설명하는 화면이기
+  때문이다 — 값을 재는 일보다 왜 그런지가 먼저다.
+*/
+.grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.35fr) minmax(0, 1fr);
+  grid-template-rows: minmax(0, 1.05fr) minmax(0, 1fr);
+  gap: s.$space-4;
+  height: 100%;
+  min-height: 0;
+
+  /* 이점 칸은 오른쪽에서 두 줄을 다 쓴다 — 나무가 커야 눈에 들어온다 */
+  > :last-child {
+    grid-column: 2;
+    grid-row: 1 / -1;
+  }
+
+  @include media.tablet {
+    grid-template-columns: 1fr;
+    grid-template-rows: none;
+    height: auto;
+
+    > :last-child {
+      grid-column: auto;
+      grid-row: auto;
+    }
+  }
+}
+
+.card {
+  display: flex;
+  flex-direction: column;
+  gap: s.$space-3;
+  min-height: 0;
+
+  /* 칸이 좁아져 내용이 넘칠 때 아래 티커를 침범하지 않게 카드 안에서 끊는다 */
+  overflow: hidden;
+  padding: s.$space-4 s.$space-5;
+  border: 1px solid var(--border-subtle);
+  border-radius: s.$radius-lg;
+  background-color: var(--surface);
+  box-shadow: var(--shadow-sm);
+}
+
+/* 제목과 부연을 줄로 갈라, 눈이 제목만 먼저 훑고 지나갈 수 있게 한다 */
+.card__head {
+  @include t.title-sm;
+
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  flex-shrink: 0;
+  color: var(--text-strong);
+}
+
+.card__note {
+  @include t.caption;
+
+  color: var(--text-muted);
+}
+
+/* ── 원리 ────────────────────────────────────────────────── */
+.principle {
+  display: grid;
+  grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr);
+  align-items: center;
+  gap: s.$space-5;
+  flex: 1;
+  min-height: 0;
+
+  @include media.tablet {
+    grid-template-columns: 1fr;
+  }
+}
+
+.principle__art {
+  min-height: 150px;
+  height: 100%;
+  border-radius: s.$radius-md;
+  background: linear-gradient(180deg, var(--sky-top) 0%, var(--surface-sunken) 100%);
+}
+
+.principle__text {
+  display: flex;
+  flex-direction: column;
+  gap: s.$space-2;
+  min-width: 0;
+  animation: middle-step-in 0.4s ease both;
+}
+
+.principle__term {
+  @include t.title-sm;
+
+  display: flex;
+  align-items: center;
+  gap: s.$space-2;
+  color: var(--text-strong);
+}
+
+.principle__no {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  flex-shrink: 0;
+  border-radius: s.$radius-full;
+  background-color: var(--brand);
+  color: var(--text-on-brand);
+  font-family: "Space Grotesk", sans-serif;
+  font-size: 13px;
+}
+
+.principle__body {
+  @include t.body-md;
+
+  color: var(--text);
+}
+
+/* 지나간 단계로 되돌아갈 수 있게 이름을 늘어놓는다 */
+.steps {
+  display: flex;
+  gap: s.$space-2;
+  flex-wrap: wrap;
+  list-style: none;
+}
+
+.step,
+.step--active {
+  @include mx.press;
+  @include t.label-sm;
+
+  padding: 4px s.$space-3;
+  border: 1px solid var(--border);
+  border-radius: s.$radius-full;
+  background-color: transparent;
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: color 0.3s ease, border-color 0.3s ease, background-color 0.3s ease;
+}
+
+.step--active {
+  border-color: var(--brand);
+  background-color: var(--brand-soft);
+  color: var(--brand);
+}
+
+/* ── 발전량 ──────────────────────────────────────────────── */
+.production {
+  display: grid;
+  grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr);
+  gap: s.$space-4;
+  flex: 1;
+  min-height: 0;
+
+  @include media.tablet {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* 차트를 절대배치로 띄워 실측 높이가 다시 늘어나는 되먹임을 막는다 */
+.production__chart {
+  position: relative;
+  min-height: 140px;
+  border-radius: s.$radius-md;
+  background-color: var(--surface-sunken);
+}
+
+.production__canvas {
+  position: absolute;
+  inset: 0;
+}
+
+.production__sun {
+  min-height: 140px;
+  border-radius: s.$radius-md;
+  background: linear-gradient(180deg, var(--sky-top) 0%, var(--surface-sunken) 100%);
+}
+
+.production__notes {
+  display: flex;
+  gap: s.$space-4;
+
+  @include media.tablet {
+    flex-direction: column;
+  }
+}
+
+.note {
+  flex: 1;
+  min-width: 0;
+  padding-left: s.$space-3;
+  border-left: 2px solid var(--solar);
+  border-radius: 1px;
+}
+
+.note__term {
+  @include t.label-md;
+
+  color: var(--text-strong);
+}
+
+.note__body {
+  @include t.body-sm;
+
+  color: var(--text-muted);
+}
+
+/* ── 이점 ────────────────────────────────────────────────── */
+.benefit {
+  display: flex;
+  flex-direction: column;
+  gap: s.$space-4;
+  flex: 1;
+  min-height: 0;
+}
+
+.benefit__tree {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: s.$space-2;
+  flex: 1;
+  min-height: 0;
+
+  /* 이 칸의 주인공이라 공용 `.tree` 의 크기 상한을 여기서만 푼다 */
+  svg {
+    width: auto;
+    max-width: none;
+    height: 100%;
+    max-height: 240px;
+  }
+}
+
+.benefit__caption {
+  @include t.body-sm;
+
+  color: var(--text-muted);
+  text-align: center;
+}
+
+.benefit__list {
+  display: flex;
+  flex-direction: column;
+  gap: s.$space-2;
+  list-style: none;
+}
+
+.chip {
+  display: flex;
+  align-items: center;
+  gap: s.$space-3;
+  padding: s.$space-2 s.$space-3;
+  border-radius: s.$radius-md;
+  background-color: var(--surface-sunken);
+}
+
+.chip__icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  flex-shrink: 0;
+  border-radius: s.$radius-full;
+  background-color: var(--surface);
+  color: var(--solar-deep);
+
+  svg {
+    width: 20px;
+    height: 20px;
+  }
+}
+
+.chip__label {
+  @include t.label-md;
+
+  flex: 1;
+  min-width: 0;
+  color: var(--text-strong);
+}
+
+.chip__value {
+  @include t.data-md;
+
+  display: flex;
+  align-items: baseline;
+  gap: 3px;
+  color: var(--text-strong);
+}
+
+.chip__unit {
+  @include t.caption;
+
+  color: var(--text-muted);
+}
+
+@keyframes middle-step-in {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/*
+  움직임을 줄여 달라고 한 사람에게도 단계는 계속 넘어간다 —
+  멈추면 네 단계 가운데 하나만 읽고 마는 셈이라 화면이 제 몫을 못 한다 (SFR-005-08).
+*/
+@include media.reduced-motion {
+  .principle__text {
+    animation: none;
+  }
+
+  .step,
+  .step--active {
+    transition: none;
+  }
+}

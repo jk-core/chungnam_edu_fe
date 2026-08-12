@@ -21,6 +21,12 @@ export const MODULE_SPEC = {
   areaPerKw: 4.9,
 };
 
+/**
+ * 맑은 날 정오의 일사강도(W/m²). 햇빛 세기를 100점 만점으로 환산하는 기준이다.
+ * 수준별 대본이 저마다 이 값으로 점수를 내므로, 셈의 근거는 수치 쪽인 여기에 둔다.
+ */
+export const FULL_SUN_WM2 = 1000;
+
 /** 교육용 화면이 쓰는 계산값 한 벌 */
 export interface EduStats {
   /** 지금 출력(kW) */

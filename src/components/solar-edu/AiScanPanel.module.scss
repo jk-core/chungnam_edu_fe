@@ -1,0 +1,341 @@
+@use "@/styles/patterns/ai-stage" as ai;
+@use "@/styles/tokens/spacing" as s;
+@use "@/styles/tokens/typography" as t;
+@use "@/styles/utils/media" as media;
+@include ai.keyframes;
+
+/*
+  AI 진단 패널.
+  가운데 열을 세로로 다 쓰는 자리라, 위에서 아래로 "얼마나 진행됐나 → 지금 무슨 단계인가 → 무엇을 알아냈나"
+  순으로 읽히게 쌓았다.
+*/
+.panel {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: s.$space-3;
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+  padding: s.$space-4 s.$space-5;
+  border-radius: s.$radius-lg;
+  box-shadow: var(--shadow-sm);
+  text-align: center;
+
+  @include ai.insight-border;
+}
+
+/*
+  계측 화면다운 바탕.
+  옅은 격자를 깔아 두면 이 칸이 사람이 읽는 글이 아니라 기계가 값을 훑는 자리로 읽힌다.
+  글자 뒤로 지나가므로 눈에 걸리지 않을 만큼만 남긴다.
+*/
+.mesh {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  background-image:
+    linear-gradient(color-mix(in srgb, var(--ai-stage) 20%, transparent) 1px, transparent 1px),
+    linear-gradient(90deg, color-mix(in srgb, var(--ai-stage) 20%, transparent) 1px, transparent 1px);
+  background-size: 24px 24px;
+  mask: radial-gradient(140% 100% at 50% 0%, #000 20%, transparent 84%);
+  opacity: 0.85;
+  pointer-events: none;
+  transition: background-image 0.7s ease;
+}
+
+/*
+  훑고 내려가는 바 — 옆 칸의 스캔 틀과 같은 규격·같은 박자를 쓴다.
+  글 뒤가 아니라 위로 지나간다. 스캔 틀의 바와 같은 자리에 놓여야 두 곳이 한 대의 기계로 읽힌다.
+*/
+.sweepLine {
+  @include ai.scan-bar;
+
+  z-index: 2;
+}
+
+/* 바탕 위에 놓인 것들은 격자보다 앞에 선다 */
+.head,
+.plant,
+.lesson,
+.body,
+.footer {
+  position: relative;
+  z-index: 1;
+}
+
+.head {
+  display: flex;
+  align-items: center;
+  gap: s.$space-3;
+  width: 100%;
+  text-align: left;
+}
+
+.head__text {
+  @include t.title-sm;
+
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  flex: 1;
+  min-width: 0;
+  color: var(--text-strong);
+}
+
+.note {
+  @include t.caption;
+
+  color: var(--text-muted);
+}
+
+/* ── 진행 링 ─────────────────────────────────────────────
+   진행의 자세한 내막은 아래 파이프라인이 말하므로, 여기서는 몇 %인지만 작게 남긴다 */
+.dial {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 62px;
+  height: 62px;
+  flex-shrink: 0;
+}
+
+.dial__aura {
+  @include ai.aura;
+
+  inset: 4px;
+}
+
+.dial__sweep {
+  @include ai.sweep;
+}
+
+.dial__svg {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  height: 100%;
+}
+
+.dial__track {
+  fill: none;
+  stroke: var(--border-subtle);
+}
+
+.dial__value {
+  @include ai.gauge-stroke;
+}
+
+.dial__percent {
+  @include t.data-sm;
+
+  position: absolute;
+  z-index: 2;
+  color: var(--ai-stage, var(--brand));
+  font-variant-numeric: tabular-nums;
+  transition: color 0.7s ease;
+
+  small {
+    font-size: 9px;
+    margin-left: 1px;
+  }
+}
+
+/* 둘레 눈금 — 계기판처럼 지나온 만큼 불이 들어온다 */
+.tick {
+  stroke: var(--border-strong);
+  stroke-width: 2;
+  stroke-linecap: round;
+  opacity: 0.4;
+  transition: stroke 0.4s ease, opacity 0.4s ease;
+}
+
+.tick--lit {
+  stroke: var(--ai-stage, var(--brand));
+  opacity: 1;
+}
+
+/* ── 설비 그림 ────────────────────────────────────────────── */
+.plant {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  height: 186px;
+  flex-shrink: 0;
+  padding: s.$space-2 s.$space-3;
+  border: 1px solid var(--border-subtle);
+  border-radius: s.$radius-md;
+  background-color: color-mix(in srgb, var(--surface-sunken) 70%, transparent);
+}
+
+/* ── 원리 두 덩이 ───────────────────────────────────────────
+   같은 자리를 두고 둘을 나란히 말한다 — 무슨 일이 일어나는가, 그리고 AI 는 무엇을 보는가.
+   액센트 색을 갈라 두어 어느 쪽 이야기인지 색으로도 짚인다. */
+.lesson {
+  display: flex;
+  flex-direction: column;
+  gap: s.$space-2;
+  width: 100%;
+  flex-shrink: 0;
+  text-align: left;
+  animation: lesson-in 0.45s ease both;
+}
+
+.lesson__item {
+  padding: s.$space-2 s.$space-3;
+  border-left: 2px solid var(--solar);
+  border-radius: 1px;
+}
+
+.lesson__item--ai {
+  border-left-color: var(--ai-stage, var(--brand));
+}
+
+.lesson__tag {
+  @include t.label-sm;
+
+  color: var(--solar-text);
+}
+
+.lesson__item--ai .lesson__tag {
+  color: var(--ai-stage, var(--brand));
+}
+
+.lesson__body {
+  @include t.caption;
+
+  margin-top: 2px;
+  color: var(--text);
+  line-height: 1.6;
+}
+
+@keyframes lesson-in {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/* 단계마다 통째로 갈리는 본문 */
+.body {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+  width: 100%;
+  overflow: hidden;
+}
+
+/* ── 소견 ────────────────────────────────────────────────── */
+.insight {
+  display: flex;
+  flex-direction: column;
+  gap: s.$space-2;
+  flex: 1;
+  min-height: 0;
+  width: 100%;
+  overflow: hidden;
+  text-align: left;
+}
+
+.insight__head {
+  @include t.label-md;
+
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: s.$space-2;
+  color: var(--text-strong);
+}
+
+.insight__list {
+  display: flex;
+  flex-direction: column;
+  gap: s.$space-2;
+  min-height: 0;
+  overflow: hidden;
+  list-style: none;
+}
+
+.insight__line {
+  @include t.body-sm;
+
+  display: flex;
+  gap: s.$space-2;
+  color: var(--text);
+  animation: ai-line-in 0.34s ease both;
+
+  &::before {
+    content: "";
+    width: 3px;
+    flex-shrink: 0;
+    border-radius: s.$radius-full;
+    background: linear-gradient(var(--ai-classify), var(--ai-reason));
+    opacity: 0.7;
+  }
+}
+
+.caret {
+  @include ai.caret;
+}
+
+.pending {
+  color: var(--text-faint);
+}
+
+/* 판정은 색만으로 가르지 않는다 — 글자가 곧 결론이다 (COR-003) */
+.verdict {
+  @include t.label-sm;
+
+  padding: 2px s.$space-2;
+  border-radius: s.$radius-full;
+  background-color: var(--ok-soft);
+  color: var(--ok-text);
+}
+
+.verdict--fair {
+  background-color: var(--caution-soft);
+  color: var(--caution-text);
+}
+
+.verdict--low {
+  background-color: var(--critical-soft);
+  color: var(--critical-text);
+}
+
+.verdict--offline {
+  background-color: var(--surface-sunken);
+  color: var(--text-muted);
+}
+
+.footer {
+  @include t.caption;
+
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  color: var(--text-muted);
+}
+
+.model {
+  color: var(--text-faint);
+  font-family: "Space Grotesk", sans-serif;
+}
+
+@include media.reduced-motion {
+  .sweepLine,
+  .dial__aura,
+  .dial__sweep,
+  .lesson,
+  .step--active .step__mark,
+  .insight__line,
+  .caret {
+    animation: none;
+  }
+}

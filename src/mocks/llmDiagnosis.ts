@@ -16,6 +16,12 @@ import { createRandom, hashSeed, pickNumber } from './random';
 import type { ScopeNode } from './tree';
 
 /**
+ * 판정을 내린 모델 이름.
+ * 교육용 대시보드도 같은 이름을 띄우므로, 두 화면이 다른 모델을 말하지 않도록 한곳에 둔다.
+ */
+export const DIAGNOSIS_MODEL = 'cne-diagnosis-1.2 (규칙엔진 + 생성형 소견)';
+
+/**
  * 분석 진행 단계.
  * 생성형 추론이 가장 오래 걸려 진행률의 대부분을 차지한다.
  */
@@ -176,7 +182,7 @@ export function getDiagnosisReport(node: ScopeNode, start: Date, end: Date): Dia
     irradSensorSuspected:
       plantInverters.length > 0 && plantInverters.every((item) => item.status === 'running') && next() > 0.6,
     insight: buildInsight(node, findings),
-    model: 'cne-diagnosis-1.2 (규칙엔진 + 생성형 소견)',
+    model: DIAGNOSIS_MODEL,
     generatedAt: `${dayjs(end).format('YYYY-MM-DD')} ${String(Math.floor(pickNumber(next, 6, 20))).padStart(2, '0')}:${String(Math.floor(pickNumber(next, 0, 59))).padStart(2, '0')}`,
     findings,
   };

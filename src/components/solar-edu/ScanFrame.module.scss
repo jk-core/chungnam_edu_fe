@@ -1,0 +1,127 @@
+@use "@/styles/patterns/ai-stage" as ai;
+@use "@/styles/tokens/spacing" as s;
+@use "@/styles/tokens/typography" as t;
+@use "@/styles/utils/media" as media;
+@use "@/styles/utils/mixins" as mx;
+@include ai.scan-keyframes;
+
+/*
+  AI 가 읽고 있는 칸을 감싸는 틀.
+
+  감싼 칸의 자리를 건드리지 않으려고 겉껍데기는 자리만 잇고, 표식은 전부 그 위에 덧댄다.
+  색은 `--ai-scan` 을 따라간다 — 계측값을 읽는 일이라 단계와 무관하게 늘 같은 색이다.
+*/
+.frame {
+  position: relative;
+  display: flex;
+  flex: 1 1 0;
+  min-height: 0;
+
+  > * {
+    flex: 1;
+    min-height: 0;
+  }
+}
+
+/* 읽는 동안 테두리가 그 색으로 물든다 */
+.frame--on > *:first-child {
+  border-color: color-mix(in srgb, var(--ai-scan) 52%, transparent);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--ai-scan) 12%, transparent);
+}
+
+.veil {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  border-radius: s.$radius-lg;
+  opacity: 0;
+  overflow: hidden;
+  pointer-events: none;
+  transition: opacity 0.5s ease;
+}
+
+.frame--on .veil {
+  opacity: 1;
+}
+
+/* 위에서 아래로 훑고 지나가는 바 — 규격과 박자는 AI 패널의 것과 같다 */
+.line {
+  @include ai.scan-bar;
+}
+
+/* 네 귀퉁이 표식 — 무엇을 겨누고 있는지 알려 준다 */
+.corner {
+  position: absolute;
+  width: 18px;
+  height: 18px;
+  border: 2px solid var(--ai-scan);
+}
+
+.corner--tl {
+  top: 6px;
+  left: 6px;
+  border-right: 0;
+  border-bottom: 0;
+  border-top-left-radius: s.$radius-xs;
+}
+
+.corner--tr {
+  top: 6px;
+  right: 6px;
+  border-bottom: 0;
+  border-left: 0;
+  border-top-right-radius: s.$radius-xs;
+}
+
+.corner--bl {
+  bottom: 6px;
+  left: 6px;
+  border-top: 0;
+  border-right: 0;
+  border-bottom-left-radius: s.$radius-xs;
+}
+
+.corner--br {
+  right: 6px;
+  bottom: 6px;
+  border-top: 0;
+  border-left: 0;
+  border-bottom-right-radius: s.$radius-xs;
+}
+
+.tag {
+  @include t.caption;
+
+  position: absolute;
+  top: s.$space-3;
+  right: s.$space-3;
+  z-index: 3;
+  padding: 2px s.$space-2;
+  border-radius: s.$radius-full;
+  background-color: color-mix(in srgb, var(--ai-scan) 16%, var(--surface));
+  color: var(--ai-scan);
+  letter-spacing: 0.04em;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.5s ease;
+}
+
+.frame--on .tag {
+  opacity: 1;
+}
+
+/* 읽는 칸이 없을 때는 스크린리더가 빈 알림을 읽지 않도록 자리도 비운다 */
+.tag:empty {
+  @include mx.sr-only;
+}
+
+/*
+  움직임을 줄여 달라고 하면 빛줄기는 멈춘다.
+  다만 귀퉁이 표식과 글자는 남긴다 — 그게 "지금 여기를 읽는 중" 이라는 뜻 자체이기 때문이다.
+*/
+@include media.reduced-motion {
+  .line {
+    animation: none;
+    opacity: 0;
+  }
+}

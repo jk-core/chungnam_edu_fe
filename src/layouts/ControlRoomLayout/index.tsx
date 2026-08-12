@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom';
-import { AiOrbit } from '@/pages/AiDiagnosis/components/AiOrbit';
+import { AiOrbit } from '@/components/common/AiOrbit';
 import { CloseIcon, ExpandIcon, SearchIcon } from '@/components/common/Icon';
 import { PATH } from '@/routes/routes';
 import { useFullscreen } from '@/hooks/useFullscreen';

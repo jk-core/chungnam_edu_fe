@@ -1,15 +1,29 @@
 import { CO2_PER_KWH, CO2_PER_TREE_YEAR, kwhToHouseholdDays } from '@/utils/eco';
 import { formatNumber, formatPercent } from '@/utils/format';
+import type { AnalysisStage } from '@/interface/diagnosis';
 import type { EduLevel } from '@/interface/edu';
 import type { School, SchoolLevel } from '@/interface/energy';
+import { ELEMENTARY_CONTENT } from './eduElementary';
+import { FULL_SUN_WM2 } from './solarEdu';
+import { MIDDLE_CONTENT } from './eduMiddle';
+import type { EduScene, ElementaryImpact } from './eduElementary';
+import type { MiddleBenefitContent, MiddlePrincipleContent, MiddleProductionContent } from './eduMiddle';
 import type { EduStats } from './solarEdu';
 
 /*
   교육용 대시보드의 수준별 콘텐츠 (SFR-005-02/03/04).
 
-  화면은 한 벌이고 여기 담긴 문구·지표 선택만 갈아 끼운다. 값을 만드는 함수(`value`, `note`)는
-  데이터로 뺄 수 없어 아래 레지스트리에 두고, 수준 테이블은 "무엇을 몇 개 어떤 순서로 보일지" 와
-  "문구를 무엇으로 덮어쓸지" 만 담는다. 그래야 학교를 바꾸면 수치만, 수준을 바꾸면 문구만 갈린다.
+  세 판은 이제 본문 구조 자체가 갈린다 — 초등은 스스로 넘어가는 장면, 중등은 설명 카드 셋,
+  고등은 AI 판단을 가운데 둔 분석 판이다. 그래서 `EduContent` 를 판별 유니온으로 두고,
+  세 판이 진짜로 나눠 쓰는 것(위쪽 수치 띠와 아래쪽 티커)만 밑동에 남겼다.
+
+  값을 만드는 함수(`value`, `note`)는 데이터로 뺄 수 없어 아래 레지스트리에 두고, 수준별 리터럴은
+  "무엇을 몇 개 어떤 순서로 보일지" 와 "문구를 무엇으로 덮어쓸지" 만 담는다. 그래야 학교를 바꾸면
+  수치만, 수준을 바꾸면 문구만 갈린다.
+
+  초등·중등 리터럴은 분량이 커 각자 파일로 나갔다(`eduElementary.ts`, `eduMiddle.ts`).
+  그 두 파일이 여기서 타입을 가져오고 여기가 그 값을 가져오므로 서로를 참조하지만,
+  되돌아오는 쪽이 `import type` 뿐이라 컴파일 뒤에는 남지 않는다.
 */
 
 export const EDU_LEVELS: EduLevel[] = ['elementary', 'middle', 'high'];
@@ -44,9 +58,6 @@ export function resolveEduLevel(plant: School | null, param: string | null): Edu
 
 /** 표준 교실 한 칸의 넓이(m²) — 넓이를 몸으로 아는 단위로 바꿔 준다. */
 const CLASSROOM_M2 = 66;
-
-/** 맑은 날 정오의 일사강도(W/m²). 햇빛 세기를 100점 만점으로 환산하는 기준이다. */
-const FULL_SUN_WM2 = 1000;
 
 export type StatId = 'today' | 'irradiance' | 'insolation' | 'area';
 
@@ -147,7 +158,11 @@ export interface ImpactCopy {
   label?: string;
 }
 
-// ── 수준별 콘텐츠 ──────────────────────────────────────────
+// ── 조각 타입 ──────────────────────────────────────────────
+/*
+  패널들이 `EduContent['day']` 처럼 인덱싱해 쓰던 것을 조각 타입으로 꺼내 둔다.
+  유니온이 되고 나면 인덱싱이 세 판 공통 필드에만 닿기 때문이다.
+*/
 
 /** 그림 옆에 붙는 설명 한 덩이 */
 export interface EduNote {
@@ -163,56 +178,127 @@ export interface EduTopic {
   body: string;
 }
 
-export interface EduContent {
+/** 위쪽에 고정으로 붙는 지금 이 순간의 수치 */
+export interface HeadlineContent {
+  mainLabel: string;
+  mainNote: (stats: EduStats) => string;
+  /** 보일 지표와 순서 — 개수가 곧 수준 차이다 */
+  statIds: StatId[];
+  copy?: Partial<Record<StatId, StatCopy>>;
+}
+
+export interface SunPathContent {
+  head: string;
+  note: string;
+  notes: EduNote[];
+}
+
+export interface DayContent {
+  head: string;
+  note: (stats: EduStats) => string;
+  /** 곡선을 읽는 법 */
+  notes: EduNote[];
+  /** 햇빛 세기 점선을 함께 그릴지 */
+  showIrradiance: boolean;
+}
+
+export interface ImpactContent {
+  head: string;
+  note: (scopeLabel: string, stats: EduStats) => string;
+  caption: string;
+  itemIds: ImpactId[];
+  copy?: Partial<Record<ImpactId, ImpactCopy>>;
+  /** 계산 근거 한 줄을 카드에 남길지 */
+  showBasis: boolean;
+}
+
+export interface JourneyContent {
+  head: string;
+  note: string;
+  topics: EduTopic[];
+}
+
+/** 설비 그림에서 지금 들여다보는 자리 */
+export type PlantSpot = 'cell' | 'module' | 'inverter' | 'grid';
+
+/**
+ * 단계 하나가 담는 것.
+ *
+ * 같은 자리를 두고 두 가지를 나란히 말한다 — 여기서 **무슨 일이 일어나는가**(태양광 원리)와,
+ * AI 는 **그 자리에서 무엇을 보는가**(진단 원리). 둘을 붙여 두어야 학생이 "AI 가 왜 저기를 보는지" 를 안다.
+ */
+export interface EduAiStage {
+  label: string;
+  /** 이 단계가 학생에게 가르치는 것 */
+  teach: string;
+  /** 설비 그림에서 밝아지는 자리 */
+  spot: PlantSpot;
+  /** 그 자리에서 일어나는 일 */
+  physics: string;
+  /** AI 가 그 자리에서 보는 것 */
+  diagnosis: string;
+}
+
+/** AI 가 무엇을 하고 있는지 학생에게 설명하는 말 (고등 전용) */
+export interface EduAiContent {
+  head: string;
+  note: string;
+  stages: Record<AnalysisStage, EduAiStage>;
+  /** 패널 맨 아래에 남기는 한 줄 — 이 화면이 무엇을 보여 준 것인지 */
+  footer: string;
+}
+
+// ── 수준별 콘텐츠 ──────────────────────────────────────────
+
+interface EduContentBase {
   /** 멀리서 보는 나이일수록 글씨를 키운다 (SFR-005-04) */
   emphasis: 'normal' | 'large';
-  headline: {
-    mainLabel: string;
-    mainNote: (stats: EduStats) => string;
-    /** 보일 지표와 순서 — 개수가 곧 수준 차이다 */
-    statIds: StatId[];
-    copy?: Partial<Record<StatId, StatCopy>>;
-  };
-  sunPath: {
-    head: string;
-    note: string;
-    notes: EduNote[];
-  };
-  day: {
-    /** 곡선을 읽을 수 있는 나이인지 — 초등은 그림 카드로 바꾼다 */
-    view: 'chart' | 'story';
-    head: string;
-    note: (stats: EduStats) => string;
-    /** 곡선을 읽는 법. `view: 'story'` 에서는 쓰지 않는다 */
-    notes: EduNote[];
-    /** 햇빛 세기 점선을 함께 그릴지 */
-    showIrradiance: boolean;
-  };
-  impact: {
-    head: string;
-    note: (scopeLabel: string, stats: EduStats) => string;
-    caption: string;
-    itemIds: ImpactId[];
-    copy?: Partial<Record<ImpactId, ImpactCopy>>;
-    /** 계산 근거 한 줄을 카드에 남길지 */
-    showBasis: boolean;
-  };
-  journey: {
-    head: string;
-    note: string;
-    topics: EduTopic[];
-    /** 계통도 아래에 붙는 한 줄짜리 원리 (초등 판) — 글 대신 단계로 끊어 읽힌다 */
-    steps?: { id: string; emoji: string; term: string; body: string }[];
-  };
+  headline: HeadlineContent;
+}
+
+/**
+ * 초등 — 본문이 한 걸음씩 나아가는 대본이다 (`eduElementary.ts`).
+ *
+ * 아래를 도는 "알고 계셨나요" 줄을 두지 않는다. 걸음마다 큰 글씨가 이미 한 줄씩 바뀌고 있어,
+ * 화면 아래에서 또 다른 글이 따로 돌면 읽을 곳이 둘이 된다.
+ */
+export interface ElementaryContent extends EduContentBase {
+  level: 'elementary';
+  scenes: EduScene[];
+  /** 마지막 걸음에 함께 세우는 환산 칩 */
+  impact: ElementaryImpact;
+}
+
+/** 중등 — 원리·발전량·이점 세 카드 (`eduMiddle.ts`) */
+export interface MiddleContent extends EduContentBase {
+  level: 'middle';
+  principle: MiddlePrincipleContent;
+  production: MiddleProductionContent;
+  benefit: MiddleBenefitContent;
   /** 화면 아래를 도는 "알고 계셨나요" 문구 */
   facts: string[];
 }
+
+/** 고등 — 데이터·AI 판단·의미 세 열 */
+export interface HighContent extends EduContentBase {
+  level: 'high';
+  /** 화면 아래를 도는 "알고 계셨나요" 문구 */
+  facts: string[];
+  sunPath: SunPathContent;
+  day: DayContent;
+  impact: ImpactContent;
+  journey: JourneyContent;
+  ai: EduAiContent;
+}
+
+export type EduContent = ElementaryContent | MiddleContent | HighContent;
 
 /*
   고등 — 지금까지 쓰던 판.
   비유 대신 물리적 원리와 정량 지표를 쓰고, 단위·계수·계산식을 감추지 않는다.
 */
-const HIGH: EduContent = {
+const HIGH: HighContent = {
+  level: 'high',
   emphasis: 'normal',
   headline: {
     mainLabel: '지금 만들고 있는 전기',
@@ -241,7 +327,6 @@ const HIGH: EduContent = {
     ],
   },
   day: {
-    view: 'chart',
     head: '그래서 오늘 이만큼 만들었어요',
     note: (stats) => `하루 모두 ${formatNumber(stats.dayKwh)}kWh · 색이 칠해진 넓이가 만든 양이에요`,
     showIrradiance: true,
@@ -250,7 +335,7 @@ const HIGH: EduContent = {
         id: 'shape',
         term: '곡선은 해가 지나간 길을 닮았어요',
         body:
-          '봉우리가 솟은 자리가 해가 가장 높이 뜬 시각이에요. 위 그림에서 해가 오르내리는 모양이 '
+          '봉우리가 솟은 자리가 해가 가장 높이 뜬 시각이에요. 옆 그림에서 해가 오르내리는 모양이 '
           + '그대로 곡선이 되죠. 전기의 양을 정하는 건 설비가 아니라 햇빛이에요.',
       },
       {
@@ -268,20 +353,14 @@ const HIGH: EduContent = {
     note: (scopeLabel, stats) =>
       `${scopeLabel}에서 오늘 만든 ${formatNumber(stats.dayKwh)}kWh를 다른 것으로 바꿔 보면 이래요`,
     caption: '해를 많이 모은 날일수록 나무가 더 자라요',
-    itemIds: ['co2', 'tree', 'household', 'led'],
+    // 가운데 열을 AI 판단에 내주면서 이 칸이 좁아졌다 — 넉 장은 눌려 읽히지 않아 석 장으로 줄인다.
+    itemIds: ['co2', 'tree', 'led'],
     showBasis: true,
   },
   journey: {
     head: '햇빛이 전기가 되기까지',
     note: '지붕에서 교실까지 네 단계로 이어져요',
     topics: [
-      {
-        id: 'meaning',
-        title: '왜 학교 지붕일까요',
-        body:
-          '넓고 비어 있는 지붕을 그대로 쓰니 따로 땅을 마련하지 않아도 돼요. 쓰는 곳에서 바로 만드니 멀리 보내며 잃는 전기도 없고요. '
-          + '무엇보다 학생들이 매일 지나다니며 발전 설비를 직접 볼 수 있어요.',
-      },
       {
         id: 'principle',
         title: '햇빛이 전기가 되는 원리',
@@ -294,9 +373,60 @@ const HIGH: EduContent = {
         title: '무엇이 달라질까요',
         body:
           '여기서 만든 만큼 화력발전소가 덜 돌아가요. 태우지 않은 연료가 곧 줄어든 온실가스이고, '
-          + '왼쪽의 나무 그루 수는 그 양을 소나무가 1년 동안 마시는 양으로 바꿔 본 거예요.',
+          + '오른쪽 나무 그루 수는 그 양을 소나무가 1년 동안 마시는 양으로 바꿔 본 거예요.',
       },
     ],
+  },
+  ai: {
+    head: 'AI 가 지금 이 설비를 살펴보고 있어요',
+    note: '계측값을 모아 기대치와 견주고, 왜 그런지 문장으로 남깁니다',
+    stages: {
+      scan: {
+        label: '센서 값 모으기',
+        teach: 'AI 도 짐작으로 시작하지 않아요. 오늘 하루치 계측값을 먼저 다 읽어요.',
+        spot: 'cell',
+        physics:
+          '빛 알갱이가 태양전지에 부딪히면 붙잡혀 있던 전자가 튀어나와요. PN 접합이 그 전자를 한 방향으로만 '
+          + '몰아 주기 때문에 전류가 됩니다. 전기가 만들어지는 자리는 바로 여기예요.',
+        diagnosis:
+          '진단의 출발점도 여기서 나온 값이에요. AI 는 셀이 만든 전기를 시간대별로 빠짐없이 읽어 들입니다 — '
+          + '빠진 값이나 튀는 값이 섞이면 그다음 판단이 통째로 흔들리거든요.',
+      },
+      classify: {
+        label: '정상 범위와 견주기',
+        teach: '판단이란 견주는 일이에요. 같은 햇빛이면 얼마가 나와야 하는지와 맞대 봐요.',
+        spot: 'module',
+        physics:
+          '판 여러 장을 한 줄로 이어 전압을 올립니다. 직렬이라 한 장만 그늘이 져도 그 줄 전체가 함께 힘을 잃어요. '
+          + '요즘 판에 바이패스 다이오드를 넣는 것도 이 때문이에요.',
+        diagnosis:
+          'AI 는 오늘 곡선의 모양을 봅니다. 그늘은 한낮 특정 시각만 움푹 패고, 오염은 하루 내내 고르게 낮고, '
+          + '구름은 햇빛 곡선까지 같이 내려가요. 모양이 다르니 원인도 가려낼 수 있습니다.',
+      },
+      reason: {
+        label: '왜 그런지 풀어 보기',
+        teach: '숫자만 내놓으면 사람이 쓸 수 없어요. 벌어진 까닭을 문장으로 적어요.',
+        spot: 'inverter',
+        physics:
+          '판이 만든 직류를 인버터가 교류로 바꿔 학교로 보냅니다. 이때 전압과 전류의 곱이 가장 큰 지점을 '
+          + '계속 좇아가며(MPPT) 버려지는 전기를 줄여요.',
+        diagnosis:
+          '기대치와 벌어진 폭을 일사·온도·변환 효율로 나눠 봅니다. 어느 몫이 얼마나 새는지까지 갈라 놓아야 '
+          + '사람이 어디를 손볼지 알 수 있어요.',
+      },
+      done: {
+        label: '진단 끝',
+        teach: '무엇을 보고 그렇게 판단했는지 근거를 남겨야 사람이 확인할 수 있어요.',
+        spot: 'grid',
+        physics:
+          '만든 전기는 학교가 먼저 씁니다. 쓰는 곳에서 바로 만드니 멀리 보내며 잃는 몫이 없고, '
+          + '남으면 바깥 전기망으로 흘러나가 다른 곳에서 쓰여요.',
+        diagnosis:
+          '판단과 함께 근거를 문장으로 남깁니다. 왜 그렇게 봤는지 없이 경보만 울리면 사람이 믿지 않고, '
+          + '믿지 않는 진단은 고장을 못 고쳐요.',
+      },
+    },
+    footer: '전국의 태양광 발전소를 이 방법으로 하루에 한 번씩 살펴봅니다.',
   },
   facts: [
     '태양전지는 뜨거울수록 효율이 떨어져요. 한여름보다 볕 좋은 봄가을에 더 잘 만드는 까닭이에요.',
@@ -307,199 +437,9 @@ const HIGH: EduContent = {
   ],
 };
 
-/*
-  중등 — 용어를 쓰되 한 줄 풀이를 붙인다.
-  곡선은 그대로 두고 읽는 법을 한 덩이로 줄여, 그래프를 처음 다루는 나이에 맞춘다.
-*/
-const MIDDLE: EduContent = {
-  emphasis: 'normal',
-  headline: {
-    mainLabel: '지금 만들고 있는 전기',
-    mainNote: (stats) =>
-      `가장 셀 때(${formatNumber(stats.capacityKw)}kW)의 ${formatPercent(stats.loadRatio)}만큼 만들고 있어요`,
-    statIds: ['today', 'irradiance', 'insolation'],
-    copy: {
-      insolation: {
-        label: '해를 모은 시간',
-        note: () => '가장 셀 때로만 돌렸다면 이만큼 걸렸을 거예요',
-      },
-    },
-  },
-  sunPath: {
-    head: '해는 하루 동안 이렇게 지나가요',
-    note: '햇빛이 들어오는 각도가 시각마다 달라져요',
-    notes: [
-      {
-        id: 'angle',
-        term: '해가 높이 뜰수록 많이 만들어요',
-        body:
-          '해가 높이 뜨면 햇빛이 판에 거의 똑바로 내리쬐요. 같은 양의 햇빛이 좁은 자리에 모이니 '
-          + '판 1m² 가 받는 힘이 세져요. 그래서 정오 무렵에 가장 많이 만들어요.',
-      },
-      {
-        id: 'airmass',
-        term: '아침·저녁엔 공기층을 길게 지나요',
-        body:
-          '해가 낮게 뜨면 햇빛이 지나야 할 공기가 두꺼워져요. 그 사이에 먼지와 부딪혀 흩어지니 '
-          + '판에 닿을 때는 이미 힘이 약해져 있어요.',
-      },
-    ],
-  },
-  day: {
-    view: 'chart',
-    head: '그래서 오늘 이만큼 만들었어요',
-    note: (stats) => `하루 모두 ${formatNumber(stats.dayKwh)}kWh · 색칠된 넓이가 오늘 만든 양이에요`,
-    showIrradiance: true,
-    notes: [
-      {
-        id: 'shape',
-        term: '곡선 모양은 해가 지나간 길과 같아요',
-        body:
-          '봉우리가 솟은 자리가 해가 가장 높이 뜬 시각이에요. 위 그림에서 해가 오르내린 모양이 '
-          + '그대로 곡선이 되죠. 전기의 양을 정하는 건 설비가 아니라 햇빛이에요.',
-      },
-      {
-        id: 'cloud',
-        term: '두 선이 함께 내려가면 구름 탓이에요',
-        body:
-          '움푹 팬 자리는 대개 구름이 지나간 자리예요. 햇빛 선은 그대로인데 발전량만 떨어졌다면 '
-          + '먼지나 그늘, 고장을 살펴봐야 해요.',
-      },
-    ],
-  },
-  impact: {
-    head: '숫자로 보는 의미',
-    note: (scopeLabel, stats) =>
-      `${scopeLabel}에서 오늘 만든 ${formatNumber(stats.dayKwh)}kWh를 다른 것으로 바꿔 보면 이래요`,
-    caption: '해를 많이 모은 날일수록 나무가 더 자라요',
-    itemIds: ['co2', 'tree', 'household', 'led'],
-    copy: {
-      co2: { label: '줄인 온실가스' },
-    },
-    showBasis: true,
-  },
-  journey: {
-    head: '햇빛이 전기가 되기까지',
-    note: '지붕에서 교실까지 네 단계로 이어져요',
-    topics: [
-      {
-        id: 'meaning',
-        title: '왜 학교 지붕일까요',
-        body:
-          '넓고 비어 있는 지붕을 그대로 쓰니 따로 땅을 마련하지 않아도 돼요. '
-          + '쓰는 곳에서 바로 만들어 멀리 보내며 잃는 전기도 없고요.',
-      },
-      {
-        id: 'principle',
-        title: '햇빛이 전기가 되는 원리',
-        body:
-          '햇빛 알갱이가 태양전지에 부딪히면 붙잡혀 있던 전자가 떨어져 나와요. 태양전지는 그 전자를 '
-          + '한 방향으로만 흐르게 만들어 전기를 얻어요. 이 전기를 인버터가 교실에서 쓰는 형태로 바꿔 줘요.',
-      },
-      {
-        id: 'effect',
-        title: '무엇이 달라질까요',
-        body:
-          '여기서 만든 만큼 화력발전이 줄어요. 태우지 않은 연료가 곧 줄어든 온실가스이고, '
-          + '왼쪽 나무 그루 수는 그 양을 나무가 마시는 양으로 바꿔 본 거예요.',
-      },
-    ],
-  },
-  facts: [
-    '태양전지는 뜨거우면 오히려 힘이 빠져요. 한여름보다 볕 좋은 봄가을에 더 잘 만들어요.',
-    '판에 먼지가 쌓이면 만드는 양이 줄어요. 비가 한 번 내리면 그만큼 돌아와요.',
-    '줄지어 이은 판 하나에 그늘이 지면 그 줄 전체가 함께 힘을 잃어요.',
-    '흐린 날에도 전기는 만들어져요. 다만 맑은 날의 몇 분의 일이에요.',
-    'kW 는 지금의 힘, kWh 는 그 힘으로 쌓은 양이에요. 속도와 거리의 관계와 같아요.',
-  ],
-};
-
-/*
-  초등 — 짧은 문장과 비유로 간다.
-  단위를 앞세우지 않고, 하루 발전은 곡선 대신 시간대별 해 그림으로 바꾼다.
-*/
-const ELEMENTARY: EduContent = {
-  emphasis: 'large',
-  headline: {
-    mainLabel: '지금 만들고 있는 전기',
-    mainNote: () => '가장 셀 때랑 견주면 지금 이만큼 만들고 있어요',
-    statIds: ['today', 'irradiance'],
-    copy: {
-      today: {
-        label: '오늘 만든 전기',
-        note: (stats) => `집 ${formatNumber(kwhToHouseholdDays(stats.todayKwh))}곳이 하루 쓸 만큼이에요`,
-      },
-      irradiance: {
-        label: '지금 햇빛 세기',
-        note: () => '해가 가장 좋은 낮이 100점이에요',
-      },
-    },
-  },
-  sunPath: {
-    head: '해가 지나가는 길이에요',
-    note: '해는 아침에 떠서 낮에 가장 높이 올라요',
-    notes: [
-      {
-        id: 'angle',
-        term: '해가 높이 뜰수록 많이 만들어요',
-        body:
-          '해가 머리 위에 오면 햇빛이 판에 똑바로 쏟아져요. 그래서 낮에 전기를 가장 많이 만들어요. '
-          + '아침과 저녁에는 햇빛이 비스듬히 들어와서 힘이 약해요.',
-      },
-    ],
-  },
-  day: {
-    view: 'story',
-    head: '오늘 하루 이만큼 만들었어요',
-    note: (stats) => `모두 더하면 ${formatNumber(stats.dayKwh)}kWh 예요`,
-    showIrradiance: false,
-    notes: [],
-  },
-  impact: {
-    head: '이만큼이면 무엇을 할 수 있을까요',
-    note: (scopeLabel) => `${scopeLabel}에서 오늘 만든 전기를 다른 것으로 바꿔 봤어요`,
-    caption: '해를 많이 본 날일수록 나무가 쑥쑥 자라요',
-    itemIds: ['tree', 'household', 'led'],
-    copy: {
-      tree: { label: '나무 심은 만큼' },
-      household: { label: '한 집이 쓰는 날' },
-      led: { label: '교실 불 켜는 시간' },
-    },
-    showBasis: false,
-  },
-  journey: {
-    head: '햇빛이 전기가 되기까지',
-    note: '지붕에서 교실까지 이렇게 와요',
-    // 원리를 글로 풀면 길어져 읽지 않는다. 네 단계로 끊어 한 줄씩만 남긴다 (SFR-005-02).
-    steps: [
-      { id: 'sun', emoji: '☀️', term: '햇빛이 닿아요', body: '지붕 위 판에 햇빛이 내리쬐요.' },
-      { id: 'panel', emoji: '🔋', term: '전기가 생겨요', body: '햇빛이 판 속 알갱이를 밀어내면 전기가 흘러요.' },
-      { id: 'inverter', emoji: '🔄', term: '쓸 수 있게 바꿔요', body: '인버터가 교실에서 쓰는 전기로 바꿔 줘요.' },
-      { id: 'school', emoji: '🏫', term: '교실로 가요', body: '불을 켜고 선풍기를 돌려요. 남으면 밖으로 보내요.' },
-    ],
-    topics: [
-      {
-        id: 'meaning',
-        title: '왜 학교 지붕일까요',
-        body: '지붕은 넓고 비어 있어요. 그 자리에 판을 깔면 따로 땅이 없어도 전기를 만들 수 있어요.',
-      },
-      {
-        id: 'effect',
-        title: '무엇이 좋아질까요',
-        body: '여기서 만든 전기만큼 발전소가 덜 돌아가요. 왼쪽 나무는 공기가 그만큼 깨끗해졌다는 뜻이에요.',
-      },
-    ],
-  },
-  facts: [
-    '태양전지는 뜨거우면 오히려 힘이 빠져요. 여름보다 봄가을에 더 잘 만들어요.',
-    '판에 먼지가 쌓이면 전기가 줄어요. 그래서 가끔 닦아 줘요.',
-    '흐린 날에도 전기는 만들어져요. 맑은 날보다 조금 만들 뿐이에요.',
-  ],
-};
-
 export const EDU_CONTENT: Record<EduLevel, EduContent> = {
-  elementary: ELEMENTARY,
-  middle: MIDDLE,
+  elementary: ELEMENTARY_CONTENT,
+  middle: MIDDLE_CONTENT,
   high: HIGH,
 };
 

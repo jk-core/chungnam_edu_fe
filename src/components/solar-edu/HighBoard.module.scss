@@ -1,0 +1,107 @@
+@use "@/styles/tokens/spacing" as s;
+@use "@/styles/utils/media" as media;
+
+/*
+  고등 판 배치.
+
+  걸어 두는 모니터가 1920 이면 세 열이 나란히 서서 "데이터 → 판단 → 의미" 가 한 줄로 읽힌다.
+  그보다 좁은 화면에서는 왼쪽 두 덩이를 위아래로 접고 AI 열만 오른쪽에 세로로 남긴다 —
+  세 열을 억지로 유지하면 곡선과 계통도가 읽을 수 없을 만큼 눌린다.
+*/
+.grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.35fr) minmax(0, 1fr);
+  grid-template-rows: minmax(0, 1fr) minmax(0, 1fr);
+  gap: s.$space-4;
+  height: 100%;
+  min-height: 0;
+
+  @include media.kiosk {
+    grid-template-columns: minmax(0, 1.35fr) minmax(0, 1fr) minmax(0, 1fr);
+    grid-template-rows: minmax(0, 1fr);
+  }
+
+  @include media.tablet {
+    grid-template-columns: 1fr;
+    grid-template-rows: none;
+    height: auto;
+  }
+}
+
+.column {
+  display: flex;
+  flex-direction: column;
+  gap: s.$space-4;
+  min-height: 0;
+
+  /*
+    한 열에 놓인 두 칸이 자리를 나눠 갖는 몫을 못 박는다.
+    그러지 않으면 내용이 긴 칸이 자리를 다 차지하고 다른 칸이 한 줄로 눌린다.
+  */
+  > * {
+    flex: 1 1 0;
+    min-height: 0;
+  }
+
+  &:first-child {
+    grid-column: 1;
+    grid-row: 1;
+  }
+
+  &:last-child {
+    grid-column: 1;
+    grid-row: 2;
+  }
+
+  @include media.kiosk {
+    &:first-child {
+      grid-column: 1;
+    }
+
+    &:last-child {
+      grid-column: 3;
+      grid-row: 1;
+    }
+  }
+
+  @include media.tablet {
+    &:first-child,
+    &:last-child {
+      grid-column: auto;
+      grid-row: auto;
+    }
+  }
+}
+
+/*
+  오른쪽 열은 반씩 나누지 않는다.
+  환산 카드는 석 장이면 끝나지만 계통도는 네 단계와 이름표까지 담아야 해서, 자리가 좁으면 글자가 뭉개진다.
+  읽히지 않는 그림은 없는 것과 같으므로 필요한 만큼 몫을 옮겨 준다.
+*/
+.column--story {
+  > *:first-child {
+    flex: 0.75 1 0;
+  }
+
+  > *:last-child {
+    flex: 1.25 1 0;
+  }
+}
+
+/* AI 열은 두 행을 다 써 세로로 길게 선다 — 게이지·단계·소견이 위에서 아래로 이어져야 읽힌다 */
+.center {
+  display: flex;
+  grid-column: 2;
+  grid-row: 1 / -1;
+  min-height: 0;
+
+  @include media.kiosk {
+    grid-row: 1;
+  }
+
+  @include media.tablet {
+    grid-column: auto;
+    grid-row: auto;
+    min-height: 560px;
+  }
+}

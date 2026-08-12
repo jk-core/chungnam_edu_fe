@@ -27,12 +27,16 @@ interface SolarEduLayoutProps {
   date: string;
   /** 위쪽에 고정으로 붙는 지금 이 순간의 수치 */
   headline: ReactNode;
-  /** 번갈아 띄우는 한 줄 설명 전부 */
-  facts: string[];
+  /**
+   * 번갈아 띄우는 한 줄 설명 전부.
+   * 넘기지 않으면 아래 줄 자체를 두지 않는다 — 본문이 이미 한 줄씩 바뀌는 판(초등)에서는
+   * 읽을 곳이 둘이 되어 오히려 산만해진다.
+   */
+  facts?: string[];
   /** 지금 보여 주는 문구 */
-  factIndex: number;
+  factIndex?: number;
   /** 점을 눌러 그 문구로 건너뛴다 */
-  onSelectFact: (index: number) => void;
+  onSelectFact?: (index: number) => void;
   children: ReactNode;
 }
 
@@ -118,29 +122,31 @@ export function SolarEduLayout({
         알고 계셨나요 한 줄. 문구가 바뀔 때마다 아래에서 밀려 올라온다 —
         `key` 를 문구로 두어 글이 갈릴 때 요소가 새로 만들어지고 CSS 애니메이션이 다시 돈다.
       */}
-      <p className={styles.ticker} role="status">
-        <span className={styles.ticker__label}>알고 계셨나요</span>
-        <span
-          key={factIndex}
-          className={styles.ticker__text}
-        >
-          {facts[factIndex]}
-        </span>
+      {facts && facts.length > 0 ? (
+        <p className={styles.ticker} role="status">
+          <span className={styles.ticker__label}>알고 계셨나요</span>
+          <span
+            key={factIndex}
+            className={styles.ticker__text}
+          >
+            {facts[factIndex ?? 0]}
+          </span>
 
-        {/* 지나간 문구가 궁금하면 눌러서 되돌려 볼 수 있다 */}
-        <span className={styles.ticker__dots}>
-          {facts.map((item, index) => (
-            <button
-              key={item}
-              type="button"
-              className={index === factIndex ? styles['ticker__dot--active'] : styles.ticker__dot}
-              onClick={() => onSelectFact(index)}
-              aria-label={`${index + 1}번째 이야기 보기 (전체 ${facts.length}건)`}
-              aria-current={index === factIndex ? 'true' : undefined}
-            />
-          ))}
-        </span>
-      </p>
+          {/* 지나간 문구가 궁금하면 눌러서 되돌려 볼 수 있다 */}
+          <span className={styles.ticker__dots}>
+            {facts.map((item, index) => (
+              <button
+                key={item}
+                type="button"
+                className={index === factIndex ? styles['ticker__dot--active'] : styles.ticker__dot}
+                onClick={() => onSelectFact?.(index)}
+                aria-label={`${index + 1}번째 이야기 보기 (전체 ${facts.length}건)`}
+                aria-current={index === factIndex ? 'true' : undefined}
+              />
+            ))}
+          </span>
+        </p>
+      ) : null}
 
       <div className={styles.body}>{children}</div>
     </div>

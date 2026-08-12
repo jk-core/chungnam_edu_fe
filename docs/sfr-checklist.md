@@ -46,16 +46,16 @@
 
 | ID | 요구 내용 | 반영 | 위치 |
 |---|---|---|---|
-| 005-01 | 교육적 의미 중심 재구성 | 반영 | `SolarEdu/index.tsx` — 운영 수치 대신 전기의 여정 구성 |
-| 005-02 | 태양광 의미·원리·환경 효과 콘텐츠 | 반영 | `JourneyPanel.tsx` · `mocks/eduContent.ts` 수준별 주제·티커 |
-| 005-03 | 전기사용량·탄소저감·나무 식재 환산 | 반영 | `ImpactPanel.tsx`, `utils/eco.ts` · 수준별 환산 항목 3~4종 |
-| 005-04 | 어린이·청소년 눈높이 문구 | 반영 | **초·중·고 3수준** `mocks/eduContent.ts`. 학교급 자동 매핑 + `?level=` 고정 + 화면 세그먼트 |
-| 005-05 | 발전량 변화에 따른 애니메이션 | 반영 | `GrowingTree.tsx`, `SunPathArt.tsx`, 초등 `DayStoryPanel.tsx` 해 크기 |
-| 005-06 | 날씨·햇빛·패널·나무 성장 애니메이션 | 반영 | `SunPathPanel.tsx`, `GrowingTree.tsx`, `EduIcons.tsx` |
-| 005-07 | 정적 수치가 아닌 동적 화면 | 반영 | 위 연출 + `DayCurvePanel.tsx` |
-| 005-08 | 조작 없이 자동 실행 | 반영 | `SolarEduLayout` 전체화면, 비인증 라우트 |
-| 005-09 | 일정 시간마다 자동 갱신 | 반영 | `useAutoPager` (`FACT_MS` 롤링), 시계 갱신 |
-| 005-10 | 통신 장애 시 마지막 값 유지·안내 | 반영 | `stats.isLive` 로 갈라 안내 문구 표출 |
+| 005-01 | 교육적 의미 중심 재구성 | 반영 | 학교급마다 본문을 따로 짬 — `ElementaryStage.tsx`(장면) · `MiddleBoard.tsx`(설명) · `HighBoard.tsx`(데이터→AI 판단→의미) |
+| 005-02 | 태양광 의미·원리·환경 효과 콘텐츠 | 반영 | `MiddlePrincipleCard.tsx` 4단계 순환 해설, `JourneyPanel.tsx`, `AiScanPanel.tsx` 단계별 교육 문구, `mocks/edu*.ts` |
+| 005-03 | 전기사용량·탄소저감·나무 식재 환산 | 반영 | `ImpactPanel.tsx` · `MiddleBenefitCard.tsx` · `scene-art/TreeGrowthArt.tsx`, `utils/eco.ts` |
+| 005-04 | 어린이·청소년 눈높이 문구 | 반영 | **초·중·고 3수준**을 판별 유니온으로 갈라 각자 대본을 둠(`eduElementary`/`eduMiddle`/`eduContent`). 학교급 자동 매핑 + `?level=` 고정 + 화면 세그먼트 |
+| 005-05 | 발전량 변화에 따른 애니메이션 | 반영 | `GrowingTree.tsx` 나무 성장, `scene-art/DayRecapArt.tsx` 시간대별 해 크기, `scene-art/PanelCatchArt.tsx` 판 발광 |
+| 005-06 | 날씨·햇빛·패널·나무 성장 애니메이션 | 반영 | `SkyBackdrop.tsx` 하늘·구름, `scene-art/SunriseArt.tsx` 해 궤도·빛다발, `SunPathArt.tsx`, `GrowingTree.tsx` |
+| 005-07 | 정적 수치가 아닌 동적 화면 | 반영 | 초등 장면 13초 순환, 중등 원리 4단계 11초 순환, 고등 AI 진단 22초 주기(`useEduAiScan.ts`) |
+| 005-08 | 조작 없이 자동 실행 | 반영 | `SolarEduLayout` 전체화면, 비인증 라우트. 감소모션에서도 자동 전환은 유지(연출만 정지) |
+| 005-09 | 일정 시간마다 자동 갱신 | 반영 | `useAutoRefresh`(60초), 시계 30초, `useAutoPager` 티커·장면 롤링 |
+| 005-10 | 통신 장애 시 마지막 값 유지·안내 | 반영 | `stats.isLive` 안내 문구 + `buildEduInsight` 가 판단을 미루고 그 사실을 소견으로 남김 |
 
 ## SFR-006 금일 발전 현황 출력 (5건)
 

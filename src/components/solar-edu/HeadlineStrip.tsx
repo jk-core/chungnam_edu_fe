@@ -2,14 +2,14 @@ import { CountUp } from '@/components/common/CountUp';
 import { cn } from '@/utils/cn';
 import { formatNumber } from '@/utils/format';
 import { statOf } from '@/mocks/eduContent';
-import type { EduContent } from '@/mocks/eduContent';
+import type { HeadlineContent } from '@/mocks/eduContent';
 import type { EduStats } from '@/mocks/solarEdu';
 import { STAT_ICONS } from './EduIcons';
 import styles from './SolarEdu.module.scss';
 
 interface HeadlineStripProps {
   stats: EduStats;
-  content: EduContent['headline'];
+  content: HeadlineContent;
   /** 초등 판은 멀리서도 읽히게 한 단계 키운다 */
   large?: boolean;
 }
