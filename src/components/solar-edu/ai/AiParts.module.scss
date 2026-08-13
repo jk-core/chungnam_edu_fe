@@ -229,10 +229,19 @@
   stroke-linecap: round;
 }
 
-/* 상자 안을 위아래로 훑는 빛줄기 — 자리마다 높이가 달라 내려갈 거리도 달라진다 */
+/*
+  상자 안을 위아래로 훑는 빛 — 자리마다 높이가 달라 내려갈 거리도 달라진다.
+  읽는 선과 꼬리를 한 덩이로 묶어 함께 내려보낸다.
+*/
 .aim__scan {
-  fill: color-mix(in srgb, var(--ai-scan) 26%, transparent);
-  animation: aim-scan 3.2s linear infinite;
+  animation: aim-scan 3.2s cubic-bezier(0.45, 0, 0.55, 1) infinite;
+}
+
+/* 지금 읽고 있는 선 — 꼬리 맨 앞에 서는 한 줄이라 얇고 밝다 */
+.aim__edge {
+  stroke: var(--ai-scan);
+  stroke-width: 1.4;
+  filter: drop-shadow(0 0 3px color-mix(in srgb, var(--ai-scan) 70%, transparent));
 }
 
 .aim__label {

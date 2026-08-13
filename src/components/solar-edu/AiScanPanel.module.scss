@@ -45,16 +45,6 @@
   transition: background-image 0.7s ease;
 }
 
-/*
-  훑고 내려가는 바 — 옆 칸의 스캔 틀과 같은 규격·같은 박자를 쓴다.
-  글 뒤가 아니라 위로 지나간다. 스캔 틀의 바와 같은 자리에 놓여야 두 곳이 한 대의 기계로 읽힌다.
-*/
-.sweepLine {
-  @include ai.scan-bar;
-
-  z-index: 2;
-}
-
 /* 바탕 위에 놓인 것들은 격자보다 앞에 선다 */
 .head,
 .plant,
@@ -329,7 +319,6 @@
 }
 
 @include media.reduced-motion {
-  .sweepLine,
   .dial__aura,
   .dial__sweep,
   .lesson,

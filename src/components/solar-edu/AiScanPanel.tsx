@@ -9,6 +9,7 @@ import { AiNeuralMark } from './ai/AiNeuralMark';
 import { AiPipeline } from './ai/AiPipeline';
 import { AiScanStage } from './ai/AiScanStage';
 import { PlantScanScene } from './ai/PlantScanScene';
+import { TraceBorder } from './ai/TraceBorder';
 import styles from './AiScanPanel.module.scss';
 import type { CSSProperties } from 'react';
 
@@ -50,9 +51,15 @@ export function AiScanPanel({ content, stats, insight, scan }: AiScanPanelProps)
       style={{ '--ai-stage': scan.stage.color } as CSSProperties}
       aria-label="AI 설비 진단"
     >
-      {/* 계측 화면다운 바탕 — 옅은 격자 위를 빛줄기가 훑는다 */}
+      {/* 계측 화면다운 바탕 */}
       <span className={styles.mesh} aria-hidden="true" />
-      <span className={styles.sweepLine} aria-hidden="true" />
+
+      {/*
+        테두리를 도는 빛.
+        판을 가로지르던 바를 걷어 낸 자리다 — 이 칸은 글이 많아, 띠가 글 위를 지나가면
+        읽는 동안 내내 방해가 된다. 테두리로 물러나면 "돌고 있다" 는 신호만 남는다.
+      */}
+      <TraceBorder radius={12} />
 
       <div className={styles.head}>
         <AiNeuralMark />

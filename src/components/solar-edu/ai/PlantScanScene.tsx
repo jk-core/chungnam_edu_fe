@@ -26,6 +26,9 @@ const SPOTS: Record<PlantSpot, { x: number; y: number; w: number; h: number; lab
 const ZOOM = 1.75;
 const STAGE = { w: 520, h: 200 };
 
+/** 읽는 선이 끌고 오는 꼬리의 길이 */
+const SCAN_TRAIL = 26;
+
 interface PlantScanSceneProps {
   /** 지금 들여다보는 자리 */
   focus: PlantSpot;
@@ -57,6 +60,14 @@ export function PlantScanScene({ focus }: PlantScanSceneProps) {
       role="img"
       aria-label={`설비 그림 — 지금 ${box.label} 를 살펴보는 중`}
     >
+      <defs>
+        {/* 읽는 선이 끌고 오는 꼬리 — 지나온 쪽일수록 옅어진다 */}
+        <linearGradient id="plant-scan-trail" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0" stopColor="var(--ai-scan)" stopOpacity="0" />
+          <stop offset="0.72" stopColor="var(--ai-scan)" stopOpacity="0.14" />
+          <stop offset="1" stopColor="var(--ai-scan)" stopOpacity="0.34" />
+        </linearGradient>
+      </defs>
       <g
         className={styles.stage}
         style={{ transform: `translate(${shift.x.toFixed(1)}px, ${shift.y.toFixed(1)}px) scale(${ZOOM})` }}
@@ -189,14 +200,29 @@ export function PlantScanScene({ focus }: PlantScanSceneProps) {
           ].map((d) => (
             <path key={d} className={styles.aim__corner} d={d} />
           ))}
-          <rect
-            className={styles.aim__scan}
-            style={{ '--scan-h': `${box.h - 12}px` } as CSSProperties}
-            x="2"
-            y="0"
-            width={box.w - 4}
-            height="12"
-          />
+          {/*
+            상자 안을 훑는 빛.
+
+            납작한 반투명 띠 하나로는 무언가가 지나간다는 것만 보이지, 어디를 읽는 중인지는 안 보인다.
+            읽는 선(밝은 한 줄)과 지나온 자리(옅어지며 사라지는 꼬리)를 갈라 놓으면 그 둘이 함께 읽힌다.
+            꼬리가 상자 밖으로 새지 않도록 상자 모양대로 오려 낸다.
+          */}
+          <clipPath id="plant-aim-clip">
+            <rect x="1" y="1" width={box.w - 2} height={box.h - 2} rx="5" />
+          </clipPath>
+
+          <g clipPath="url(#plant-aim-clip)">
+            <g
+              className={styles.aim__scan}
+              style={{ '--scan-h': `${box.h}px` } as CSSProperties}
+            >
+              <rect x="1" y={-SCAN_TRAIL} width={box.w - 2} height={SCAN_TRAIL} fill="url(#plant-scan-trail)" />
+              <path
+                className={styles.aim__edge}
+                d={`M1 0h${box.w - 2}`}
+              />
+            </g>
+          </g>
         </g>
 
         <text
