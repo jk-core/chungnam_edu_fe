@@ -1,0 +1,287 @@
+@use "@/styles/tokens/spacing" as s;
+@use "@/styles/tokens/typography" as t;
+@use "@/styles/utils/media" as media;
+
+/*
+  진단 타임라인.
+
+  위가 하루 곡선, 아래가 그 곡선 위에서 짚은 시각들. 곡선과 카드가 같은 가로 순서를 따르므로
+  눈이 위아래를 오가며 "이 카드가 저 지점" 을 짝지어 읽는다 — 선을 그어 잇지 않아도 된다.
+*/
+.board {
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr) auto auto;
+  gap: s.$space-3;
+  height: 100%;
+  min-height: 0;
+
+  @include media.tablet {
+    height: auto;
+    grid-template-rows: none;
+  }
+}
+
+.head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: s.$space-4;
+  flex-wrap: wrap;
+}
+
+.head__title {
+  @include t.title-md;
+
+  color: var(--text-strong);
+}
+
+.head__note {
+  @include t.body-sm;
+
+  color: var(--text-muted);
+}
+
+.verdict {
+  display: flex;
+  align-items: baseline;
+  gap: s.$space-3;
+  padding: s.$space-2 s.$space-4;
+  border: 1px solid var(--tone, var(--ok));
+  border-radius: s.$radius-full;
+  background-color: color-mix(in srgb, var(--tone, var(--ok)) 12%, transparent);
+
+  &[data-band="good"] {
+    --tone: var(--ok);
+  }
+
+  &[data-band="fair"] {
+    --tone: var(--caution);
+  }
+
+  &[data-band="low"] {
+    --tone: var(--critical);
+  }
+
+  &[data-band="offline"] {
+    --tone: var(--offline);
+  }
+
+  span {
+    @include t.label-md;
+
+    color: var(--text-muted);
+  }
+
+  strong {
+    color: var(--text-strong);
+    font-family: var(--font-data);
+    font-size: 26px;
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+  }
+}
+
+// ── 하루 곡선 ──────────────────────────────────────────────
+.track {
+  display: flex;
+  min-height: 0;
+  padding: s.$space-3 s.$space-4;
+  border: 1px solid var(--border-subtle);
+  border-radius: s.$radius-lg;
+  background-color: var(--surface);
+  box-shadow: var(--shadow-sm);
+}
+
+.track__svg {
+  width: 100%;
+  height: 100%;
+  min-height: 180px;
+}
+
+/*
+  짚은 시각에 세우는 기둥.
+  결마다 색을 갈라 두어 아래 카드와 짝이 맞는다 — 카드의 왼쪽 띠가 같은 색이다.
+*/
+.pin {
+  stroke: var(--tone, var(--brand));
+  stroke-width: 2;
+  stroke-dasharray: 4 4;
+  opacity: 0.7;
+
+  &[data-kind="peak"] {
+    --tone: var(--solar-deep);
+  }
+
+  &[data-kind="dip"] {
+    --tone: var(--critical);
+  }
+
+  &[data-kind="now"] {
+    --tone: var(--caution);
+  }
+
+  &[data-kind="sunrise"],
+  &[data-kind="sunset"] {
+    --tone: var(--text-faint);
+  }
+}
+
+.dot {
+  fill: var(--surface);
+  stroke: var(--tone, var(--brand));
+  stroke-width: 3;
+
+  &[data-kind="peak"] {
+    --tone: var(--solar-deep);
+  }
+
+  &[data-kind="dip"] {
+    --tone: var(--critical);
+  }
+
+  &[data-kind="now"] {
+    --tone: var(--caution);
+  }
+
+  &[data-kind="sunrise"],
+  &[data-kind="sunset"] {
+    --tone: var(--text-faint);
+  }
+}
+
+.hour {
+  fill: var(--text-muted);
+  font-family: var(--font-data);
+  font-size: 13px;
+}
+
+// ── 사건 카드 ──────────────────────────────────────────────
+.cards {
+  display: grid;
+  grid-auto-columns: minmax(0, 1fr);
+  grid-auto-flow: column;
+  gap: s.$space-3;
+
+  @include media.tablet {
+    grid-auto-flow: row;
+  }
+}
+
+.card {
+  display: flex;
+  flex-direction: column;
+  gap: s.$space-2;
+  padding: s.$space-3;
+  border: 1px solid var(--border-subtle);
+  border-left: 4px solid var(--tone, var(--brand));
+  border-radius: s.$radius-md;
+  background-color: var(--surface);
+  box-shadow: var(--shadow-sm);
+
+  &[data-kind="peak"] {
+    --tone: var(--solar-deep);
+  }
+
+  &[data-kind="dip"] {
+    --tone: var(--critical);
+  }
+
+  &[data-kind="now"] {
+    --tone: var(--caution);
+  }
+
+  &[data-kind="sunrise"],
+  &[data-kind="sunset"] {
+    --tone: var(--text-faint);
+  }
+}
+
+.card__head {
+  display: flex;
+  align-items: center;
+  gap: s.$space-2;
+}
+
+.card__no {
+  @include t.label-sm;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background-color: var(--tone);
+  color: var(--text-on-brand);
+  font-family: var(--font-data);
+}
+
+.card__label {
+  @include t.label-md;
+
+  color: var(--text-strong);
+}
+
+.card__hour {
+  @include t.caption;
+
+  color: var(--text-faint);
+  font-family: var(--font-data);
+}
+
+/*
+  관측과 판단을 갈라 적는다.
+  붙여 쓰면 "무엇을 보았는지" 와 "그래서 무엇이라 했는지" 가 한 문장이 되어,
+  둘 사이에 추론이 끼어 있다는 것이 보이지 않는다.
+*/
+.card__body {
+  display: flex;
+  flex-direction: column;
+  gap: s.$space-2;
+
+  > div {
+    display: grid;
+    grid-template-columns: 34px minmax(0, 1fr);
+    gap: s.$space-2;
+  }
+
+  dt {
+    @include t.caption;
+
+    color: var(--text-faint);
+  }
+
+  dd {
+    @include t.caption;
+
+    color: var(--text-muted);
+  }
+}
+
+.card__judged {
+  color: var(--brand-contrast);
+}
+
+// ── 맺음 ───────────────────────────────────────────────────
+.foot {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: s.$space-4;
+  padding: s.$space-2 s.$space-4;
+  border-radius: s.$radius-md;
+  background-color: var(--surface-sunken);
+  flex-wrap: wrap;
+}
+
+.foot__line {
+  @include t.body-sm;
+
+  color: var(--text);
+}
+
+.foot__note {
+  @include t.caption;
+
+  color: var(--text-faint);
+}

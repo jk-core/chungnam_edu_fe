@@ -1,0 +1,220 @@
+@use "@/styles/tokens/spacing" as s;
+@use "@/styles/tokens/typography" as t;
+@use "@/styles/utils/media" as media;
+
+/*
+  한 장 그림.
+
+  위가 전기가 오는 길, 아래가 그래서 무엇이 좋아졌나. 벽보라 넘기는 것이 없고,
+  두 층이 남는 높이를 6:4 로 나눠 갖는다 — 길 쪽이 그림이 커야 읽히기 때문이다.
+*/
+.poster {
+  display: grid;
+  grid-template-rows: minmax(0, 1.5fr) minmax(0, 1fr);
+  gap: s.$space-4;
+  height: 100%;
+  min-height: 0;
+
+  @include media.tablet {
+    height: auto;
+    grid-template-rows: none;
+  }
+}
+
+.stage {
+  display: flex;
+  flex-direction: column;
+  gap: s.$space-2;
+  min-height: 0;
+  padding: s.$space-3 s.$space-4;
+  border: 1px solid var(--border-subtle);
+  border-radius: s.$radius-lg;
+  background-color: color-mix(in srgb, var(--surface) 88%, transparent);
+}
+
+.stage__title {
+  @include t.title-sm;
+
+  color: var(--text-strong);
+}
+
+.stage__canvas {
+  flex: 1;
+  min-height: 0;
+
+  > svg {
+    width: 100%;
+    height: 100%;
+  }
+}
+
+// ── 그림 아래 숫자 띠 ──────────────────────────────────────
+.marks {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: s.$space-3;
+}
+
+.mark {
+  display: grid;
+  grid-template-areas:
+    "no label"
+    "no value"
+    "no note";
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: baseline;
+  gap: 0 s.$space-2;
+  padding: s.$space-2 s.$space-3;
+  border-radius: s.$radius-md;
+  background-color: var(--surface-sunken);
+}
+
+/* 그림의 왼쪽부터 순서대로 붙는 번호 — 그림과 띠를 짝지어 읽는 실마리다 */
+.mark__no {
+  @include t.label-sm;
+
+  display: flex;
+  grid-area: no;
+  align-self: center;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  background-color: var(--brand);
+  color: var(--text-on-brand);
+  font-family: var(--font-data);
+}
+
+.mark__label {
+  @include t.caption;
+
+  grid-area: label;
+  color: var(--text-muted);
+}
+
+.mark__value {
+  @include t.title-sm;
+
+  grid-area: value;
+  color: var(--text-strong);
+  font-family: var(--font-data);
+  font-variant-numeric: tabular-nums;
+}
+
+.mark__note {
+  @include t.caption;
+
+  grid-area: note;
+  color: var(--text-faint);
+}
+
+// ── 아래 두 칸 ─────────────────────────────────────────────
+.bottom {
+  display: grid;
+  grid-template-columns: 300px minmax(0, 1fr);
+  gap: s.$space-4;
+  min-height: 0;
+
+  @include media.tablet {
+    grid-template-columns: 1fr;
+  }
+}
+
+.numbers,
+.benefits {
+  display: flex;
+  flex-direction: column;
+  gap: s.$space-2;
+  min-height: 0;
+  padding: s.$space-3 s.$space-4;
+  border: 1px solid var(--border-subtle);
+  border-radius: s.$radius-lg;
+  background-color: color-mix(in srgb, var(--surface) 88%, transparent);
+}
+
+.numbers__list {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: s.$space-2;
+  min-height: 0;
+}
+
+.number {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  justify-content: center;
+  padding: s.$space-2 s.$space-3;
+  border-left: 4px solid var(--tone, var(--brand));
+  border-radius: s.$radius-sm;
+  background-color: var(--surface-sunken);
+
+  &[data-tone="ok"] {
+    --tone: var(--ok);
+  }
+
+  &[data-tone="brand"] {
+    --tone: var(--brand);
+  }
+}
+
+.number__label {
+  @include t.caption;
+
+  color: var(--text-muted);
+}
+
+.number__value {
+  display: flex;
+  align-items: baseline;
+  gap: s.$space-1;
+  color: var(--text-strong);
+  font-family: var(--font-data);
+  font-size: 30px;
+  font-weight: 700;
+  line-height: 1.1;
+  font-variant-numeric: tabular-nums;
+
+  span {
+    @include t.body-sm;
+
+    color: var(--text-muted);
+  }
+}
+
+// ── 좋은 점 ────────────────────────────────────────────────
+.benefits__canvas {
+  flex: 1;
+  min-height: 0;
+
+  > svg {
+    width: 100%;
+    height: 100%;
+  }
+}
+
+/*
+  그림 아래 넉 줄.
+  그림만으로는 "연기가 없다" 와 "소리가 없다" 가 갈리지 않는다 — 말풍선을 없앤 대신
+  같은 순서로 이름과 한 줄을 깔아 둔다.
+*/
+.benefits__list {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: s.$space-3;
+
+  li {
+    @include t.caption;
+
+    color: var(--text-muted);
+  }
+
+  strong {
+    @include t.label-sm;
+
+    display: block;
+    color: var(--text-strong);
+  }
+}

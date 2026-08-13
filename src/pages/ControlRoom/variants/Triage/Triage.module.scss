@@ -1,0 +1,329 @@
+@use "@/styles/tokens/spacing" as s;
+@use "@/styles/tokens/typography" as t;
+@use "@/styles/utils/media" as media;
+
+/*
+  트리아지 보드.
+
+  왼쪽이 손봐야 할 것, 오른쪽이 그 밖의 전부다. 비율을 대략 6:4 로 두어 왼쪽이 화면의 주어임을
+  자리로 말한다 — 제목 글씨를 키워 말하는 것보다 자리로 말하는 편이 멀리서 먼저 읽힌다.
+*/
+.board {
+  display: grid;
+  grid-template-columns: minmax(0, 1.45fr) 380px;
+  gap: s.$space-4;
+  height: 100%;
+  min-height: 0;
+
+  @include media.kiosk {
+    grid-template-columns: minmax(0, 1.6fr) 420px;
+    gap: s.$space-5;
+  }
+
+  @include media.tablet {
+    grid-template-columns: 1fr;
+    height: auto;
+  }
+}
+
+// ── 왼쪽 · 손봐야 할 것 ────────────────────────────────────
+.triage {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  padding: s.$space-4;
+  border: 1px solid var(--border-subtle);
+  border-radius: s.$radius-lg;
+  background-color: var(--surface);
+  box-shadow: var(--shadow-sm);
+}
+
+.triage__head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: s.$space-4;
+  margin-bottom: s.$space-3;
+  padding-bottom: s.$space-3;
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+.triage__title {
+  @include t.title-md;
+
+  display: flex;
+  align-items: baseline;
+  gap: s.$space-3;
+  color: var(--text-strong);
+
+  /*
+    제목 옆의 큰 숫자.
+    아래 카드를 세지 않아도 규모가 먼저 읽히게 하는 장치라, 제목보다 크게 둔다.
+  */
+  em {
+    color: var(--critical-text);
+    font-family: var(--font-data);
+    font-size: 40px;
+    font-style: normal;
+    font-weight: 700;
+    line-height: 1;
+    font-variant-numeric: tabular-nums;
+
+    &[data-empty] {
+      color: var(--ok-text);
+    }
+  }
+}
+
+.triage__note {
+  @include t.body-sm;
+
+  color: var(--text-muted);
+}
+
+/* 이상이 하나도 없을 때 — 왼쪽 전체가 이 한 문장이 된다 */
+.calm {
+  @include t.body-md;
+
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: s.$space-2;
+  color: var(--text-muted);
+
+  strong {
+    @include t.title-lg;
+
+    color: var(--ok-text);
+  }
+}
+
+/*
+  카드 격자.
+  칸 너비를 못 박지 않고 최소 폭만 준다 — 넓은 모니터에서는 한 줄에 넉 장, 좁으면 두 장이 선다.
+*/
+.cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(238px, 1fr));
+  align-content: start;
+  gap: s.$space-3;
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+
+.card {
+  display: flex;
+  flex-direction: column;
+  gap: s.$space-1;
+  padding: s.$space-3;
+  border: 1px solid var(--border-subtle);
+  border-left: 4px solid var(--tone, var(--text-faint));
+  border-radius: s.$radius-md;
+  background-color: var(--surface-sunken);
+
+  &[data-tone="critical"] {
+    --tone: var(--critical);
+    --tone-text: var(--critical-text);
+  }
+
+  &[data-tone="caution"] {
+    --tone: var(--caution);
+    --tone-text: var(--caution-text);
+  }
+
+  &[data-tone="offline"] {
+    --tone: var(--offline);
+    --tone-text: var(--offline-text);
+  }
+}
+
+.card__head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: s.$space-2;
+}
+
+.card__name {
+  @include t.label-md;
+
+  color: var(--text-strong);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.card__state {
+  @include t.caption;
+
+  flex: none;
+  padding: 1px s.$space-2;
+  border-radius: s.$radius-full;
+  background-color: var(--tone);
+  color: var(--text-on-brand);
+  font-weight: 600;
+}
+
+.card__where {
+  @include t.caption;
+
+  color: var(--text-faint);
+}
+
+.card__output {
+  display: flex;
+  align-items: baseline;
+  gap: s.$space-1;
+  margin-top: s.$space-1;
+  font-family: var(--font-data);
+
+  strong {
+    font-size: 26px;
+    font-weight: 700;
+    line-height: 1.1;
+    color: var(--text-strong);
+    font-variant-numeric: tabular-nums;
+  }
+
+  span {
+    @include t.caption;
+
+    color: var(--text-faint);
+  }
+}
+
+/* 설비용량 대비 지금 얼마나 내고 있는지 — 떨어진 폭이 곧 급함의 크기다 */
+.card__bar {
+  height: 5px;
+  border-radius: s.$radius-full;
+  background-color: var(--surface-hover);
+  overflow: hidden;
+
+  span {
+    display: block;
+    height: 100%;
+    border-radius: inherit;
+    background-color: var(--tone);
+  }
+}
+
+.card__why {
+  @include t.caption;
+
+  margin-top: s.$space-1;
+  color: var(--text-muted);
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
+
+.card__foot {
+  display: flex;
+  flex-wrap: wrap;
+  gap: s.$space-1 s.$space-3;
+
+  span {
+    @include t.caption;
+
+    color: var(--text-faint);
+    font-family: var(--font-data);
+  }
+}
+
+// ── 오른쪽 · 그 밖의 전부 ──────────────────────────────────
+.side {
+  display: flex;
+  flex-direction: column;
+  gap: s.$space-3;
+  min-height: 0;
+}
+
+.panel {
+  display: flex;
+  flex-direction: column;
+  gap: s.$space-2;
+  min-height: 0;
+  padding: s.$space-3 s.$space-4;
+  border: 1px solid var(--border-subtle);
+  border-radius: s.$radius-lg;
+  background-color: var(--surface);
+  box-shadow: var(--shadow-sm);
+}
+
+/*
+  남는 세로 공간을 먹는 칸 — 하나만 둔다.
+  최소 높이를 걸어 두는 이유는, 위아래 판이 제 높이를 다 쓰면 이 칸이 0 까지 눌려
+  히트맵이 한 줄짜리 띠로 사라지기 때문이다.
+*/
+.panel__grow {
+  flex: 1;
+  min-height: 200px;
+}
+
+.panel__title {
+  @include t.label-md;
+
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: s.$space-2;
+  color: var(--text-strong);
+}
+
+.panel__note {
+  @include t.caption;
+
+  color: var(--text-faint);
+  font-weight: 400;
+}
+
+.summary {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: s.$space-3;
+}
+
+.figure {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+
+  &[data-tone="ok"] {
+    --tone: var(--ok-text);
+  }
+}
+
+.figure__label {
+  @include t.caption;
+
+  color: var(--text-muted);
+}
+
+.figure__value {
+  display: flex;
+  align-items: baseline;
+  gap: 2px;
+  color: var(--tone, var(--text-strong));
+  font-family: var(--font-data);
+  font-size: 24px;
+  font-weight: 700;
+  line-height: 1.15;
+  font-variant-numeric: tabular-nums;
+
+  span {
+    @include t.caption;
+
+    color: var(--text-faint);
+    font-weight: 500;
+  }
+}
+
+.figure__note {
+  @include t.caption;
+
+  color: var(--text-faint);
+}

@@ -120,6 +120,17 @@
   color: var(--text-muted);
 }
 
+/* 시안 이름표 — 고르는 동안만 붙는다 */
+.bar__variant {
+  margin-left: s.$space-2;
+  padding: 1px s.$space-2;
+  border: 1px solid var(--brand-soft-border);
+  border-radius: s.$radius-full;
+  background-color: var(--brand-soft);
+  color: var(--brand-contrast);
+  font-style: normal;
+}
+
 .bar__clock {
   @include t.data-lg;
 

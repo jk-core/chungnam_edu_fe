@@ -1,0 +1,105 @@
+@use "@/styles/tokens/spacing" as s;
+@use "@/styles/tokens/typography" as t;
+@use "@/styles/utils/mixins" as mx;
+
+/*
+  권역별 상태 히트맵.
+
+  한 칸짜리 판에 백 개가 넘는 발전소를 담아야 하므로, 남는 높이에 권역 행을 고르게 편다.
+  칸 크기를 고정하면 어느 모니터에서는 아래가 잘리고 어느 모니터에서는 절반이 빈다.
+*/
+.heatmap {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 2px;
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+
+/*
+  권역 하나가 한 행이다.
+  이름을 왼쪽에 붙박아 두면 눈이 왼쪽 기둥을 따라 내려가며 시·군을 짚고,
+  오른쪽에서 그 시·군의 상태를 한 번에 훑는다.
+*/
+.band {
+  display: grid;
+  grid-template-columns: 62px minmax(0, 1fr);
+  align-items: start;
+  gap: s.$space-2;
+}
+
+.band__name {
+  @include t.caption;
+
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: s.$space-1;
+  color: var(--text-muted);
+
+  /* 이상이 있는 시·군은 개소 수 대신 이상 개수를 붉게 적는다 — 세어 볼 필요가 없어진다 */
+  span {
+    color: var(--text-faint);
+    font-family: var(--font-data);
+
+    &[data-bad] {
+      color: var(--critical-text);
+      font-weight: 700;
+    }
+  }
+}
+
+.cells {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 3px;
+}
+
+/*
+  발전소 한 칸.
+
+  색이 상태고 밝기가 이용률이다. 투명도 대신 색 혼합을 쓰는 이유는 어느 테마에서도
+  바닥색이 비쳐 색이 흐려지지 않게 하기 위해서다.
+*/
+.cell {
+  width: 13px;
+  height: 13px;
+  border-radius: 3px;
+  background-color: color-mix(in srgb, var(--tone) calc(var(--tint, 1) * 100%), var(--surface-sunken));
+
+  &[data-tone="ok"] {
+    --tone: var(--ok);
+  }
+
+  &[data-tone="brand"] {
+    --tone: var(--brand);
+  }
+
+  &[data-tone="caution"] {
+    --tone: var(--caution);
+  }
+
+  &[data-tone="critical"] {
+    --tone: var(--critical);
+  }
+
+  &[data-tone="offline"] {
+    --tone: var(--offline);
+  }
+}
+
+/*
+  이상인 칸만 맥동한다.
+  박자는 문서가 나눠 쓰는 `--pulse` 를 따른다 — 지도 마커·화면 테두리와 같은 시계로 뛰어야
+  화면 전체가 하나의 경보로 읽힌다.
+*/
+.cell--bad {
+  box-shadow: 0 0 0 calc(1px + 2px * var(--pulse)) color-mix(in srgb, var(--tone) 45%, transparent);
+}
+
+.cell__sr {
+  @include mx.sr-only;
+}

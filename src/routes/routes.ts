@@ -15,8 +15,22 @@ export const PATH = {
   KIOSK: '/kiosk',
   /** 학생 교육용 태양광 대시보드 — 전기의 여정 (SFR-005) */
   SOLAR_EDU: '/solar-edu',
+  /*
+    비교용 교육 시안. 눈높이(`?level=`)는 그대로 두고 **보여 주는 방식만** 갈린다 —
+    같은 학교의 같은 값을 초·중·고 각각 네 가지로 볼 수 있다. 고르고 나면 이긴 하나만 남긴다.
+  */
+  SOLAR_EDU_B: '/solar-edu/b',
+  SOLAR_EDU_C: '/solar-edu/c',
+  SOLAR_EDU_D: '/solar-edu/d',
   /** 통합관제 전체화면 상황판 (SFR-004) */
   CONTROL: '/control',
+  /*
+    비교용 상황판 시안. 어느 구성이 나은지 고르는 동안만 둔다 —
+    같은 값을 쓰고 늘어놓는 방식만 다르다. 고르고 나면 이긴 하나만 남기고 지운다.
+  */
+  CONTROL_B: '/control/b',
+  CONTROL_C: '/control/c',
+  CONTROL_D: '/control/d',
   /** 마이페이지 (SFR-024) */
   MY: '/my',
 

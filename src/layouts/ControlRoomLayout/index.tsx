@@ -10,6 +10,13 @@ import type { ReactNode } from 'react';
 interface ControlRoomLayoutProps {
   /** 보고 있는 대상 이름 — 이 화면은 늘 도 전체다 */
   scopeLabel: string;
+  /**
+   * 어느 시안을 보고 있는지.
+   *
+   * 시안 여럿을 나란히 놓고 고르는 동안에만 쓴다 — 화면끼리 생김새가 크게 달라
+   * 이름표가 없으면 회의 자리에서 "왼쪽 그거" 로만 불리게 된다. 고르고 나면 지운다.
+   */
+  variantLabel?: string;
   /** 손봐야 할 경보 중 가장 급한 결. 없으면 null — 화면 테두리가 그 색으로 점등한다. */
   alertTone: 'critical' | 'caution' | 'offline' | null;
   /** 검색창을 눌렀을 때 — 조회 조건 모달을 연다 (SFR-004-11/12) */
@@ -25,6 +32,7 @@ interface ControlRoomLayoutProps {
  */
 export function ControlRoomLayout({
   scopeLabel,
+  variantLabel,
   alertTone,
   onSearch,
   searchSummary,
@@ -43,7 +51,10 @@ export function ControlRoomLayout({
             <AiOrbit size={40} active />
             <span>
               <span className={styles.bar__title}>통합관제 상황판</span>
-              <span className={styles.bar__scope}>{scopeLabel}</span>
+              <span className={styles.bar__scope}>
+                {scopeLabel}
+                {variantLabel ? <em className={styles.bar__variant}>{variantLabel}</em> : null}
+              </span>
             </span>
           </span>
         </div>

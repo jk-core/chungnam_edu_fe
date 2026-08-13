@@ -1,0 +1,503 @@
+@use "@/styles/tokens/spacing" as s;
+@use "@/styles/tokens/typography" as t;
+@use "@/styles/utils/media" as media;
+
+/*
+  다크 워룸.
+
+  지도가 배경이고 숫자는 그 위에 뜬 유리판이다. 유리판을 불투명하게 칠하면 지도를 가린 창이 되고,
+  너무 투명하면 지도 위 점과 글자가 뒤엉켜 둘 다 못 읽는다. 그 사이를 흐림(backdrop-filter)으로 잡는다 —
+  뒤가 비치되 흐릿해, 지도는 살아 있고 글자는 또렷하다.
+*/
+.room {
+  position: relative;
+  display: flex;
+  height: 100dvh;
+  overflow: hidden;
+  background-color: var(--paper);
+  color: var(--text);
+}
+
+/* 지도 — 화면을 통째로 쓴다 */
+.canvas {
+  position: absolute;
+  inset: 0;
+
+  > * {
+    height: 100%;
+  }
+
+  /*
+    지도 타일을 어둠에 맞춘다.
+
+    카카오는 어두운 지도를 내주지 않는다. 밝은 타일 위에 어두운 판을 얹으면 이 시안이 성립하지 않는다 —
+    화면의 9할이 흰 종이인데 나머지를 어둡게 칠해 봐야 경고색은 여전히 묻힌다.
+
+    그래서 타일 그림만 골라 뒤집는다. 색상환을 반 바퀴 되돌려 하늘과 바다가 파랑으로 남게 하고,
+    채도를 낮춰 도로만 은은히 빛나게 했다. 마커는 HTML 로 그려 그림이 아니므로 이 뒤집기에 걸리지 않는다 —
+    어두워진 바탕 위에서 상태색이 그대로 산다.
+
+    카카오 로고는 제외한다. 제공자 표기는 원래 모습대로 보여야 한다.
+  */
+  img:not([src*="m_bi_"]) {
+    filter: invert(0.92) hue-rotate(180deg) saturate(0.55) brightness(0.92);
+  }
+}
+
+/*
+  경보 테두리.
+  멀리서도 "지금 뭔가 잘못됐다" 가 읽히도록 화면 가장자리가 맥동한다.
+  박자는 문서 전체가 나눠 쓰는 `--pulse` 를 따른다 — 지도 위 마커와 어긋나면 두 개의 시계가 된다.
+*/
+.edge {
+  position: absolute;
+  z-index: 3;
+  inset: 0;
+  border: 3px solid transparent;
+  pointer-events: none;
+
+  &[data-tone="critical"] {
+    border-color: color-mix(in srgb, var(--critical) calc(35% + 45% * var(--pulse)), transparent);
+    box-shadow: inset 0 0 calc(20px + 30px * var(--pulse)) color-mix(in srgb, var(--critical) 22%, transparent);
+  }
+
+  &[data-tone="caution"] {
+    border-color: color-mix(in srgb, var(--caution) calc(35% + 45% * var(--pulse)), transparent);
+    box-shadow: inset 0 0 calc(20px + 30px * var(--pulse)) color-mix(in srgb, var(--caution) 18%, transparent);
+  }
+
+  &[data-tone="offline"] {
+    border-color: color-mix(in srgb, var(--offline) calc(35% + 45% * var(--pulse)), transparent);
+  }
+}
+
+/*
+  유리판 층.
+
+  층 전체는 마우스를 받지 않는다 — 받으면 지도 위 아무 데도 누를 수 없다.
+  판과 단추만 되받아, 지도는 판 사이의 빈 곳에서 그대로 만져진다.
+*/
+.hud {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: s.$space-4;
+  padding: s.$space-4;
+  min-width: 0;
+  pointer-events: none;
+
+  > * {
+    pointer-events: auto;
+  }
+}
+
+// ── 위 띠 ──────────────────────────────────────────────────
+.top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: s.$space-4;
+  padding: s.$space-3 s.$space-4;
+  border: 1px solid var(--border-subtle);
+  border-radius: s.$radius-lg;
+  background-color: color-mix(in srgb, var(--surface) 78%, transparent);
+  backdrop-filter: blur(14px);
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: s.$space-3;
+}
+
+.brand__title {
+  @include t.title-md;
+
+  color: var(--text-strong);
+}
+
+.brand__scope {
+  @include t.caption;
+
+  display: block;
+  margin-top: 1px;
+  color: var(--text-muted);
+}
+
+.brand__variant {
+  margin-left: s.$space-2;
+  padding: 1px s.$space-2;
+  border: 1px solid var(--brand-soft-border);
+  border-radius: s.$radius-full;
+  background-color: var(--brand-soft);
+  color: var(--brand-contrast);
+  font-style: normal;
+}
+
+.top__right {
+  display: flex;
+  align-items: center;
+  gap: s.$space-3;
+}
+
+.search,
+.action {
+  @include t.body-sm;
+
+  display: inline-flex;
+  align-items: center;
+  gap: s.$space-2;
+  padding: s.$space-2 s.$space-3;
+  border: 1px solid var(--border);
+  border-radius: s.$radius-md;
+  background-color: var(--surface-sunken);
+  color: var(--text-muted);
+  cursor: pointer;
+
+  &:hover {
+    border-color: var(--brand);
+    color: var(--text-strong);
+  }
+}
+
+.search {
+  min-width: 220px;
+}
+
+// ── 양옆 레일 ──────────────────────────────────────────────
+
+/*
+  왼쪽과 오른쪽만 쓰고 가운데는 비운다.
+  비운 가운데가 곧 지도다 — 판을 더 놓고 싶어도 여기만은 남겨야 이 시안이 성립한다.
+*/
+.rails {
+  display: flex;
+  flex: 1;
+  justify-content: space-between;
+  gap: s.$space-4;
+  min-height: 0;
+  pointer-events: none;
+}
+
+.rail {
+  display: flex;
+  flex-direction: column;
+  gap: s.$space-3;
+  width: 300px;
+  min-height: 0;
+  pointer-events: auto;
+
+  @include media.kiosk {
+    width: 340px;
+  }
+}
+
+.glass {
+  display: flex;
+  flex-direction: column;
+  gap: s.$space-2;
+  padding: s.$space-4;
+  border: 1px solid var(--border-subtle);
+  border-radius: s.$radius-lg;
+  background-color: color-mix(in srgb, var(--surface) 76%, transparent);
+  backdrop-filter: blur(14px);
+  box-shadow: var(--shadow-md);
+}
+
+.glass__grow {
+  flex: 1;
+  min-height: 0;
+}
+
+.glass__title {
+  @include t.label-md;
+
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  color: var(--text-strong);
+}
+
+.glass__note {
+  @include t.caption;
+
+  color: var(--text-faint);
+}
+
+// ── 총출력 ─────────────────────────────────────────────────
+.output {
+  display: flex;
+  align-items: baseline;
+  gap: s.$space-2;
+  font-family: var(--font-data);
+
+  strong {
+    font-size: 44px;
+    font-weight: 700;
+    line-height: 1.05;
+    color: var(--text-strong);
+    font-variant-numeric: tabular-nums;
+  }
+
+  span {
+    @include t.label-md;
+
+    color: var(--text-muted);
+  }
+}
+
+.bar {
+  height: 8px;
+  border-radius: s.$radius-full;
+  background-color: var(--surface-sunken);
+  overflow: hidden;
+}
+
+.bar__fill {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, var(--brand), var(--solar));
+  transition: inline-size 0.8s cubic-bezier(0.22, 0.68, 0.32, 1);
+}
+
+// ── 값 목록 ────────────────────────────────────────────────
+.stack {
+  display: flex;
+  flex-direction: column;
+  gap: s.$space-1;
+}
+
+.stack__row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: s.$space-3;
+
+  dt {
+    @include t.body-sm;
+
+    color: var(--text-muted);
+  }
+
+  dd {
+    @include t.label-md;
+
+    color: var(--text-strong);
+    font-family: var(--font-data);
+    font-variant-numeric: tabular-nums;
+
+    span {
+      margin-left: 2px;
+      color: var(--text-faint);
+      font-size: 0.8em;
+    }
+
+    &[data-tone="caution"] {
+      color: var(--caution-text);
+    }
+  }
+}
+
+// ── 장애 목록 ──────────────────────────────────────────────
+.count {
+  padding: 1px s.$space-2;
+  border-radius: s.$radius-full;
+  background-color: var(--critical);
+  color: var(--text-on-brand);
+  font-family: var(--font-data);
+  font-style: normal;
+
+  &[data-empty] {
+    background-color: var(--ok);
+  }
+}
+
+.calm {
+  @include t.body-sm;
+
+  padding: s.$space-4 0;
+  color: var(--text-muted);
+  text-align: center;
+}
+
+.faults {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: s.$space-2;
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+
+/*
+  상태 색은 왼쪽 띠 하나로만 말한다.
+  줄 전체를 물들이면 세 줄만 넘어가도 화면이 색으로 덮여, 정작 급한 것이 묻힌다.
+*/
+.fault {
+  display: grid;
+  grid-template-areas:
+    "name state"
+    "meta state";
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 0 s.$space-2;
+  padding: s.$space-2 s.$space-3;
+  border-left: 3px solid var(--tone, var(--text-faint));
+  border-radius: s.$radius-sm;
+  background-color: var(--surface-sunken);
+
+  &[data-tone="critical"] {
+    --tone: var(--critical);
+  }
+
+  &[data-tone="caution"] {
+    --tone: var(--caution);
+  }
+
+  &[data-tone="offline"] {
+    --tone: var(--offline);
+  }
+}
+
+.fault__name {
+  @include t.label-sm;
+
+  grid-area: name;
+  color: var(--text-strong);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.fault__state {
+  @include t.caption;
+
+  grid-area: state;
+  align-self: center;
+  color: var(--tone);
+}
+
+.fault__meta {
+  @include t.caption;
+
+  grid-area: meta;
+  color: var(--text-faint);
+  font-family: var(--font-data);
+}
+
+// ── 아래 띠 ────────────────────────────────────────────────
+.ticker {
+  display: flex;
+  align-items: center;
+  gap: s.$space-3;
+  padding: s.$space-2 s.$space-4;
+  border: 1px solid var(--border-subtle);
+  border-radius: s.$radius-lg;
+  background-color: color-mix(in srgb, var(--surface) 78%, transparent);
+  backdrop-filter: blur(14px);
+  overflow: hidden;
+}
+
+.ticker__label {
+  @include t.label-sm;
+
+  flex: none;
+  color: var(--text-muted);
+}
+
+.ticker__track {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+
+  /* 양끝을 흐리게 지워 글자가 띠 밖에서 잘려 나가는 것으로 보이지 않게 한다 */
+  mask-image: linear-gradient(90deg, transparent, #000 4%, #000 96%, transparent);
+}
+
+/*
+  흐르는 순위.
+  한 벌을 왼쪽 끝까지 밀고 처음으로 되돌리면 끊긴 자리가 보인다. 같은 벌을 하나 더 붙이고
+  정확히 절반만큼 밀면, 되돌아온 자리가 두 번째 벌의 시작과 겹쳐 이음매가 사라진다.
+*/
+.ticker__list {
+  display: flex;
+  gap: s.$space-5;
+  width: max-content;
+  animation: warroom-ticker 40s linear infinite;
+
+  li {
+    @include t.body-sm;
+
+    display: flex;
+    align-items: baseline;
+    gap: s.$space-2;
+    color: var(--text-muted);
+    white-space: nowrap;
+  }
+
+  em {
+    color: var(--brand);
+    font-family: var(--font-data);
+    font-style: normal;
+    font-weight: 700;
+  }
+
+  b {
+    color: var(--text-strong);
+    font-family: var(--font-data);
+    font-variant-numeric: tabular-nums;
+  }
+}
+
+@keyframes warroom-ticker {
+  from {
+    transform: translateX(0);
+  }
+
+  to {
+    transform: translateX(-50%);
+  }
+}
+
+@include media.reduced-motion {
+  .ticker__list {
+    animation: none;
+  }
+
+  .bar__fill {
+    transition: none;
+  }
+}
+
+/*
+  좁은 화면.
+  워룸은 벽면 모니터를 겨냥한 시안이라 좁아지면 성립하지 않는다 — 유리판을 띄우는 대신
+  지도 아래로 쌓아 적어도 값은 읽히게 한다.
+*/
+@include media.tablet {
+  .room {
+    height: auto;
+    min-height: 100dvh;
+  }
+
+  .canvas {
+    position: relative;
+    height: 320px;
+  }
+
+  .hud {
+    pointer-events: auto;
+  }
+
+  .rails {
+    flex-direction: column;
+    pointer-events: auto;
+  }
+
+  .rail {
+    width: 100%;
+  }
+}

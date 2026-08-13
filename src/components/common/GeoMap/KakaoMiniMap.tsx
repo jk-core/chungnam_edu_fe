@@ -9,7 +9,8 @@ import type { MapCluster } from './clusterMarkers';
 interface KakaoMiniMapProps {
   /** 이미 걸러 넘긴 발전소. 미니맵은 받은 것을 그대로 다 찍는다. */
   plants: School[];
-  height: number;
+  /** 칸 높이. `'100%'` 처럼 CSS 길이를 주면 부모를 꽉 채운다 */
+  height: number | string;
   label: string;
   /** 점을 눌러 고를 수 있게 할 때만 넘긴다 */
   onPick?: (plantId: string) => void;

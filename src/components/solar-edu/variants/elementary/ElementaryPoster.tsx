@@ -1,0 +1,123 @@
+import { AIRCON_WATT } from '@/mocks/eduElementary';
+import { kwhToHouseholdDays, kwhToTrees } from '@/utils/eco';
+import { formatNumber } from '@/utils/format';
+import type { ElementaryContent } from '@/mocks/eduContent';
+import type { EduStats } from '@/mocks/solarEdu';
+import { BenefitScene } from '../../scene-art/BenefitScene';
+import { JourneyScene } from '../../scene-art/JourneyScene';
+import styles from './ElementaryPoster.module.scss';
+
+/** 걸음을 이 값으로 못 박아 그림의 네 마디를 처음부터 모두 켠다 */
+const ALL_STEPS = 3;
+
+interface ElementaryPosterProps {
+  stats: EduStats;
+  content: ElementaryContent;
+  nowHour: number;
+}
+
+/**
+ * 초등 판 · 시안 D — 한 장 그림 (SFR-005-01/03/05/06).
+ *
+ * 현행 시안은 한 번에 한 가지만 보여 주고 말풍선으로 이야기한다. 잘 읽히지만 **기다려야** 한다 —
+ * 쉬는 시간에 잠깐 서서 보는 아이는 넷 중 한 장면만 보고 지나간다.
+ *
+ * 이 시안은 기다리게 하지 않는다. 해부터 교실까지, 그리고 태양광이 왜 좋은지까지 전부 한 장에 펼쳐
+ * 벽보처럼 세운다. 말풍선이 옮겨 다니지 않으니 아이가 보고 싶은 곳을 먼저 보고, 읽고 싶은 만큼만 읽는다.
+ * 그림은 여전히 살아 움직이지만 **순서를 정해 주지 않는** 것이 이 시안이 앞의 것들과 다른 점이다.
+ */
+export function ElementaryPoster({ stats, content, nowHour }: ElementaryPosterProps) {
+  const marks = [
+    { id: 'sun', label: '햇빛', value: `${formatNumber((stats.irradianceNow / 1000) * 100)}점`, note: '지금 햇빛 세기' },
+    { id: 'panel', label: '태양전지', value: `${formatNumber(stats.moduleArea)}m²`, note: '햇빛 받는 넓이' },
+    { id: 'inverter', label: '인버터', value: `${formatNumber(stats.outputKw, 1)}kW`, note: '지금 만드는 힘' },
+    { id: 'school', label: '교실', value: `${formatNumber(stats.todayKwh, 0)}kWh`, note: '오늘 만든 전기' },
+  ];
+
+  return (
+    <div className={styles.poster}>
+      {/* 위 — 전기가 오는 길. 네 마디가 처음부터 전부 켜져 있다 */}
+      <section className={styles.stage} aria-label="햇빛이 전기가 되어 교실에 오기까지">
+        <h2 className={styles.stage__title}>햇빛이 교실까지 오는 길</h2>
+
+        <div className={styles.stage__canvas}>
+          <JourneyScene step={ALL_STEPS} nowHour={nowHour} loadRatio={stats.loadRatio} />
+        </div>
+
+        {/*
+          그림 아래 숫자 띠.
+          그림 위에 배지를 얹으면 마디마다 자리가 달라 글씨가 겹치거나 그림을 가린다.
+          같은 순서로 아래에 늘어놓으면 눈이 그림과 띠를 오르내리며 짝을 맞춘다.
+        */}
+        <ul className={styles.marks}>
+          {marks.map((mark, index) => (
+            <li key={mark.id} className={styles.mark}>
+              <span className={styles.mark__no}>{index + 1}</span>
+              <span className={styles.mark__label}>{mark.label}</span>
+              <strong className={styles.mark__value}>{mark.value}</strong>
+              <span className={styles.mark__note}>{mark.note}</span>
+            </li>
+          ))}
+        </ul>
+      </section>
+
+      <div className={styles.bottom}>
+        {/* 왼쪽 아래 — 그래서 무엇이 좋아졌나 */}
+        <section className={styles.numbers} aria-label="오늘 만든 전기로 할 수 있는 일">
+          <h2 className={styles.stage__title}>이만큼 할 수 있어요</h2>
+
+          <ul className={styles.numbers__list}>
+            <Number label="나무를 심은 만큼" value={formatNumber(kwhToTrees(stats.dayKwh))} unit="그루" tone="ok" />
+            <Number label="에어컨을 켜 두면" value={formatNumber((stats.dayKwh * 1000) / AIRCON_WATT)} unit="시간" tone="brand" />
+            <Number label="한 집이 쓰는 날" value={formatNumber(kwhToHouseholdDays(stats.dayKwh))} unit="일" tone="brand" />
+          </ul>
+        </section>
+
+        {/* 오른쪽 아래 — 태양광이 왜 좋은가. 넷을 한 번에 세우고 이름만 붙인다 */}
+        <section className={styles.benefits} aria-label="태양광의 좋은 점">
+          <h2 className={styles.stage__title}>태양광이 좋은 까닭</h2>
+
+          <div className={styles.benefits__canvas}>
+            {/*
+              어느 하나를 흐리게 두지 않는다.
+              말풍선이 없으니 초점을 옮길 이유가 없고, 넷이 똑같이 또렷해야 한 장 그림이 된다.
+            */}
+            <BenefitScene focus="free" />
+          </div>
+
+          <ul className={styles.benefits__list}>
+            {content.benefits.map((benefit) => (
+              <li key={benefit.id}>
+                <strong>{benefit.title}</strong>
+                {benefit.line}
+              </li>
+            ))}
+          </ul>
+        </section>
+      </div>
+    </div>
+  );
+}
+
+/** 왼쪽 아래 숫자 한 줄 */
+function Number({
+  label,
+  value,
+  unit,
+  tone,
+}: {
+  label: string;
+  value: string;
+  unit: string;
+  tone: 'ok' | 'brand';
+}) {
+  return (
+    <li className={styles.number} data-tone={tone}>
+      <span className={styles.number__label}>{label}</span>
+      <p className={styles.number__value}>
+        {value}
+        <span>{unit}</span>
+      </p>
+    </li>
+  );
+}

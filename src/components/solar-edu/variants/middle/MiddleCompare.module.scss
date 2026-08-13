@@ -1,0 +1,321 @@
+@use "@/styles/tokens/spacing" as s;
+@use "@/styles/tokens/typography" as t;
+@use "@/styles/utils/media" as media;
+
+/*
+  비교 실험.
+
+  가운데 세 짝이 화면의 주인공이라 남는 높이를 그쪽에 몰아주되, 아래 두 칸에 최소 높이를
+  **먼저** 떼어 준다 — 짝이 높이를 다 먹으면 아래 칸이 눌려 글자가 서로 겹친다.
+*/
+.board {
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr) minmax(220px, 0.8fr);
+  gap: s.$space-3;
+  height: 100%;
+  min-height: 0;
+
+  @include media.tablet {
+    height: auto;
+    grid-template-rows: none;
+  }
+}
+
+.head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: s.$space-4;
+  flex-wrap: wrap;
+}
+
+.head__title {
+  @include t.title-md;
+
+  color: var(--text-strong);
+}
+
+.head__note {
+  @include t.body-sm;
+
+  color: var(--text-muted);
+}
+
+// ── 견주는 세 짝 ───────────────────────────────────────────
+
+/*
+  셋을 가로로 늘어놓는다.
+  한 줄씩 아래로 쌓으면 막대가 화면 폭만큼 길어져 정작 견줘야 할 세 짝이 서로 멀어진다.
+*/
+.duels {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: s.$space-3;
+  min-height: 0;
+
+  @include media.tablet {
+    grid-template-columns: 1fr;
+    grid-auto-rows: 300px;
+  }
+}
+
+.duel {
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr) auto;
+  gap: s.$space-2;
+  min-height: 0;
+  padding: s.$space-3 s.$space-4;
+  border: 1px solid color-mix(in srgb, var(--tone) 26%, var(--border-subtle));
+  border-radius: s.$radius-lg;
+  background: linear-gradient(
+    170deg,
+    color-mix(in srgb, var(--tone) 10%, var(--surface)),
+    var(--surface) 52%
+  );
+  box-shadow: var(--shadow-sm);
+
+  &[data-tone="solar"] {
+    --tone: var(--solar);
+  }
+
+  &[data-tone="brand"] {
+    --tone: var(--brand);
+  }
+
+  &[data-tone="ok"] {
+    --tone: var(--ok);
+  }
+}
+
+.duel__head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: s.$space-2;
+}
+
+.duel__question {
+  @include t.title-sm;
+
+  color: var(--text-strong);
+}
+
+/* 무엇 하나만 달리했는지 — 변인 통제라는 이 화면의 방법을 한 마디로 적는다 */
+.duel__variable {
+  @include t.caption;
+
+  flex: none;
+  padding: 1px s.$space-2;
+  border-radius: s.$radius-full;
+  background-color: color-mix(in srgb, var(--tone) 18%, var(--surface));
+  color: var(--text-muted);
+  white-space: nowrap;
+}
+
+// ── 기둥 둘 ────────────────────────────────────────────────
+
+/*
+  기둥을 나란히 세워 높이로 견준다.
+  가로 막대는 길이를 눈으로 재야 하지만, 나란한 기둥은 어느 쪽이 높은지가 재지 않아도 보인다.
+*/
+.plot {
+  position: relative;
+  display: flex;
+  align-items: stretch;
+  justify-content: center;
+  gap: s.$space-5;
+  min-height: 0;
+  padding-bottom: s.$space-2;
+  border-bottom: 2px solid color-mix(in srgb, var(--tone) 30%, transparent);
+}
+
+.col {
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr) auto;
+  justify-items: center;
+  gap: s.$space-1;
+  min-height: 0;
+  width: 96px;
+
+  /* 견주는 쪽은 한 단계 물린다 — 색까지 같으면 어느 쪽이 우리 이야기인지 흐려진다 */
+  &[data-side="other"] {
+    --fill: var(--border-strong);
+  }
+}
+
+.col__value {
+  color: var(--text-strong);
+  font-family: var(--font-data);
+  font-size: 20px;
+  font-weight: 700;
+  line-height: 1.1;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+
+  em {
+    @include t.caption;
+
+    margin-left: 2px;
+    color: var(--text-faint);
+    font-style: normal;
+    font-weight: 500;
+  }
+}
+
+/* 기둥이 서는 자리. 두 기둥이 같은 자를 쓰도록 높이를 똑같이 준다 */
+.col__track {
+  display: flex;
+  align-items: flex-end;
+  width: 100%;
+  min-height: 0;
+}
+
+.col__bar {
+  display: block;
+  width: 100%;
+  border-radius: s.$radius-md s.$radius-md 2px 2px;
+  background: linear-gradient(180deg, var(--fill, var(--tone)), color-mix(in srgb, var(--fill, var(--tone)) 74%, transparent));
+  transition: block-size 0.8s cubic-bezier(0.22, 0.68, 0.32, 1);
+}
+
+.col__label {
+  @include t.body-sm;
+
+  max-width: 100%;
+  color: var(--text-muted);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* 두 기둥 사이에 놓는 차이 — 높이를 눈으로 재지 않아도 되게 */
+.gap {
+  @include t.label-md;
+
+  position: absolute;
+  top: 38%;
+  left: 50%;
+  padding: 1px s.$space-2;
+  border-radius: s.$radius-full;
+  background-color: var(--ok-soft);
+  color: var(--ok-text);
+  font-family: var(--font-data);
+  transform: translate(-50%, -50%);
+
+  &[data-down] {
+    background-color: var(--critical-soft);
+    color: var(--critical-text);
+  }
+}
+
+/* 무엇이 달라서 값이 갈렸는지 — 이 줄이 이 시안의 알맹이다 */
+.duel__because {
+  @include t.body-sm;
+
+  color: var(--text-muted);
+}
+
+// ── 아래 두 칸 ─────────────────────────────────────────────
+.bottom {
+  display: grid;
+  grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr);
+  gap: s.$space-3;
+  min-height: 0;
+
+  @include media.tablet {
+    grid-template-columns: 1fr;
+  }
+}
+
+.curve,
+.facts {
+  display: flex;
+  flex-direction: column;
+  gap: s.$space-1;
+  min-height: 0;
+  padding: s.$space-3 s.$space-4;
+  border: 1px solid var(--border-subtle);
+  border-radius: s.$radius-lg;
+  background-color: var(--surface);
+  box-shadow: var(--shadow-sm);
+}
+
+.panel__head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: s.$space-3;
+  flex-wrap: wrap;
+}
+
+.panel__title {
+  @include t.label-md;
+
+  color: var(--text-strong);
+}
+
+.panel__note {
+  @include t.caption;
+
+  color: var(--text-muted);
+}
+
+.curve__canvas {
+  display: flex;
+  flex: 1;
+  min-height: 0;
+}
+
+/*
+  견줄 때 쓴 값.
+
+  가운데 정렬(`center`)로 두면 안 된다 — 칸보다 내용이 크면 넘친 만큼이 **위아래 양쪽으로** 삐져나가
+  제목과 아래 문장을 덮는다. 위에서부터 채우고 넘치는 것은 잘라, 넘쳐도 글자끼리 겹치지는 않게 한다.
+*/
+.facts__list {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  align-content: start;
+  gap: s.$space-1 s.$space-4;
+  flex: 1;
+  min-height: 0;
+  margin-top: s.$space-1;
+  overflow: hidden;
+}
+
+.fact {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: s.$space-2;
+  padding-bottom: 2px;
+  border-bottom: 1px dashed var(--border);
+
+  dt {
+    @include t.caption;
+
+    color: var(--text-muted);
+  }
+
+  dd {
+    @include t.label-sm;
+
+    color: var(--text-strong);
+    font-family: var(--font-data);
+    font-variant-numeric: tabular-nums;
+  }
+}
+
+/* 지어 낸 값을 실측인 척 내놓지 않는다 */
+.facts__disclaimer {
+  @include t.caption;
+
+  flex: none;
+  color: var(--text-faint);
+}
+
+@include media.reduced-motion {
+  .col__bar {
+    transition: none;
+  }
+}

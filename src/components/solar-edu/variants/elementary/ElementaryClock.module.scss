@@ -1,0 +1,238 @@
+@use "@/styles/tokens/spacing" as s;
+@use "@/styles/tokens/typography" as t;
+@use "@/styles/utils/media" as media;
+
+/*
+  우리 학교의 하루.
+
+  왼쪽이 시계, 오른쪽이 그 시계가 뜻하는 것. 시계에 넉넉한 자리를 주는 것이 이 시안의 전부라
+  오른쪽은 고정 폭으로 못 박고 남는 폭을 전부 시계에 넘긴다.
+*/
+.board {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 340px;
+  gap: s.$space-4;
+  height: 100%;
+  min-height: 0;
+
+  @include media.kiosk {
+    grid-template-columns: minmax(0, 1fr) 400px;
+    gap: s.$space-5;
+  }
+
+  @include media.tablet {
+    grid-template-columns: 1fr;
+    height: auto;
+  }
+}
+
+.clock {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 0;
+  padding: s.$space-3;
+  border: 1px solid var(--border-subtle);
+  border-radius: s.$radius-lg;
+
+  /* 하늘에서 땅으로 — 시계가 바깥 하늘에 떠 있는 것으로 읽히게 한다 */
+  background: linear-gradient(180deg, color-mix(in srgb, var(--brand-soft) 60%, transparent), var(--surface));
+  box-shadow: var(--shadow-sm);
+}
+
+.clock__svg {
+  width: 100%;
+  height: 100%;
+  max-height: 100%;
+}
+
+/*
+  시간 막대.
+  많이 만든 시간일수록 길고 짙다 — 길이와 색이 같은 것을 두 번 말해 멀리서도 읽힌다.
+  색은 값에 따라 달라지므로 컴포넌트가 정하고, 여기서는 굵기와 끝 모양만 둔다.
+*/
+.bar {
+  stroke-width: 9;
+  stroke-linecap: round;
+}
+
+.bar--todo {
+  stroke: var(--border-strong);
+  opacity: 0.32;
+}
+
+.tick {
+  fill: var(--text-muted);
+  font-family: var(--font-sans);
+  font-size: 15px;
+  font-weight: 600;
+}
+
+// ── 한가운데 숫자 ──────────────────────────────────────────
+.core__label {
+  fill: var(--text-muted);
+  font-family: var(--font-sans);
+  font-size: 16px;
+}
+
+.core__value {
+  fill: var(--text-strong);
+  font-family: var(--font-data);
+  font-size: 42px;
+  font-weight: 700;
+}
+
+.core__unit {
+  fill: var(--text-muted);
+  font-family: var(--font-data);
+  font-size: 17px;
+}
+
+// ── 해 ─────────────────────────────────────────────────────
+
+/* 걸어 두는 화면이라 움직임은 전부 CSS 로 둔다 — 문서가 가려져도 계속 돈다 */
+.sunGlow {
+  animation: clock-breathe 3.4s ease-in-out infinite;
+  transform-box: fill-box;
+  transform-origin: center;
+}
+
+.sunRays {
+  animation: clock-turn 26s linear infinite;
+}
+
+@keyframes clock-breathe {
+  0%,
+  100% {
+    opacity: 0.7;
+    transform: scale(1);
+  }
+
+  50% {
+    opacity: 1;
+    transform: scale(1.12);
+  }
+}
+
+@keyframes clock-turn {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@include media.reduced-motion {
+  .sunGlow,
+  .sunRays {
+    animation: none;
+  }
+}
+
+// ── 오른쪽 ─────────────────────────────────────────────────
+.side {
+  display: flex;
+  flex-direction: column;
+  gap: s.$space-3;
+  min-height: 0;
+}
+
+/*
+  숫자 한 칸.
+
+  그림·숫자·설명 세 층으로 나눈다. 넷을 나란히 두면 숫자만으로는 무엇의 숫자인지 헷갈리는데,
+  왼쪽 그림이 그 답을 글자보다 먼저 준다.
+*/
+.card {
+  display: grid;
+  grid-template-columns: 68px minmax(0, 1fr);
+  align-items: center;
+  gap: s.$space-3;
+  flex: 1;
+  padding: s.$space-3;
+  border: 1px solid var(--border-subtle);
+  border-radius: s.$radius-lg;
+  background: linear-gradient(
+    130deg,
+    color-mix(in srgb, var(--tone) 10%, var(--surface)),
+    var(--surface) 62%
+  );
+  box-shadow: var(--shadow-sm);
+
+  &[data-tone="solar"] {
+    --tone: var(--solar);
+  }
+
+  &[data-tone="brand"] {
+    --tone: var(--brand);
+  }
+
+  &[data-tone="ok"] {
+    --tone: var(--ok);
+  }
+
+  @include media.kiosk {
+    grid-template-columns: 80px minmax(0, 1fr);
+  }
+}
+
+/* 그림이 앉는 자리 — 둥근 바닥을 깔아 아이콘이 카드 위에 떠 보이지 않게 한다 */
+.card__art {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  aspect-ratio: 1;
+  border-radius: 50%;
+  background-color: color-mix(in srgb, var(--tone) 14%, var(--surface));
+
+  svg {
+    width: 78%;
+    height: 78%;
+  }
+}
+
+.card__text {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  min-width: 0;
+}
+
+.card__label {
+  @include t.label-md;
+
+  color: var(--text-muted);
+}
+
+.card__value {
+  display: flex;
+  align-items: baseline;
+  gap: s.$space-1;
+  color: var(--text-strong);
+  font-family: var(--font-data);
+  font-size: 36px;
+  font-weight: 700;
+  line-height: 1.05;
+  font-variant-numeric: tabular-nums;
+
+  span {
+    @include t.label-md;
+
+    color: var(--text-muted);
+    font-weight: 500;
+  }
+}
+
+.card__note {
+  @include t.body-sm;
+
+  color: var(--text-faint);
+}
+
+.caption {
+  @include t.body-sm;
+
+  padding: s.$space-2 s.$space-3;
+  border-radius: s.$radius-md;
+  background-color: var(--solar-soft);
+  color: var(--solar-text);
+  text-align: center;
+}

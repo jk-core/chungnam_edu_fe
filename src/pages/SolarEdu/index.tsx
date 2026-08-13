@@ -3,6 +3,8 @@ import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { SolarEduLayout } from '@/layouts/SolarEduLayout';
 import { EDU_LEVEL_LABEL, EDU_LEVELS, getEduContent, resolveEduLevel } from '@/mocks/eduContent';
 import { ElementaryStage } from '@/components/solar-edu/ElementaryStage';
+import { EDU_VARIANT_LABEL, EduBoard } from '@/components/solar-edu/variants/EduBoard';
+import type { EduVariant } from '@/components/solar-edu/variants/EduBoard';
 import { HeadlineStrip } from '@/components/solar-edu/HeadlineStrip';
 import { HighBoard } from '@/components/solar-edu/HighBoard';
 import { MiddleBoard } from '@/components/solar-edu/MiddleBoard';
@@ -12,7 +14,6 @@ import { buildEduStats } from '@/mocks/solarEdu';
 import { getDayWeather } from '@/mocks/weather';
 import { getNode } from '@/mocks/tree';
 import { getSchoolById, SCHOOLS } from '@/mocks/schools';
-import { buildPath } from '@/routes/buildPath';
 import { PATH } from '@/routes/routes';
 import { formatNumber } from '@/utils/format';
 import { TODAY } from '@/mocks/today';
@@ -78,7 +79,17 @@ function kstHourOf(date: Date): number {
  *
  * 로그인 없이 들어오므로 조회 대상은 URL 의 `orgId` 로만 정한다 — 없으면 도 전체다.
  */
-function SolarEduPage() {
+interface SolarEduPageProps {
+  /**
+   * 어느 시안으로 보여 줄지. 없으면 현행(시안 A).
+   *
+   * 눈높이(초·중·고)와는 다른 축이다 — 눈높이는 **무엇을 말할지**, 시안은 **어떻게 늘어놓을지**를
+   * 가른다. 그래서 둘이 곱해져 열두 가지 화면이 나오고, 어느 시안을 골라도 눈높이는 그대로 따라온다.
+   */
+  variant?: EduVariant;
+}
+
+function SolarEduPage({ variant }: SolarEduPageProps) {
   const { orgId } = useParams<{ orgId: string }>();
   const navigate = useNavigate();
   // 수동으로 고른 눈높이는 URL 에 남긴다 — 모니터에 걸어 두는 화면이라 새로고침에도 살아 있어야 한다.
@@ -125,6 +136,7 @@ function SolarEduPage() {
   return (
     <SolarEduLayout
       scopeLabel={node.fullName}
+      variantLabel={variant ? EDU_VARIANT_LABEL[variant][content.level] : undefined}
       scopeInfo={scopeInfo}
       scopePicker={(
         <select
@@ -132,9 +144,10 @@ function SolarEduPage() {
           value={node.plantId ?? ''}
           aria-label="학교 고르기"
           onChange={(event) => {
-            const base = event.target.value ? buildPath.solarEdu(event.target.value) : PATH.SOLAR_EDU;
+            // 보고 있던 시안과 고정해 둔 눈높이는 학교를 옮겨도 따라간다.
+            const root = variant ? `${PATH.SOLAR_EDU}/${variant}` : PATH.SOLAR_EDU;
+            const base = event.target.value ? `${root}/${event.target.value}` : root;
 
-            // 고정해 둔 눈높이는 학교를 옮겨도 따라간다.
             navigate(levelParam ? `${base}?level=${levelParam}` : base);
           }}
         >
@@ -168,7 +181,9 @@ function SolarEduPage() {
       factIndex={fact.page}
       onSelectFact={fact.goTo}
     >
-      {content.level === 'elementary' ? (
+      {variant ? (
+        <EduBoard variant={variant} scopeLabel={node.fullName} stats={stats} content={content} nowHour={nowHour} />
+      ) : content.level === 'elementary' ? (
         <ElementaryStage stats={stats} content={content} />
       ) : content.level === 'middle' ? (
         <MiddleBoard scopeLabel={node.fullName} stats={stats} content={content} />

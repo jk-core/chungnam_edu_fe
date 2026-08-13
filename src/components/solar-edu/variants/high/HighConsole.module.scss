@@ -1,0 +1,349 @@
+@use "@/styles/tokens/spacing" as s;
+@use "@/styles/tokens/typography" as t;
+@use "@/styles/utils/media" as media;
+
+/*
+  AI 콘솔.
+
+  왼쪽이 입력, 가운데가 모델, 오른쪽이 출력. 진단 파이프라인의 순서가 그대로 화면의 순서다 —
+  읽는 방향이 곧 값이 흐르는 방향이라, 무엇이 무엇을 낳았는지 화살표 없이도 읽힌다.
+
+  어둠은 이 화면 안에서만 걸린다. 문서 전체를 건드리면 다른 시안까지 따라 어두워진다.
+*/
+.console {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1.1fr) minmax(0, 1fr);
+  gap: s.$space-3;
+  height: 100%;
+  min-height: 0;
+  padding: s.$space-3;
+  border: 1px solid var(--border-subtle);
+  border-radius: s.$radius-lg;
+  background-color: var(--paper);
+  color: var(--text);
+
+  @include media.tablet {
+    grid-template-columns: 1fr;
+    height: auto;
+  }
+}
+
+.panel {
+  display: flex;
+  flex-direction: column;
+  gap: s.$space-3;
+  min-height: 0;
+  padding: s.$space-3 s.$space-4;
+  border: 1px solid var(--border-subtle);
+  border-radius: s.$radius-md;
+  background-color: var(--surface);
+}
+
+/* 판 이름은 영문 대문자로 — 콘솔이라는 것을 글자꼴이 먼저 말한다 */
+.panel__title {
+  @include t.label-md;
+
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: s.$space-2;
+  padding-bottom: s.$space-2;
+  border-bottom: 1px solid var(--border-subtle);
+  color: var(--ai-scan);
+  font-family: var(--font-data);
+  letter-spacing: 0.12em;
+
+  span {
+    @include t.caption;
+
+    color: var(--text-muted);
+    font-family: var(--font-sans);
+    letter-spacing: normal;
+  }
+}
+
+// ── 왼쪽 · 특징량 ──────────────────────────────────────────
+.features {
+  display: flex;
+  flex-direction: column;
+  gap: s.$space-3;
+}
+
+.feature {
+  display: grid;
+  grid-template-areas:
+    "label raw"
+    "track track";
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: s.$space-1 s.$space-2;
+}
+
+.feature__label {
+  @include t.body-sm;
+
+  grid-area: label;
+  color: var(--text-muted);
+}
+
+.feature__raw {
+  @include t.label-sm;
+
+  grid-area: raw;
+  color: var(--text-strong);
+  font-family: var(--font-data);
+  font-variant-numeric: tabular-nums;
+}
+
+.feature__track {
+  grid-area: track;
+  height: 6px;
+  border-radius: s.$radius-full;
+  background-color: var(--surface-sunken);
+  overflow: hidden;
+}
+
+.feature__fill {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, var(--ai-scan), var(--ai-classify));
+  transition: inline-size 0.8s cubic-bezier(0.22, 0.68, 0.32, 1);
+}
+
+.curve {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-height: 0;
+}
+
+.curve__label {
+  @include t.caption;
+
+  color: var(--text-faint);
+  font-family: var(--font-data);
+}
+
+// ── 가운데 · 모델 ──────────────────────────────────────────
+.net {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: s.$space-2 0;
+}
+
+.graph {
+  width: 100%;
+  max-height: 160px;
+}
+
+/*
+  아직 신호가 닿지 않은 층은 흐리게 둔다.
+  다 밝혀 두면 층을 지나며 판단이 만들어진다는 이 그림의 뜻이 사라진다.
+*/
+.graph__edge {
+  stroke: var(--border);
+  stroke-width: 1;
+  opacity: 0.35;
+  transition: stroke 0.5s ease, opacity 0.5s ease;
+
+  &[data-on] {
+    stroke: var(--ai-scan);
+    opacity: 0.55;
+  }
+}
+
+.graph__node {
+  fill: var(--surface-sunken);
+  stroke: var(--border-strong);
+  stroke-width: 1.4;
+  transition: fill 0.5s ease, stroke 0.5s ease;
+
+  &[data-on] {
+    fill: var(--ai-classify);
+    stroke: var(--ai-scan);
+  }
+}
+
+// ── 가운데 · 로그 ──────────────────────────────────────────
+.log {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: s.$space-2;
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+
+.log__row {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: s.$space-2;
+  padding: s.$space-2;
+  border-left: 2px solid var(--border);
+  border-radius: s.$radius-sm;
+  background-color: var(--surface-sunken);
+  opacity: 0.45;
+  transition: opacity 0.5s ease, border-color 0.5s ease;
+
+  &[data-on] {
+    border-left-color: var(--ai-scan);
+    opacity: 1;
+  }
+
+  strong {
+    @include t.label-sm;
+
+    display: block;
+    color: var(--text-strong);
+  }
+}
+
+.log__key {
+  @include t.caption;
+
+  color: var(--ai-scan);
+  font-family: var(--font-data);
+}
+
+/* 그 자리에서 일어나는 일 */
+.log__physics {
+  @include t.caption;
+
+  color: var(--text-muted);
+}
+
+/* AI 가 그 자리에서 보는 것 — 색을 갈라 두 이야기가 섞이지 않게 한다 */
+.log__diagnosis {
+  @include t.caption;
+
+  color: var(--ai-scan);
+}
+
+.progress {
+  height: 6px;
+  border-radius: s.$radius-full;
+  background-color: var(--surface-sunken);
+  overflow: hidden;
+
+  span {
+    display: block;
+    height: 100%;
+    border-radius: inherit;
+    background: linear-gradient(90deg, var(--ai-scan), var(--ai-reason), var(--ai-done));
+    transition: inline-size 0.25s linear;
+  }
+}
+
+// ── 오른쪽 · 결과 ──────────────────────────────────────────
+.verdict {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  padding: s.$space-4;
+  border: 1px solid var(--tone, var(--ai-done));
+  border-radius: s.$radius-md;
+  background-color: color-mix(in srgb, var(--tone, var(--ai-done)) 12%, transparent);
+
+  &[data-band="good"] {
+    --tone: var(--ai-done);
+  }
+
+  &[data-band="fair"] {
+    --tone: var(--caution);
+  }
+
+  &[data-band="low"] {
+    --tone: var(--critical);
+  }
+
+  &[data-band="offline"] {
+    --tone: var(--offline);
+  }
+}
+
+.verdict__value {
+  color: var(--text-strong);
+  font-family: var(--font-data);
+  font-size: 46px;
+  font-weight: 700;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+}
+
+.verdict__label {
+  @include t.caption;
+
+  color: var(--text-muted);
+}
+
+/* 아직 드러날 소견이 없는 동안 그 자리를 대신 지키는 줄 */
+.waiting {
+  @include t.body-sm;
+
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: s.$space-3;
+  border: 1px dashed var(--border);
+  border-radius: s.$radius-md;
+  color: var(--ai-scan);
+
+  span {
+    @include t.caption;
+
+    color: var(--text-faint);
+  }
+}
+
+.lines {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: s.$space-2;
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+
+/*
+  소견 한 줄.
+  아직 나오지 않은 줄은 자리만 남긴다 — 자리가 없으면 줄이 나올 때마다 아래가 밀려 읽던 곳을 잃는다.
+*/
+.line {
+  @include t.body-sm;
+
+  min-height: 1.2em;
+  padding-left: s.$space-3;
+  border-left: 2px solid var(--border);
+  color: var(--text-muted);
+  opacity: 0;
+  transition: opacity 0.5s ease, border-color 0.5s ease;
+
+  &[data-on] {
+    border-left-color: var(--ai-reason);
+    color: var(--text);
+    opacity: 1;
+  }
+}
+
+.footer {
+  @include t.caption;
+
+  padding-top: s.$space-2;
+  border-top: 1px solid var(--border-subtle);
+  color: var(--text-faint);
+}
+
+@include media.reduced-motion {
+  .feature__fill,
+  .graph__edge,
+  .graph__node,
+  .log__row,
+  .line,
+  .progress span {
+    transition: none;
+  }
+}

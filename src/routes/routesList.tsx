@@ -17,6 +17,9 @@ const MyPage = lazy(() => import('@/pages/MyPage'));
 const LoginPage = lazy(() => import('@/pages/Login'));
 const SolarEduPage = lazy(() => import('@/pages/SolarEdu'));
 const ControlRoomPage = lazy(() => import('@/pages/ControlRoom'));
+const WarRoomPage = lazy(() => import('@/pages/ControlRoom/variants/WarRoom'));
+const TriagePage = lazy(() => import('@/pages/ControlRoom/variants/Triage'));
+const DataWallPage = lazy(() => import('@/pages/ControlRoom/variants/DataWall'));
 const AdminLayout = lazy(() => import('@/layouts/AdminLayout'));
 const AdminPage = lazy(() => import('@/pages/Admin'));
 
@@ -35,6 +38,17 @@ export const routes: RouteObject[] = [
   // 교육용 대시보드는 모니터에 걸어 두고 조작 없이 돌리는 화면이라 로그인을 요구하지 않는다 (SFR-005-08).
   // 세션이 만료됐다고 복도 모니터가 로그인 화면으로 튕기면 안 된다.
   { path: PATH.SOLAR_EDU, element: <SolarEduPage /> },
+  /*
+    시안 주소를 학교 주소(`/solar-edu/:orgId`)보다 **먼저** 세운다.
+    라우터가 고정 조각을 변수 조각보다 앞에 두긴 하지만, 읽는 사람에게도 b·c·d 가
+    학교 id 가 아니라는 것이 보여야 한다. 학교 id 는 `천안-1` 꼴이라 겹칠 일도 없다.
+  */
+  { path: PATH.SOLAR_EDU_B, element: <SolarEduPage variant="b" /> },
+  { path: `${PATH.SOLAR_EDU_B}/:orgId`, element: <SolarEduPage variant="b" /> },
+  { path: PATH.SOLAR_EDU_C, element: <SolarEduPage variant="c" /> },
+  { path: `${PATH.SOLAR_EDU_C}/:orgId`, element: <SolarEduPage variant="c" /> },
+  { path: PATH.SOLAR_EDU_D, element: <SolarEduPage variant="d" /> },
+  { path: `${PATH.SOLAR_EDU_D}/:orgId`, element: <SolarEduPage variant="d" /> },
   { path: `${PATH.SOLAR_EDU}/:orgId`, element: <SolarEduPage /> },
   // 교육용 화면을 하나로 합치기 전 주소. 모니터에 이미 걸린 URL 이 있을 수 있어 넘겨만 준다.
   { path: PATH.KIOSK, element: <Navigate to={PATH.SOLAR_EDU} replace /> },
@@ -45,6 +59,10 @@ export const routes: RouteObject[] = [
     children: [
       // 통합관제 상황판은 운영자용이라 로그인은 받되, 헤더·LNB 없이 화면을 다 쓴다.
       { path: PATH.CONTROL, element: <ControlRoomPage /> },
+      // 비교용 시안. 값은 같고 늘어놓는 방식만 다르다.
+      { path: PATH.CONTROL_B, element: <WarRoomPage /> },
+      { path: PATH.CONTROL_C, element: <TriagePage /> },
+      { path: PATH.CONTROL_D, element: <DataWallPage /> },
       {
         path: PATH.HOME,
         element: <RootLayout />,

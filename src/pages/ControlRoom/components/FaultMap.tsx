@@ -29,8 +29,8 @@ interface FaultMapProps {
    * `all` 은 관내 전부를 상태 색으로 찍어 분포를 보여 준다.
    */
   scope?: 'faults' | 'all';
-  /** 지도 높이(px) */
-  height?: number;
+  /** 지도 높이. `'100%'` 를 주면 칸을 꽉 채운다 */
+  height?: number | string;
   /** 점을 눌러 그 발전소 설명을 옆에 펼칠지 */
   selectable?: boolean;
 }
