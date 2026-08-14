@@ -27,18 +27,18 @@
   justify-content: space-between;
   gap: s.$space-4;
   flex-wrap: wrap;
-}
 
-.head__title {
-  @include t.title-md;
+  &__title {
+    @include t.title-md;
 
-  color: var(--text-strong);
-}
+    color: var(--text-strong);
+  }
 
-.head__note {
-  @include t.body-sm;
+  &__note {
+    @include t.body-sm;
 
-  color: var(--text-muted);
+    color: var(--text-muted);
+  }
 }
 
 .tiles {
@@ -54,12 +54,6 @@
   }
 }
 
-/*
-  타일 하나.
-
-  물음마다 색을 갈라 둔다 — 여섯이 같은 흰 카드로 서면 표가 되어, 어느 것부터 읽어도 된다는
-  이 시안의 전제가 오히려 "다 읽어야 한다" 로 뒤집힌다.
-*/
 .tile {
   display: grid;
   grid-template-rows: auto minmax(0, 1fr) auto auto;
@@ -74,6 +68,18 @@
     var(--surface) 58%
   );
   box-shadow: var(--shadow-sm);
+  transition: border-color 0.6s ease, box-shadow 0.6s ease, translate 0.6s cubic-bezier(0.22, 0.68, 0.32, 1);
+
+  /*
+    지금 도드라진 물음.
+    앞으로 조금 나오고 테두리가 제 색으로 짙어진다 — 크기를 키우지 않는 것은 여섯 칸의 격자가
+    흔들리면 나머지 다섯을 읽던 눈까지 흔들리기 때문이다.
+  */
+  &[data-on] {
+    border-color: var(--tone);
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--tone) 20%, transparent), var(--shadow-md);
+    translate: 0 -4px;
+  }
 
   &[data-tone="solar"] {
     --tone: var(--solar);
@@ -86,46 +92,70 @@
   &[data-tone="ok"] {
     --tone: var(--ok);
   }
-}
 
-.tile__head {
-  display: flex;
-  align-items: baseline;
-  gap: s.$space-2;
-}
+  &__head {
+    display: flex;
+    align-items: baseline;
+    gap: s.$space-2;
+  }
 
-/* 물음 번호 — 순서를 매기려는 것이 아니라 물음이라는 것을 표시하는 표찰이다 */
-.tile__no {
-  @include t.caption;
+  &__no {
+    @include t.caption;
 
-  flex: none;
-  padding: 1px s.$space-2;
-  border-radius: s.$radius-full;
-  background-color: var(--tone);
-  color: var(--text-on-brand);
-  font-family: var(--font-data);
-  font-weight: 700;
-}
+    flex: none;
+    padding: 1px s.$space-2;
+    border-radius: s.$radius-full;
+    background-color: var(--tone);
+    color: var(--text-on-brand);
+    font-family: var(--font-data);
+    font-weight: 700;
+  }
 
-/* 물음이 제목이다 — 답보다 크고 진하게 두어 눈이 먼저 물음에 걸리게 한다 */
-.tile__ask {
-  @include t.title-sm;
+  &__ask {
+    @include t.title-sm;
 
-  color: var(--text-strong);
-}
+    color: var(--text-strong);
+  }
 
-.tile__art {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  min-height: 0;
-  padding: s.$space-2 0;
-  border-radius: s.$radius-md;
-  background-color: color-mix(in srgb, var(--tone) 7%, transparent);
+  &__art {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 0;
+    padding: s.$space-2 0;
+    border-radius: s.$radius-md;
+    background-color: color-mix(in srgb, var(--tone) 7%, transparent);
 
-  svg {
-    width: 100%;
-    height: 100%;
+    svg {
+      width: 100%;
+      height: 100%;
+    }
+  }
+
+  &__answer {
+    @include t.body-sm;
+
+    color: var(--text);
+  }
+
+  &__evidence {
+    @include t.caption;
+
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: s.$space-2;
+    padding-top: s.$space-2;
+    border-top: 1px dashed var(--border);
+    color: var(--text-faint);
+
+    strong {
+      @include t.label-md;
+
+      color: var(--text-strong);
+      font-family: var(--font-data);
+      font-variant-numeric: tabular-nums;
+    }
   }
 }
 
@@ -150,32 +180,8 @@
   font-weight: 600;
 }
 
-.tile__answer {
-  @include t.body-sm;
-
-  color: var(--text);
-}
-
-/*
-  답을 뒷받침하는 오늘의 값.
-  이 줄이 있어야 답이 교과서 문장이 아니라 지금 지붕 위에서 확인된 사실이 된다.
-*/
-.tile__evidence {
-  @include t.caption;
-
-  display: flex;
-  align-items: baseline;
-  justify-content: space-between;
-  gap: s.$space-2;
-  padding-top: s.$space-2;
-  border-top: 1px dashed var(--border);
-  color: var(--text-faint);
-
-  strong {
-    @include t.label-md;
-
-    color: var(--text-strong);
-    font-family: var(--font-data);
-    font-variant-numeric: tabular-nums;
+@include media.reduced-motion {
+  .tile {
+    transition: none;
   }
 }

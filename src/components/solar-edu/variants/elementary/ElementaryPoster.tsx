@@ -27,11 +27,41 @@ interface ElementaryPosterProps {
  * 그림은 여전히 살아 움직이지만 **순서를 정해 주지 않는** 것이 이 시안이 앞의 것들과 다른 점이다.
  */
 export function ElementaryPoster({ stats, content, nowHour }: ElementaryPosterProps) {
+  /*
+    그림의 네 마디.
+
+    값만 적으면 그림 아래 붙은 숫자표가 된다. 마디마다 **여기서 무슨 일이 일어나는지** 를 한 줄씩
+    적어야 벽보가 설명이 된다 — 걸어 두는 화면의 목적이 태양광을 설명하는 것이기 때문이다.
+  */
   const marks = [
-    { id: 'sun', label: '햇빛', value: `${formatNumber((stats.irradianceNow / 1000) * 100)}점`, note: '지금 햇빛 세기' },
-    { id: 'panel', label: '태양전지', value: `${formatNumber(stats.moduleArea)}m²`, note: '햇빛 받는 넓이' },
-    { id: 'inverter', label: '인버터', value: `${formatNumber(stats.outputKw, 1)}kW`, note: '지금 만드는 힘' },
-    { id: 'school', label: '교실', value: `${formatNumber(stats.todayKwh, 0)}kWh`, note: '오늘 만든 전기' },
+    {
+      id: 'sun',
+      label: '햇빛',
+      value: `${formatNumber((stats.irradianceNow / 1000) * 100)}점`,
+      note: '지금 햇빛 세기',
+      why: '해가 높이 뜰수록 빛이 판에 똑바로 닿아 더 많이 만들어요',
+    },
+    {
+      id: 'panel',
+      label: '태양전지',
+      value: `${formatNumber(stats.moduleArea)}m²`,
+      note: '햇빛 받는 넓이',
+      why: '햇빛을 받으면 판 안에서 전기가 한 방향으로 흐르기 시작해요',
+    },
+    {
+      id: 'inverter',
+      label: '인버터',
+      value: `${formatNumber(stats.outputKw, 1)}kW`,
+      note: '지금 만드는 힘',
+      why: '판이 만든 전기를 교실 콘센트에서 쓸 수 있게 바꿔 줘요',
+    },
+    {
+      id: 'school',
+      label: '교실',
+      value: `${formatNumber(stats.todayKwh, 0)}kWh`,
+      note: '오늘 만든 전기',
+      why: '불을 켜고 선풍기를 돌리고, 남으면 바깥으로 보내요',
+    },
   ];
 
   return (
@@ -56,6 +86,7 @@ export function ElementaryPoster({ stats, content, nowHour }: ElementaryPosterPr
               <span className={styles.mark__label}>{mark.label}</span>
               <strong className={styles.mark__value}>{mark.value}</strong>
               <span className={styles.mark__note}>{mark.note}</span>
+              <p className={styles.mark__why}>{mark.why}</p>
             </li>
           ))}
         </ul>

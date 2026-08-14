@@ -5,6 +5,7 @@ import { formatNumber } from '@/utils/format';
 import type { MiddleContent } from '@/mocks/eduContent';
 import type { EduStats } from '@/mocks/solarEdu';
 import { DayCurve } from '../shared/DayCurve';
+import { PrincipleStrip } from '../shared/PrincipleStrip';
 import styles from './MiddleCompare.module.scss';
 import type { CSSProperties } from 'react';
 
@@ -110,6 +111,13 @@ export function MiddleCompare({ scopeLabel, stats, content }: MiddleCompareProps
           <DuelCard key={duel.id} duel={duel} />
         ))}
       </div>
+
+      {/*
+        견주기만으로는 태양광을 배울 수 없다.
+        이 화면은 "무엇이 값을 바꾸는가" 를 답하는데, 그 값이 애초에 **어떻게 만들어지는가** 는
+        다루지 않는다. 걸어 두는 화면의 목적이 태양광 설명이라면 원리가 빠져서는 안 된다.
+      */}
+      <PrincipleStrip stats={stats} level="middle" heading="견주기 전에 — 햇빛이 전기가 되는 길" />
 
       <div className={styles.bottom}>
         <section className={styles.curve} aria-label="오늘 하루 발전 곡선">

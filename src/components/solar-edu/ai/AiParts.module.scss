@@ -3,31 +3,23 @@
 @use "@/styles/tokens/typography" as t;
 @use "@/styles/utils/media" as media;
 
-/*
-  AI 패널의 조각들.
-
-  단계마다 하는 일이 다르니 보이는 것도 달라야 한다 — 값을 읽을 때는 격자와 기록,
-  견줄 때는 확률 막대, 풀어 쓸 때는 문장이다. 여기 담긴 것은 그 세 얼굴과, 넷을 잇는 파이프라인이다.
-*/
-
-/* ── 신경망 마크 ──────────────────────────────────────────── */
 .neural {
   width: 100px;
   height: 44px;
   flex-shrink: 0;
-}
 
-.neural__node {
-  fill: var(--ai-stage, var(--brand));
-  opacity: 0.25;
-  animation: neural-fire 2.6s ease-in-out infinite;
-}
+  &__node {
+    fill: var(--ai-stage, var(--brand));
+    opacity: 0.25;
+    animation: neural-fire 2.6s ease-in-out infinite;
+  }
 
-.neural__edge {
-  stroke: var(--ai-stage, var(--brand));
-  stroke-width: 0.7;
-  opacity: 0.12;
-  animation: neural-wire 2.6s ease-in-out infinite;
+  &__edge {
+    stroke: var(--ai-stage, var(--brand));
+    stroke-width: 0.7;
+    opacity: 0.12;
+    animation: neural-wire 2.6s ease-in-out infinite;
+  }
 }
 
 @keyframes neural-fire {
@@ -56,77 +48,75 @@
   }
 }
 
-/* ── 파이프라인 ───────────────────────────────────────────── */
 .pipe {
   display: flex;
   width: 100%;
   list-style: none;
-}
 
-.pipe__step {
-  position: relative;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 5px;
-  flex: 1;
-  min-width: 0;
-}
+  &__step {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 5px;
+    flex: 1;
+    min-width: 0;
 
-/* 마디를 잇는 선 — 지나간 만큼 단계색으로 찬다 */
-.pipe__wire {
-  position: absolute;
-  top: 5px;
-  right: 50%;
-  left: -50%;
-  height: 2px;
-  border-radius: s.$radius-full;
-  background: linear-gradient(
-    90deg,
-    var(--ai-stage) var(--fill, 0%),
-    var(--border-subtle) var(--fill, 0%)
-  );
-  transition: background 0.3s linear;
-}
+    &--done {
+      .pipe__node {
+        border-color: var(--ai-done);
+        background-color: var(--ai-done);
+      }
 
-.pipe__node {
-  position: relative;
-  z-index: 1;
-  width: 12px;
-  height: 12px;
-  border: 2px solid var(--border-strong);
-  border-radius: 50%;
-  background-color: var(--surface);
-  transition: border-color 0.4s ease, background-color 0.4s ease;
-}
+      .pipe__label {
+        color: var(--text-muted);
+      }
+    }
 
-.pipe__label {
-  @include t.caption;
+    &--active {
+      .pipe__node {
+        @include ai.stage-mark;
+      }
 
-  color: var(--text-faint);
-  text-align: center;
-  transition: color 0.4s ease;
-}
-
-.pipe__step--done {
-  .pipe__node {
-    border-color: var(--ai-done);
-    background-color: var(--ai-done);
+      .pipe__label {
+        color: var(--ai-stage);
+        font-weight: 600;
+      }
+    }
   }
 
-  .pipe__label {
-    color: var(--text-muted);
+  &__wire {
+    position: absolute;
+    top: 5px;
+    right: 50%;
+    left: -50%;
+    height: 2px;
+    border-radius: s.$radius-full;
+    background: linear-gradient(
+      90deg,
+      var(--ai-stage) var(--fill, 0%),
+      var(--border-subtle) var(--fill, 0%)
+    );
+    transition: background 0.3s linear;
   }
-}
 
-.pipe__step--active {
-  .pipe__node {
-    @include ai.stage-mark;
+  &__node {
+    position: relative;
+    z-index: 1;
+    width: 12px;
+    height: 12px;
+    border: 2px solid var(--border-strong);
+    border-radius: 50%;
+    background-color: var(--surface);
+    transition: border-color 0.4s ease, background-color 0.4s ease;
   }
 
-  .pipe__label {
-    color: var(--ai-stage);
-    font-weight: 600;
+  &__label {
+    @include t.caption;
+
+    color: var(--text-faint);
+    text-align: center;
+    transition: color 0.4s ease;
   }
 }
 
@@ -142,13 +132,12 @@
   transition: transform 0.85s cubic-bezier(0.32, 0.72, 0.28, 1);
 }
 
-/* 지금 들여다보지 않는 자리는 뒤로 물러난다 — 지우지 않아 전체가 한 줄로 이어진 것은 남는다 */
 .zone {
   transition: opacity 0.6s ease;
-}
 
-.zone--dim {
-  opacity: 0.26;
+  &--dim {
+    opacity: 0.26;
+  }
 }
 
 /* 셀 위로 비스듬히 떨어지는 빛 알갱이 */
@@ -209,45 +198,38 @@
   }
 }
 
-/* ── 겨냥 상자 ──────────────────────────────────────────────
-   자리가 바뀌면 미끄러지듯 옮겨 간다 — AI 의 시선이 옮겨 가는 것을 상자 하나가 대신 말한다 */
 .aim {
   transform: translate(var(--x, 0), var(--y, 0));
   transition: transform 0.7s cubic-bezier(0.22, 0.68, 0.32, 1);
-}
 
-.aim__box {
-  fill: color-mix(in srgb, var(--ai-scan) 7%, transparent);
-  stroke: color-mix(in srgb, var(--ai-scan) 34%, transparent);
-  stroke-width: 1;
-}
+  &__box {
+    fill: color-mix(in srgb, var(--ai-scan) 7%, transparent);
+    stroke: color-mix(in srgb, var(--ai-scan) 34%, transparent);
+    stroke-width: 1;
+  }
 
-.aim__corner {
-  fill: none;
-  stroke: var(--ai-scan);
-  stroke-width: 2;
-  stroke-linecap: round;
-}
+  &__corner {
+    fill: none;
+    stroke: var(--ai-scan);
+    stroke-width: 2;
+    stroke-linecap: round;
+  }
 
-/*
-  상자 안을 위아래로 훑는 빛 — 자리마다 높이가 달라 내려갈 거리도 달라진다.
-  읽는 선과 꼬리를 한 덩이로 묶어 함께 내려보낸다.
-*/
-.aim__scan {
-  animation: aim-scan 3.2s cubic-bezier(0.45, 0, 0.55, 1) infinite;
-}
+  &__scan {
+    animation: aim-scan 3.2s cubic-bezier(0.45, 0, 0.55, 1) infinite;
+  }
 
-/* 지금 읽고 있는 선 — 꼬리 맨 앞에 서는 한 줄이라 얇고 밝다 */
-.aim__edge {
-  stroke: var(--ai-scan);
-  stroke-width: 1.4;
-  filter: drop-shadow(0 0 3px color-mix(in srgb, var(--ai-scan) 70%, transparent));
-}
+  &__edge {
+    stroke: var(--ai-scan);
+    stroke-width: 1.4;
+    filter: drop-shadow(0 0 3px color-mix(in srgb, var(--ai-scan) 70%, transparent));
+  }
 
-.aim__label {
-  fill: var(--ai-scan);
-  font-family: "Pretendard Variable", sans-serif;
-  transition: x 0.7s cubic-bezier(0.22, 0.68, 0.32, 1);
+  &__label {
+    fill: var(--ai-scan);
+    font-family: "Pretendard Variable", sans-serif;
+    transition: x 0.7s cubic-bezier(0.22, 0.68, 0.32, 1);
+  }
 }
 
 @keyframes aim-scan {
@@ -278,10 +260,10 @@
   color: var(--text-muted);
   font-variant-numeric: tabular-nums;
   animation: log-in 0.3s ease both;
-}
 
-.log__mark {
-  color: var(--ai-stage);
+  &__mark {
+    color: var(--ai-stage);
+  }
 }
 
 @keyframes log-in {
@@ -296,7 +278,6 @@
   }
 }
 
-/* ── 견주기 단계 ──────────────────────────────────────────── */
 .classify {
   display: flex;
   flex-direction: column;
@@ -304,12 +285,12 @@
   height: 100%;
   min-height: 0;
   text-align: left;
-}
 
-.classify__head {
-  @include t.label-sm;
+  &__head {
+    @include t.label-sm;
 
-  color: var(--text-muted);
+    color: var(--text-muted);
+  }
 }
 
 .bars {
@@ -319,49 +300,51 @@
   list-style: none;
 }
 
-.bar__head {
-  @include t.label-sm;
+.bar {
+  &__head {
+    @include t.label-sm;
 
-  display: flex;
-  align-items: baseline;
-  justify-content: space-between;
-  gap: s.$space-2;
-  color: var(--text-strong);
-}
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: s.$space-2;
+    color: var(--text-strong);
+  }
 
-.bar__value {
-  color: var(--ai-stage);
-  font-family: "Space Grotesk", sans-serif;
-  font-variant-numeric: tabular-nums;
-}
+  &__value {
+    color: var(--ai-stage);
+    font-family: "Space Grotesk", sans-serif;
+    font-variant-numeric: tabular-nums;
+  }
 
-.bar__track {
-  display: block;
-  height: 7px;
-  margin: 4px 0 3px;
-  border-radius: s.$radius-full;
-  background-color: var(--surface-sunken);
-  overflow: hidden;
-}
+  &__track {
+    display: block;
+    height: 7px;
+    margin: 4px 0 3px;
+    border-radius: s.$radius-full;
+    background-color: var(--surface-sunken);
+    overflow: hidden;
+  }
 
-.bar__fill {
-  display: block;
-  width: var(--fill, 0%);
-  height: 100%;
-  border-radius: s.$radius-full;
-  background: linear-gradient(
-    90deg,
-    color-mix(in srgb, var(--ai-stage) 55%, transparent),
-    var(--ai-stage)
-  );
-  box-shadow: 0 0 8px color-mix(in srgb, var(--ai-stage) 45%, transparent);
-  transition: width 0.25s linear;
-}
+  &__fill {
+    display: block;
+    width: var(--fill, 0%);
+    height: 100%;
+    border-radius: s.$radius-full;
+    background: linear-gradient(
+      90deg,
+      color-mix(in srgb, var(--ai-stage) 55%, transparent),
+      var(--ai-stage)
+    );
+    box-shadow: 0 0 8px color-mix(in srgb, var(--ai-stage) 45%, transparent);
+    transition: width 0.25s linear;
+  }
 
-.bar__note {
-  @include t.caption;
+  &__note {
+    @include t.caption;
 
-  color: var(--text-faint);
+    color: var(--text-faint);
+  }
 }
 
 @include media.reduced-motion {

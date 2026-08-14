@@ -1,14 +1,24 @@
 import { CountUp } from '@/components/common/CountUp';
-import { growthStage, kwhToTrees } from '@/utils/eco';
 import { impactOf } from '@/mocks/eduContent';
+import type { ImpactId } from '@/mocks/eduContent';
 import type { EduStats } from '@/mocks/solarEdu';
 import type { MiddleBenefitContent } from '@/mocks/eduMiddle';
-import { GrowingTree } from './GrowingTree';
-import { IMPACT_ICONS } from './EduIcons';
+import { ImpactArt } from './scene-art/ImpactArt';
 import styles from './MiddleBoard.module.scss';
+import type { ImpactArtId } from './scene-art/ImpactArt';
 
-/** 나무가 다 자라는 기준 — 하루 등가 발전시간 5시간을 만점으로 본다. */
-const FULL_GROWTH_HOURS = 5;
+/**
+ * 환산값마다 세울 그림.
+ *
+ * 초등 판이 "무엇이 좋아졌나" 에서 쓰던 것을 그대로 가져온다. 복도에서 초등 판을 보던 아이가
+ * 교실에서 중등 판을 볼 때 같은 그림이 서 있어야 같은 이야기로 이어진다.
+ */
+const ART_OF: Record<ImpactId, ImpactArtId> = {
+  co2: 'co2',
+  tree: 'tree',
+  household: 'house',
+  led: 'lamp',
+};
 
 interface MiddleBenefitCardProps {
   scopeLabel: string;
@@ -18,12 +28,16 @@ interface MiddleBenefitCardProps {
 
 /**
  * 그래서 무엇이 좋아지는가 (SFR-005-03/05).
- * 나무는 발전량을 따라 자란다 — 값이 바뀌면 그림도 바뀌는 자리다.
+ *
+ * 전에는 자라는 나무 한 그루가 칸의 절반을 차지하고 환산값 넷이 그 아래 줄지어 있었다. 나무는
+ * 예쁘지만 **나무 하나만 설명한다** — 나머지 셋은 값만 남고, 정작 이 칸의 물음인 "무엇이
+ * 좋아지는가" 에는 답하지 못했다.
+ *
+ * 그래서 넷을 같은 크기로 세우고 저마다 그림·값·한 줄 설명을 갖게 했다. 그림은 초등 판이
+ * 쓰던 것을 그대로 가져와, 두 판을 오가며 보는 아이가 같은 것을 말하고 있다는 걸 알아본다.
+ * 값 아래 한 줄이 붙어야 표가 아니라 설명이 된다.
  */
 export function MiddleBenefitCard({ scopeLabel, stats, content }: MiddleBenefitCardProps) {
-  const trees = kwhToTrees(stats.dayKwh);
-  const stage = growthStage(stats.equivalentHours / FULL_GROWTH_HOURS);
-
   return (
     <section className={styles.card}>
       <p className={styles.card__head}>
@@ -31,33 +45,34 @@ export function MiddleBenefitCard({ scopeLabel, stats, content }: MiddleBenefitC
         <span className={styles.card__note}>{content.note(scopeLabel, stats)}</span>
       </p>
 
-      <div className={styles.benefit}>
-        <div className={styles.benefit__tree}>
-          <GrowingTree stage={stage} trees={trees} />
-          <p className={styles.benefit__caption}>{content.caption}</p>
-        </div>
+      <ul className={styles.benefit}>
+        {content.itemIds.map((id) => {
+          const item = impactOf(id, content.copy?.[id]);
 
-        <ul className={styles.benefit__list}>
-          {content.itemIds.map((id) => {
-            const item = impactOf(id, content.copy?.[id]);
+          return (
+            <li key={id} className={styles.impact}>
+              <span className={styles.impact__art} aria-hidden="true">
+                <ImpactArt id={ART_OF[id]} />
+              </span>
 
-            return (
-              <li key={id} className={styles.chip}>
-                <span className={styles.chip__icon}>{IMPACT_ICONS[id]}</span>
-                <span className={styles.chip__label}>{item.label}</span>
-                <span className={styles.chip__value}>
+              <div className={styles.impact__text}>
+                <p className={styles.impact__label}>{item.label}</p>
+                <p className={styles.impact__value}>
                   <CountUp
                     value={stats.dayKwh * item.perKwh}
                     fractionDigits={item.fractionDigits}
                     startOnView={false}
                   />
-                  <span className={styles.chip__unit}>{item.unit}</span>
-                </span>
-              </li>
-            );
-          })}
-        </ul>
-      </div>
+                  <span>{item.unit}</span>
+                </p>
+                <p className={styles.impact__line}>{item.line}</p>
+              </div>
+            </li>
+          );
+        })}
+      </ul>
+
+      <p className={styles.benefit__caption}>{content.caption}</p>
     </section>
   );
 }

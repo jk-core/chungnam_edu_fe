@@ -1,3 +1,4 @@
+import { useAutoPager } from '@/hooks/useAutoPager';
 import { FULL_SUN_WM2 } from '@/mocks/solarEdu';
 import { SUNRISE_HOUR, SUNSET_HOUR } from '@/mocks/generation';
 import { formatNumber } from '@/utils/format';
@@ -9,6 +10,15 @@ import styles from './MiddleQuiz.module.scss';
 
 /** 그림 하나가 앉는 자리 */
 const ART = { width: 240, height: 108 };
+
+/**
+ * 한 물음이 도드라져 있는 시간.
+ *
+ * 여섯이 늘 똑같이 서 있으면 어디부터 읽어야 할지 정하는 일이 지나가는 사람 몫이 되고, 대개는
+ * 아무것도 안 읽고 지나간다. 하나씩 돌아가며 앞으로 나오면 눈이 거기에 얹히고, 그래도 나머지
+ * 다섯은 그대로 있어 다른 것을 먼저 읽어도 된다 — 순서를 버린다는 이 시안의 전제는 지켜진다.
+ */
+const SPOTLIGHT_MS = 7_000;
 
 type QuizArtId = 'noon' | 'angle' | 'efficiency' | 'area' | 'cloud' | 'hours';
 
@@ -38,6 +48,8 @@ interface MiddleQuizProps {
  * 답이 교과서 문장이 아니라 지금 지붕 위에서 확인된 사실이 된다.
  */
 export function MiddleQuiz({ stats, content }: MiddleQuizProps) {
+  // 여섯을 한 쪽에 하나씩 담으면 곧 하나씩 도드라지는 순환이 된다.
+  const spotlight = useAutoPager({ total: 6, perPage: 1, intervalMs: SPOTLIGHT_MS });
   const sunKw = (stats.irradianceNow * stats.moduleArea) / 1000;
   const efficiency = sunKw > 0 ? (stats.outputKw / sunKw) * 100 : 0;
   const peakHour = stats.hourly.indexOf(Math.max(...stats.hourly));
@@ -97,7 +109,12 @@ export function MiddleQuiz({ stats, content }: MiddleQuizProps) {
 
       <div className={styles.tiles}>
         {questions.map((question, index) => (
-          <article key={question.id} className={styles.tile} data-tone={question.tone}>
+          <article
+            key={question.id}
+            className={styles.tile}
+            data-tone={question.tone}
+            data-on={index === spotlight.page ? '' : undefined}
+          >
             <header className={styles.tile__head}>
               <span className={styles.tile__no}>Q{index + 1}</span>
               <h3 className={styles.tile__ask}>{question.ask}</h3>

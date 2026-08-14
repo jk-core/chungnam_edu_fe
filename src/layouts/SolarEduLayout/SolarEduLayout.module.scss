@@ -95,83 +95,102 @@
   border-bottom: 1px solid var(--border-subtle);
 }
 
-// ── 상태 바 ────────────────────────────────────────────────
 .bar {
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
   gap: s.$space-5;
   flex-wrap: wrap;
-}
 
-.bar__scope {
-  @include t.eyebrow;
+  // 학교 선택기와 학교 정보 — 상황판마다 다른 학교를 띄운다
+  &__scope {
+    @include t.eyebrow;
 
-  color: var(--text-faint);
-}
+    color: var(--text-faint);
 
-.bar__title {
-  @include t.title-lg;
+    display: flex;
+    align-items: center;
+    gap: s.$space-2;
+  }
 
-  margin-top: 2px;
-  color: var(--text-strong);
-}
+  &__title {
+    @include t.title-lg;
 
-.bar__right {
-  display: flex;
-  align-items: center;
-  gap: s.$space-4;
-}
-
-.bar__weather {
-  @include t.body-sm;
-
-  display: flex;
-  align-items: center;
-  gap: s.$space-2;
-  color: var(--text-muted);
-}
-
-// 통합관제 상황판과 같은 모양 — 모니터에 거는 두 화면이 같은 자리에서 같게 동작한다
-.bar__action {
-  @include t.label-sm;
-
-  display: inline-flex;
-  align-items: center;
-  gap: s.$space-2;
-  height: 36px;
-  padding: 0 s.$space-4;
-  border: 1px solid var(--border);
-  border-radius: s.$radius-full;
-  background: none;
-  color: var(--text-muted);
-  cursor: pointer;
-  transition: color 0.16s ease, background-color 0.16s ease, border-color 0.16s ease;
-
-  &:hover {
-    border-color: var(--border-strong);
-    background-color: var(--surface-hover);
+    margin-top: 2px;
     color: var(--text-strong);
   }
 
-  @include mx.keyboard-focus {
-    outline: 2px solid var(--brand);
-    outline-offset: 2px;
+  &__right {
+    display: flex;
+    align-items: center;
+    gap: s.$space-4;
   }
-}
 
-.bar__clock {
-  @include t.data-lg;
+  &__weather {
+    @include t.body-sm;
 
-  color: var(--text-strong);
-}
+    display: flex;
+    align-items: center;
+    gap: s.$space-2;
+    color: var(--text-muted);
+  }
 
-.bar__date {
-  @include t.caption;
+  &__action {
+    @include t.label-sm;
 
-  display: block;
-  color: var(--text-faint);
-  text-align: right;
+    display: inline-flex;
+    align-items: center;
+    gap: s.$space-2;
+    height: 36px;
+    padding: 0 s.$space-4;
+    border: 1px solid var(--border);
+    border-radius: s.$radius-full;
+    background: none;
+    color: var(--text-muted);
+    cursor: pointer;
+    transition: color 0.16s ease, background-color 0.16s ease, border-color 0.16s ease;
+
+    &:hover {
+      border-color: var(--border-strong);
+      background-color: var(--surface-hover);
+      color: var(--text-strong);
+    }
+
+    @include mx.keyboard-focus {
+      outline: 2px solid var(--brand);
+      outline-offset: 2px;
+    }
+  }
+
+  &__clock {
+    @include t.data-lg;
+
+    color: var(--text-strong);
+  }
+
+  &__date {
+    @include t.caption;
+
+    display: block;
+    color: var(--text-faint);
+    text-align: right;
+  }
+
+  &__info {
+    @include t.caption;
+
+    margin-top: 2px;
+    color: var(--edu-text-soft, var(--text-muted));
+  }
+
+  &__variant {
+    padding: 1px s.$space-2;
+    border: 1px solid var(--brand-soft-border);
+    border-radius: s.$radius-full;
+    background-color: var(--brand-soft);
+    color: var(--brand-contrast);
+    font-style: normal;
+  }
 }
 
 // 통신이 끊겼을 때 (SFR-005-10)
@@ -189,8 +208,6 @@
   color: var(--caution-text);
 }
 
-// ── 알고 계셨나요 한 줄 ────────────────────────────────────
-// 위쪽 수치 바로 아래에 놓는 롤링 배너. 일정 시간마다 문구가 밀려 올라오며 갈린다.
 .ticker {
   position: relative;
   z-index: 1;
@@ -205,27 +222,58 @@
   border: 1px solid var(--border-subtle);
   border-radius: s.$radius-md;
   background-color: var(--surface);
-}
 
-.ticker__label {
-  @include t.eyebrow;
+  &__label {
+    @include t.eyebrow;
 
-  flex-shrink: 0;
-  padding-right: s.$space-4;
-  border-right: 1px solid var(--border);
-  color: var(--solar-text);
-}
+    flex-shrink: 0;
+    padding-right: s.$space-4;
+    border-right: 1px solid var(--border);
+    color: var(--solar-text);
+  }
 
-.ticker__text {
-  @include t.body-md;
+  &__text {
+    @include t.body-md;
 
-  flex: 1;
-  min-width: 0;
-  color: var(--text);
-  animation: ticker-roll 0.55s cubic-bezier(0.22, 0.68, 0.32, 1) both;
+    flex: 1;
+    min-width: 0;
+    color: var(--text);
+    animation: ticker-roll 0.55s cubic-bezier(0.22, 0.68, 0.32, 1) both;
 
-  @include media.reduced-motion {
-    animation: none;
+    @include media.reduced-motion {
+      animation: none;
+    }
+  }
+
+  &__dots {
+    display: flex;
+    align-items: center;
+    gap: s.$space-1;
+    flex-shrink: 0;
+  }
+
+  &__dot {
+    width: 6px;
+    background-color: var(--border-strong);
+
+    &:hover {
+      background-color: var(--solar-soft);
+    }
+
+    &--active {
+      width: 18px;
+      background-color: var(--solar);
+    }
+  }
+
+  &__dot,
+&__dot--active {
+    display: block;
+    height: 6px;
+    padding: 0;
+    border: 0;
+    border-radius: s.$radius-full;
+    cursor: pointer;
   }
 }
 
@@ -241,37 +289,6 @@
   }
 }
 
-.ticker__dots {
-  display: flex;
-  align-items: center;
-  gap: s.$space-1;
-  flex-shrink: 0;
-}
-
-.ticker__dot,
-.ticker__dot--active {
-  display: block;
-  height: 6px;
-  padding: 0;
-  border: 0;
-  border-radius: s.$radius-full;
-  cursor: pointer;
-}
-
-.ticker__dot {
-  width: 6px;
-  background-color: var(--border-strong);
-
-  &:hover {
-    background-color: var(--solar-soft);
-  }
-}
-
-.ticker__dot--active {
-  width: 18px;
-  background-color: var(--solar);
-}
-
 // ── 본문 ───────────────────────────────────────────────────
 .body {
   position: relative;
@@ -283,28 +300,4 @@
   @include media.tablet {
     min-height: 640px;
   }
-}
-
-// 학교 선택기와 학교 정보 — 상황판마다 다른 학교를 띄운다
-.bar__scope {
-  display: flex;
-  align-items: center;
-  gap: s.$space-2;
-}
-
-.bar__info {
-  @include t.caption;
-
-  margin-top: 2px;
-  color: var(--edu-text-soft, var(--text-muted));
-}
-
-/* 시안 이름표 — 고르는 동안만 붙는다 */
-.bar__variant {
-  padding: 1px s.$space-2;
-  border: 1px solid var(--brand-soft-border);
-  border-radius: s.$radius-full;
-  background-color: var(--brand-soft);
-  color: var(--brand-contrast);
-  font-style: normal;
 }

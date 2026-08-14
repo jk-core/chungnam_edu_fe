@@ -7,6 +7,7 @@ import type { AnalysisStage } from '@/interface/diagnosis';
 import type { HighContent } from '@/mocks/eduContent';
 import type { EduStats } from '@/mocks/solarEdu';
 import { DayCurve } from '../shared/DayCurve';
+import { PrincipleStrip } from '../shared/PrincipleStrip';
 import styles from './HighConsole.module.scss';
 import type { CSSProperties } from 'react';
 
@@ -52,116 +53,127 @@ export function HighConsole({ scopeLabel, stats, content }: HighConsoleProps) {
   const confidence = Math.min(0.99, Math.max(0.4, achieved));
 
   return (
-    <div className={styles.console} data-theme="dark">
-      {/* 왼쪽 — 무엇을 입력받는가 */}
-      <section className={styles.panel} aria-label="진단에 넣는 특징량">
-        <h2 className={styles.panel__title}>
-          INPUT
-          <span>특징량 {features.length}종</span>
-        </h2>
+    <div className={styles.shell} data-theme="dark">
+      {/*
+        진단 이야기 위에 태양광 원리를 먼저 세운다.
 
-        <ul className={styles.features}>
-          {features.map((feature) => (
-            <li key={feature.id} className={styles.feature}>
-              <span className={styles.feature__label}>{feature.label}</span>
-              <span className={styles.feature__raw}>{feature.raw}</span>
-              <div className={styles.feature__track}>
-                <span
-                  className={styles.feature__fill}
-                  style={{ inlineSize: `${(Math.min(1, Math.max(0, feature.ratio)) * 100).toFixed(1)}%` }}
-                />
-              </div>
-            </li>
-          ))}
-        </ul>
+        이 화면은 AI 가 무엇을 어떻게 판단하는지를 잘 보여 주지만, 정작 **판단의 대상인 태양광**
+        자체는 특징량 네 줄로만 스친다. 걸어 두는 화면의 목적이 태양광 설명이라면 진단은
+        그 위에 얹히는 이야기여야지 그것을 밀어내서는 안 된다.
+      */}
+      <PrincipleStrip stats={stats} level="high" heading="진단하는 대상 — 햇빛이 전기가 되는 길" />
 
-        <div className={styles.curve}>
-          <p className={styles.curve__label}>시간대별 계측 시계열</p>
-          <DayCurve stats={stats} showIrradiance showNow />
-        </div>
-      </section>
+      <div className={styles.console}>
+        {/* 왼쪽 — 무엇을 입력받는가 */}
+        <section className={styles.panel} aria-label="진단에 넣는 특징량">
+          <h2 className={styles.panel__title}>
+            INPUT
+            <span>특징량 {features.length}종</span>
+          </h2>
 
-      {/* 가운데 — 무엇을 하고 있는가 */}
-      <section className={styles.panel} aria-label="진단 진행">
-        <h2 className={styles.panel__title}>
-          MODEL
-          <span>{content.ai.stages[stage].label}</span>
-        </h2>
-
-        <div className={styles.net}>
-          <NeuralGraph stage={stage} />
-        </div>
-
-        {/*
-          진행 로그.
-          단계 이름만 바뀌는 게이지로는 AI 가 무엇을 보고 있는지 알 수 없다. 단계마다
-          "그 자리에서 무슨 일이 일어나는가" 와 "AI 는 거기서 무엇을 보는가" 를 나란히 적는다.
-        */}
-        <ol className={styles.log}>
-          {STAGE_ORDER.map((key, index) => {
-            const item = content.ai.stages[key];
-            const passed = STAGE_ORDER.indexOf(stage) >= index;
-
-            return (
-              <li key={key} className={styles.log__row} data-on={passed ? '' : undefined}>
-                <span className={styles.log__key}>{String(index + 1).padStart(2, '0')}</span>
-                <div>
-                  <strong>{item.label}</strong>
-                  <p className={styles.log__physics}>{item.physics}</p>
-                  <p className={styles.log__diagnosis}>{item.diagnosis}</p>
+          <ul className={styles.features}>
+            {features.map((feature) => (
+              <li key={feature.id} className={styles.feature}>
+                <span className={styles.feature__label}>{feature.label}</span>
+                <span className={styles.feature__raw}>{feature.raw}</span>
+                <div className={styles.feature__track}>
+                  <span
+                    className={styles.feature__fill}
+                    style={{ inlineSize: `${(Math.min(1, Math.max(0, feature.ratio)) * 100).toFixed(1)}%` }}
+                  />
                 </div>
               </li>
-            );
-          })}
-        </ol>
+            ))}
+          </ul>
 
-        <div className={styles.progress} role="img" aria-label={`진단 ${scan.percent}퍼센트`}>
-          <span style={{ inlineSize: `${scan.percent}%` }} />
-        </div>
-      </section>
+          <div className={styles.curve}>
+            <p className={styles.curve__label}>시간대별 계측 시계열</p>
+            <DayCurve stats={stats} showIrradiance showNow />
+          </div>
+        </section>
 
-      {/* 오른쪽 — 그래서 무엇이라 판정했는가 */}
-      <section className={styles.panel} aria-label="진단 결과">
-        <h2 className={styles.panel__title}>
-          OUTPUT
-          <span>{insight.verdict}</span>
-        </h2>
+        {/* 가운데 — 무엇을 하고 있는가 */}
+        <section className={styles.panel} aria-label="진단 진행">
+          <h2 className={styles.panel__title}>
+            MODEL
+            <span>{content.ai.stages[stage].label}</span>
+          </h2>
 
-        <div className={styles.verdict} data-band={insight.band}>
-          <p className={styles.verdict__value}>{formatPercent(confidence)}</p>
-          <p className={styles.verdict__label}>기대 대비 달성률로 셈한 신뢰도</p>
-        </div>
+          <div className={styles.net}>
+            <NeuralGraph stage={stage} />
+          </div>
 
-        {/*
-          소견은 진행에 맞춰 한 줄씩 드러난다.
-          다 적어 두고 흐리게 두면 읽는 사람이 아직 안 나온 줄을 먼저 읽어 버려, 판단이 쌓이는
-          과정을 보여 주려던 것이 무너진다.
+          {/*
+            진행 로그.
+            단계 이름만 바뀌는 게이지로는 AI 가 무엇을 보고 있는지 알 수 없다. 단계마다
+            "그 자리에서 무슨 일이 일어나는가" 와 "AI 는 거기서 무엇을 보는가" 를 나란히 적는다.
+          */}
+          <ol className={styles.log}>
+            {STAGE_ORDER.map((key, index) => {
+              const item = content.ai.stages[key];
+              const passed = STAGE_ORDER.indexOf(stage) >= index;
 
-          다만 추론에 들어서기 전(주기의 앞 10초쯤)에는 드러날 줄이 하나도 없어 칸이 통째로 빈다.
-          걸어 두는 화면에서 빈 칸은 고장으로 읽히므로, 그동안 무엇을 하고 있는지를 대신 적는다.
-        */}
-        {scan.revealed === 0 ? (
-          <p className={styles.waiting}>
-            {insight.detail[stage]}
-            <span>판단이 서면 근거가 한 줄씩 여기에 쌓입니다</span>
-          </p>
-        ) : null}
+              return (
+                <li key={key} className={styles.log__row} data-on={passed ? '' : undefined}>
+                  <span className={styles.log__key}>{String(index + 1).padStart(2, '0')}</span>
+                  <div>
+                    <strong>{item.label}</strong>
+                    <p className={styles.log__physics}>{item.physics}</p>
+                    <p className={styles.log__diagnosis}>{item.diagnosis}</p>
+                  </div>
+                </li>
+              );
+            })}
+          </ol>
 
-        <ul className={styles.lines}>
-          {insight.lines.map((line, index) => (
-            <li
-              key={line}
-              className={styles.line}
-              data-on={index < scan.revealed ? '' : undefined}
-              style={{ transitionDelay: `${(index * 0.08).toFixed(2)}s` } as CSSProperties}
-            >
-              {index < scan.revealed ? line : null}
-            </li>
-          ))}
-        </ul>
+          <div className={styles.progress} role="img" aria-label={`진단 ${scan.percent}퍼센트`}>
+            <span style={{ inlineSize: `${scan.percent}%` }} />
+          </div>
+        </section>
 
-        <p className={styles.footer}>{content.ai.footer}</p>
-      </section>
+        {/* 오른쪽 — 그래서 무엇이라 판정했는가 */}
+        <section className={styles.panel} aria-label="진단 결과">
+          <h2 className={styles.panel__title}>
+            OUTPUT
+            <span>{insight.verdict}</span>
+          </h2>
+
+          <div className={styles.verdict} data-band={insight.band}>
+            <p className={styles.verdict__value}>{formatPercent(confidence)}</p>
+            <p className={styles.verdict__label}>기대 대비 달성률로 셈한 신뢰도</p>
+          </div>
+
+          {/*
+            소견은 진행에 맞춰 한 줄씩 드러난다.
+            다 적어 두고 흐리게 두면 읽는 사람이 아직 안 나온 줄을 먼저 읽어 버려, 판단이 쌓이는
+            과정을 보여 주려던 것이 무너진다.
+
+            다만 추론에 들어서기 전(주기의 앞 10초쯤)에는 드러날 줄이 하나도 없어 칸이 통째로 빈다.
+            걸어 두는 화면에서 빈 칸은 고장으로 읽히므로, 그동안 무엇을 하고 있는지를 대신 적는다.
+          */}
+          {scan.revealed === 0 ? (
+            <p className={styles.waiting}>
+              {insight.detail[stage]}
+              <span>판단이 서면 근거가 한 줄씩 여기에 쌓입니다</span>
+            </p>
+          ) : null}
+
+          <ul className={styles.lines}>
+            {insight.lines.map((line, index) => (
+              <li
+                key={line}
+                className={styles.line}
+                data-on={index < scan.revealed ? '' : undefined}
+                style={{ transitionDelay: `${(index * 0.08).toFixed(2)}s` } as CSSProperties}
+              >
+                {index < scan.revealed ? line : null}
+              </li>
+            ))}
+          </ul>
+
+          <p className={styles.footer}>{content.ai.footer}</p>
+        </section>
+      </div>
     </div>
   );
 }

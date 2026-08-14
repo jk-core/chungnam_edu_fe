@@ -6,6 +6,7 @@ import type { ElementaryContent } from '@/mocks/eduContent';
 import type { EduStats } from '@/mocks/solarEdu';
 import { CastShadow, SceneDefs } from '../../scene-art/SceneDefs';
 import { Conifer, Sun, Window } from '../../scene-art/SceneParts';
+import { PrincipleStrip } from '../shared/PrincipleStrip';
 import styles from './ElementaryClock.module.scss';
 import type { ReactNode } from 'react';
 
@@ -37,6 +38,41 @@ const CORE = 88;
 /** 해가 도는 각도 범위. 위쪽이 정오가 되도록 왼쪽 아래에서 시작해 오른쪽 아래로 진다 */
 const ARC_FROM = 150;
 const ARC_TO = 390;
+
+/**
+ * 지금 해가 얼마나 높이 떴는지에 따라 달라지는 설명.
+ *
+ * 시계만 걸어 두면 "지금 몇 시" 까지만 알려 준다. 이 화면이 가르치려는 것은 시각이 아니라
+ * **해의 높이가 발전량을 정한다** 는 것이라, 시각마다 그 까닭이 한 줄씩 바뀌어야 한다.
+ * 아침에 본 아이와 점심에 본 아이가 서로 다른 것을 배우게 하는 장치이기도 하다.
+ */
+const HEIGHT_LESSON = [
+  {
+    until: 0.22,
+    title: '해가 낮게 떠 있어요',
+    body: '햇빛이 비스듬히 들어와 판 위에 넓게 퍼져요. 같은 빛이 넓게 나뉘니 한 자리가 받는 힘은 약해요.',
+  },
+  {
+    until: 0.4,
+    title: '해가 올라가고 있어요',
+    body: '해가 높아질수록 빛이 판에 더 똑바로 닿아요. 막대가 점점 길어지는 것이 그 때문이에요.',
+  },
+  {
+    until: 0.62,
+    title: '해가 가장 높아요',
+    body: '빛이 판에 거의 똑바로 내리쬐어요. 같은 넓이에 빛이 가장 많이 모이는 때라 지금이 하루의 봉우리예요.',
+  },
+  {
+    until: 0.82,
+    title: '해가 내려가고 있어요',
+    body: '다시 비스듬해지면서 힘이 빠져요. 아직 밝아 보여도 판이 받는 빛은 아까보다 적어요.',
+  },
+  {
+    until: 1.01,
+    title: '해가 지고 있어요',
+    body: '빛이 지나야 할 공기가 두꺼워져 많이 흩어져요. 곧 오늘의 발전이 끝나요.',
+  },
+];
 
 interface ElementaryClockProps {
   stats: EduStats;
@@ -83,6 +119,9 @@ export function ElementaryClock({ stats, content, nowHour }: ElementaryClockProp
   const isDay = nowHour > SUNRISE_HOUR && nowHour < SUNSET_HOUR;
   // 막대 길이를 재는 자. 가장 많이 만든 시간을 꽉 찬 길이로 삼는다.
   const peak = Math.max(...stats.hourly, 1);
+  // 하루의 어디쯤인지 — 해의 높이 설명을 고르는 자다.
+  const progress = (nowHour - SUNRISE_HOUR) / (SUNSET_HOUR - SUNRISE_HOUR);
+  const lesson = HEIGHT_LESSON.find((item) => progress < item.until) ?? HEIGHT_LESSON[HEIGHT_LESSON.length - 1];
 
   return (
     <div className={styles.board}>
@@ -202,6 +241,23 @@ export function ElementaryClock({ stats, content, nowHour }: ElementaryClockProp
             <MiniSchool />
           </g>
         </svg>
+
+        {/*
+          지금 해의 높이가 뜻하는 것.
+          시계는 "몇 시" 까지만 말한다 — 이 화면이 가르치려는 것은 **해의 높이가 발전량을 정한다** 는
+          쪽이라, 시각이 흐르면 이 줄이 바뀌어 같은 화면이 하루에 다섯 가지를 이야기한다.
+        */}
+        {isDay ? (
+          <p className={styles.lesson}>
+            <strong>{lesson.title}</strong>
+            {lesson.body}
+          </p>
+        ) : (
+          <p className={styles.lesson}>
+            <strong>해가 쉬고 있어요</strong>
+            해가 지면 판은 전기를 만들지 않아요. 내일 아침 해가 다시 뜨면 막대가 왼쪽부터 자라기 시작해요.
+          </p>
+        )}
       </section>
 
       {/* 오른쪽 — 그 시계가 뜻하는 것 */}
@@ -240,6 +296,15 @@ export function ElementaryClock({ stats, content, nowHour }: ElementaryClockProp
         />
 
         <p className={styles.caption}>{content.headline.mainNote(stats)}</p>
+      </div>
+
+      {/*
+        아래를 가로지르는 원리 네 마디.
+        시계와 숫자만으로는 이 전기가 **어떻게** 만들어졌는지가 끝내 빠진다. 걸어 두는 화면의
+        목적이 태양광을 설명하는 것이라면, 원리는 어느 시안에서도 화면을 떠나지 않아야 한다.
+      */}
+      <div className={styles.principle}>
+        <PrincipleStrip stats={stats} level="elementary" heading="햇빛이 전기가 되기까지" />
       </div>
     </div>
   );

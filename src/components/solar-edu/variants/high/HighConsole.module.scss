@@ -10,9 +10,14 @@
 
   어둠은 이 화면 안에서만 걸린다. 문서 전체를 건드리면 다른 시안까지 따라 어두워진다.
 */
-.console {
+
+/*
+  어둠은 이 화면 안에서만 걸린다.
+  원리 띠까지 함께 물들여야 두 층이 한 화면으로 읽힌다 — 위만 밝으면 붙여 놓은 것으로 보인다.
+*/
+.shell {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(0, 1.1fr) minmax(0, 1fr);
+  grid-template-rows: auto minmax(0, 1fr);
   gap: s.$space-3;
   height: 100%;
   min-height: 0;
@@ -23,8 +28,19 @@
   color: var(--text);
 
   @include media.tablet {
-    grid-template-columns: 1fr;
     height: auto;
+    grid-template-rows: none;
+  }
+}
+
+.console {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1.1fr) minmax(0, 1fr);
+  gap: s.$space-3;
+  min-height: 0;
+
+  @include media.tablet {
+    grid-template-columns: 1fr;
   }
 }
 
@@ -37,28 +53,27 @@
   border: 1px solid var(--border-subtle);
   border-radius: s.$radius-md;
   background-color: var(--surface);
-}
 
-/* 판 이름은 영문 대문자로 — 콘솔이라는 것을 글자꼴이 먼저 말한다 */
-.panel__title {
-  @include t.label-md;
+  &__title {
+    @include t.label-md;
 
-  display: flex;
-  align-items: baseline;
-  justify-content: space-between;
-  gap: s.$space-2;
-  padding-bottom: s.$space-2;
-  border-bottom: 1px solid var(--border-subtle);
-  color: var(--ai-scan);
-  font-family: var(--font-data);
-  letter-spacing: 0.12em;
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: s.$space-2;
+    padding-bottom: s.$space-2;
+    border-bottom: 1px solid var(--border-subtle);
+    color: var(--ai-scan);
+    font-family: var(--font-data);
+    letter-spacing: 0.12em;
 
-  span {
-    @include t.caption;
+    span {
+      @include t.caption;
 
-    color: var(--text-muted);
-    font-family: var(--font-sans);
-    letter-spacing: normal;
+      color: var(--text-muted);
+      font-family: var(--font-sans);
+      letter-spacing: normal;
+    }
   }
 }
 
@@ -76,38 +91,38 @@
     "track track";
   grid-template-columns: minmax(0, 1fr) auto;
   gap: s.$space-1 s.$space-2;
-}
 
-.feature__label {
-  @include t.body-sm;
+  &__label {
+    @include t.body-sm;
 
-  grid-area: label;
-  color: var(--text-muted);
-}
+    grid-area: label;
+    color: var(--text-muted);
+  }
 
-.feature__raw {
-  @include t.label-sm;
+  &__raw {
+    @include t.label-sm;
 
-  grid-area: raw;
-  color: var(--text-strong);
-  font-family: var(--font-data);
-  font-variant-numeric: tabular-nums;
-}
+    grid-area: raw;
+    color: var(--text-strong);
+    font-family: var(--font-data);
+    font-variant-numeric: tabular-nums;
+  }
 
-.feature__track {
-  grid-area: track;
-  height: 6px;
-  border-radius: s.$radius-full;
-  background-color: var(--surface-sunken);
-  overflow: hidden;
-}
+  &__track {
+    grid-area: track;
+    height: 6px;
+    border-radius: s.$radius-full;
+    background-color: var(--surface-sunken);
+    overflow: hidden;
+  }
 
-.feature__fill {
-  display: block;
-  height: 100%;
-  border-radius: inherit;
-  background: linear-gradient(90deg, var(--ai-scan), var(--ai-classify));
-  transition: inline-size 0.8s cubic-bezier(0.22, 0.68, 0.32, 1);
+  &__fill {
+    display: block;
+    height: 100%;
+    border-radius: inherit;
+    background: linear-gradient(90deg, var(--ai-scan), var(--ai-classify));
+    transition: inline-size 0.8s cubic-bezier(0.22, 0.68, 0.32, 1);
+  }
 }
 
 .curve {
@@ -115,13 +130,13 @@
   flex: 1;
   flex-direction: column;
   min-height: 0;
-}
 
-.curve__label {
-  @include t.caption;
+  &__label {
+    @include t.caption;
 
-  color: var(--text-faint);
-  font-family: var(--font-data);
+    color: var(--text-faint);
+    font-family: var(--font-data);
+  }
 }
 
 // ── 가운데 · 모델 ──────────────────────────────────────────
@@ -135,37 +150,32 @@
 .graph {
   width: 100%;
   max-height: 160px;
-}
 
-/*
-  아직 신호가 닿지 않은 층은 흐리게 둔다.
-  다 밝혀 두면 층을 지나며 판단이 만들어진다는 이 그림의 뜻이 사라진다.
-*/
-.graph__edge {
-  stroke: var(--border);
-  stroke-width: 1;
-  opacity: 0.35;
-  transition: stroke 0.5s ease, opacity 0.5s ease;
+  &__edge {
+    stroke: var(--border);
+    stroke-width: 1;
+    opacity: 0.35;
+    transition: stroke 0.5s ease, opacity 0.5s ease;
 
-  &[data-on] {
-    stroke: var(--ai-scan);
-    opacity: 0.55;
+    &[data-on] {
+      stroke: var(--ai-scan);
+      opacity: 0.55;
+    }
+  }
+
+  &__node {
+    fill: var(--surface-sunken);
+    stroke: var(--border-strong);
+    stroke-width: 1.4;
+    transition: fill 0.5s ease, stroke 0.5s ease;
+
+    &[data-on] {
+      fill: var(--ai-classify);
+      stroke: var(--ai-scan);
+    }
   }
 }
 
-.graph__node {
-  fill: var(--surface-sunken);
-  stroke: var(--border-strong);
-  stroke-width: 1.4;
-  transition: fill 0.5s ease, stroke 0.5s ease;
-
-  &[data-on] {
-    fill: var(--ai-classify);
-    stroke: var(--ai-scan);
-  }
-}
-
-// ── 가운데 · 로그 ──────────────────────────────────────────
 .log {
   display: flex;
   flex: 1;
@@ -174,51 +184,49 @@
   min-height: 0;
   overflow-y: auto;
   overscroll-behavior: contain;
-}
 
-.log__row {
-  display: grid;
-  grid-template-columns: auto minmax(0, 1fr);
-  gap: s.$space-2;
-  padding: s.$space-2;
-  border-left: 2px solid var(--border);
-  border-radius: s.$radius-sm;
-  background-color: var(--surface-sunken);
-  opacity: 0.45;
-  transition: opacity 0.5s ease, border-color 0.5s ease;
+  &__row {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    gap: s.$space-2;
+    padding: s.$space-2;
+    border-left: 2px solid var(--border);
+    border-radius: s.$radius-sm;
+    background-color: var(--surface-sunken);
+    opacity: 0.45;
+    transition: opacity 0.5s ease, border-color 0.5s ease;
 
-  &[data-on] {
-    border-left-color: var(--ai-scan);
-    opacity: 1;
+    &[data-on] {
+      border-left-color: var(--ai-scan);
+      opacity: 1;
+    }
+
+    strong {
+      @include t.label-sm;
+
+      display: block;
+      color: var(--text-strong);
+    }
   }
 
-  strong {
-    @include t.label-sm;
+  &__key {
+    @include t.caption;
 
-    display: block;
-    color: var(--text-strong);
+    color: var(--ai-scan);
+    font-family: var(--font-data);
   }
-}
 
-.log__key {
-  @include t.caption;
+  &__physics {
+    @include t.caption;
 
-  color: var(--ai-scan);
-  font-family: var(--font-data);
-}
+    color: var(--text-muted);
+  }
 
-/* 그 자리에서 일어나는 일 */
-.log__physics {
-  @include t.caption;
+  &__diagnosis {
+    @include t.caption;
 
-  color: var(--text-muted);
-}
-
-/* AI 가 그 자리에서 보는 것 — 색을 갈라 두 이야기가 섞이지 않게 한다 */
-.log__diagnosis {
-  @include t.caption;
-
-  color: var(--ai-scan);
+    color: var(--ai-scan);
+  }
 }
 
 .progress {
@@ -236,7 +244,6 @@
   }
 }
 
-// ── 오른쪽 · 결과 ──────────────────────────────────────────
 .verdict {
   display: flex;
   flex-direction: column;
@@ -262,21 +269,21 @@
   &[data-band="offline"] {
     --tone: var(--offline);
   }
-}
 
-.verdict__value {
-  color: var(--text-strong);
-  font-family: var(--font-data);
-  font-size: 46px;
-  font-weight: 700;
-  line-height: 1;
-  font-variant-numeric: tabular-nums;
-}
+  &__value {
+    color: var(--text-strong);
+    font-family: var(--font-data);
+    font-size: 46px;
+    font-weight: 700;
+    line-height: 1;
+    font-variant-numeric: tabular-nums;
+  }
 
-.verdict__label {
-  @include t.caption;
+  &__label {
+    @include t.caption;
 
-  color: var(--text-muted);
+    color: var(--text-muted);
+  }
 }
 
 /* 아직 드러날 소견이 없는 동안 그 자리를 대신 지키는 줄 */

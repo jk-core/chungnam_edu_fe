@@ -95,8 +95,13 @@ export function DayCurve({ stats, showIrradiance = false, showNow = true }: DayC
             label: {
               show: true,
               formatter: '지금',
-              position: 'end',
-              distance: 8,
+              /*
+                격자 **안쪽** 위에 붙인다.
+                바깥(`end`)에 두면 이름표가 격자 위로 더 올라가 위 여백이 좁은 칸에서는
+                글자 윗머리가 잘린다. 여백을 늘리면 곡선이 그만큼 눌린다.
+              */
+              position: 'insideEndTop',
+              distance: 4,
               color: palette.caution,
               fontSize: 12,
               fontWeight: 600,

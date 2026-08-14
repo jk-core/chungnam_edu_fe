@@ -95,9 +95,14 @@ export function DayCurvePanel({ stats, content }: DayCurvePanelProps) {
           label: {
             show: true,
             formatter: '지금',
-            position: 'end',
+            /*
+              격자 **안쪽** 위에 붙인다.
+              바깥(`end`)에 두면 이름표가 격자 위로 올라가 범례와 자리를 다투고, 위 여백이 좁은
+              칸에서는 글자 윗머리가 잘린다. 여백을 늘리면 곡선이 그만큼 눌린다.
+            */
+            position: 'insideEndTop',
             rotate: 0,
-            distance: 8,
+            distance: 4,
             color: palette.caution,
             fontSize: 12,
             fontWeight: 600,

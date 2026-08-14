@@ -30,21 +30,21 @@
   border: 1px solid var(--border-subtle);
   border-radius: s.$radius-lg;
   background-color: color-mix(in srgb, var(--surface) 88%, transparent);
-}
 
-.stage__title {
-  @include t.title-sm;
+  &__title {
+    @include t.title-sm;
 
-  color: var(--text-strong);
-}
+    color: var(--text-strong);
+  }
 
-.stage__canvas {
-  flex: 1;
-  min-height: 0;
+  &__canvas {
+    flex: 1;
+    min-height: 0;
 
-  > svg {
-    width: 100%;
-    height: 100%;
+    > svg {
+      width: 100%;
+      height: 100%;
+    }
   }
 }
 
@@ -60,53 +60,63 @@
   grid-template-areas:
     "no label"
     "no value"
-    "no note";
+    "no note"
+    "why why";
   grid-template-columns: auto minmax(0, 1fr);
   align-items: baseline;
   gap: 0 s.$space-2;
   padding: s.$space-2 s.$space-3;
   border-radius: s.$radius-md;
   background-color: var(--surface-sunken);
-}
 
-/* 그림의 왼쪽부터 순서대로 붙는 번호 — 그림과 띠를 짝지어 읽는 실마리다 */
-.mark__no {
-  @include t.label-sm;
+  &__why {
+    @include t.caption;
 
-  display: flex;
-  grid-area: no;
-  align-self: center;
-  align-items: center;
-  justify-content: center;
-  width: 26px;
-  height: 26px;
-  border-radius: 50%;
-  background-color: var(--brand);
-  color: var(--text-on-brand);
-  font-family: var(--font-data);
-}
+    grid-area: why;
+    margin-top: s.$space-1;
+    padding-top: s.$space-1;
+    border-top: 1px dashed var(--border);
+    color: var(--text-muted);
+  }
 
-.mark__label {
-  @include t.caption;
+  &__no {
+    @include t.label-sm;
 
-  grid-area: label;
-  color: var(--text-muted);
-}
+    display: flex;
+    grid-area: no;
+    align-self: center;
+    align-items: center;
+    justify-content: center;
+    width: 26px;
+    height: 26px;
+    border-radius: 50%;
+    background-color: var(--brand);
+    color: var(--text-on-brand);
+    font-family: var(--font-data);
+  }
 
-.mark__value {
-  @include t.title-sm;
+  &__label {
+    @include t.caption;
 
-  grid-area: value;
-  color: var(--text-strong);
-  font-family: var(--font-data);
-  font-variant-numeric: tabular-nums;
-}
+    grid-area: label;
+    color: var(--text-muted);
+  }
 
-.mark__note {
-  @include t.caption;
+  &__value {
+    @include t.title-sm;
 
-  grid-area: note;
-  color: var(--text-faint);
+    grid-area: value;
+    color: var(--text-strong);
+    font-family: var(--font-data);
+    font-variant-numeric: tabular-nums;
+  }
+
+  &__note {
+    @include t.caption;
+
+    grid-area: note;
+    color: var(--text-faint);
+  }
 }
 
 // ── 아래 두 칸 ─────────────────────────────────────────────
@@ -133,12 +143,14 @@
   background-color: color-mix(in srgb, var(--surface) 88%, transparent);
 }
 
-.numbers__list {
-  display: flex;
-  flex: 1;
-  flex-direction: column;
-  gap: s.$space-2;
-  min-height: 0;
+.numbers {
+  &__list {
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+    gap: s.$space-2;
+    min-height: 0;
+  }
 }
 
 .number {
@@ -158,63 +170,59 @@
   &[data-tone="brand"] {
     --tone: var(--brand);
   }
-}
 
-.number__label {
-  @include t.caption;
-
-  color: var(--text-muted);
-}
-
-.number__value {
-  display: flex;
-  align-items: baseline;
-  gap: s.$space-1;
-  color: var(--text-strong);
-  font-family: var(--font-data);
-  font-size: 30px;
-  font-weight: 700;
-  line-height: 1.1;
-  font-variant-numeric: tabular-nums;
-
-  span {
-    @include t.body-sm;
-
-    color: var(--text-muted);
-  }
-}
-
-// ── 좋은 점 ────────────────────────────────────────────────
-.benefits__canvas {
-  flex: 1;
-  min-height: 0;
-
-  > svg {
-    width: 100%;
-    height: 100%;
-  }
-}
-
-/*
-  그림 아래 넉 줄.
-  그림만으로는 "연기가 없다" 와 "소리가 없다" 가 갈리지 않는다 — 말풍선을 없앤 대신
-  같은 순서로 이름과 한 줄을 깔아 둔다.
-*/
-.benefits__list {
-  display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: s.$space-3;
-
-  li {
+  &__label {
     @include t.caption;
 
     color: var(--text-muted);
   }
 
-  strong {
-    @include t.label-sm;
-
-    display: block;
+  &__value {
+    display: flex;
+    align-items: baseline;
+    gap: s.$space-1;
     color: var(--text-strong);
+    font-family: var(--font-data);
+    font-size: 30px;
+    font-weight: 700;
+    line-height: 1.1;
+    font-variant-numeric: tabular-nums;
+
+    span {
+      @include t.body-sm;
+
+      color: var(--text-muted);
+    }
+  }
+}
+
+.benefits {
+  &__canvas {
+    flex: 1;
+    min-height: 0;
+
+    > svg {
+      width: 100%;
+      height: 100%;
+    }
+  }
+
+  &__list {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: s.$space-3;
+
+    li {
+      @include t.caption;
+
+      color: var(--text-muted);
+    }
+
+    strong {
+      @include t.label-sm;
+
+      display: block;
+      color: var(--text-strong);
+    }
   }
 }

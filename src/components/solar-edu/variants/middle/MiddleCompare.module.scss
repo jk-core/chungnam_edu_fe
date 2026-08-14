@@ -10,7 +10,7 @@
 */
 .board {
   display: grid;
-  grid-template-rows: auto minmax(0, 1fr) minmax(220px, 0.8fr);
+  grid-template-rows: auto minmax(0, 1fr) auto minmax(190px, 0.7fr);
   gap: s.$space-3;
   height: 100%;
   min-height: 0;
@@ -27,18 +27,18 @@
   justify-content: space-between;
   gap: s.$space-4;
   flex-wrap: wrap;
-}
 
-.head__title {
-  @include t.title-md;
+  &__title {
+    @include t.title-md;
 
-  color: var(--text-strong);
-}
+    color: var(--text-strong);
+  }
 
-.head__note {
-  @include t.body-sm;
+  &__note {
+    @include t.body-sm;
 
-  color: var(--text-muted);
+    color: var(--text-muted);
+  }
 }
 
 // ── 견주는 세 짝 ───────────────────────────────────────────
@@ -85,31 +85,36 @@
   &[data-tone="ok"] {
     --tone: var(--ok);
   }
-}
 
-.duel__head {
-  display: flex;
-  align-items: baseline;
-  justify-content: space-between;
-  gap: s.$space-2;
-}
+  &__head {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: s.$space-2;
+  }
 
-.duel__question {
-  @include t.title-sm;
+  &__question {
+    @include t.title-sm;
 
-  color: var(--text-strong);
-}
+    color: var(--text-strong);
+  }
 
-/* 무엇 하나만 달리했는지 — 변인 통제라는 이 화면의 방법을 한 마디로 적는다 */
-.duel__variable {
-  @include t.caption;
+  &__variable {
+    @include t.caption;
 
-  flex: none;
-  padding: 1px s.$space-2;
-  border-radius: s.$radius-full;
-  background-color: color-mix(in srgb, var(--tone) 18%, var(--surface));
-  color: var(--text-muted);
-  white-space: nowrap;
+    flex: none;
+    padding: 1px s.$space-2;
+    border-radius: s.$radius-full;
+    background-color: color-mix(in srgb, var(--tone) 18%, var(--surface));
+    color: var(--text-muted);
+    white-space: nowrap;
+  }
+
+  &__because {
+    @include t.body-sm;
+
+    color: var(--text-muted);
+  }
 }
 
 // ── 기둥 둘 ────────────────────────────────────────────────
@@ -141,51 +146,50 @@
   &[data-side="other"] {
     --fill: var(--border-strong);
   }
-}
 
-.col__value {
-  color: var(--text-strong);
-  font-family: var(--font-data);
-  font-size: 20px;
-  font-weight: 700;
-  line-height: 1.1;
-  font-variant-numeric: tabular-nums;
-  white-space: nowrap;
+  &__value {
+    color: var(--text-strong);
+    font-family: var(--font-data);
+    font-size: 20px;
+    font-weight: 700;
+    line-height: 1.1;
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
 
-  em {
-    @include t.caption;
+    em {
+      @include t.caption;
 
-    margin-left: 2px;
-    color: var(--text-faint);
-    font-style: normal;
-    font-weight: 500;
+      margin-left: 2px;
+      color: var(--text-faint);
+      font-style: normal;
+      font-weight: 500;
+    }
   }
-}
 
-/* 기둥이 서는 자리. 두 기둥이 같은 자를 쓰도록 높이를 똑같이 준다 */
-.col__track {
-  display: flex;
-  align-items: flex-end;
-  width: 100%;
-  min-height: 0;
-}
+  &__track {
+    display: flex;
+    align-items: flex-end;
+    width: 100%;
+    min-height: 0;
+  }
 
-.col__bar {
-  display: block;
-  width: 100%;
-  border-radius: s.$radius-md s.$radius-md 2px 2px;
-  background: linear-gradient(180deg, var(--fill, var(--tone)), color-mix(in srgb, var(--fill, var(--tone)) 74%, transparent));
-  transition: block-size 0.8s cubic-bezier(0.22, 0.68, 0.32, 1);
-}
+  &__bar {
+    display: block;
+    width: 100%;
+    border-radius: s.$radius-md s.$radius-md 2px 2px;
+    background: linear-gradient(180deg, var(--fill, var(--tone)), color-mix(in srgb, var(--fill, var(--tone)) 74%, transparent));
+    transition: block-size 0.8s cubic-bezier(0.22, 0.68, 0.32, 1);
+  }
 
-.col__label {
-  @include t.body-sm;
+  &__label {
+    @include t.body-sm;
 
-  max-width: 100%;
-  color: var(--text-muted);
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+    max-width: 100%;
+    color: var(--text-muted);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
 }
 
 /* 두 기둥 사이에 놓는 차이 — 높이를 눈으로 재지 않아도 되게 */
@@ -206,13 +210,6 @@
     background-color: var(--critical-soft);
     color: var(--critical-text);
   }
-}
-
-/* 무엇이 달라서 값이 갈렸는지 — 이 줄이 이 시안의 알맹이다 */
-.duel__because {
-  @include t.body-sm;
-
-  color: var(--text-muted);
 }
 
 // ── 아래 두 칸 ─────────────────────────────────────────────
@@ -240,47 +237,54 @@
   box-shadow: var(--shadow-sm);
 }
 
-.panel__head {
-  display: flex;
-  align-items: baseline;
-  justify-content: space-between;
-  gap: s.$space-3;
-  flex-wrap: wrap;
+.panel {
+  &__head {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: s.$space-3;
+    flex-wrap: wrap;
+  }
+
+  &__title {
+    @include t.label-md;
+
+    color: var(--text-strong);
+  }
+
+  &__note {
+    @include t.caption;
+
+    color: var(--text-muted);
+  }
 }
 
-.panel__title {
-  @include t.label-md;
-
-  color: var(--text-strong);
+.curve {
+  &__canvas {
+    display: flex;
+    flex: 1;
+    min-height: 0;
+  }
 }
 
-.panel__note {
-  @include t.caption;
+.facts {
+  &__list {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    align-content: start;
+    gap: s.$space-1 s.$space-4;
+    flex: 1;
+    min-height: 0;
+    margin-top: s.$space-1;
+    overflow: hidden;
+  }
 
-  color: var(--text-muted);
-}
+  &__disclaimer {
+    @include t.caption;
 
-.curve__canvas {
-  display: flex;
-  flex: 1;
-  min-height: 0;
-}
-
-/*
-  견줄 때 쓴 값.
-
-  가운데 정렬(`center`)로 두면 안 된다 — 칸보다 내용이 크면 넘친 만큼이 **위아래 양쪽으로** 삐져나가
-  제목과 아래 문장을 덮는다. 위에서부터 채우고 넘치는 것은 잘라, 넘쳐도 글자끼리 겹치지는 않게 한다.
-*/
-.facts__list {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  align-content: start;
-  gap: s.$space-1 s.$space-4;
-  flex: 1;
-  min-height: 0;
-  margin-top: s.$space-1;
-  overflow: hidden;
+    flex: none;
+    color: var(--text-faint);
+  }
 }
 
 .fact {
@@ -304,14 +308,6 @@
     font-family: var(--font-data);
     font-variant-numeric: tabular-nums;
   }
-}
-
-/* 지어 낸 값을 실측인 척 내놓지 않는다 */
-.facts__disclaimer {
-  @include t.caption;
-
-  flex: none;
-  color: var(--text-faint);
 }
 
 @include media.reduced-motion {

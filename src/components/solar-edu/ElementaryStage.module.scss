@@ -36,9 +36,6 @@
   box-shadow: var(--shadow-sm);
 }
 
-/* ── 1장 · 그림 안 말풍선 ───────────────────────────────────
-   그림의 제 좌표계 안에 놓이므로 여기 적는 길이도 그림 좌표다.
-   화면 크기에 따라 그림과 함께 커졌다 작아져, 멀리서 보는 모니터에서도 비율이 유지된다. */
 .bubble {
   position: relative;
   width: 250px;
@@ -57,106 +54,103 @@
     position: absolute;
     border: 9px solid transparent;
   }
-}
 
-/* 아래를 가리킨다 — 말풍선이 대상 바로 위에 설 때 */
-.bubble--bottom {
-  &::before,
-  &::after {
-    left: calc(var(--tail-at, 30px) - 9px);
+  &--bottom {
+    &::before,
+    &::after {
+      left: calc(var(--tail-at, 30px) - 9px);
+    }
+
+    &::before {
+      bottom: -18px;
+      border-top-color: var(--solar);
+    }
+
+    &::after {
+      bottom: -15px;
+      border-top-color: var(--surface);
+    }
   }
 
-  &::before {
-    bottom: -18px;
-    border-top-color: var(--solar);
+  &--left {
+    &::before,
+    &::after {
+      top: 36px;
+    }
+
+    &::before {
+      left: -18px;
+      border-right-color: var(--solar);
+    }
+
+    &::after {
+      left: -15px;
+      border-right-color: var(--surface);
+    }
   }
 
-  &::after {
-    bottom: -15px;
-    border-top-color: var(--surface);
-  }
-}
-
-/* 왼쪽을 가리킨다 — 해처럼 대상이 화면 귀퉁이에 있어 위에 설 자리가 없을 때 */
-.bubble--left {
-  &::before,
-  &::after {
-    top: 36px;
+  &__title {
+    color: var(--text-strong);
+    font-size: 18px;
+    font-weight: 700;
+    line-height: 1.3;
   }
 
-  &::before {
-    left: -18px;
-    border-right-color: var(--solar);
+  &__line {
+    margin-top: 2px;
+    color: var(--text);
+    font-size: 12.5px;
+    line-height: 1.5;
   }
 
-  &::after {
-    left: -15px;
-    border-right-color: var(--surface);
+  &__caret {
+    display: inline-block;
+    width: 2px;
+    height: 0.95em;
+    margin-left: 2px;
+    border-radius: 1px;
+    background-color: var(--solar-deep);
+    vertical-align: -2px;
+    animation: bubble-caret 0.9s steps(2, start) infinite;
   }
-}
 
-.bubble__title {
-  color: var(--text-strong);
-  font-size: 18px;
-  font-weight: 700;
-  line-height: 1.3;
-}
+  &__readout {
+    display: flex;
+    align-items: baseline;
+    gap: 8px;
+    margin-top: 8px;
+    padding-top: 6px;
+    border-top: 1px solid var(--border-subtle);
+  }
 
-.bubble__line {
-  margin-top: 2px;
-  color: var(--text);
-  font-size: 12.5px;
-  line-height: 1.5;
+  &__label {
+    color: var(--solar-text);
+    font-size: 11px;
+    font-weight: 600;
+  }
+
+  &__value {
+    display: flex;
+    align-items: baseline;
+    gap: 3px;
+    margin-left: auto;
+    color: var(--text-strong);
+    font-family: "Space Grotesk", sans-serif;
+    font-size: 19px;
+    font-weight: 700;
+  }
+
+  &__unit {
+    color: var(--text-muted);
+    font-size: 11px;
+    font-weight: 500;
+  }
 }
 
 /* 글자 하나 — 제 차례가 오면 찍힌다 */
 .letter {
   opacity: 0;
   animation: letter-in 0.12s ease both;
-}
-
-/* 아직 쓰는 중임을 알리는 커서 */
-.bubble__caret {
-  display: inline-block;
-  width: 2px;
-  height: 0.95em;
-  margin-left: 2px;
-  border-radius: 1px;
-  background-color: var(--solar-deep);
-  vertical-align: -2px;
-  animation: bubble-caret 0.9s steps(2, start) infinite;
-}
-
-.bubble__readout {
-  display: flex;
-  align-items: baseline;
-  gap: 8px;
-  margin-top: 8px;
-  padding-top: 6px;
-  border-top: 1px solid var(--border-subtle);
-}
-
-.bubble__label {
-  color: var(--solar-text);
-  font-size: 11px;
-  font-weight: 600;
-}
-
-.bubble__value {
-  display: flex;
-  align-items: baseline;
-  gap: 3px;
-  margin-left: auto;
-  color: var(--text-strong);
-  font-family: "Space Grotesk", sans-serif;
-  font-size: 19px;
-  font-weight: 700;
-}
-
-.bubble__unit {
-  color: var(--text-muted);
-  font-size: 11px;
-  font-weight: 500;
 }
 
 .srOnly {
@@ -218,17 +212,17 @@
   overflow: hidden;
   border-radius: s.$radius-full;
   background-color: var(--border-strong);
-}
 
-.tick__fill {
-  display: block;
-  width: var(--fill, 0%);
-  height: 100%;
-  border-radius: s.$radius-full;
-  background-color: var(--solar);
+  &__fill {
+    display: block;
+    width: var(--fill, 0%);
+    height: 100%;
+    border-radius: s.$radius-full;
+    background-color: var(--solar);
 
-  /* 틱마다 값이 갱신되므로 그 사이를 매끄럽게 잇는다 */
-  transition: width 0.25s linear;
+    /* 틱마다 값이 갱신되므로 그 사이를 매끄럽게 잇는다 */
+    transition: width 0.25s linear;
+  }
 }
 
 .play {
@@ -253,28 +247,30 @@
   }
 }
 
-.dot,
-.dot--active {
-  @include mx.press;
-  @include t.label-md;
+.dot {
+  &:hover {
+    border-color: var(--solar);
+  }
 
-  padding: 5px s.$space-4;
-  border: 1px solid var(--border);
-  border-radius: s.$radius-full;
-  background-color: transparent;
-  color: var(--text-muted);
-  cursor: pointer;
-  transition: color 0.3s ease, border-color 0.3s ease, background-color 0.3s ease;
-}
+  &--active {
+    border-color: var(--solar);
+    background-color: var(--solar);
+    color: var(--text-on-solar);
+  }
 
-.dot:hover {
-  border-color: var(--solar);
-}
+  &,
+&--active {
+    @include mx.press;
+    @include t.label-md;
 
-.dot--active {
-  border-color: var(--solar);
-  background-color: var(--solar);
-  color: var(--text-on-solar);
+    padding: 5px s.$space-4;
+    border: 1px solid var(--border);
+    border-radius: s.$radius-full;
+    background-color: transparent;
+    color: var(--text-muted);
+    cursor: pointer;
+    transition: color 0.3s ease, border-color 0.3s ease, background-color 0.3s ease;
+  }
 }
 
 @keyframes bubble-in {

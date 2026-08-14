@@ -119,6 +119,13 @@ export interface ImpactDef {
   unit: string;
   basis: string;
   fractionDigits: number;
+  /**
+   * 이 환산이 왜 좋은 일인지 한 줄.
+   *
+   * `basis` 가 "어떻게 셈했나" 라면 이쪽은 "그래서 뭐가 좋은가" 다. 값과 근거만 있으면 표가 되고,
+   * 이 한 줄이 붙어야 설명이 된다 — 걸어 두는 화면의 목적이 그것이다.
+   */
+  line: string;
 }
 
 export const IMPACT_DEFS: Record<ImpactId, ImpactDef> = {
@@ -128,6 +135,7 @@ export const IMPACT_DEFS: Record<ImpactId, ImpactDef> = {
     unit: 'kg CO₂',
     basis: `전기 1kWh 를 만들 때 나오는 ${CO2_PER_KWH}kg 으로 셈했어요`,
     fractionDigits: 0,
+    line: '여기서 만든 만큼 화력발전이 덜 돌아, 그만큼 태우지 않아도 돼요',
   },
   tree: {
     label: '나무를 심은 효과',
@@ -136,6 +144,7 @@ export const IMPACT_DEFS: Record<ImpactId, ImpactDef> = {
     unit: '그루',
     basis: `소나무 한 그루가 1년에 마시는 ${CO2_PER_TREE_YEAR}kg 으로 셈했어요`,
     fractionDigits: 0,
+    line: '줄인 온실가스를 나무가 1년 동안 마시는 양으로 바꿔 본 거예요',
   },
   household: {
     label: '네 식구가 쓰는 날',
@@ -143,6 +152,7 @@ export const IMPACT_DEFS: Record<ImpactId, ImpactDef> = {
     unit: '일',
     basis: '한 집이 하루에 쓰는 11.7kWh 로 셈했어요',
     fractionDigits: 1,
+    line: '네 식구가 사는 집이 며칠을 살 수 있는 양인지 헤아려 본 거예요',
   },
   led: {
     label: '교실 조명 켜는 시간',
@@ -150,12 +160,14 @@ export const IMPACT_DEFS: Record<ImpactId, ImpactDef> = {
     unit: '시간',
     basis: '40W 짜리 조명 하나를 켠다고 셈했어요',
     fractionDigits: 0,
+    line: '교실 조명 하나를 쉬지 않고 켜 둘 수 있는 시간이에요',
   },
 };
 
 /** 수준이 덮어쓸 수 있는 부분만 */
 export interface ImpactCopy {
   label?: string;
+  line?: string;
 }
 
 // ── 조각 타입 ──────────────────────────────────────────────

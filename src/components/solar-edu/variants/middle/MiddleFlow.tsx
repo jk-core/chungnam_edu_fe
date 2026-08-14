@@ -64,7 +64,7 @@ export function MiddleFlow({ stats, content }: MiddleFlowProps) {
       label: '인버터',
       value: formatNumber(stats.outputKw, 1),
       unit: 'kW',
-      note: '직류를 교류로 바꿔 내보내요',
+      note: `받은 빛의 ${formatNumber(efficiency, 1)}%가 전기로 · 직류를 교류로`,
       tone: 'brand',
     },
     {
@@ -193,7 +193,7 @@ export function MiddleFlow({ stats, content }: MiddleFlowProps) {
           같은 순서로 아래에 늘어놓으면 눈이 그림과 띠를 오르내리며 짝을 맞춘다.
         */}
         <ol className={styles.readouts}>
-          {nodes.map((node, index) => (
+          {nodes.map((node) => (
             <li key={node.id} className={styles.readout} data-tone={node.tone}>
               <span className={styles.readout__step}>{node.step}</span>
               <div className={styles.readout__text}>
@@ -205,17 +205,6 @@ export function MiddleFlow({ stats, content }: MiddleFlowProps) {
                 <p className={styles.readout__note}>{node.note}</p>
               </div>
 
-              {/*
-                마디 사이의 이음매.
-                빛이 전기가 되는 자리에만 변환 효율을 적는다 — 이 흐름에서 유일하게 값이 줄어드는
-                자리라, 거기에만 숫자를 두어야 "여기서 줄어드는구나" 가 눈에 걸린다.
-              */}
-              {index === 1 ? (
-                <span className={styles.convert}>
-                  <em>{formatNumber(efficiency, 1)}%</em>
-                  만 전기가 돼요
-                </span>
-              ) : null}
             </li>
           ))}
         </ol>
@@ -224,6 +213,17 @@ export function MiddleFlow({ stats, content }: MiddleFlowProps) {
       <div className={styles.bottom}>
         {/* 왼쪽 아래 — 마디마다 무슨 일이 일어나는가 */}
         <section className={styles.steps} aria-label="단계별 설명">
+          {/*
+            빛의 대부분이 어디로 가는지.
+            흐름도는 남는 것만 따라가느라 잃는 것을 말하지 않는다 — 받은 빛의 여덟 할이 열이 되어
+            흩어진다는 사실이야말로 태양광을 이해하는 데 빠질 수 없는 대목이다.
+          */}
+          <p className={styles.loss}>
+            판이 받은 빛 가운데 전기가 되는 몫은 <strong>{formatNumber(efficiency, 1)}%</strong> 예요.
+            나머지는 대부분 열이 되어 흩어지고, 일부는 표면에서 되튕겨 나가요.
+            그래서 판이 뜨거워지면 오히려 효율이 조금 떨어져요.
+          </p>
+
           <ol className={styles.steps__list}>
             {content.principle.stages.map((stage) => (
               <li key={stage.id}>

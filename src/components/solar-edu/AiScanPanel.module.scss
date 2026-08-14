@@ -61,17 +61,17 @@
   gap: s.$space-3;
   width: 100%;
   text-align: left;
-}
 
-.head__text {
-  @include t.title-sm;
+  &__text {
+    @include t.title-sm;
 
-  display: flex;
-  flex-direction: column;
-  gap: 1px;
-  flex: 1;
-  min-width: 0;
-  color: var(--text-strong);
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+    flex: 1;
+    min-width: 0;
+    color: var(--text-strong);
+  }
 }
 
 .note {
@@ -80,8 +80,6 @@
   color: var(--text-muted);
 }
 
-/* ── 진행 링 ─────────────────────────────────────────────
-   진행의 자세한 내막은 아래 파이프라인이 말하므로, 여기서는 몇 %인지만 작게 남긴다 */
 .dial {
   position: relative;
   display: grid;
@@ -89,61 +87,60 @@
   width: 62px;
   height: 62px;
   flex-shrink: 0;
-}
 
-.dial__aura {
-  @include ai.aura;
+  &__aura {
+    @include ai.aura;
 
-  inset: 4px;
-}
+    inset: 4px;
+  }
 
-.dial__sweep {
-  @include ai.sweep;
-}
+  &__sweep {
+    @include ai.sweep;
+  }
 
-.dial__svg {
-  position: relative;
-  z-index: 1;
-  width: 100%;
-  height: 100%;
-}
+  &__svg {
+    position: relative;
+    z-index: 1;
+    width: 100%;
+    height: 100%;
+  }
 
-.dial__track {
-  fill: none;
-  stroke: var(--border-subtle);
-}
+  &__track {
+    fill: none;
+    stroke: var(--border-subtle);
+  }
 
-.dial__value {
-  @include ai.gauge-stroke;
-}
+  &__value {
+    @include ai.gauge-stroke;
+  }
 
-.dial__percent {
-  @include t.data-sm;
+  &__percent {
+    @include t.data-sm;
 
-  position: absolute;
-  z-index: 2;
-  color: var(--ai-stage, var(--brand));
-  font-variant-numeric: tabular-nums;
-  transition: color 0.7s ease;
+    position: absolute;
+    z-index: 2;
+    color: var(--ai-stage, var(--brand));
+    font-variant-numeric: tabular-nums;
+    transition: color 0.7s ease;
 
-  small {
-    font-size: 9px;
-    margin-left: 1px;
+    small {
+      font-size: 9px;
+      margin-left: 1px;
+    }
   }
 }
 
-/* 둘레 눈금 — 계기판처럼 지나온 만큼 불이 들어온다 */
 .tick {
   stroke: var(--border-strong);
   stroke-width: 2;
   stroke-linecap: round;
   opacity: 0.4;
   transition: stroke 0.4s ease, opacity 0.4s ease;
-}
 
-.tick--lit {
-  stroke: var(--ai-stage, var(--brand));
-  opacity: 1;
+  &--lit {
+    stroke: var(--ai-stage, var(--brand));
+    opacity: 1;
+  }
 }
 
 /* ── 설비 그림 ────────────────────────────────────────────── */
@@ -159,9 +156,6 @@
   background-color: color-mix(in srgb, var(--surface-sunken) 70%, transparent);
 }
 
-/* ── 원리 두 덩이 ───────────────────────────────────────────
-   같은 자리를 두고 둘을 나란히 말한다 — 무슨 일이 일어나는가, 그리고 AI 는 무엇을 보는가.
-   액센트 색을 갈라 두어 어느 쪽 이야기인지 색으로도 짚인다. */
 .lesson {
   display: flex;
   flex-direction: column;
@@ -170,34 +164,34 @@
   flex-shrink: 0;
   text-align: left;
   animation: lesson-in 0.45s ease both;
-}
 
-.lesson__item {
-  padding: s.$space-2 s.$space-3;
-  border-left: 2px solid var(--solar);
-  border-radius: 1px;
-}
+  &__item--ai .lesson__tag {
+    color: var(--ai-stage, var(--brand));
+  }
 
-.lesson__item--ai {
-  border-left-color: var(--ai-stage, var(--brand));
-}
+  &__item {
+    padding: s.$space-2 s.$space-3;
+    border-left: 2px solid var(--solar);
+    border-radius: 1px;
 
-.lesson__tag {
-  @include t.label-sm;
+    &--ai {
+      border-left-color: var(--ai-stage, var(--brand));
+    }
+  }
 
-  color: var(--solar-text);
-}
+  &__tag {
+    @include t.label-sm;
 
-.lesson__item--ai .lesson__tag {
-  color: var(--ai-stage, var(--brand));
-}
+    color: var(--solar-text);
+  }
 
-.lesson__body {
-  @include t.caption;
+  &__body {
+    @include t.caption;
 
-  margin-top: 2px;
-  color: var(--text);
-  line-height: 1.6;
+    margin-top: 2px;
+    color: var(--text);
+    line-height: 1.6;
+  }
 }
 
 @keyframes lesson-in {
@@ -222,7 +216,6 @@
   overflow: hidden;
 }
 
-/* ── 소견 ────────────────────────────────────────────────── */
 .insight {
   display: flex;
   flex-direction: column;
@@ -232,42 +225,42 @@
   width: 100%;
   overflow: hidden;
   text-align: left;
-}
 
-.insight__head {
-  @include t.label-md;
+  &__head {
+    @include t.label-md;
 
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: s.$space-2;
-  color: var(--text-strong);
-}
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: s.$space-2;
+    color: var(--text-strong);
+  }
 
-.insight__list {
-  display: flex;
-  flex-direction: column;
-  gap: s.$space-2;
-  min-height: 0;
-  overflow: hidden;
-  list-style: none;
-}
+  &__list {
+    display: flex;
+    flex-direction: column;
+    gap: s.$space-2;
+    min-height: 0;
+    overflow: hidden;
+    list-style: none;
+  }
 
-.insight__line {
-  @include t.body-sm;
+  &__line {
+    @include t.body-sm;
 
-  display: flex;
-  gap: s.$space-2;
-  color: var(--text);
-  animation: ai-line-in 0.34s ease both;
+    display: flex;
+    gap: s.$space-2;
+    color: var(--text);
+    animation: ai-line-in 0.34s ease both;
 
-  &::before {
-    content: "";
-    width: 3px;
-    flex-shrink: 0;
-    border-radius: s.$radius-full;
-    background: linear-gradient(var(--ai-classify), var(--ai-reason));
-    opacity: 0.7;
+    &::before {
+      content: "";
+      width: 3px;
+      flex-shrink: 0;
+      border-radius: s.$radius-full;
+      background: linear-gradient(var(--ai-classify), var(--ai-reason));
+      opacity: 0.7;
+    }
   }
 }
 
@@ -279,7 +272,6 @@
   color: var(--text-faint);
 }
 
-/* 판정은 색만으로 가르지 않는다 — 글자가 곧 결론이다 (COR-003) */
 .verdict {
   @include t.label-sm;
 
@@ -287,21 +279,21 @@
   border-radius: s.$radius-full;
   background-color: var(--ok-soft);
   color: var(--ok-text);
-}
 
-.verdict--fair {
-  background-color: var(--caution-soft);
-  color: var(--caution-text);
-}
+  &--fair {
+    background-color: var(--caution-soft);
+    color: var(--caution-text);
+  }
 
-.verdict--low {
-  background-color: var(--critical-soft);
-  color: var(--critical-text);
-}
+  &--low {
+    background-color: var(--critical-soft);
+    color: var(--critical-text);
+  }
 
-.verdict--offline {
-  background-color: var(--surface-sunken);
-  color: var(--text-muted);
+  &--offline {
+    background-color: var(--surface-sunken);
+    color: var(--text-muted);
+  }
 }
 
 .footer {

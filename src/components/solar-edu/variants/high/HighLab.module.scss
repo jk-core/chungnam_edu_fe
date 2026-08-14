@@ -62,35 +62,34 @@
   &[data-tone="solar"] {
     --tone: var(--solar);
   }
-}
 
-.metric__label {
-  @include t.label-md;
+  &__label {
+    @include t.label-md;
 
-  color: var(--text-muted);
-}
+    color: var(--text-muted);
+  }
 
-.metric__value {
-  color: var(--text-strong);
-  font-family: var(--font-data);
-  font-size: 34px;
-  font-weight: 700;
-  line-height: 1.1;
-  font-variant-numeric: tabular-nums;
-}
+  &__value {
+    color: var(--text-strong);
+    font-family: var(--font-data);
+    font-size: 34px;
+    font-weight: 700;
+    line-height: 1.1;
+    font-variant-numeric: tabular-nums;
+  }
 
-/* 어떻게 셈했는지 — 값만 적고 식을 감추면 학생은 결론을 받는 쪽에 남는다 */
-.metric__formula {
-  @include t.caption;
+  &__formula {
+    @include t.caption;
 
-  color: var(--brand-contrast);
-}
+    color: var(--brand-contrast);
+  }
 
-.metric__note {
-  @include t.caption;
+  &__note {
+    @include t.caption;
 
-  color: var(--text-faint);
-  font-family: var(--font-data);
+    color: var(--text-faint);
+    font-family: var(--font-data);
+  }
 }
 
 // ── 세 그림 ────────────────────────────────────────────────
@@ -116,53 +115,52 @@
   border-radius: s.$radius-lg;
   background-color: var(--surface);
   box-shadow: var(--shadow-sm);
-}
 
-.panel__title {
-  @include t.label-md;
+  &__title {
+    @include t.label-md;
 
-  display: flex;
-  align-items: baseline;
-  justify-content: space-between;
-  gap: s.$space-2;
-  color: var(--text-strong);
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: s.$space-2;
+    color: var(--text-strong);
 
-  span {
+    span {
+      @include t.caption;
+
+      color: var(--text-faint);
+      font-family: var(--font-data);
+      font-weight: 400;
+    }
+  }
+
+  &__body {
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+    justify-content: center;
+    gap: s.$space-3;
+    min-height: 0;
+  }
+
+  &__foot {
     @include t.caption;
 
-    color: var(--text-faint);
-    font-family: var(--font-data);
-    font-weight: 400;
+    padding-top: s.$space-2;
+    border-top: 1px dashed var(--border);
+    color: var(--text-muted);
   }
-}
-
-.panel__body {
-  display: flex;
-  flex: 1;
-  flex-direction: column;
-  justify-content: center;
-  gap: s.$space-3;
-  min-height: 0;
-}
-
-/* 그림을 어떻게 읽는지 — 이 줄이 없으면 산점도는 그냥 흩어진 점이다 */
-.panel__foot {
-  @include t.caption;
-
-  padding-top: s.$space-2;
-  border-top: 1px dashed var(--border);
-  color: var(--text-muted);
 }
 
 .scatter {
   width: 100%;
   max-height: 100%;
-}
 
-.scatter__axis {
-  fill: var(--text-faint);
-  font-family: var(--font-data);
-  font-size: 10px;
+  &__axis {
+    fill: var(--text-faint);
+    font-family: var(--font-data);
+    font-size: 10px;
+  }
 }
 
 // ── 손실 분해 ──────────────────────────────────────────────
@@ -195,37 +193,37 @@
   &[data-tone="offline"] {
     --tone: var(--offline);
   }
-}
 
-.loss__label {
-  @include t.caption;
+  &__label {
+    @include t.caption;
 
-  grid-area: label;
-  color: var(--text-muted);
-}
+    grid-area: label;
+    color: var(--text-muted);
+  }
 
-.loss__value {
-  @include t.label-sm;
+  &__value {
+    @include t.label-sm;
 
-  grid-area: value;
-  color: var(--text-strong);
-  font-family: var(--font-data);
-  font-variant-numeric: tabular-nums;
-}
+    grid-area: value;
+    color: var(--text-strong);
+    font-family: var(--font-data);
+    font-variant-numeric: tabular-nums;
+  }
 
-.loss__track {
-  grid-area: track;
-  height: 8px;
-  border-radius: s.$radius-full;
-  background-color: var(--surface-sunken);
-  overflow: hidden;
-}
+  &__track {
+    grid-area: track;
+    height: 8px;
+    border-radius: s.$radius-full;
+    background-color: var(--surface-sunken);
+    overflow: hidden;
+  }
 
-.loss__fill {
-  display: block;
-  height: 100%;
-  border-radius: inherit;
-  background-color: var(--tone);
+  &__fill {
+    display: block;
+    height: 100%;
+    border-radius: inherit;
+    background-color: var(--tone);
+  }
 }
 
 .summary {

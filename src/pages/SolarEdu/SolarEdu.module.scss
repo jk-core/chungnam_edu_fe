@@ -19,14 +19,6 @@
   }
 }
 
-.main {
-  display: flex;
-  flex-direction: column;
-  gap: s.$space-4;
-  min-height: 0;
-}
-
-
 // 상황판에서 학교를 바꾸는 셀렉트 — 화면 결에 맞춰 눌린 면으로 둔다
 .schoolPicker {
   padding: 2px s.$space-2;

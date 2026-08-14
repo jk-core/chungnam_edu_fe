@@ -1,0 +1,193 @@
+@use "@/styles/tokens/spacing" as s;
+@use "@/styles/tokens/typography" as t;
+@use "@/styles/utils/media" as media;
+
+.strip {
+  display: flex;
+  flex-direction: column;
+  gap: s.$space-2;
+  min-height: 0;
+  padding: s.$space-3 s.$space-4;
+  border: 1px solid var(--border-subtle);
+  border-radius: s.$radius-lg;
+
+  /* 하늘에서 땅으로 — 바깥에서 벌어지는 일이라는 것을 바탕이 먼저 말한다 */
+  background: linear-gradient(180deg, color-mix(in srgb, var(--brand-soft) 55%, transparent), var(--surface) 70%);
+  box-shadow: var(--shadow-sm);
+
+  &__head {
+    @include t.label-md;
+
+    color: var(--text-strong);
+  }
+}
+
+.steps {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  align-items: stretch;
+  gap: s.$space-4;
+  flex: 1;
+  min-height: 0;
+
+  @include media.tablet {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+.step {
+  position: relative;
+  display: grid;
+  grid-template-columns: 52px minmax(0, 1fr);
+  align-items: center;
+  gap: s.$space-3;
+  min-width: 0;
+  padding: s.$space-2 s.$space-3;
+  border: 1px solid color-mix(in srgb, var(--tone) 24%, var(--border-subtle));
+  border-radius: s.$radius-md;
+  background: linear-gradient(
+    125deg,
+    color-mix(in srgb, var(--tone) 11%, var(--surface)),
+    var(--surface) 56%
+  );
+
+  &[data-tone="solar"] {
+    --tone: var(--solar);
+  }
+
+  &[data-tone="brand"] {
+    --tone: var(--brand);
+  }
+
+  &[data-tone="ok"] {
+    --tone: var(--ok);
+  }
+
+  @include media.kiosk {
+    grid-template-columns: 62px minmax(0, 1fr);
+  }
+
+  &__art {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    aspect-ratio: 1;
+    border-radius: 50%;
+    background-color: color-mix(in srgb, var(--tone) 14%, var(--surface));
+
+    svg {
+      width: 78%;
+      height: 78%;
+    }
+  }
+
+  &__text {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+    min-width: 0;
+  }
+
+  &__label {
+    @include t.label-md;
+
+    display: flex;
+    align-items: center;
+    gap: s.$space-2;
+    color: var(--text-muted);
+  }
+
+  &__no {
+    @include t.caption;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 19px;
+    height: 19px;
+    border-radius: 50%;
+    background-color: var(--tone);
+    color: var(--text-on-brand);
+    font-family: var(--font-data);
+    font-weight: 700;
+  }
+
+  &__value {
+    display: flex;
+    align-items: baseline;
+    gap: s.$space-1;
+    color: var(--text-strong);
+    font-family: var(--font-data);
+    font-size: 26px;
+    font-weight: 700;
+    line-height: 1.15;
+    font-variant-numeric: tabular-nums;
+
+    span {
+      @include t.caption;
+
+      color: var(--text-muted);
+    }
+  }
+
+  &__line {
+    @include t.caption;
+
+    color: var(--text);
+  }
+
+  &__foot {
+    @include t.caption;
+
+    color: var(--text-faint);
+  }
+}
+
+.link {
+  position: absolute;
+  top: 50%;
+  right: calc(#{s.$space-4} * -1);
+  width: s.$space-4;
+  height: 2px;
+  background-color: var(--border);
+  transform: translateY(-50%);
+
+  @include media.tablet {
+    display: none;
+  }
+
+  &__dot {
+    position: absolute;
+    top: 50%;
+    left: 0;
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background-color: var(--tone);
+    animation: principle-run 2s linear infinite;
+    translate: 0 -50%;
+  }
+}
+
+@keyframes principle-run {
+  0% {
+    opacity: 0;
+    translate: 0 -50%;
+  }
+
+  25%,
+  70% {
+    opacity: 1;
+  }
+
+  100% {
+    opacity: 0;
+    translate: calc(#{s.$space-4} - 7px) -50%;
+  }
+}
+
+@include media.reduced-motion {
+  .link__dot {
+    animation: none;
+  }
+}

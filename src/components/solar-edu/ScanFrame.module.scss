@@ -2,29 +2,28 @@
 @use "@/styles/tokens/typography" as t;
 @use "@/styles/utils/mixins" as mx;
 
-/*
-  AI 가 읽고 있는 칸을 감싸는 틀.
-
-  감싼 칸의 자리를 건드리지 않으려고 겉껍데기는 자리만 잇고, 표식은 전부 그 위에 덧댄다.
-  색은 `--ai-scan` 을 따라간다 — 계측값을 읽는 일이라 단계와 무관하게 늘 같은 색이다.
-  도는 빛 자체는 `TraceBorder` 가 그린다.
-*/
 .frame {
   position: relative;
   display: flex;
   flex: 1 1 0;
   min-height: 0;
 
+  // 읽는 동안에만 드러나는 것들 — 겉면과 이름표가 같은 신호로 함께 켜진다
+  &--on .veil,
+  &--on .tag {
+    opacity: 1;
+  }
+
   > * {
     flex: 1;
     min-height: 0;
   }
-}
 
-/* 읽는 동안 테두리가 그 색으로 물든다 */
-.frame--on > *:first-child {
-  border-color: color-mix(in srgb, var(--ai-scan) 52%, transparent);
-  box-shadow: 0 0 0 3px color-mix(in srgb, var(--ai-scan) 12%, transparent);
+  /* 읽는 동안 테두리가 그 색으로 물든다 */
+  &--on > *:first-child {
+    border-color: color-mix(in srgb, var(--ai-scan) 52%, transparent);
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--ai-scan) 12%, transparent);
+  }
 }
 
 .veil {
@@ -35,10 +34,6 @@
   opacity: 0;
   pointer-events: none;
   transition: opacity 0.5s ease;
-}
-
-.frame--on .veil {
-  opacity: 1;
 }
 
 .tag {
@@ -56,13 +51,9 @@
   opacity: 0;
   pointer-events: none;
   transition: opacity 0.5s ease;
-}
 
-.frame--on .tag {
-  opacity: 1;
-}
-
-/* 읽는 칸이 없을 때는 스크린리더가 빈 알림을 읽지 않도록 자리도 비운다 */
-.tag:empty {
-  @include mx.sr-only;
+  /* 읽는 칸이 없을 때는 스크린리더가 빈 알림을 읽지 않도록 자리도 비운다 */
+  &:empty {
+    @include mx.sr-only;
+  }
 }

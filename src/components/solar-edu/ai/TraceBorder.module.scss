@@ -2,48 +2,32 @@
 @use "@/styles/utils/media" as media;
 @include ai.scan-keyframes;
 
-/*
-  테두리를 도는 빛.
-
-  뷰박스를 두지 않아 SVG 안의 한 칸이 곧 CSS 한 픽셀이다 — 그래서 `width="100%"` 만으로 칸에 딱 맞고,
-  모서리 반지름도 감싼 칸의 값을 그대로 넘겨 쓸 수 있다.
-*/
 .trace {
   @include ai.trace-border;
 
   width: calc(100% - 4px);
   height: calc(100% - 4px);
-}
 
-.trace rect {
-  x: 0;
-  y: 0;
-  width: 100%;
-  height: 100%;
-}
+  & rect {
+    x: 0;
+    y: 0;
+    width: 100%;
+    height: 100%;
+  }
 
-/* 도는 빛의 머리 — 짧고 밝다 */
-.trace__head {
-  stroke: var(--ai-scan);
-  stroke-width: 2.6;
-  stroke-dasharray: 4 96;
-  filter: drop-shadow(0 0 7px var(--ai-scan));
-}
+  &__head {
+    stroke: var(--ai-scan);
+    stroke-width: 2.6;
+    stroke-dasharray: 4 96;
+    filter: drop-shadow(0 0 7px var(--ai-scan));
+  }
 
-/*
-  꼬리 — 머리가 지나온 자리에 옅게 남는다.
-
-  같은 움직임을 위상만 밀어 쓴다. 미는 폭은 **한 바퀴에 쓰는 몫** 의 비율로 잡아야 한다 —
-  주기 전체로 재면 쉬는 시간까지 세게 되어, 꼬리가 머리를 한참 놓치고 따로 반짝인다.
-
-  가감속을 두었으므로 같은 시간 차이가 빠른 구간에서는 더 벌어진다. 스칠 때 꼬리가 늘어나는 셈이라
-  오히려 지나가는 결이 살아난다.
-*/
-.trace__tail {
-  stroke: color-mix(in srgb, var(--ai-scan) 45%, transparent);
-  stroke-width: 2;
-  stroke-dasharray: 20 80;
-  animation-delay: -#{ai.$trace-cycle * (1 - ai.$trace-sweep * ai.$trace-tail)};
+  &__tail {
+    stroke: color-mix(in srgb, var(--ai-scan) 45%, transparent);
+    stroke-width: 2;
+    stroke-dasharray: 20 80;
+    animation-delay: -#{ai.$trace-cycle * (1 - ai.$trace-sweep * ai.$trace-tail)};
+  }
 }
 
 /*

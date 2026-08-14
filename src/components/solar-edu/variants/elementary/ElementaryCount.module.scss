@@ -5,12 +5,15 @@
 /*
   숫자 놀이터.
 
-  위에 큰 수 하나, 아래에 그 수를 그림으로 세어 보이는 네 줄. 네 줄이 남는 높이를 똑같이 나눠 가져
-  줄 길이를 곧바로 견줄 수 있다 — 어느 줄이 긴지가 이 화면이 답하는 물음이다.
+  위에서 아래로 세 층 — 오늘 만든 수, 그 수가 만들어진 길, 그 수가 뜻하는 것.
+  가운데 원리 띠가 위아래를 잇는다. 이 띠가 없으면 큰 수와 아이콘 줄이 서로 무관해 보인다.
+
+  아래 네 줄은 남는 높이를 똑같이 나눠 가져 줄 길이를 곧바로 견줄 수 있다 —
+  어느 줄이 긴지가 이 화면이 답하는 물음이다.
 */
 .board {
   display: grid;
-  grid-template-rows: auto minmax(0, 1fr);
+  grid-template-rows: auto auto minmax(0, 1fr);
   gap: s.$space-3;
   height: 100%;
   min-height: 0;
@@ -21,7 +24,6 @@
   }
 }
 
-// ── 위 큰 수 ───────────────────────────────────────────────
 .hero {
   display: grid;
   grid-template-columns: 96px minmax(0, 1fr);
@@ -38,16 +40,53 @@
   @include media.kiosk {
     grid-template-columns: 118px minmax(0, 1fr);
   }
-}
 
-.hero__art {
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  &__art {
+    display: flex;
+    align-items: center;
+    justify-content: center;
 
-  svg {
-    width: 100%;
-    height: 100%;
+    svg {
+      width: 100%;
+      height: 100%;
+    }
+  }
+
+  &__text {
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+    min-width: 0;
+  }
+
+  &__label {
+    @include t.label-md;
+
+    color: var(--solar-text);
+  }
+
+  &__value {
+    display: flex;
+    align-items: baseline;
+    gap: s.$space-2;
+    color: var(--text-strong);
+    font-family: var(--font-data);
+    font-size: clamp(40px, 5vw, 66px);
+    font-weight: 700;
+    line-height: 1;
+    font-variant-numeric: tabular-nums;
+
+    span {
+      @include t.title-md;
+
+      color: var(--text-muted);
+    }
+  }
+
+  &__note {
+    @include t.body-sm;
+
+    color: var(--text-muted);
   }
 }
 
@@ -62,43 +101,6 @@
   animation: count-turn 26s linear infinite;
 }
 
-.hero__text {
-  display: flex;
-  flex-direction: column;
-  gap: 1px;
-  min-width: 0;
-}
-
-.hero__label {
-  @include t.label-md;
-
-  color: var(--solar-text);
-}
-
-.hero__value {
-  display: flex;
-  align-items: baseline;
-  gap: s.$space-2;
-  color: var(--text-strong);
-  font-family: var(--font-data);
-  font-size: clamp(46px, 6vw, 76px);
-  font-weight: 700;
-  line-height: 1;
-  font-variant-numeric: tabular-nums;
-
-  span {
-    @include t.title-md;
-
-    color: var(--text-muted);
-  }
-}
-
-.hero__note {
-  @include t.body-sm;
-
-  color: var(--text-muted);
-}
-
 // ── 세는 줄 ────────────────────────────────────────────────
 .rows {
   display: grid;
@@ -111,10 +113,6 @@
   }
 }
 
-/*
-  줄마다 제 색을 갖는다.
-  넷이 같은 흰 카드로 서면 표가 되어, 어느 줄이 무엇이었는지 다시 글자를 읽어야 한다.
-*/
 .band {
   display: grid;
   grid-template-rows: auto minmax(0, 1fr);
@@ -145,51 +143,51 @@
   &[data-tone="solar"] {
     --tone: var(--solar);
   }
-}
 
-.band__head {
-  display: flex;
-  align-items: baseline;
-  justify-content: space-between;
-  gap: s.$space-4;
-}
+  &__head {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: s.$space-4;
+  }
 
-.band__title {
-  display: flex;
-  align-items: baseline;
-  gap: s.$space-3;
-  flex-wrap: wrap;
-  min-width: 0;
-}
+  &__title {
+    display: flex;
+    align-items: baseline;
+    gap: s.$space-3;
+    flex-wrap: wrap;
+    min-width: 0;
+  }
 
-.band__label {
-  @include t.title-sm;
+  &__label {
+    @include t.title-sm;
 
-  color: var(--text-strong);
-}
+    color: var(--text-strong);
+  }
 
-.band__line {
-  @include t.caption;
-
-  color: var(--text-muted);
-}
-
-.band__value {
-  display: flex;
-  align-items: baseline;
-  gap: s.$space-1;
-  flex: none;
-  color: var(--text-strong);
-  font-family: var(--font-data);
-  font-size: 32px;
-  font-weight: 700;
-  line-height: 1.05;
-  font-variant-numeric: tabular-nums;
-
-  span {
-    @include t.body-sm;
+  &__line {
+    @include t.caption;
 
     color: var(--text-muted);
+  }
+
+  &__value {
+    display: flex;
+    align-items: baseline;
+    gap: s.$space-1;
+    flex: none;
+    color: var(--text-strong);
+    font-family: var(--font-data);
+    font-size: 32px;
+    font-weight: 700;
+    line-height: 1.05;
+    font-variant-numeric: tabular-nums;
+
+    span {
+      @include t.body-sm;
+
+      color: var(--text-muted);
+    }
   }
 }
 
@@ -221,8 +219,8 @@
 /* 왼쪽부터 차례로 돋아난다 — 세어 나가는 손가락처럼 */
 .icon {
   flex: none;
-  width: 34px;
-  height: 40px;
+  width: 30px;
+  height: 35px;
   animation: count-pop 0.45s cubic-bezier(0.22, 0.9, 0.3, 1) both;
 
   svg {
@@ -231,12 +229,11 @@
   }
 
   @include media.kiosk {
-    width: 40px;
-    height: 47px;
+    width: 36px;
+    height: 42px;
   }
 }
 
-/* 그림 하나가 몇을 뜻하는지 — 이 줄이 없으면 세어 보이려던 것이 수를 줄여 말하게 된다 */
 .key {
   @include t.label-sm;
 
@@ -250,16 +247,16 @@
   color: var(--text-strong);
   font-family: var(--font-data);
   white-space: nowrap;
-}
 
-.key__chip {
-  display: block;
-  width: 18px;
-  height: 21px;
+  &__chip {
+    display: block;
+    width: 18px;
+    height: 21px;
 
-  svg {
-    width: 100%;
-    height: 100%;
+    svg {
+      width: 100%;
+      height: 100%;
+    }
   }
 }
 
