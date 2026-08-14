@@ -148,6 +148,56 @@
     }
   }
 
+  /* 목록의 누르는 줄과 달리, 고르는 줄은 이름과 선택지가 좌우로 마주 본다 */
+  &__setting {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: s.$space-3;
+    padding: s.$space-2 s.$space-3;
+  }
+
+  &__settingLabel {
+    @include t.body-sm;
+
+    color: var(--text-muted);
+  }
+
+  &__choice {
+    display: inline-flex;
+    gap: 2px;
+    padding: 2px;
+    border-radius: s.$radius-full;
+    background-color: var(--surface-sunken);
+  }
+
+  &__choiceItem {
+    display: grid;
+    place-items: center;
+    width: 28px;
+    height: 24px;
+    border: none;
+    border-radius: s.$radius-full;
+    background: none;
+    color: var(--text-faint);
+    transition: background-color 0.16s ease, color 0.16s ease;
+
+    &:hover {
+      color: var(--text-strong);
+    }
+
+    /* 지금 서 있는 쪽 — 눌린 단추가 곧 답이라 따로 적어 주지 않아도 된다 */
+    &--on {
+      background-color: var(--surface);
+      color: var(--brand-contrast);
+      box-shadow: var(--shadow-sm);
+    }
+
+    @include mx.keyboard-focus {
+      @include mx.focus-ring(-2px);
+    }
+  }
+
   &__itemNote {
     @include t.caption;
 

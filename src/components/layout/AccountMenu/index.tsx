@@ -1,7 +1,16 @@
 import { AnimatePresence, motion } from 'motion/react';
 import { useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { ChevronDownIcon, HelpCircleIcon, LogoutIcon, MonitorIcon, ShieldIcon, SunIcon, UserIcon } from '@/components/common/Icon';
+import {
+  ChevronDownIcon,
+  HelpCircleIcon,
+  LogoutIcon,
+  MonitorIcon,
+  MoonIcon,
+  ShieldIcon,
+  SunIcon,
+  UserIcon,
+} from '@/components/common/Icon';
 import { Badge } from '@/components/common/Badge';
 import { buildPath } from '@/routes/buildPath';
 import { PATH } from '@/routes/routes';
@@ -9,6 +18,7 @@ import { ROLE_LABEL, ROLE_SCOPE_NOTE } from '@/mocks/accounts';
 import { cn } from '@/utils/cn';
 import useAuthStore, { useAuthUser, useLogout } from '@/stores/authStore';
 import { useSelectedPlantId } from '@/stores/plantStore';
+import { useSetTheme, useTheme } from '@/stores/themeStore';
 import styles from './AccountMenu.module.scss';
 
 /** 남은 로그인 유지시간(분). 0 이하면 표시하지 않는다. */
@@ -28,6 +38,8 @@ export function AccountMenu({ onOpenHelp }: AccountMenuProps) {
   const user = useAuthUser();
   const logout = useLogout();
   const selectedPlantId = useSelectedPlantId();
+  const theme = useTheme();
+  const setTheme = useSetTheme();
   const [isOpen, setIsOpen] = useState(false);
   const rootRef = useRef<HTMLDivElement>(null);
 
@@ -154,6 +166,39 @@ export function AccountMenu({ onOpenHelp }: AccountMenuProps) {
                   <span className={styles.panel__itemNote}>내부망</span>
                 </Link>
               ) : null}
+
+              {/*
+                화면 모드.
+                머리띠에 아이콘 하나로 달아 두면 지금이 밝은 쪽인지 어두운 쪽인지 눌러 봐야 알지만,
+                두 갈래를 나란히 두면 어느 쪽에 서 있는지가 눌린 단추로 바로 읽힌다.
+              */}
+              <div className={styles.panel__setting} role="group" aria-label="화면 모드">
+                <span className={styles.panel__settingLabel}>화면 모드</span>
+                <span className={styles.panel__choice}>
+                  <button
+                    type="button"
+                    className={cn(styles.panel__choiceItem, {
+                      [styles['panel__choiceItem--on']]: theme === 'light',
+                    })}
+                    aria-pressed={theme === 'light'}
+                    aria-label="밝은 화면"
+                    onClick={() => setTheme('light')}
+                  >
+                    <SunIcon width={16} height={16} />
+                  </button>
+                  <button
+                    type="button"
+                    className={cn(styles.panel__choiceItem, {
+                      [styles['panel__choiceItem--on']]: theme === 'dark',
+                    })}
+                    aria-pressed={theme === 'dark'}
+                    aria-label="어두운 화면"
+                    onClick={() => setTheme('dark')}
+                  >
+                    <MoonIcon width={16} height={16} />
+                  </button>
+                </span>
+              </div>
 
               <button
                 type="button"

@@ -9,7 +9,6 @@ import { Logo } from '@/components/layout/Logo';
 import { BellIcon, MenuIcon } from '@/components/common/Icon';
 import { MobileDrawer } from '@/components/layout/MobileDrawer';
 import { PATH } from '@/routes/routes';
-import { ThemeToggle } from '@/components/layout/ThemeToggle';
 import { cn } from '@/utils/cn';
 import styles from './Header.module.scss';
 
@@ -55,7 +54,6 @@ export function Header() {
               <BellIcon />
               {pendingCount > 0 ? <span className={styles.header__dot} aria-hidden /> : null}
             </button>
-            <ThemeToggle />
 
             {/* 좁은 화면에는 주메뉴 줄이 서지 않는다 — 그때는 이 단추가 길을 여는 유일한 문이다 */}
             <button

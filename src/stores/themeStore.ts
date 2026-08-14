@@ -37,4 +37,7 @@ export const useTheme = () => useThemeStore((state) => state.theme);
 
 export const useToggleTheme = () => useThemeStore((state) => state.toggleTheme);
 
+/** 두 갈래를 나란히 두고 고르는 자리에서 쓴다 — 어느 쪽인지 알고 누르므로 뒤집는 것이 아니다. */
+export const useSetTheme = () => useThemeStore((state) => state.setTheme);
+
 export default useThemeStore;
