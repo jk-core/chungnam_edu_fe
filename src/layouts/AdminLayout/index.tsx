@@ -41,7 +41,7 @@ export default function AdminLayout() {
 
       <div className={styles.admin__body}>
         <aside className={styles.admin__side}>
-          <Lnb section={ADMIN_NAVIGATION} currentPath={child?.path ?? pathname} />
+          <Lnb section={ADMIN_NAVIGATION} />
         </aside>
 
         <div className={styles.admin__content}>

@@ -1,5 +1,4 @@
 import { useState } from 'react';
-import { motion } from 'motion/react';
 import { NavLink, useLocation } from 'react-router-dom';
 import { findSection } from '@/configs/navigation';
 import { cn } from '@/utils/cn';
@@ -61,9 +60,6 @@ export function Gnb() {
                   onClick={close}
                 >
                   {section.label}
-                  {isActive ? (
-                    <motion.span layoutId="gnb-underline" className={styles.underline} transition={SPRING} />
-                  ) : null}
                 </NavLink>
               </li>
             );
@@ -117,5 +113,3 @@ export function Gnb() {
     </nav>
   );
 }
-
-const SPRING = { type: 'spring', stiffness: 420, damping: 36 } as const;

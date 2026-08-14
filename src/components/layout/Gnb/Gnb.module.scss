@@ -51,18 +51,26 @@
   &--active {
     color: var(--brand-contrast);
     font-weight: 700;
-  }
-}
 
-/* 지금 있는 곳 — 밑줄이 항목 사이를 미끄러져 옮겨 간다 */
-.underline {
-  position: absolute;
-  right: s.$space-3;
-  bottom: 0;
-  left: s.$space-3;
-  height: 3px;
-  border-radius: 3px 3px 0 0;
-  background-color: var(--brand);
+    /*
+      지금 있는 곳을 짚는 밑줄.
+
+      항목 사이를 미끄러져 옮겨 가던 연출을 걷어내고 그리는 것으로 바꿨다. 그 연출은 쪽을
+      옮길 때마다 옛 항목과 새 항목의 자리를 재서 이어 붙이는데, 머리띠는 어느 화면에서나
+      그대로 남아 있으므로 그 재기가 페이지를 옮길 때마다 되풀이됐다. 자리를 잡지 못하면
+      밑줄이 납작해진 채 남기도 한다. 어느 묶음에 있는지만 말하면 되는 표시라 그리면 족하다.
+    */
+    &::after {
+      content: "";
+      position: absolute;
+      right: s.$space-3;
+      bottom: 0;
+      left: s.$space-3;
+      height: 3px;
+      border-radius: 3px 3px 0 0;
+      background-color: var(--brand);
+    }
+  }
 }
 
 .mega {

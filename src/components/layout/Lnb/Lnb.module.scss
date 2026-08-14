@@ -77,34 +77,34 @@
       white-space: nowrap;
     }
 
+    /*
+      지금 있는 곳.
+
+      항목 사이를 미끄러져 옮겨 가던 표식을 걷어내고 그리는 것으로 바꿨다. 그 연출은 쪽을
+      옮길 때마다 옛 자리와 새 자리를 재서 이어 붙이는데, 좌측 메뉴는 한 묶음 안을 오가는
+      내내 그대로 남아 있으므로 그 재기가 페이지를 옮길 때마다 되풀이됐다. 자리를 잡지
+      못하면 표식이 엉뚱한 곳에 머문 채로 남는다.
+    */
     &--active {
       color: var(--brand-contrast);
       font-weight: 600;
-    }
-  }
+      background-color: var(--brand-soft);
 
-  &__marker {
-    position: absolute;
-    inset: 0;
-    background-color: var(--brand-soft);
-    border-radius: s.$radius-sm;
-
-    // 좌측 세로 강조선 — 데스크톱에서만 보인다.
-    &::before {
-      content: "";
-      position: absolute;
-      inset-block: 6px;
-      left: 0;
-      width: 3px;
-      border-radius: s.$radius-full;
-      background-color: var(--brand);
-    }
-
-    @include media.tablet {
-      border-radius: s.$radius-full;
-
+      // 좌측 세로 강조선 — 데스크톱에서만 보인다.
       &::before {
-        display: none;
+        content: "";
+        position: absolute;
+        inset-block: 6px;
+        left: 0;
+        width: 3px;
+        border-radius: s.$radius-full;
+        background-color: var(--brand);
+      }
+
+      @include media.tablet {
+        &::before {
+          display: none;
+        }
       }
     }
   }

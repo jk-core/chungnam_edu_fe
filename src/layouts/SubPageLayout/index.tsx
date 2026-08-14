@@ -46,7 +46,7 @@ export default function SubPageLayout() {
         {/* 조회 대상이 위, 하위 메뉴가 아래. 가로 탭으로 바뀌는 구간에서는 메뉴를 먼저 둔다. */}
         <aside className={styles.sub__side}>
           {needsScope ? <PlantScopePanel /> : null}
-          <Lnb section={section} currentPath={pathname} />
+          <Lnb section={section} />
         </aside>
 
         <div className={styles.sub__content}>
