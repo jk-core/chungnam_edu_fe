@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { AnimatePresence, motion } from 'motion/react';
+import { motion } from 'motion/react';
 import { NavLink, useLocation } from 'react-router-dom';
 import { findSection } from '@/configs/navigation';
 import { cn } from '@/utils/cn';
@@ -27,6 +27,14 @@ export function Gnb() {
   // 하위가 없는 곳(홈)에 머무는 동안에는 펼칠 것이 없다.
   const isOpen = navigation.some((section) => section.path === openPath && section.children.length > 0);
 
+  /*
+    쪽을 고르고 나면 판을 접는다.
+
+    판은 마우스가 띠 밖으로 나갈 때 닫히는데, 누른 자리가 곧 판 안이라 마우스는 그대로 머문다.
+    그러면 원하는 곳으로 옮겨 갔는데도 판이 본문을 덮은 채 남아, 손을 한 번 더 휘저어야 한다.
+  */
+  const close = () => setOpenPath(null);
+
   return (
     <nav
       className={styles.navbar}
@@ -50,6 +58,7 @@ export function Gnb() {
                   aria-expanded={section.children.length > 0 ? openPath === section.path : undefined}
                   onMouseEnter={() => setOpenPath(section.path)}
                   onFocus={() => setOpenPath(section.path)}
+                  onClick={close}
                 >
                   {section.label}
                   {isActive ? (
@@ -67,51 +76,44 @@ export function Gnb() {
         띠 아래 화면 폭을 다 쓰고 내려온다 — 안쪽 글은 본문과 같은 컨테이너에 맞춰,
         메뉴 이름이 위 1뎁스와 세로로 어긋나지 않게 한다.
       */}
-      <AnimatePresence>
-        {isOpen ? (
-          <motion.div
-            className={styles.mega}
-            initial={{ opacity: 0, y: -8 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -8 }}
-            transition={{ duration: 0.18, ease: 'easeOut' }}
-          >
-            <div className={styles.mega__inner}>
-              {navigation
-                .filter((section) => section.children.length > 0)
-                .map((section) => (
-                  <section
-                    key={section.path}
-                    className={styles.group}
-                    data-on={section.path === openPath ? '' : undefined}
-                  >
-                    <h2 className={styles.group__title}>{section.label}</h2>
+      {isOpen ? (
+        <div className={styles.mega}>
+          <div className={styles.mega__inner}>
+            {navigation
+              .filter((section) => section.children.length > 0)
+              .map((section) => (
+                <section
+                  key={section.path}
+                  className={styles.group}
+                  data-on={section.path === openPath ? '' : undefined}
+                >
+                  <h2 className={styles.group__title}>{section.label}</h2>
 
-                    <ul className={styles.group__list}>
-                      {section.children.map((child) => (
-                        <li key={child.path}>
-                          {/*
-                            지금 보고 있는 쪽. 함수형 className 을 써야 라우터가 켜짐을 알려 준다 —
-                            문자열로 주면 활성 표시가 붙지 않는다. `aria-current` 는 라우터가 알아서 단다.
-                          */}
-                          <NavLink
-                            to={child.path}
-                            className={({ isActive }) => cn(styles.group__link, {
-                              [styles['group__link--on']]: isActive,
-                            })}
-                          >
-                            <span className={styles.group__label}>{child.label}</span>
-                            <span className={styles.group__description}>{child.description}</span>
-                          </NavLink>
-                        </li>
-                      ))}
-                    </ul>
-                  </section>
-                ))}
-            </div>
-          </motion.div>
-        ) : null}
-      </AnimatePresence>
+                  <ul className={styles.group__list}>
+                    {section.children.map((child) => (
+                      <li key={child.path}>
+                        {/*
+                          지금 보고 있는 쪽. 함수형 className 을 써야 라우터가 켜짐을 알려 준다 —
+                          문자열로 주면 활성 표시가 붙지 않는다. `aria-current` 는 라우터가 알아서 단다.
+                        */}
+                        <NavLink
+                          to={child.path}
+                          className={({ isActive }) => cn(styles.group__link, {
+                            [styles['group__link--on']]: isActive,
+                          })}
+                          onClick={close}
+                        >
+                          <span className={styles.group__label}>{child.label}</span>
+                          <span className={styles.group__description}>{child.description}</span>
+                        </NavLink>
+                      </li>
+                    ))}
+                  </ul>
+                </section>
+              ))}
+          </div>
+        </div>
+      ) : null}
     </nav>
   );
 }

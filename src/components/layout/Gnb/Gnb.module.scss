@@ -75,6 +75,16 @@
   background-color: var(--surface);
   box-shadow: var(--shadow-lg);
 
+  /*
+    내려오는 결만 준다. 닫힐 때는 애니메이션 없이 곧바로 걷어낸다 — 사라지는 동안 남아 있는
+    투명한 판이 본문의 눌림을 가로채기 때문이다. 메뉴는 고르면 바로 비켜서는 편이 낫다.
+  */
+  animation: gnb-mega-in 0.18s ease-out;
+
+  @include media.reduced-motion {
+    animation: none;
+  }
+
   &__inner {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(0, 1fr));
@@ -143,5 +153,12 @@
 
     /* 설명이 길어 판이 들쭉날쭉해지지 않게 두 줄에서 끊는다 */
     @include mx.truncate(2);
+  }
+}
+
+@keyframes gnb-mega-in {
+  from {
+    opacity: 0;
+    transform: translateY(-8px);
   }
 }
