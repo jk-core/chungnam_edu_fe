@@ -8,48 +8,41 @@
   gap: s.$space-3;
   min-width: 0;
 
-  // 헤더 링크에 hover 하면 해가 살짝 떠오른다.
+  // 헤더 링크에 hover 하면 마크가 살짝 떠오른다.
   &:hover {
     .logo__mark {
       transform: translateY(-1px);
     }
-
-    .logo__sun {
-      transform: translateY(-1.5px) scale(1.08);
-    }
   }
 
+  /*
+    공식 심볼. 가로보다 세로가 길어(438×496) 높이를 기준으로 세운다 —
+    정사각에 가두면 좌우로 여백만 생기고 마크가 그만큼 작아진다.
+  */
   &__mark {
     flex-shrink: 0;
-    width: 36px;
-    height: 36px;
+    box-sizing: content-box;
+    width: auto;
+    height: 34px;
+
+    /* 밝은 판을 깔아도 마크 크기가 달라지지 않게 여백은 양쪽 테마에 똑같이 둔다 */
+    padding: 3px 6px;
+    border-radius: s.$radius-sm;
     transition: transform 0.4s cubic-bezier(0.2, 0.8, 0.3, 1);
 
     @include media.mobile {
-      width: 32px;
-      height: 32px;
+      height: 30px;
     }
-  }
 
-  &__plate {
-    fill: var(--brand);
-  }
-
-  &__arc {
-    stroke: var(--solar);
-    stroke-dasharray: 40;
-    stroke-dashoffset: 0;
-    transition: stroke-dashoffset 0.6s ease;
-  }
-
-  &__sun {
-    fill: var(--solar);
-    transform-origin: 18px 15.2px;
-    transition: transform 0.4s cubic-bezier(0.2, 0.8, 0.3, 1);
-  }
-
-  &__horizon {
-    stroke: rgb(255 255 255 / 55%);
+    /*
+      어두운 테마에서는 흰 판을 깔아 준다.
+      심볼의 몸통인 남색(#004998)은 어두운 바탕 위에서 대비가 2.2:1 까지 떨어져 형태가
+      묻힌다. 기관 심볼은 테마에 맞춰 색을 바꾸는 것이 아니므로, 색은 그대로 두고
+      딛고 설 바탕을 내어 준다.
+    */
+    [data-theme="dark"] & {
+      background-color: #fff;
+    }
   }
 
   &__text {
