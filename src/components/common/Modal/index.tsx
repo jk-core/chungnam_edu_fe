@@ -1,5 +1,4 @@
 import { useEffect, useId, useRef } from 'react';
-import { AnimatePresence, motion } from 'motion/react';
 import { createPortal } from 'react-dom';
 import { CloseIcon } from '@/components/common/Icon';
 import styles from './Modal.module.scss';
@@ -100,59 +99,57 @@ export function Modal({ isOpen, onClose, title, description, size = 'md', childr
     };
   }, [isOpen]);
 
+  /*
+    닫히면 곧바로 걷어낸다.
+
+    사라지는 연출을 두었을 때는 판이 투명해진 채로 화면에 남아, 아래 본문의 눌림을 통째로
+    가로챘다 — 모달을 한 번 열었다 닫으면 그 뒤로 아무것도 눌리지 않았다. 들어오는 결만
+    CSS 로 주고 나갈 때는 미련 없이 없앤다.
+  */
+  if (!isOpen) return null;
+
   return createPortal(
-    <AnimatePresence>
-      {isOpen ? (
-        // key 가 없으면 AnimatePresence 가 이 노드를 추적하지 못해 exit 이 끝나지 않는다.
-        <div key="modal" className={styles.modal}>
-          <motion.button
-            type="button"
-            className={styles.modal__backdrop}
-            aria-label="닫기"
-            onClick={onClose}
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.18 }}
-          />
+    (
+      <div className={styles.modal}>
+        <button
+          type="button"
+          className={styles.modal__backdrop}
+          aria-label="닫기"
+          onClick={onClose}
+        />
 
-          <motion.div
-            ref={panelRef}
-            className={`${styles.modal__panel} ${styles[`modal__panel--${size}`]}`}
-            role="dialog"
-            aria-modal="true"
-            aria-labelledby={titleId}
-            aria-describedby={description ? descriptionId : undefined}
-            tabIndex={-1}
-            initial={{ opacity: 0, y: 24, scale: 0.98 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: 12, scale: 0.99 }}
-            transition={{ type: 'spring', stiffness: 420, damping: 34 }}
-          >
-            <header className={styles.modal__header}>
-              <div className={styles.modal__heading}>
-                <h2 id={titleId} className={styles.modal__title}>
-                  {title}
-                </h2>
-                {description ? (
-                  <p id={descriptionId} className={styles.modal__description}>
-                    {description}
-                  </p>
-                ) : null}
-              </div>
-              <button type="button" className={styles.modal__close} onClick={onClose} aria-label="닫기">
-                <CloseIcon />
-              </button>
-            </header>
+        <div
+          ref={panelRef}
+          className={`${styles.modal__panel} ${styles[`modal__panel--${size}`]}`}
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby={titleId}
+          aria-describedby={description ? descriptionId : undefined}
+          tabIndex={-1}
+        >
+          <header className={styles.modal__header}>
+            <div className={styles.modal__heading}>
+              <h2 id={titleId} className={styles.modal__title}>
+                {title}
+              </h2>
+              {description ? (
+                <p id={descriptionId} className={styles.modal__description}>
+                  {description}
+                </p>
+              ) : null}
+            </div>
+            <button type="button" className={styles.modal__close} onClick={onClose} aria-label="닫기">
+              <CloseIcon />
+            </button>
+          </header>
 
-            {/* 본문이 없는 확인 대화상자에서 빈 여백이 남지 않게 한다. */}
-            {children ? <div className={styles.modal__body}>{children}</div> : null}
+          {/* 본문이 없는 확인 대화상자에서 빈 여백이 남지 않게 한다. */}
+          {children ? <div className={styles.modal__body}>{children}</div> : null}
 
-            {footer ? <footer className={styles.modal__footer}>{footer}</footer> : null}
-          </motion.div>
+          {footer ? <footer className={styles.modal__footer}>{footer}</footer> : null}
         </div>
-      ) : null}
-    </AnimatePresence>,
+      </div>
+    ),
     document.body,
   );
 }

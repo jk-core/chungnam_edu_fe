@@ -4,6 +4,13 @@
 @use "@/styles/utils/mixins" as mx;
 
 .modal {
+  /* 들어올 때만 결을 준다 — 나갈 때는 곧바로 걷힌다 */
+  animation: modal-in 0.18s ease-out;
+
+  @include media.reduced-motion {
+    animation: none;
+  }
+
   position: fixed;
   inset: 0;
   z-index: 100;
@@ -33,6 +40,12 @@
   }
 
   &__panel {
+    animation: modal-panel-in 0.22s cubic-bezier(0.22, 0.68, 0.32, 1);
+
+    @include media.reduced-motion {
+      animation: none;
+    }
+
     position: relative;
     display: flex;
     flex-direction: column;
@@ -157,5 +170,18 @@
     padding: s.$space-4 s.$space-6;
     border-top: 1px solid var(--border-subtle);
     background-color: var(--surface-sunken);
+  }
+}
+
+@keyframes modal-in {
+  from {
+    opacity: 0;
+  }
+}
+
+@keyframes modal-panel-in {
+  from {
+    opacity: 0;
+    transform: translateY(16px) scale(0.99);
   }
 }
