@@ -28,6 +28,14 @@
   flex-wrap: wrap;
   gap: s.$space-1;
 
+  /* 어느 계층인지는 그림이 먼저 말한다 — 이름을 읽기 전에 걸린다 */
+  &__icon {
+    flex-shrink: 0;
+    width: 14px;
+    height: 14px;
+    color: var(--text-faint);
+  }
+
   &__item {
     display: inline-flex;
     align-items: center;
@@ -39,6 +47,9 @@
   }
 
   &__link {
+    display: inline-flex;
+    align-items: center;
+    gap: s.$space-1;
     padding: 2px s.$space-2;
     background: none;
     border: 0;
@@ -192,6 +203,14 @@
     flex-direction: column;
     gap: 1px;
     min-width: 0;
+  }
+
+  /* 무엇인지 알려 주는 그림 — 이름과 같은 줄에서 조용히 앞선다 */
+  &__icon {
+    flex-shrink: 0;
+    width: 14px;
+    height: 14px;
+    color: var(--text-faint);
   }
 
   &__name {

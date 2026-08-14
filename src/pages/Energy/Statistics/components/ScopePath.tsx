@@ -1,3 +1,4 @@
+import { EquipmentIcon } from '@/components/plant/EquipmentIcon';
 import { KIND_LABEL } from '@/mocks/tree';
 import { useSelectNode } from '@/stores/plantStore';
 import type { ScopeNode } from '@/interface/tree';
@@ -20,11 +21,13 @@ export function ScopePath({ path, currentId }: ScopePathProps) {
           {index > 0 ? <span className={styles.scopePath__sep}>›</span> : null}
           {item.id === currentId ? (
             <span className={styles.scopePath__current}>
+              <EquipmentIcon kind={item.kind} className={styles.scopePath__icon} />
               {item.name}
               <span className={styles.scopePath__kind}>{KIND_LABEL[item.kind]}</span>
             </span>
           ) : (
             <button type="button" className={styles.scopePath__link} onClick={() => selectNode(item.id)}>
+              <EquipmentIcon kind={item.kind} className={styles.scopePath__icon} />
               {item.name}
             </button>
           )}

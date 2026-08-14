@@ -1,6 +1,63 @@
-import type { SVGProps } from 'react';
+import SunSvg from '@/assets/svg/icons/sun.svg';
+import MoonSvg from '@/assets/svg/icons/moon.svg';
+import MenuSvg from '@/assets/svg/icons/menu.svg';
+import CloseSvg from '@/assets/svg/icons/close.svg';
+import ChevronRightSvg from '@/assets/svg/icons/chevron-right.svg';
+import ChevronDownSvg from '@/assets/svg/icons/chevron-down.svg';
+import ChevronLeftSvg from '@/assets/svg/icons/chevron-left.svg';
+import AlertSvg from '@/assets/svg/icons/alert.svg';
+import BellSvg from '@/assets/svg/icons/bell.svg';
+import CheckSvg from '@/assets/svg/icons/check.svg';
+import InfoSvg from '@/assets/svg/icons/info.svg';
+import CalendarSvg from '@/assets/svg/icons/calendar.svg';
+import EyeSvg from '@/assets/svg/icons/eye.svg';
+import EyeOffSvg from '@/assets/svg/icons/eye-off.svg';
+import UserSvg from '@/assets/svg/icons/user.svg';
+import LogoutSvg from '@/assets/svg/icons/logout.svg';
+import MonitorSvg from '@/assets/svg/icons/monitor.svg';
+import SearchSvg from '@/assets/svg/icons/search.svg';
+import ExcelSvg from '@/assets/svg/icons/excel.svg';
+import HelpSvg from '@/assets/svg/icons/help.svg';
+import WifiOffSvg from '@/assets/svg/icons/wifi-off.svg';
+import LightningSvg from '@/assets/svg/icons/lightning.svg';
+import type { FunctionComponent, SVGProps } from 'react';
 
 type IconProps = SVGProps<SVGSVGElement>;
+
+/**
+ * `assets/svg/icons` 에 파일로 둔 아이콘을 이 화면들의 결에 맞춰 낸다.
+ *
+ * 파일은 24px·선 굵기 2 로 그려져 있는데 화면에서 쓰는 결은 20px·1.6 이다. 불러 쓰는 자리마다
+ * 크기와 굵기를 적어 주면 한 군데만 빠뜨려도 그 아이콘만 굵게 튄다 — 여기서 한 번에 맞춘다.
+ */
+function fromFile(Svg: FunctionComponent<SVGProps<SVGSVGElement>>) {
+  return function Icon(props: IconProps) {
+    return <Svg width="20" height="20" strokeWidth="1.6" aria-hidden="true" focusable="false" {...props} />;
+  };
+}
+
+export const SunIcon = fromFile(SunSvg);
+export const MoonIcon = fromFile(MoonSvg);
+export const MenuIcon = fromFile(MenuSvg);
+export const CloseIcon = fromFile(CloseSvg);
+export const ChevronRightIcon = fromFile(ChevronRightSvg);
+export const ChevronDownIcon = fromFile(ChevronDownSvg);
+export const ChevronLeftIcon = fromFile(ChevronLeftSvg);
+export const AlertIcon = fromFile(AlertSvg);
+export const BellIcon = fromFile(BellSvg);
+export const CheckIcon = fromFile(CheckSvg);
+export const InfoIcon = fromFile(InfoSvg);
+export const CalendarIcon = fromFile(CalendarSvg);
+export const EyeIcon = fromFile(EyeSvg);
+export const EyeOffIcon = fromFile(EyeOffSvg);
+export const UserIcon = fromFile(UserSvg);
+export const LogoutIcon = fromFile(LogoutSvg);
+export const MonitorIcon = fromFile(MonitorSvg);
+export const SearchIcon = fromFile(SearchSvg);
+export const ExcelIcon = fromFile(ExcelSvg);
+export const HelpCircleIcon = fromFile(HelpSvg);
+export const OfflineIcon = fromFile(WifiOffSvg);
+export const BoltIcon = fromFile(LightningSvg);
 
 /**
  * 24×24 그리드, stroke 1.6 로 통일한 라인 아이콘.
@@ -26,52 +83,9 @@ function Base({ children, ...rest }: IconProps) {
   );
 }
 
-export const SunIcon = (props: IconProps) => (
-  <Base {...props}>
-    <circle cx="12" cy="12" r="4" />
-    <path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4" />
-  </Base>
-);
-
-export const MoonIcon = (props: IconProps) => (
-  <Base {...props}>
-    <path d="M20 14.5A8.2 8.2 0 0 1 9.5 4a8.5 8.5 0 1 0 10.5 10.5Z" />
-  </Base>
-);
-
-export const MenuIcon = (props: IconProps) => (
-  <Base {...props}>
-    <path d="M3.5 7h17M3.5 12h17M3.5 17h17" />
-  </Base>
-);
-
-export const CloseIcon = (props: IconProps) => (
-  <Base {...props}>
-    <path d="M6 6l12 12M18 6L6 18" />
-  </Base>
-);
-
-export const ChevronRightIcon = (props: IconProps) => (
-  <Base {...props}>
-    <path d="M9 5l7 7-7 7" />
-  </Base>
-);
-
-export const ChevronDownIcon = (props: IconProps) => (
-  <Base {...props}>
-    <path d="M5 9l7 7 7-7" />
-  </Base>
-);
-
 export const ArrowUpRightIcon = (props: IconProps) => (
   <Base {...props}>
     <path d="M7 17L17 7M8 7h9v9" />
-  </Base>
-);
-
-export const BoltIcon = (props: IconProps) => (
-  <Base {...props}>
-    <path d="M13 2 4.5 13.5H11l-1 8.5 8.5-11.5H12l1-8.5Z" />
   </Base>
 );
 
@@ -102,80 +116,9 @@ export const LeafIcon = (props: IconProps) => (
   </Base>
 );
 
-export const AlertIcon = (props: IconProps) => (
-  <Base {...props}>
-    <path d="M12 3.5 2.8 19.5h18.4L12 3.5Z" />
-    <path d="M12 10v4M12 17.2v.1" />
-  </Base>
-);
-
-export const BellIcon = (props: IconProps) => (
-  <Base {...props}>
-    <path d="M18 8.6a6 6 0 1 0-12 0c0 5.2-2 6.7-2 6.7h16s-2-1.5-2-6.7Z" />
-    <path d="M13.7 19a2 2 0 0 1-3.4 0" />
-  </Base>
-);
-
-export const CheckIcon = (props: IconProps) => (
-  <Base {...props}>
-    <path d="M4.5 12.5 9.5 17.5 19.5 6.5" />
-  </Base>
-);
-
-export const InfoIcon = (props: IconProps) => (
-  <Base {...props}>
-    <circle cx="12" cy="12" r="9" />
-    <path d="M12 11v5.5M12 7.6v.1" />
-  </Base>
-);
-
-export const OfflineIcon = (props: IconProps) => (
-  <Base {...props}>
-    <path d="M3 3l18 18" />
-    <path d="M8.6 15.4a5 5 0 0 1 6.8-.4M5.2 12a10 10 0 0 1 4-2.4M18.8 12a10 10 0 0 0-3-2.1M12 19v.1" />
-  </Base>
-);
-
-export const CalendarIcon = (props: IconProps) => (
-  <Base {...props}>
-    <rect x="3.5" y="5" width="17" height="15.5" rx="2.5" />
-    <path d="M3.5 10h17M8.5 3v4M15.5 3v4" />
-  </Base>
-);
-
 export const DownloadIcon = (props: IconProps) => (
   <Base {...props}>
     <path d="M12 3.5v11M7.5 10.5 12 15l4.5-4.5M4.5 19.5h15" />
-  </Base>
-);
-
-export const EyeIcon = (props: IconProps) => (
-  <Base {...props}>
-    <path d="M2.5 12S6 5.5 12 5.5 21.5 12 21.5 12S18 18.5 12 18.5 2.5 12 2.5 12Z" />
-    <circle cx="12" cy="12" r="3" />
-  </Base>
-);
-
-export const EyeOffIcon = (props: IconProps) => (
-  <Base {...props}>
-    <path d="M4 4l16 16" />
-    <path d="M9.6 6a8.6 8.6 0 0 1 2.4-.5c6 0 9.5 6.5 9.5 6.5a17 17 0 0 1-2.5 3.3" />
-    <path d="M6.3 8.1A17.4 17.4 0 0 0 2.5 12S6 18.5 12 18.5a8.8 8.8 0 0 0 3.4-.7" />
-    <path d="M9.9 9.9a3 3 0 0 0 4.2 4.2" />
-  </Base>
-);
-
-export const UserIcon = (props: IconProps) => (
-  <Base {...props}>
-    <circle cx="12" cy="8.5" r="3.6" />
-    <path d="M4.8 20a7.4 7.4 0 0 1 14.4 0" />
-  </Base>
-);
-
-export const LogoutIcon = (props: IconProps) => (
-  <Base {...props}>
-    <path d="M14.5 4.5h3.2a1.8 1.8 0 0 1 1.8 1.8v11.4a1.8 1.8 0 0 1-1.8 1.8h-3.2" />
-    <path d="M10 8l-4 4 4 4M6 12h9" />
   </Base>
 );
 
@@ -186,24 +129,10 @@ export const ShieldIcon = (props: IconProps) => (
   </Base>
 );
 
-export const MonitorIcon = (props: IconProps) => (
-  <Base {...props}>
-    <rect x="2.8" y="4" width="18.4" height="12.4" rx="2" />
-    <path d="M9 20.2h6M12 16.4v3.8" />
-  </Base>
-);
-
 /** 실적 순위 1~3위 표식 (SFR-004-09) */
 export const CrownIcon = (props: IconProps) => (
   <Base {...props}>
     <path d="M4 17.5h16M4.2 6.4l3.9 3.2L12 5l3.9 4.6 3.9-3.2-1.5 9.1H5.7Z" />
-  </Base>
-);
-
-export const SearchIcon = (props: IconProps) => (
-  <Base {...props}>
-    <circle cx="10.8" cy="10.8" r="6.3" />
-    <path d="m15.5 15.5 4 4" />
   </Base>
 );
 
@@ -289,13 +218,6 @@ export const PrinterIcon = (props: IconProps) => (
   </Base>
 );
 
-export const ExcelIcon = (props: IconProps) => (
-  <Base {...props}>
-    <rect x="4" y="4.5" width="16" height="15" rx="1.8" />
-    <path d="M4 9.5h16M9.5 9.5v10M4 14.5h16" />
-  </Base>
-);
-
 export const ClockIcon = (props: IconProps) => (
   <Base {...props}>
     <circle cx="12" cy="12" r="8" />
@@ -314,20 +236,6 @@ export const BoardIcon = (props: IconProps) => (
   <Base {...props}>
     <rect x="4" y="5" width="16" height="14" rx="2" />
     <path d="M7.5 9.5h9M7.5 13h6" />
-  </Base>
-);
-
-export const HelpCircleIcon = (props: IconProps) => (
-  <Base {...props}>
-    <circle cx="12" cy="12" r="8.2" />
-    <path d="M9.8 9.6a2.3 2.3 0 1 1 3.4 2.1c-.7.4-1.2.9-1.2 1.8" />
-    <path d="M12 17h.01" />
-  </Base>
-);
-
-export const ChevronLeftIcon = (props: IconProps) => (
-  <Base {...props}>
-    <path d="M15 5l-7 7 7 7" />
   </Base>
 );
 

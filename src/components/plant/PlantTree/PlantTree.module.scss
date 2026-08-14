@@ -135,6 +135,18 @@
     text-align: left;
   }
 
+  /*
+    계층을 알려 주는 그림.
+    이름 앞에 두어 들여쓰기를 세지 않고도 발전소인지 인버터인지가 바로 읽힌다.
+    상태색은 앞의 점이 맡으므로 여기는 글자와 같은 색으로 조용히 둔다.
+  */
+  &__icon {
+    flex-shrink: 0;
+    width: 14px;
+    height: 14px;
+    color: var(--text-faint);
+  }
+
   &__dot {
     flex-shrink: 0;
     width: 6px;

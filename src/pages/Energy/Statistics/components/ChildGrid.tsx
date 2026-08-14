@@ -1,4 +1,5 @@
 import { motion } from 'motion/react';
+import { EquipmentIcon } from '@/components/plant/EquipmentIcon';
 import { Badge } from '@/components/common/Badge';
 import { isAbnormal, OPERATION_LABEL, OPERATION_TONE } from '@/mocks/status';
 import { EmptyState } from '@/components/common/EmptyState';
@@ -67,7 +68,10 @@ export function ChildGrid({ stats, selectedId, dateLabel, emptyLabel, interactiv
           >
             <span className={styles.inverterCard__head}>
               <span className={styles.inverterCard__title}>
-                <span className={styles.inverterCard__name}>{node.name}</span>
+                <span className={styles.inverterCard__name}>
+                  <EquipmentIcon kind={node.kind} className={styles.inverterCard__icon} />
+                  {node.name}
+                </span>
                 <span className={styles.inverterCard__school}>
                   {node.childIds.length > 0 ? `하위 ${node.childIds.length}개` : '최말단 설비'}
                 </span>

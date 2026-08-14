@@ -1,6 +1,7 @@
 import { useEffect } from 'react';
 import { AnimatePresence, motion } from 'motion/react';
 import { ChevronRightIcon } from '@/components/common/Icon';
+import { EquipmentIcon } from '@/components/plant/EquipmentIcon';
 import { getChildNodes, getNode, getNodePath, KIND_LABEL } from '@/mocks/tree';
 import { cn } from '@/utils/cn';
 import { formatNumber } from '@/utils/format';
@@ -68,6 +69,8 @@ function TreeRow({ node, depth, selectedId, expandedIds, disabledKinds, stopAt, 
           aria-current={isSelected ? 'true' : undefined}
         >
           <span className={cn(styles.row__dot, styles[`row__dot--${node.status}`])} aria-hidden="true" />
+          {/* 무엇인지는 그림이, 어떤 상태인지는 앞의 점이 말한다 — 깊이를 세지 않아도 읽힌다 */}
+          <EquipmentIcon kind={node.kind} className={styles.row__icon} />
           <span className={styles.row__name}>{node.name}</span>
           <span className={styles.row__capacity}>{formatNumber(node.capacityKw, 1)} kW</span>
         </button>
