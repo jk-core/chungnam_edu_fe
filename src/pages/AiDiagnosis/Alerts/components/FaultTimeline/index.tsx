@@ -2,7 +2,6 @@ import { useMemo, useState } from 'react';
 import { AlertIcon, CheckIcon, ClockIcon, UserIcon, WrenchIcon } from '@/components/common/Icon';
 import { Badge } from '@/components/common/Badge';
 import { Button } from '@/components/common/Button';
-import { Card } from '@/components/common/Card';
 import { ConfirmDialog } from '@/components/common/ConfirmDialog';
 import { EmptyState } from '@/components/common/EmptyState';
 import { FormRow, RadioGroup, TextArea, TextField } from '@/components/common/Form';
@@ -11,8 +10,6 @@ import { getFaultTimelines, PHASE_LABEL, timelineDurationMinutes } from '@/mocks
 import { Modal } from '@/components/common/Modal';
 import { MSG } from '@/configs/messages';
 import { NOW } from '@/mocks/today';
-import { Reveal } from '@/components/common/Reveal';
-import { StatCard } from '@/components/common/StatCard';
 import { cn } from '@/utils/cn';
 import { formatDuration, formatNumber } from '@/utils/format';
 import { mergeSteps, useAddAction, useManualActions } from '@/stores/faultActionStore';
@@ -20,8 +17,7 @@ import { toast } from '@/stores/toastStore';
 import { useAuthUser } from '@/stores/authStore';
 import { useDiagnosisScope } from '@/hooks/useDiagnosisScope';
 import type { FaultTimeline, TimelinePhase } from '@/interface/faultTimeline';
-import shared from '../Alerts.module.scss';
-import styles from './Timeline.module.scss';
+import styles from './FaultTimeline.module.scss';
 import { FaultGantt } from './FaultGantt';
 
 const PHASE_ICON: Record<TimelinePhase, typeof AlertIcon> = {
@@ -38,9 +34,12 @@ const TIMELINE_YEARS = 5;
 
 /**
  * 고장 발생부터 조치 완료까지 단계별 이력 (SFR-015).
+ *
  * 정상 가동 기간은 만들지 않고 이상 발생 구간만 모아 보여 준다.
+ * 알림 이력 화면에서 표와 갈아 끼워 쓴다 — 알림 한 줄 한 줄이 아니라 **고장 한 건이 언제부터
+ * 언제까지였는지** 를 보는 자리라, 걸린 조건에 맞는 알림이 없어도 제 내용을 그린다.
  */
-function TimelineView() {
+export function FaultTimeline() {
   const { target, label } = useDiagnosisScope();
   const user = useAuthUser();
   const addAction = useAddAction();
@@ -121,39 +120,23 @@ function TimelineView() {
   };
 
   return (
-    <div className={shared.tab}>
-      <Reveal>
-        <div className={styles.summary}>
-          <StatCard label="이상 발생 구간" value={timelines.length} unit="건" icon={<AlertIcon />} />
-          <StatCard label="미조치" value={open.length} unit="건" icon={<WrenchIcon />} />
-          <StatCard
-            label="평균 경과 시간"
-            value={Math.round(avgMinutes / 60)}
-            unit="시간"
-            icon={<ClockIcon />}
-          />
-          <StatCard label="추정 발전 손실" value={totalLoss} unit="kWh" fractionDigits={0} accent />
-        </div>
-      </Reveal>
+    <>
+      <div className={styles.panel}>
+        {/* 표 대신 이 판을 볼 때도 몇 건인지는 알아야 한다 — 카드 제목이 표 기준이라 여기서 따로 적는다 */}
+        <p className={styles.panel__note}>
+          이상 발생 구간 {formatNumber(timelines.length)}건 · 미조치 {formatNumber(open.length)}건 · 평균 경과{' '}
+          {formatDuration(avgMinutes)} · 추정 손실 {formatNumber(totalLoss, 0)}kWh
+        </p>
 
-      {timelines.length === 0 ? (
-        <Card padding="none">
+        {timelines.length === 0 ? (
           <EmptyState
             title="이상 발생 구간이 없습니다"
             description={`${label}에는 조회 범위 안에 기록된 고장이 없습니다.`}
           />
-        </Card>
-      ) : (
-        <Reveal delay={0.06}>
-          <Card
-            eyebrow="Timeline"
-            title="고장 타임라인"
-            description="정상 가동 기간은 빼고 이상이 있던 구간만 막대로 늘어놓았습니다. 발전소 이름을 누르면 설비별로 펼쳐지고, 막대를 누르면 단계별 이력과 조치 기록이 열립니다."
-          >
-            <FaultGantt rows={timelines} from={axis.from} to={axis.to} onSelect={(item) => setDetailId(item.id)} />
-          </Card>
-        </Reveal>
-      )}
+        ) : (
+          <FaultGantt rows={timelines} from={axis.from} to={axis.to} onSelect={(item) => setDetailId(item.id)} />
+        )}
+      </div>
 
       <Modal
         isOpen={detail !== null}
@@ -285,8 +268,6 @@ function TimelineView() {
         onConfirm={commit}
         onClose={() => setConfirming(false)}
       />
-    </div>
+    </>
   );
 }
-
-export default TimelineView;

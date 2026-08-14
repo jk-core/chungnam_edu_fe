@@ -144,3 +144,20 @@
     grid-template-columns: 1fr;
   }
 }
+
+/*
+  알림 이력 카드 안에 들어가는 판.
+  카드가 표를 담으려고 안쪽 여백을 없앤 채라, 이 판이 제 여백을 챙긴다.
+*/
+.panel {
+  display: flex;
+  flex-direction: column;
+  gap: s.$space-3;
+  padding: s.$space-4;
+
+  &__note {
+    @include t.body-sm;
+
+    color: var(--text-muted);
+  }
+}

@@ -27,7 +27,7 @@ import type { Severity } from '@/interface/energy';
 import styles from '../Alerts.module.scss';
 import { summarize, useAlertFilters } from '../hooks/useAlertFilters';
 import { AlertDetailModal } from '../components/AlertDetailModal';
-import { AlertTimeline } from '../components/AlertTimeline';
+import { FaultTimeline } from '../components/FaultTimeline';
 
 type ViewMode = 'table' | 'timeline';
 
@@ -308,9 +308,15 @@ function ListView() {
           }
           padding="none"
         >
-          {results.length === 0 ? (
+          {/*
+            타임라인은 알림 한 줄이 아니라 고장 한 건이 언제부터 언제까지였는지를 본다.
+            보는 것이 다르니 걸린 조건에 맞는 알림이 없어도 제 내용을 그린다 — 표일 때만 빈 화면을 낸다.
+          */}
+          {view === 'timeline' ? (
+            <FaultTimeline />
+          ) : results.length === 0 ? (
             <EmptyState title="조건에 맞는 알림이 없습니다" description="기간이나 조건을 넓혀 보세요." />
-          ) : view === 'table' ? (
+          ) : (
             <>
               <Table
                 caption="알림 이력 표. 심각도, 발생 일시, 내용, 발전소와 설비, 유형, 지속 시간, 조치 여부 순으로 구성됩니다."
@@ -328,13 +334,6 @@ function ListView() {
                 label="알림 이력"
               />
             </>
-          ) : (
-            <AlertTimeline
-              alerts={results.slice(0, 24)}
-              start={range.start}
-              end={range.end}
-              onSelect={setSelected}
-            />
           )}
         </Card>
       </Reveal>
