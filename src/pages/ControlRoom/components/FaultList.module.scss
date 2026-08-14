@@ -3,11 +3,17 @@
 @use "@/styles/utils/media" as media;
 @use "@/styles/utils/mixins" as mx;
 
+/*
+  같은 목록이 관제 본 화면의 넓은 판에도, 데이터 월의 좁은 칸에도 들어간다.
+  자리 폭을 보고 곁가지를 접는다 — 학교 이름과 상태는 어느 폭에서도 남는다.
+*/
 .wrap {
+  container-type: inline-size;
   display: flex;
   flex-direction: column;
   gap: s.$space-2;
   flex: 1;
+  min-width: 0;
   min-height: 0;
 }
 
@@ -93,6 +99,11 @@
 
     flex-shrink: 0;
     color: var(--text-faint);
+
+    /* 좁아지면 시·군은 접는다. 학교 이름 안에 이미 지역이 묻어 있는 경우가 많다 */
+    @container (max-width: 380px) {
+      display: none;
+    }
   }
 
   &__figures {
@@ -100,6 +111,14 @@
     align-items: center;
     gap: s.$space-2;
     flex-shrink: 0;
+  }
+
+  /* 얼마나 지났는지는 배지 색이 급한 정도를 이미 말해 주므로 가장 먼저 접는다 */
+  &__delay,
+  &__stale {
+    @container (max-width: 320px) {
+      display: none;
+    }
   }
 
   &__delay {

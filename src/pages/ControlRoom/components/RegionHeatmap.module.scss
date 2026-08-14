@@ -13,15 +13,21 @@
   flex: 1;
   flex-direction: column;
   justify-content: space-between;
-  gap: 2px;
+
+  /* 줄 사이를 벌리지 않는다 — 권역 열다섯 줄이 한 판에 들어가야 한다 */
+  gap: 0;
   min-height: 0;
-  overflow-y: auto;
-  overscroll-behavior: contain;
+
+  /*
+    넘치면 굴리는 대신 담기게 만든다 — 벽에 걸어 두는 화면은 아무도 굴리지 않으므로
+    스크롤 뒤에 숨은 권역은 없는 것과 같다.
+  */
+  overflow: hidden;
 }
 
 .band {
   display: grid;
-  grid-template-columns: 62px minmax(0, 1fr);
+  grid-template-columns: 54px minmax(0, 1fr);
   align-items: start;
   gap: s.$space-2;
 
@@ -47,15 +53,16 @@
   }
 }
 
+/* 한 줄에 더 담을수록 줄 수가 줄어 판 안에 들어간다 */
 .cells {
   display: flex;
   flex-wrap: wrap;
-  gap: 3px;
+  gap: 2px;
 }
 
 .cell {
-  width: 13px;
-  height: 13px;
+  width: 10px;
+  height: 10px;
   border-radius: 3px;
   background-color: color-mix(in srgb, var(--tone) calc(var(--tint, 1) * 100%), var(--surface-sunken));
 

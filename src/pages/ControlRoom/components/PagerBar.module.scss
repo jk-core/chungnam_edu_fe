@@ -6,8 +6,9 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: s.$space-4;
+  gap: s.$space-3;
   flex-shrink: 0;
+  min-width: 0;
   padding-top: s.$space-2;
   border-top: 1px solid var(--border-subtle);
 
@@ -17,20 +18,36 @@
     color: var(--text-faint);
   }
 
+  &__count {
+    flex-shrink: 0;
+  }
+
   &__nav {
     display: flex;
     align-items: center;
-    gap: s.$space-3;
+    gap: s.$space-2;
+    flex: 1;
+    justify-content: flex-end;
+    min-width: 0;
   }
 
+  /*
+    쪽 수만큼 점이 늘어선다. 열다섯 쪽이면 고정 폭으로는 좁은 칸을 넘겨 버리므로,
+    남은 자리를 나눠 갖게 두고 최대치만 정해 준다 — 자리가 넓으면 원래 굵기로 선다.
+  */
   &__dots {
     display: flex;
     align-items: center;
-    gap: s.$space-1;
+    gap: 2px;
+    flex: 0 1 auto;
+    min-width: 0;
   }
 
   &__dot {
     display: block;
+    flex: 1 1 3px;
+    min-width: 3px;
+    max-width: 18px;
     width: 18px;
     height: 3px;
     padding: 0;
