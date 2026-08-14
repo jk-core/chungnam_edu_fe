@@ -41,7 +41,7 @@ export function PeriodFilter({
         <SegmentedControl label="집계 단위" options={OPTIONS} value={period} onChange={onPeriodChange} />
         <DatePicker value={date} onChange={onDateChange} granularity={period} label="기준일" />
         {basis && onBasisChange ? (
-          <Select label="조회 기준" value={basis} options={BASIS_OPTIONS} onChange={onBasisChange} />
+          <Select label="조회 기준" value={basis} options={BASIS_OPTIONS} onChange={onBasisChange} hideLabel />
         ) : null}
       </div>
 
