@@ -4,39 +4,39 @@
   width: 100%;
   height: auto;
   overflow: visible;
-}
 
-.arc__path {
-  stroke: var(--solar-line);
-  stroke-width: 1.4;
-  stroke-dasharray: 5 7;
-  opacity: 0.55;
-}
+  &__path {
+    stroke: var(--solar-line);
+    stroke-width: 1.4;
+    stroke-dasharray: 5 7;
+    opacity: 0.55;
+  }
 
-.arc__horizon {
-  stroke: var(--border-strong);
-  stroke-width: 1;
-}
+  &__horizon {
+    stroke: var(--border-strong);
+    stroke-width: 1;
+  }
 
-.arc__tick {
-  fill: var(--text-faint);
-  font-family: var(--font-data);
-  font-size: 12px;
-  letter-spacing: 0.08em;
-}
+  &__tick {
+    fill: var(--text-faint);
+    font-family: var(--font-data);
+    font-size: 12px;
+    letter-spacing: 0.08em;
+  }
 
-.arc__nowLine {
-  stroke: var(--solar);
-  stroke-width: 1.2;
-  stroke-dasharray: 3 4;
-  opacity: 0.65;
-}
+  &__nowLine {
+    stroke: var(--solar);
+    stroke-width: 1.2;
+    stroke-dasharray: 3 4;
+    opacity: 0.65;
+  }
 
-.arc__sun {
-  fill: var(--solar);
-}
+  &__sun {
+    fill: var(--solar);
+  }
 
-.arc__pulse {
-  stroke: var(--solar);
-  stroke-width: 1.2;
+  &__pulse {
+    stroke: var(--solar);
+    stroke-width: 1.2;
+  }
 }

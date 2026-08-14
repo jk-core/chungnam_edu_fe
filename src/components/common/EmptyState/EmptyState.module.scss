@@ -9,21 +9,21 @@
   gap: s.$space-2;
   padding: s.$space-10 s.$space-6;
   text-align: center;
-}
 
-.empty__title {
-  color: var(--text-strong);
+  &__title {
+    color: var(--text-strong);
 
-  @include t.title-sm;
-}
+    @include t.title-sm;
+  }
 
-.empty__description {
-  max-width: 32ch;
-  color: var(--text-muted);
+  &__description {
+    max-width: 32ch;
+    color: var(--text-muted);
 
-  @include t.body-sm;
-}
+    @include t.body-sm;
+  }
 
-.empty__action {
-  margin-top: s.$space-3;
+  &__action {
+    margin-top: s.$space-3;
+  }
 }

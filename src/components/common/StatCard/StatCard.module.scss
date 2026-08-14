@@ -35,123 +35,122 @@
       opacity: 1;
     }
   }
-}
 
-.stat--accent {
-  &::after {
-    background: linear-gradient(90deg, var(--solar), transparent 78%);
+  &__delta--up .stat__deltaValue {
+    color: var(--ok-text);
   }
 
-  .stat__value {
-    color: var(--solar-text);
+  &__delta--down .stat__deltaValue {
+    color: var(--critical-text);
   }
 
-  .stat__icon {
-    background-color: var(--solar-soft);
-    color: var(--solar-deep);
+  &--accent {
+    &::after {
+      background: linear-gradient(90deg, var(--solar), transparent 78%);
+    }
+
+    .stat__value {
+      color: var(--solar-text);
+    }
+
+    .stat__icon {
+      background-color: var(--solar-soft);
+      color: var(--solar-deep);
+    }
   }
-}
 
-.stat__top {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: s.$space-3;
-}
-
-.stat__label {
-  color: var(--text-muted);
-
-  @include t.label-md;
-}
-
-.stat__icon {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 30px;
-  height: 30px;
-  border-radius: s.$radius-sm;
-  background-color: var(--brand-soft);
-  color: var(--brand);
-
-  svg {
-    width: 17px;
-    height: 17px;
+  &__top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: s.$space-3;
   }
-}
 
-.stat__value {
-  display: flex;
-  align-items: baseline;
-  gap: s.$space-2;
-  color: var(--text-strong);
+  &__label {
+    color: var(--text-muted);
 
-  @include t.data-lg;
-}
+    @include t.label-md;
+  }
 
-.stat__unit {
-  color: var(--text-muted);
+  &__icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 30px;
+    height: 30px;
+    border-radius: s.$radius-sm;
+    background-color: var(--brand-soft);
+    color: var(--brand);
 
-  @include t.label-md;
-}
+    svg {
+      width: 17px;
+      height: 17px;
+    }
+  }
 
-.stat__delta {
-  display: flex;
-  align-items: baseline;
-  gap: s.$space-2;
+  &__value {
+    display: flex;
+    align-items: baseline;
+    gap: s.$space-2;
+    color: var(--text-strong);
 
-  @include t.body-sm;
-}
+    @include t.data-lg;
+  }
 
-.stat__deltaValue {
-  @include t.data-sm;
-}
+  &__unit {
+    color: var(--text-muted);
 
-.stat__delta--up .stat__deltaValue {
-  color: var(--ok-text);
-}
+    @include t.label-md;
+  }
 
-.stat__delta--down .stat__deltaValue {
-  color: var(--critical-text);
-}
+  &__delta {
+    display: flex;
+    align-items: baseline;
+    gap: s.$space-2;
 
-.stat__deltaLabel {
-  color: var(--text-faint);
-}
+    @include t.body-sm;
+  }
 
-.stat__meter {
-  display: flex;
-  align-items: center;
-  gap: s.$space-3;
-  margin-top: s.$space-1;
-}
+  &__deltaValue {
+    @include t.data-sm;
+  }
 
-.stat__meterTrack {
-  flex: 1;
-  height: 5px;
-  background-color: var(--surface-sunken);
-  border-radius: s.$radius-full;
-  overflow: hidden;
-}
+  &__deltaLabel {
+    color: var(--text-faint);
+  }
 
-.stat__meterFill {
-  height: 100%;
-  border-radius: s.$radius-full;
-  background: linear-gradient(90deg, var(--brand), var(--solar));
-  transition: width 0.8s cubic-bezier(0.2, 0.8, 0.3, 1);
-}
+  &__meter {
+    display: flex;
+    align-items: center;
+    gap: s.$space-3;
+    margin-top: s.$space-1;
+  }
 
-.stat__meterLabel {
-  color: var(--text-faint);
-  white-space: nowrap;
+  &__meterTrack {
+    flex: 1;
+    height: 5px;
+    background-color: var(--surface-sunken);
+    border-radius: s.$radius-full;
+    overflow: hidden;
+  }
 
-  @include t.caption;
-}
+  &__meterFill {
+    height: 100%;
+    border-radius: s.$radius-full;
+    background: linear-gradient(90deg, var(--brand), var(--solar));
+    transition: width 0.8s cubic-bezier(0.2, 0.8, 0.3, 1);
+  }
 
-// 막대 없이 설명만 붙을 때는 카드 아래에 붙여 다른 카드와 높이를 맞춘다.
-.stat__note {
-  margin-top: auto;
-  padding-top: s.$space-1;
-  white-space: normal;
+  &__meterLabel {
+    color: var(--text-faint);
+    white-space: nowrap;
+
+    @include t.caption;
+  }
+
+  &__note {
+    margin-top: auto;
+    padding-top: s.$space-1;
+    white-space: normal;
+  }
 }

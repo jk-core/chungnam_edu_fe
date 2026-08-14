@@ -5,80 +5,79 @@
 
 .admin {
   padding-bottom: s.$space-11;
-}
 
-.admin__head {
-  border-bottom: 1px solid var(--border-subtle);
-  background:
-    linear-gradient(180deg, var(--surface-sunken) 0%, transparent 100%),
-    var(--paper);
-}
-
-.admin__headInner {
-  display: flex;
-  flex-direction: column;
-  gap: s.$space-3;
-  padding: s.$space-7 0 s.$space-6;
-
-  @include mx.container;
-}
-
-.admin__badgeRow {
-  display: flex;
-  align-items: center;
-  gap: s.$space-2;
-}
-
-// SER-001-18 관리자 화면은 인가된 내부망에서만 열린다는 점을 화면에도 남긴다.
-.admin__intranet {
-  @include t.caption;
-
-  display: inline-flex;
-  align-items: center;
-  gap: s.$space-1 + 2px;
-  padding: 3px s.$space-2 + 2px;
-  border: 1px solid var(--caution);
-  border-radius: s.$radius-full;
-  background-color: var(--caution-soft);
-  color: var(--caution-text);
-}
-
-.admin__title {
-  @include t.title-xl;
-
-  color: var(--text-strong);
-}
-
-.admin__description {
-  @include t.body-sm;
-
-  color: var(--text-muted);
-}
-
-.admin__body {
-  display: grid;
-  grid-template-columns: s.$lnb-width minmax(0, 1fr);
-  gap: s.$space-8;
-  padding-top: s.$space-7;
-
-  @include mx.container;
-
-  @include media.tablet {
-    grid-template-columns: 1fr;
-    gap: s.$space-5;
+  &__head {
+    border-bottom: 1px solid var(--border-subtle);
+    background:
+      linear-gradient(180deg, var(--surface-sunken) 0%, transparent 100%),
+      var(--paper);
   }
-}
 
-.admin__side {
-  min-width: 0;
+  &__headInner {
+    display: flex;
+    flex-direction: column;
+    gap: s.$space-3;
+    padding: s.$space-7 0 s.$space-6;
 
-  @include media.desktop {
-    position: sticky;
-    top: calc(var(--header-height) + #{s.$space-5});
-    align-self: start;
+    @include mx.container;
   }
-}
 
-.admin__content {
-  min-width: 0;
+  &__badgeRow {
+    display: flex;
+    align-items: center;
+    gap: s.$space-2;
+  }
+
+  &__intranet {
+    @include t.caption;
+
+    display: inline-flex;
+    align-items: center;
+    gap: s.$space-1 + 2px;
+    padding: 3px s.$space-2 + 2px;
+    border: 1px solid var(--caution);
+    border-radius: s.$radius-full;
+    background-color: var(--caution-soft);
+    color: var(--caution-text);
+  }
+
+  &__title {
+    @include t.title-xl;
+
+    color: var(--text-strong);
+  }
+
+  &__description {
+    @include t.body-sm;
+
+    color: var(--text-muted);
+  }
+
+  &__body {
+    display: grid;
+    grid-template-columns: s.$lnb-width minmax(0, 1fr);
+    gap: s.$space-8;
+    padding-top: s.$space-7;
+
+    @include mx.container;
+
+    @include media.tablet {
+      grid-template-columns: 1fr;
+      gap: s.$space-5;
+    }
+  }
+
+  &__side {
+    min-width: 0;
+
+    @include media.desktop {
+      position: sticky;
+      top: calc(var(--header-height) + #{s.$space-5});
+      align-self: start;
+    }
+  }
+
+  &__content {
+    min-width: 0;
+  }
 }

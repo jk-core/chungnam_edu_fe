@@ -4,23 +4,23 @@
   display: inline-flex;
   align-items: center;
   gap: s.$space-1;
-}
 
-.masked__toggle {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 22px;
-  height: 22px;
-  padding: 0;
-  background: none;
-  border: 0;
-  border-radius: s.$radius-sm;
-  color: var(--text-faint);
-  transition: color 0.14s ease, background-color 0.14s ease;
+  &__toggle {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 22px;
+    height: 22px;
+    padding: 0;
+    background: none;
+    border: 0;
+    border-radius: s.$radius-sm;
+    color: var(--text-faint);
+    transition: color 0.14s ease, background-color 0.14s ease;
 
-  &:hover {
-    color: var(--text);
-    background-color: var(--surface-hover);
+    &:hover {
+      color: var(--text);
+      background-color: var(--surface-hover);
+    }
   }
 }

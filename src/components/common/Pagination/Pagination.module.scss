@@ -17,90 +17,91 @@
     gap: s.$space-3;
     padding-inline: s.$space-5;
   }
-}
 
-.pagination__left {
-  display: flex;
-  align-items: center;
-  gap: s.$space-3;
-}
+  &__arrow svg {
+    width: 15px;
+    height: 15px;
+  }
 
-// 쪽당 개수 선택은 전체 건수 옆에 작게 붙인다
-.pagination__size {
-  min-width: 96px;
-}
+  &__arrow--prev svg {
+    transform: rotate(180deg);
+  }
 
-.pagination__count {
-  color: var(--text-faint);
+  &__left {
+    display: flex;
+    align-items: center;
+    gap: s.$space-3;
+  }
 
-  @include t.caption;
-}
+  &__size {
+    min-width: 96px;
+  }
 
-.pagination__pages {
-  display: flex;
-  align-items: center;
-  gap: 2px;
+  &__count {
+    color: var(--text-faint);
 
-  @include media.mobile {
+    @include t.caption;
+  }
+
+  &__pages {
+    display: flex;
+    align-items: center;
+    gap: 2px;
+
+    @include media.mobile {
+      justify-content: center;
+    }
+  }
+
+  &__page {
+    &--current {
+      background-color: var(--brand);
+      border-color: var(--brand);
+      color: var(--text-on-brand);
+      font-weight: 700;
+
+      &:hover {
+        background-color: var(--brand-hover);
+        color: var(--text-on-brand);
+      }
+    }
+  }
+
+  &__gap {
+    padding-inline: s.$space-1;
+    color: var(--text-faint);
+  }
+
+  &__page,
+&__arrow {
+    display: inline-flex;
+    align-items: center;
     justify-content: center;
+    min-width: 32px;
+    height: 32px;
+    padding-inline: s.$space-2;
+    background: none;
+    border: 1px solid transparent;
+    border-radius: s.$radius-sm;
+    color: var(--text-muted);
+    transition: background-color 0.14s ease, color 0.14s ease, border-color 0.14s ease;
+
+    @include mx.press;
+    @include t.data-sm;
+
+    &:hover:not(:disabled) {
+      background-color: var(--surface-hover);
+      color: var(--text-strong);
+    }
+
+    // 클릭 감은 누르는 순간에만 준다 — 손을 뗀 뒤에는 흔적을 남기지 않는다.
+    &:active:not(:disabled) {
+      background-color: var(--surface-sunken);
+    }
+
+    &:disabled {
+      opacity: 0.35;
+      cursor: not-allowed;
+    }
   }
-}
-
-.pagination__page,
-.pagination__arrow {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  min-width: 32px;
-  height: 32px;
-  padding-inline: s.$space-2;
-  background: none;
-  border: 1px solid transparent;
-  border-radius: s.$radius-sm;
-  color: var(--text-muted);
-  transition: background-color 0.14s ease, color 0.14s ease, border-color 0.14s ease;
-
-  @include mx.press;
-  @include t.data-sm;
-
-  &:hover:not(:disabled) {
-    background-color: var(--surface-hover);
-    color: var(--text-strong);
-  }
-
-  // 클릭 감은 누르는 순간에만 준다 — 손을 뗀 뒤에는 흔적을 남기지 않는다.
-  &:active:not(:disabled) {
-    background-color: var(--surface-sunken);
-  }
-
-  &:disabled {
-    opacity: 0.35;
-    cursor: not-allowed;
-  }
-}
-
-.pagination__page--current {
-  background-color: var(--brand);
-  border-color: var(--brand);
-  color: var(--text-on-brand);
-  font-weight: 700;
-
-  &:hover {
-    background-color: var(--brand-hover);
-    color: var(--text-on-brand);
-  }
-}
-
-.pagination__arrow svg {
-  width: 15px;
-  height: 15px;
-}
-
-.pagination__arrow--prev svg {
-  transform: rotate(180deg);
-}
-
-.pagination__gap {
-  padding-inline: s.$space-1;
-  color: var(--text-faint);
 }

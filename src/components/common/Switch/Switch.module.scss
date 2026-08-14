@@ -17,19 +17,19 @@
     opacity: 0.5;
     cursor: not-allowed;
   }
-}
 
-.switch--on {
-  justify-content: flex-end;
-  background-color: var(--brand);
-  border-color: var(--brand);
-}
+  &--on {
+    justify-content: flex-end;
+    background-color: var(--brand);
+    border-color: var(--brand);
+  }
 
-.switch__knob {
-  display: block;
-  width: 18px;
-  height: 18px;
-  border-radius: 50%;
-  background-color: var(--surface);
-  box-shadow: var(--shadow-sm);
+  &__knob {
+    display: block;
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    background-color: var(--surface);
+    box-shadow: var(--shadow-sm);
+  }
 }

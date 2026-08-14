@@ -24,25 +24,25 @@
       color: var(--brand);
     }
   }
-}
 
-.trigger__icon {
-  width: 16px;
-  height: 16px;
-  color: var(--text-faint);
-  transition: color 0.16s ease;
-}
+  &__icon {
+    width: 16px;
+    height: 16px;
+    color: var(--text-faint);
+    transition: color 0.16s ease;
+  }
 
-.trigger__value {
-  @include t.data-sm;
+  &__value {
+    @include t.data-sm;
 
-  white-space: nowrap;
-}
+    white-space: nowrap;
+  }
 
-.trigger__chevron {
-  width: 14px;
-  height: 14px;
-  color: var(--text-faint);
+  &__chevron {
+    width: 14px;
+    height: 14px;
+    color: var(--text-faint);
+  }
 }
 
 .footer {
@@ -50,10 +50,10 @@
   align-items: center;
   justify-content: space-between;
   gap: s.$space-4;
-}
 
-.footer__current {
-  color: var(--text-muted);
+  &__current {
+    color: var(--text-muted);
 
-  @include t.data-sm;
+    @include t.data-sm;
+  }
 }

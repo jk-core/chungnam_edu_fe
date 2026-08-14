@@ -3,7 +3,6 @@
 @use "@/styles/utils/media" as media;
 @use "@/styles/utils/mixins" as mx;
 
-// ── 트리거 ─────────────────────────────────────────────────
 .trigger {
   display: inline-flex;
   align-items: center;
@@ -31,171 +30,152 @@
       color: var(--text-on-brand);
     }
   }
-}
 
-// 좌측 컬럼용 — 선택 버튼과 대상 요약을 한 덩어리로 묶는다.
-// 돋보기는 "여기서 바꾼다"는 신호이고, 오른쪽 상태는 눌러 볼 것 없이 바로 읽힌다.
-.trigger--summary {
-  display: grid;
-  grid-template-columns: auto minmax(0, 1fr);
-  align-items: center;
-  gap: s.$space-1 s.$space-3;
-  width: 100%;
-  padding: s.$space-3;
-  border-color: var(--border-subtle);
-  border-radius: s.$radius-md;
-  box-shadow: none;
+  &--summary {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    align-items: center;
+    gap: s.$space-1 s.$space-3;
+    width: 100%;
+    padding: s.$space-3;
+    border-color: var(--border-subtle);
+    border-radius: s.$radius-md;
+    box-shadow: none;
 
-  .trigger__icon {
-    width: 28px;
-    height: 28px;
+    .trigger__icon {
+      width: 28px;
+      height: 28px;
+
+      svg {
+        width: 15px;
+        height: 15px;
+      }
+    }
+
+    // 기본 트리거는 내용만큼만 넓어진다. 여기서는 칸을 꽉 채워야 주소가 제때 잘린다.
+    .trigger__text {
+      align-items: stretch;
+    }
+
+    .trigger__name {
+      max-width: none;
+    }
+
+    // 좌측 컬럼이 넉넉해지는 구간에서는 상태를 이름 오른쪽으로 올린다.
+    @include media.tablet {
+      grid-template-columns: auto minmax(0, 1fr) auto;
+
+      .trigger__status {
+        grid-column: 3;
+        grid-row: 1;
+        align-items: flex-end;
+      }
+    }
+  }
+
+  &__meta {
+    @include t.caption;
+
+    display: flex;
+    align-items: baseline;
+    margin-top: 1px;
+    color: var(--text-muted);
+  }
+
+  &__address {
+    @include mx.truncate;
+
+    min-width: 0;
+  }
+
+  &__capacity {
+    flex-shrink: 0;
+    color: var(--text);
+    font-family: var(--font-data);
+  }
+
+  &__dot {
+    margin: 0 4px;
+    color: var(--text-faint);
+  }
+
+  &__status {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+    grid-column: 2;
+    min-width: 0;
+    margin-top: s.$space-2;
+  }
+
+  &__statusRow {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: s.$space-2;
+  }
+
+  &__statusLabel {
+    @include t.caption;
+
+    color: var(--text-faint);
+  }
+
+  &__icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    width: 34px;
+    height: 34px;
+    border-radius: s.$radius-full;
+    background-color: var(--brand-soft);
+    color: var(--brand);
 
     svg {
-      width: 15px;
-      height: 15px;
+      width: 17px;
+      height: 17px;
     }
   }
 
-  // 기본 트리거는 내용만큼만 넓어진다. 여기서는 칸을 꽉 채워야 주소가 제때 잘린다.
-  .trigger__text {
-    align-items: stretch;
+  &__text {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1px;
+    min-width: 0;
   }
 
-  .trigger__name {
-    max-width: none;
+  &__eyebrow {
+    color: var(--text-faint);
+
+    @include t.eyebrow;
+
+    font-size: 0.625rem;
   }
 
-  // 좌측 컬럼이 넉넉해지는 구간에서는 상태를 이름 오른쪽으로 올린다.
-  @include media.tablet {
-    grid-template-columns: auto minmax(0, 1fr) auto;
+  &__name {
+    display: inline-flex;
+    align-items: baseline;
+    gap: s.$space-2;
+    color: var(--text-strong);
 
-    .trigger__status {
-      grid-column: 3;
-      grid-row: 1;
-      align-items: flex-end;
-    }
+    @include t.label-md;
+    @include mx.truncate;
+
+    max-width: 30ch;
   }
-}
 
-.trigger__meta {
-  @include t.caption;
+  &__action {
+    flex-shrink: 0;
+    padding: 3px s.$space-3;
+    border-radius: s.$radius-full;
+    background-color: var(--surface-sunken);
+    color: var(--text-muted);
+    transition: background-color 0.18s ease, color 0.18s ease;
 
-  display: flex;
-  align-items: baseline;
-  margin-top: 1px;
-  color: var(--text-muted);
-}
-
-.trigger__address {
-  @include mx.truncate;
-
-  min-width: 0;
-}
-
-.trigger__capacity {
-  flex-shrink: 0;
-  color: var(--text);
-  font-family: var(--font-data);
-}
-
-.trigger__dot {
-  margin: 0 4px;
-  color: var(--text-faint);
-}
-
-// 상태는 이름 아래 칸에 붙는다 — 좁은 컬럼에서 오른쪽에 두면 이름이 너무 눌린다.
-.trigger__status {
-  display: flex;
-  flex-direction: column;
-  gap: 3px;
-  grid-column: 2;
-  min-width: 0;
-  margin-top: s.$space-2;
-}
-
-.trigger__statusRow {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: s.$space-2;
-}
-
-.trigger__statusLabel {
-  @include t.caption;
-
-  color: var(--text-faint);
-}
-
-// 도 전체 조회일 때는 배지 대신 비율을 적는다 — 한 값으로 뭉뚱그릴 수 없는 자리다.
-.trigger__ratio {
-  @include t.data-sm;
-
-  color: var(--text-strong);
-  font-size: 0.75rem;
-}
-
-.trigger__icon {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-  width: 34px;
-  height: 34px;
-  border-radius: s.$radius-full;
-  background-color: var(--brand-soft);
-  color: var(--brand);
-
-  svg {
-    width: 17px;
-    height: 17px;
+    @include t.label-sm;
   }
-}
-
-.trigger__text {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  gap: 1px;
-  min-width: 0;
-}
-
-.trigger__eyebrow {
-  color: var(--text-faint);
-
-  @include t.eyebrow;
-
-  font-size: 0.625rem;
-}
-
-.trigger__name {
-  display: inline-flex;
-  align-items: baseline;
-  gap: s.$space-2;
-  color: var(--text-strong);
-
-  @include t.label-md;
-  @include mx.truncate;
-
-  max-width: 30ch;
-}
-
-.trigger__sub {
-  color: var(--brand-contrast);
-
-  @include t.data-sm;
-
-  font-size: 0.75rem;
-}
-
-.trigger__action {
-  flex-shrink: 0;
-  padding: 3px s.$space-3;
-  border-radius: s.$radius-full;
-  background-color: var(--surface-sunken);
-  color: var(--text-muted);
-  transition: background-color 0.18s ease, color 0.18s ease;
-
-  @include t.label-sm;
 }
 
 // ── 모달 내부 ──────────────────────────────────────────────
@@ -215,83 +195,34 @@
   position: relative;
   flex: 1;
   min-width: 0;
-}
 
-.search__label {
-  @include mx.sr-only;
-}
-
-.search__input {
-  width: 100%;
-  height: 36px;
-  padding-inline: s.$space-4;
-  background-color: var(--surface-sunken);
-  border: 1px solid var(--border);
-  border-radius: s.$radius-full;
-  color: var(--text-strong);
-  transition: border-color 0.16s ease, box-shadow 0.16s ease, background-color 0.16s ease;
-
-  @include t.body-md;
-
-  &::placeholder {
-    color: var(--text-faint);
+  &__label {
+    @include mx.sr-only;
   }
 
-  @include mx.keyboard-focus {
-    outline: none;
-    background-color: var(--surface);
-    border-color: var(--brand);
-    box-shadow: var(--shadow-focus);
+  &__input {
+    width: 100%;
+    height: 36px;
+    padding-inline: s.$space-4;
+    background-color: var(--surface-sunken);
+    border: 1px solid var(--border);
+    border-radius: s.$radius-full;
+    color: var(--text-strong);
+    transition: border-color 0.16s ease, box-shadow 0.16s ease, background-color 0.16s ease;
+
+    @include t.body-md;
+
+    &::placeholder {
+      color: var(--text-faint);
+    }
+
+    @include mx.keyboard-focus {
+      outline: none;
+      background-color: var(--surface);
+      border-color: var(--brand);
+      box-shadow: var(--shadow-focus);
+    }
   }
-}
-
-.all {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: s.$space-4;
-  width: 100%;
-  padding: s.$space-4;
-  text-align: left;
-  background-color: var(--surface-sunken);
-  border: 1px solid var(--border-subtle);
-  border-radius: s.$radius-md;
-  transition: border-color 0.16s ease, background-color 0.16s ease;
-
-  &:hover {
-    border-color: var(--border-strong);
-  }
-}
-
-.all--selected {
-  background-color: var(--brand-soft);
-  border-color: var(--brand);
-}
-
-.all__text {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-  min-width: 0;
-}
-
-.all__name {
-  color: var(--text-strong);
-
-  @include t.title-sm;
-}
-
-.all__meta {
-  color: var(--text-muted);
-
-  @include t.body-sm;
-}
-
-.all__check {
-  flex-shrink: 0;
-  width: 18px;
-  height: 18px;
-  color: var(--brand-contrast);
 }
 
 .count {
@@ -305,33 +236,6 @@
   display: flex;
   flex-direction: column;
   gap: s.$space-2;
-}
-
-// 발전소 한 줄 — 본 행 + 인버터 펼침 영역을 함께 감싼다.
-.row {
-  border: 1px solid var(--border-subtle);
-  border-radius: s.$radius-md;
-  overflow: hidden;
-  transition: border-color 0.16s ease, background-color 0.16s ease;
-
-  &:hover {
-    border-color: var(--border-strong);
-  }
-}
-
-.row--selected {
-  border-color: var(--brand);
-  background-color: var(--brand-soft);
-}
-
-.row--expanded {
-  border-color: var(--border-strong);
-  background-color: var(--surface-sunken);
-}
-
-.row__main {
-  display: flex;
-  align-items: stretch;
 }
 
 .item {
@@ -359,172 +263,85 @@
     grid-template-columns: minmax(0, 1fr) auto;
     row-gap: s.$space-3;
   }
-}
 
-// 인버터 펼침 토글
-.expand {
-  display: inline-flex;
-  align-items: center;
-  gap: s.$space-1;
-  flex-shrink: 0;
-  padding-inline: s.$space-4;
-  background-color: transparent;
-  border: 0;
-  border-left: 1px solid var(--border-subtle);
-  color: var(--text-muted);
-  white-space: nowrap;
-  transition: background-color 0.16s ease, color 0.16s ease;
+  &__main {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    min-width: 0;
+  }
 
-  @include t.label-sm;
+  &__name {
+    display: flex;
+    align-items: center;
+    gap: s.$space-2;
+    color: var(--text-strong);
 
-  &:hover {
-    background-color: var(--surface-hover);
+    @include t.label-md;
+  }
+
+  &__check {
+    width: 15px;
+    height: 15px;
     color: var(--brand-contrast);
   }
-}
 
-.expand__chevron {
-  width: 14px;
-  height: 14px;
-  transition: transform 0.22s ease;
-}
+  &__address {
+    color: var(--text-muted);
 
-.expand__chevron--open {
-  transform: rotate(180deg);
-}
-
-// 펼쳐진 인버터 목록
-.inverters {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-  overflow: hidden;
-  padding: 0 s.$space-3 s.$space-3 s.$space-8;
-}
-
-.inverter {
-  display: grid;
-  grid-template-columns: 110px minmax(0, 1fr) auto;
-  align-items: center;
-  gap: s.$space-3;
-  width: 100%;
-  padding: s.$space-2 s.$space-3;
-  text-align: left;
-  background-color: var(--surface);
-  border: 1px solid var(--border-subtle);
-  border-radius: s.$radius-sm;
-  transition: border-color 0.14s ease, background-color 0.14s ease;
-
-  &:hover {
-    border-color: var(--brand);
+    @include t.caption;
+    @include mx.truncate;
   }
 
-  @include media.mobile {
-    grid-template-columns: minmax(0, 1fr) auto;
-    row-gap: s.$space-1;
-  }
-}
-
-.inverter--selected {
-  border-color: var(--brand);
-  background-color: var(--brand-soft);
-}
-
-.inverter__name {
-  display: inline-flex;
-  align-items: center;
-  gap: s.$space-2;
-  color: var(--text-strong);
-
-  @include t.label-md;
-}
-
-.inverter__meta {
-  color: var(--text-muted);
-
-  @include t.data-sm;
-
-  font-size: 0.75rem;
-}
-
-.item__main {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-  min-width: 0;
-}
-
-.item__name {
-  display: flex;
-  align-items: center;
-  gap: s.$space-2;
-  color: var(--text-strong);
-
-  @include t.label-md;
-}
-
-.item__check {
-  width: 15px;
-  height: 15px;
-  color: var(--brand-contrast);
-}
-
-.item__address {
-  color: var(--text-muted);
-
-  @include t.caption;
-  @include mx.truncate;
-}
-
-.item__capacity {
-  display: flex;
-  align-items: baseline;
-  justify-content: flex-end;
-  gap: 3px;
-  color: var(--text-strong);
-
-  @include t.data-sm;
-
-  @include media.tablet {
-    justify-content: flex-start;
-    grid-row: 2;
-  }
-}
-
-.item__unit {
-  color: var(--text-faint);
-
-  @include t.caption;
-}
-
-// 두 상태를 같은 폭 칸에 나눠 담는다. 배지 글자 수가 달라도 줄마다 같은 자리에 선다.
-.item__status {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  align-items: center;
-  gap: s.$space-3;
-
-  @include media.tablet {
-    grid-row: 2;
+  &__capacity {
+    display: flex;
+    align-items: baseline;
     justify-content: flex-end;
+    gap: 3px;
+    color: var(--text-strong);
+
+    @include t.data-sm;
+
+    @include media.tablet {
+      justify-content: flex-start;
+      grid-row: 2;
+    }
   }
 
-  @include media.mobile {
-    gap: s.$space-2;
+  &__unit {
+    color: var(--text-faint);
+
+    @include t.caption;
   }
-}
 
-.item__statusItem {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  gap: 2px;
-}
+  &__status {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    align-items: center;
+    gap: s.$space-3;
 
-.item__statusLabel {
-  color: var(--text-faint);
+    @include media.tablet {
+      grid-row: 2;
+      justify-content: flex-end;
+    }
 
-  @include t.caption;
+    @include media.mobile {
+      gap: s.$space-2;
+    }
+  }
 
-  font-size: 0.6875rem;
+  &__statusItem {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 2px;
+  }
+
+  &__statusLabel {
+    color: var(--text-faint);
+
+    @include t.caption;
+
+    font-size: 0.6875rem;
+  }
 }
