@@ -1,3 +1,4 @@
+import type { BoardKind } from '@/interface/board';
 import { PATH } from './routes';
 
 /**
@@ -15,6 +16,13 @@ export const buildPath = {
 
     return `${PATH.ENERGY_STATISTICS}/${plantId}/${inverterId}`;
   },
+  /*
+    게시판은 공지사항·Q&A 가 따로 선다 (SFR-025).
+    목록·글쓰기·글 하나가 저마다 주소를 가져, 주고받으면 같은 화면이 열린다.
+  */
+  board: (kind: BoardKind) => (kind === 'notice' ? PATH.GUIDE_NOTICE : PATH.GUIDE_QNA),
+  boardWrite: (kind: BoardKind) => `${buildPath.board(kind)}/write`,
+  boardDetail: (kind: BoardKind, postId: string) => `${buildPath.board(kind)}/${postId}`,
   /** 운전이력 상세 (SFR-009-04) */
   operationHistoryDetail: (id: string) => `${PATH.ENERGY_HISTORY}/${id}`,
   /*
@@ -30,8 +38,6 @@ export const buildPath = {
   },
   /** 현장보고서 상세 (SFR-021-11) */
   fieldReportDetail: (id: string) => `${PATH.ENERGY_FIELD_REPORT}/${id}`,
-  /** 게시글 상세 (SFR-025) */
-  boardDetail: (id: string) => `${PATH.GUIDE_NOTICE}/${id}`,
   /** 사용자 상세 (SFR-018) */
   adminUserDetail: (id: string) => `${PATH.ADMIN_USERS}/${id}`,
   /** 기관 고정 교육용 대시보드 (SFR-005) */

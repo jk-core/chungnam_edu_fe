@@ -1,7 +1,148 @@
+@use "@/styles/tokens/spacing" as s;
+@use "@/styles/tokens/typography" as t;
+@use "@/styles/utils/media" as media;
+@use "@/styles/utils/mixins" as mx;
 @use "@/styles/patterns/board" as board;
 
 /*
-  게시판·월간보고 (SFR-020, SFR-022).
-  목록에서 글을 골라 상세를 열고 댓글을 다는 뼈대가 전부다 — 규칙은 패턴에 한 벌만 둔다.
+  공지사항·Q&A (SFR-025).
+  목록에서 글을 골라 상세를 열고 댓글을 다는 뼈대는 패턴에서 가져오고,
+  여기서는 이 게시판에만 있는 것 — 글 안의 사진, 앞뒤로 넘기는 줄, 글쓰기 단추 — 만 적는다.
 */
 @include board.skeleton;
+
+/*
+  글 안의 사진 (SFR-025-06).
+
+  첨부 목록에만 두면 무슨 사진인지 알려면 하나씩 내려받아 열어 봐야 한다. 본문 바로 아래
+  펼쳐 두면 글을 읽는 흐름 그대로 눈에 들어온다. 폭이 좁아지면 한 장씩 세로로 쌓인다.
+*/
+.gallery {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: s.$space-3;
+  margin: s.$space-2 0;
+  list-style: none;
+
+  &__item {
+    display: flex;
+    flex-direction: column;
+    gap: s.$space-2;
+    overflow: hidden;
+    border: 1px solid var(--border-subtle);
+    border-radius: s.$radius-md;
+    background-color: var(--surface-sunken);
+  }
+
+  /* 사진마다 가로세로가 달라도 줄이 들쭉날쭉해지지 않게 같은 비율로 담는다 */
+  &__image {
+    display: block;
+    width: 100%;
+    aspect-ratio: 16 / 9;
+    object-fit: cover;
+    background-color: var(--surface-sunken);
+  }
+
+  &__caption {
+    @include t.caption;
+    @include mx.truncate;
+
+    padding: 0 s.$space-3 s.$space-3;
+    color: var(--text-muted);
+  }
+}
+
+/*
+  앞뒤로 넘기는 줄 (SFR-025-04).
+
+  가운데 목록 단추를 두고 이전은 왼쪽, 다음은 오른쪽에 세운다 — 방향이 자리로 먼저 읽혀야
+  화살표를 뜯어보지 않는다. 끝에 닿은 쪽은 흐린 글귀가 그 자리를 지켜, 남은 한쪽이
+  가운데로 밀려 나오지 않는다.
+*/
+.pager {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+  align-items: center;
+  gap: s.$space-3;
+
+  @include media.mobile {
+    grid-template-columns: 1fr;
+  }
+
+  &__link {
+    display: flex;
+    align-items: center;
+    gap: s.$space-2;
+    min-width: 0;
+    padding: s.$space-3 s.$space-4;
+    border: 1px solid var(--border-subtle);
+    border-radius: s.$radius-md;
+    background-color: var(--surface);
+    text-align: left;
+    transition: border-color 0.16s ease, background-color 0.16s ease;
+
+    &:hover {
+      border-color: var(--brand-soft-border);
+      background-color: var(--brand-soft);
+    }
+
+    /* 다음 글은 오른쪽 끝에 붙고 화살표가 글 뒤로 간다 — 나아가는 쪽을 자리가 말한다 */
+    &[data-side="next"] {
+      flex-direction: row-reverse;
+      text-align: right;
+    }
+
+    @include mx.keyboard-focus;
+  }
+
+  &__arrow {
+    flex-shrink: 0;
+    width: 18px;
+    height: 18px;
+    color: var(--text-faint);
+  }
+
+  &__text {
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+    min-width: 0;
+  }
+
+  &__label {
+    @include t.caption;
+
+    color: var(--text-muted);
+  }
+
+  &__title {
+    @include t.label-md;
+    @include mx.truncate;
+
+    color: var(--text-strong);
+  }
+
+  &__end {
+    @include t.body-sm;
+
+    padding: s.$space-3 s.$space-4;
+    color: var(--text-faint);
+
+    &[data-side="next"] {
+      text-align: right;
+    }
+
+    @include media.mobile {
+      display: none;
+    }
+  }
+}
+
+/* 글쓰기 화면의 마무리 단추 — 모달의 바닥 줄이 하던 일을 화면 안에서 한다 */
+.formActions {
+  display: flex;
+  justify-content: flex-end;
+  gap: s.$space-2;
+  padding-top: s.$space-2;
+  border-top: 1px solid var(--border-subtle);
+}

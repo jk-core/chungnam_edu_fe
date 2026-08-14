@@ -60,9 +60,9 @@ export function NoticePopup() {
         {current.attachments.length > 0 ? (
           <div className={styles.popup__files}>
             {current.attachments.map((file) => (
-              <span key={file} className={styles.popup__file}>
+              <span key={file.name} className={styles.popup__file}>
                 <FileIcon width={16} height={16} />
-                {file}
+                {file.name}
               </span>
             ))}
           </div>

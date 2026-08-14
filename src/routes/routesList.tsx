@@ -93,6 +93,12 @@ export const routes: RouteObject[] = [
                 element: <AiDiagnosisPage tab="overview" />,
               },
               { path: 'guide/:tab', element: <GuidePage /> },
+              /*
+                게시판도 목록 아래로 한 단 더 내려간다 — 글쓰기와 글 하나가 저마다 주소를 갖는다.
+                `write` 를 먼저 두어 글 번호로 읽히지 않게 한다 (SFR-025).
+              */
+              { path: 'guide/:tab/write', element: <GuidePage depth="write" /> },
+              { path: 'guide/:tab/:postId', element: <GuidePage depth="detail" /> },
             ],
           },
           {

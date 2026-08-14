@@ -1,6 +1,31 @@
 import type { BoardPost } from '@/interface/board';
 import { daysAgo, daysAhead, stampAgo } from './today';
 
+/*
+  자리를 채우는 임시 그림.
+
+  실제 첨부가 붙기 전까지 "사진이 글 안에서 바로 보인다" 를 확인하기 위한 것이다.
+  이 함수와 아래 `attachments` 의 url 만 걷어내면 통째로 사라진다.
+*/
+function dummyImage(caption: string, tone: string): string {
+  const svg = [
+    '<svg xmlns="http://www.w3.org/2000/svg" width="960" height="540" viewBox="0 0 960 540">',
+    '<defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1">',
+    `<stop offset="0" stop-color="${tone}"/><stop offset="1" stop-color="#e2e8f0"/>`,
+    '</linearGradient></defs>',
+    '<rect width="960" height="540" fill="url(#g)"/>',
+    '<rect x="40" y="40" width="880" height="460" fill="none" stroke="#94a3b8" stroke-width="2" stroke-dasharray="10 8"/>',
+    '<circle cx="480" cy="232" r="54" fill="#ffffff" opacity="0.72"/>',
+    '<path d="M452 246l24-28 20 22 14-14 22 28z" fill="#64748b"/>',
+    '<circle cx="462" cy="214" r="9" fill="#f59e0b"/>',
+    `<text x="480" y="336" text-anchor="middle" font-family="sans-serif" font-size="30" fill="#475569">${caption}</text>`,
+    '<text x="480" y="374" text-anchor="middle" font-family="sans-serif" font-size="19" fill="#94a3b8">예시 이미지</text>',
+    '</svg>',
+  ].join('');
+
+  return `data:image/svg+xml;charset=utf-8,${encodeURIComponent(svg)}`;
+}
+
 /** 공지·Q&A 시드 (SFR-025) */
 export const SEED_POSTS: BoardPost[] = [
   {
@@ -14,7 +39,11 @@ export const SEED_POSTS: BoardPost[] = [
     at: stampAgo(3, '09:10'),
     pinned: true,
     views: 412,
-    attachments: ['2026_하반기_정기점검_계획표.xlsx'],
+    attachments: [
+      { name: '옥상_점검_동선.png', kind: 'image', url: dummyImage('옥상 점검 동선', '#dbeafe') },
+      { name: '인버터실_출입_안내.png', kind: 'image', url: dummyImage('인버터실 출입 안내', '#fef3c7') },
+      { name: '2026_하반기_정기점검_계획표.xlsx', kind: 'file', url: null },
+    ],
     comments: [],
     popup: { start: daysAgo(3), end: daysAhead(11) },
   },
@@ -40,7 +69,10 @@ export const SEED_POSTS: BoardPost[] = [
     at: stampAgo(21, '11:00'),
     pinned: false,
     views: 731,
-    attachments: ['통합관리시스템_이용안내서_v1.2.pdf'],
+    attachments: [
+      { name: '화면_구성_한눈에.png', kind: 'image', url: dummyImage('화면 구성 한눈에', '#dcfce7') },
+      { name: '통합관리시스템_이용안내서_v1.2.pdf', kind: 'file', url: null },
+    ],
     comments: [],
     popup: null,
   },
