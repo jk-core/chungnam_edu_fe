@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Map } from 'react-kakao-maps-sdk';
 import type { School } from '@/interface/energy';
 import { CENTER, centerOn, DEFAULT_LEVEL, fitToCluster } from './kakaoMarkers';
@@ -23,6 +23,7 @@ interface KakaoMiniMapProps {
  */
 export function KakaoMiniMap({ plants, height, label, onPick, selectedId }: KakaoMiniMapProps) {
   const [map, setMap] = useState<kakao.maps.Map | null>(null);
+  const frameRef = useRef<HTMLDivElement>(null);
   /*
     배율은 상태로 쥐고, 지도가 실제로 멈춘 값을 `onIdle` 로 되받아 적는다 —
     묶음을 다시 가르는 기준이라 지도와 어긋나면 안 된다.
@@ -33,8 +34,33 @@ export function KakaoMiniMap({ plants, height, label, onPick, selectedId }: Kaka
     if (map) fitToCluster(map, cluster.members);
   };
 
+  /*
+    칸이 커지면 지도에게 알린다.
+
+    카카오 지도는 붙는 순간의 칸 크기로 타일을 깔고, 그 뒤 칸이 바뀌어도 스스로 알아채지 못한다.
+    창이 열리며 칸이 자라는 자리(지도 고르기 모달)에서는 처음의 납작한 크기 그대로 남아
+    화면 대부분이 빈 채로 보인다. `relayout()` 이 다시 재라는 신호이고, 그러면서 가운데가
+    틀어지므로 중심을 붙잡았다 되돌려 준다.
+  */
+  useEffect(() => {
+    const frame = frameRef.current;
+
+    if (!map || !frame) return undefined;
+
+    const observer = new ResizeObserver(() => {
+      const center = map.getCenter();
+
+      map.relayout();
+      map.setCenter(center);
+    });
+
+    observer.observe(frame);
+
+    return () => observer.disconnect();
+  }, [map]);
+
   return (
-    <div className={styles.mini} style={{ height }} role={onPick ? 'group' : 'img'} aria-label={label}>
+    <div ref={frameRef} className={styles.mini} style={{ height }} role={onPick ? 'group' : 'img'} aria-label={label}>
       <Map
         center={CENTER}
         level={level}

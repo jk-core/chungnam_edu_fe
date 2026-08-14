@@ -1,6 +1,5 @@
 import { useCallback, useMemo, useState } from 'react';
 import { Badge } from '@/components/common/Badge';
-import { Button } from '@/components/common/Button';
 import { Modal } from '@/components/common/Modal';
 import { OPERATION_LABEL, OPERATION_TONE } from '@/mocks/status';
 import { REGIONS } from '@/mocks/regions';
@@ -18,9 +17,6 @@ const STATES: OperationStatus[] = ['running', 'ready', 'degraded', 'fault', 'com
 
 const ALL = 'all';
 
-/** 지도 높이(px). 아래 범례와 이름 줄이 접히지 않을 만큼만 쓴다. */
-const MAP_HEIGHT = 420;
-
 interface PlantMapModalProps {
   isOpen: boolean;
   onClose: () => void;
@@ -33,7 +29,11 @@ interface PlantMapModalProps {
  * 지도에서 발전소를 고르는 모달 (SFR-004-11).
  *
  * 사이드바 미리보기는 "지금 어디를 보고 있나"만 답한다. 자리로 학교를 찾는 일은
- * 점을 겨냥할 만큼 지도가 커야 되므로 여기서 펼친다.
+ * 점을 겨냥할 만큼 지도가 커야 되므로 여기서 펼친다 — 창은 화면의 아홉 할까지 쓰고,
+ * 그 안에서 지도가 남는 높이를 전부 먹는다.
+ *
+ * 아래 닫기 줄은 두지 않는다. 머리글 오른쪽에 이미 닫기가 있어 같은 일을 두 번 내놓는 셈인데,
+ * 그 한 줄이 차지하는 높이가 곧 지도에서 깎이는 높이다.
  * 시·군으로 좁히면 남는 점이 줄어 겨냥이 쉬워진다 — 128개가 한 화면에 흩어지면
  * 도시권에서는 점이 서로 겹친다.
  */
@@ -64,10 +64,9 @@ export function PlantMapModal({ isOpen, onClose, plants, selectedId, onSelect }:
     <Modal
       isOpen={isOpen}
       onClose={onClose}
-      size="lg"
+      size="full"
       title="지도에서 발전소 고르기"
       description="점을 누르면 그 발전소가 조회 대상이 됩니다. 이름으로 찾으려면 지도를 닫고 발전소 선택을 쓰세요."
-      footer={<Button variant="secondary" onClick={onClose}>닫기</Button>}
     >
       <div className={styles.picker}>
         <div className={styles.picker__bar}>
@@ -91,7 +90,7 @@ export function PlantMapModal({ isOpen, onClose, plants, selectedId, onSelect }:
           {mapStatus === 'ready' ? (
             <KakaoMiniMap
               plants={shown}
-              height={MAP_HEIGHT}
+              height="100%"
               selectedId={selectedId}
               onPick={pick}
               label={`충청남도 발전소 위치 지도. ${shown.length}개소. 점을 눌러 조회 대상을 고릅니다.`}

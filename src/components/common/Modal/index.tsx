@@ -10,7 +10,14 @@ interface ModalProps {
   onClose: () => void;
   title: string;
   description?: string;
-  size?: 'md' | 'lg';
+  /**
+   * 창 크기.
+   *
+   * `full` 은 화면의 아홉 할까지 쓰고 본문이 스스로 스크롤하지 않는다 — 지도처럼 안쪽이
+   * 남는 높이를 먹어야 하는 내용에 쓴다. 본문 안에서 다시 스크롤이 생기면 지도를 끌 때
+   * 창이 함께 밀린다.
+   */
+  size?: 'md' | 'lg' | 'full';
   children: ReactNode;
   footer?: ReactNode;
 }

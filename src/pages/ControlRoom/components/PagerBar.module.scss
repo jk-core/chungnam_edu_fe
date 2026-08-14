@@ -10,35 +10,97 @@
   flex-shrink: 0;
   padding-top: s.$space-2;
   border-top: 1px solid var(--border-subtle);
-}
 
-.pager__count {
-  @include t.caption;
+  &__count {
+    @include t.caption;
 
-  color: var(--text-faint);
-}
+    color: var(--text-faint);
+  }
 
-.pager__nav {
-  display: flex;
-  align-items: center;
-  gap: s.$space-3;
-}
+  &__nav {
+    display: flex;
+    align-items: center;
+    gap: s.$space-3;
+  }
 
-.pager__dots {
-  display: flex;
-  align-items: center;
-  gap: s.$space-1;
-}
+  &__dots {
+    display: flex;
+    align-items: center;
+    gap: s.$space-1;
+  }
 
-// 누를 수 있을 때도 모양은 그대로 둔다 — 손이 닿는 자리는 padding 대신 높이로 넓힌다.
-.pager__dot {
-  display: block;
-  width: 18px;
-  height: 3px;
-  padding: 0;
-  border: 0;
-  border-radius: s.$radius-full;
-  background-color: var(--border);
+  &__dot {
+    display: block;
+    width: 18px;
+    height: 3px;
+    padding: 0;
+    border: 0;
+    border-radius: s.$radius-full;
+    background-color: var(--border);
+
+    &--active {
+      position: relative;
+      overflow: hidden;
+      background-color: var(--border-strong);
+
+      &::after {
+        content: "";
+        position: absolute;
+        inset: 0;
+        border-radius: s.$radius-full;
+        background-color: var(--brand);
+        transform-origin: left;
+        animation: page-fill var(--page-ms, 7s) linear forwards;
+      }
+
+      @include media.reduced-motion {
+        background-color: var(--brand);
+
+        &::after {
+          animation: none;
+        }
+      }
+    }
+
+    &--held {
+      // 멈춰 둔 쪽은 막대가 흐르지 않고 가득 찬 채로 멎는다.
+      &::after {
+        animation: none;
+        transform: scaleX(1);
+      }
+    }
+  }
+
+  &__buttons {
+    display: flex;
+    align-items: center;
+    gap: 2px;
+  }
+
+  &__button {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 24px;
+    height: 24px;
+    padding: 0;
+    border: 1px solid var(--border-subtle);
+    border-radius: s.$radius-sm;
+    background-color: var(--surface);
+    color: var(--text-muted);
+    cursor: pointer;
+
+    &:hover {
+      border-color: var(--border-strong);
+      color: var(--text-strong);
+    }
+
+    &--on {
+      border-color: var(--brand);
+      background-color: var(--brand-soft);
+      color: var(--brand-contrast);
+    }
+  }
 }
 
 button.pager__dot {
@@ -48,69 +110,6 @@ button.pager__dot {
   &:hover {
     background-color: var(--border-strong);
   }
-}
-
-.pager__buttons {
-  display: flex;
-  align-items: center;
-  gap: 2px;
-}
-
-.pager__button {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 24px;
-  height: 24px;
-  padding: 0;
-  border: 1px solid var(--border-subtle);
-  border-radius: s.$radius-sm;
-  background-color: var(--surface);
-  color: var(--text-muted);
-  cursor: pointer;
-
-  &:hover {
-    border-color: var(--border-strong);
-    color: var(--text-strong);
-  }
-}
-
-// 멈춰 둔 동안에는 버튼이 켜져 있다는 것을 색으로 알린다.
-.pager__button--on {
-  border-color: var(--brand);
-  background-color: var(--brand-soft);
-  color: var(--brand-contrast);
-}
-
-// 지금 보고 있는 쪽 — 다음으로 넘어갈 때까지 막대가 차오른다
-.pager__dot--active {
-  position: relative;
-  overflow: hidden;
-  background-color: var(--border-strong);
-
-  &::after {
-    content: "";
-    position: absolute;
-    inset: 0;
-    border-radius: s.$radius-full;
-    background-color: var(--brand);
-    transform-origin: left;
-    animation: page-fill var(--page-ms, 7s) linear forwards;
-  }
-
-  @include media.reduced-motion {
-    background-color: var(--brand);
-
-    &::after {
-      animation: none;
-    }
-  }
-}
-
-// 멈춰 둔 쪽은 막대가 흐르지 않고 가득 찬 채로 멎는다.
-.pager__dot--held::after {
-  animation: none;
-  transform: scaleX(1);
 }
 
 @keyframes page-fill {

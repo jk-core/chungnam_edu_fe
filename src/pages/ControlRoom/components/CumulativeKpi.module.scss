@@ -5,111 +5,54 @@
   display: flex;
   flex-direction: column;
   gap: s.$space-3;
-}
 
-.kpi__row {
-  display: grid;
-  grid-template-columns: 44px minmax(0, 1fr) auto;
-  align-items: baseline;
-  gap: s.$space-3;
-}
+  &__row {
+    display: grid;
+    grid-template-columns: 44px minmax(0, 1fr) auto;
+    align-items: baseline;
+    gap: s.$space-3;
+  }
 
-.kpi__label {
-  @include t.label-sm;
-
-  color: var(--text-faint);
-}
-
-.kpi__value {
-  @include t.data-md;
-
-  display: flex;
-  align-items: baseline;
-  gap: 2px;
-  color: var(--text-strong);
-}
-
-.kpi__unit {
-  @include t.caption;
-
-  color: var(--text-muted);
-}
-
-.kpi__up {
-  @include t.caption;
-
-  display: flex;
-  align-items: baseline;
-  gap: s.$space-1;
-  color: var(--ok-text);
-}
-
-.kpi__down {
-  @include t.caption;
-
-  display: flex;
-  align-items: baseline;
-  gap: s.$space-1;
-  color: var(--critical-text);
-}
-
-.kpi__deltaNote {
-  color: var(--text-faint);
-}
-
-// 금월·금년은 연 누적 대비 비율을 막대로 보여 준다.
-.kpi__bar {
-  display: block;
-  width: 64px;
-  height: 6px;
-  border-radius: s.$radius-full;
-  background-color: var(--surface-sunken);
-  overflow: hidden;
-}
-
-.kpi__barFill {
-  display: block;
-  height: 100%;
-  border-radius: s.$radius-full;
-  background-color: var(--brand);
-  transition: width 0.5s cubic-bezier(0.22, 0.68, 0.32, 1);
-}
-
-.kpi__avg {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: s.$space-2;
-  margin: 0;
-  padding-top: s.$space-2;
-  border-top: 1px solid var(--border-subtle);
-
-  dt {
-    @include t.caption;
+  &__label {
+    @include t.label-sm;
 
     color: var(--text-faint);
   }
 
-  dd {
-    @include t.data-sm;
+  &__value {
+    @include t.data-md;
 
     display: flex;
     align-items: baseline;
-    gap: 1px;
-    margin: 0;
+    gap: 2px;
     color: var(--text-strong);
   }
-}
 
-.kpi__avgUnit {
-  @include t.caption;
+  &__unit {
+    @include t.caption;
 
-  color: var(--text-muted);
-}
+    color: var(--text-muted);
+  }
 
-.kpi__foot {
-  @include t.caption;
+  &__up {
+    @include t.caption;
 
-  padding-top: s.$space-2;
-  border-top: 1px solid var(--border-subtle);
-  color: var(--text-faint);
+    display: flex;
+    align-items: baseline;
+    gap: s.$space-1;
+    color: var(--ok-text);
+  }
+
+  &__down {
+    @include t.caption;
+
+    display: flex;
+    align-items: baseline;
+    gap: s.$space-1;
+    color: var(--critical-text);
+  }
+
+  &__deltaNote {
+    color: var(--text-faint);
+  }
 }

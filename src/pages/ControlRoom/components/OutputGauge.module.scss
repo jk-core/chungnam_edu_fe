@@ -7,33 +7,70 @@
   display: grid;
   place-items: center;
   min-height: 0;
-}
 
-// 한 값을 보여 주는 데 화면을 크게 쓸 이유가 없다 — 아래 판에 자리를 내준다.
-.gauge__svg {
-  width: 100%;
-  max-width: 188px;
-  height: auto;
-  overflow: visible;
-}
+  &__svg {
+    width: 100%;
+    max-width: 188px;
+    height: auto;
+    overflow: visible;
+  }
 
-.gauge__track {
-  fill: none;
-  stroke: var(--surface-sunken);
-  stroke-width: 14;
-  stroke-linecap: round;
-}
+  &__track {
+    fill: none;
+    stroke: var(--surface-sunken);
+    stroke-width: 14;
+    stroke-linecap: round;
+  }
 
-.gauge__value {
-  fill: none;
-  stroke: var(--solar);
-  stroke-width: 14;
-  stroke-linecap: round;
-  filter: drop-shadow(0 0 6px var(--solar-soft));
-  animation: gauge-glow 3.2s ease-in-out infinite;
+  &__value {
+    fill: none;
+    stroke: var(--solar);
+    stroke-width: 14;
+    stroke-linecap: round;
+    filter: drop-shadow(0 0 6px var(--solar-soft));
+    animation: gauge-glow 3.2s ease-in-out infinite;
 
-  @include media.reduced-motion {
-    animation: none;
+    @include media.reduced-motion {
+      animation: none;
+    }
+  }
+
+  &__center {
+    position: absolute;
+    top: 52%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    text-align: center;
+  }
+
+  &__label {
+    @include t.eyebrow;
+
+    color: var(--text-faint);
+  }
+
+  &__number {
+    @include t.data-lg;
+
+    display: flex;
+    align-items: baseline;
+    justify-content: center;
+    gap: s.$space-1;
+    margin-top: s.$space-1;
+    color: var(--text-strong);
+  }
+
+  &__unit {
+    @include t.label-sm;
+
+    color: var(--text-muted);
+  }
+
+  &__sub {
+    @include t.caption;
+
+    margin-top: s.$space-1;
+    color: var(--text-muted);
   }
 }
 
@@ -46,43 +83,4 @@
   50% {
     filter: drop-shadow(0 0 12px var(--solar));
   }
-}
-
-// 게이지 호 안쪽에 수치를 겹쳐 놓는다.
-.gauge__center {
-  position: absolute;
-  top: 52%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  text-align: center;
-}
-
-.gauge__label {
-  @include t.eyebrow;
-
-  color: var(--text-faint);
-}
-
-.gauge__number {
-  @include t.data-lg;
-
-  display: flex;
-  align-items: baseline;
-  justify-content: center;
-  gap: s.$space-1;
-  margin-top: s.$space-1;
-  color: var(--text-strong);
-}
-
-.gauge__unit {
-  @include t.label-sm;
-
-  color: var(--text-muted);
-}
-
-.gauge__sub {
-  @include t.caption;
-
-  margin-top: s.$space-1;
-  color: var(--text-muted);
 }

@@ -16,117 +16,146 @@
     align-items: flex-end;
     padding: 0;
   }
-}
 
-.modal__backdrop {
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  padding: 0;
-  background-color: var(--overlay);
-  border: 0;
-  backdrop-filter: blur(3px);
-}
-
-.modal__panel {
-  position: relative;
-  display: flex;
-  flex-direction: column;
-  width: 100%;
-  max-height: min(84dvh, 760px);
-  background-color: var(--surface);
-  border: 1px solid var(--border-subtle);
-  border-radius: s.$radius-xl;
-  box-shadow: var(--shadow-lg);
-  overflow: hidden;
-
-  @include media.mobile {
-    max-height: 88dvh;
-    border-radius: s.$radius-xl s.$radius-xl 0 0;
-    border-bottom: 0;
+  // 본문이 없는 확인 대화상자에서는 머리글 아래 선만 남긴다.
+  &__header + .modal__footer {
+    border-top: 0;
   }
-}
 
-.modal__panel--md {
-  max-width: 520px;
-}
-
-.modal__panel--lg {
-  max-width: 760px;
-}
-
-.modal__header {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: s.$space-4;
-  padding: s.$space-6 s.$space-6 s.$space-4;
-  border-bottom: 1px solid var(--border-subtle);
-
-  @include media.mobile {
-    padding: s.$space-5 s.$space-5 s.$space-4;
+  &__backdrop {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    padding: 0;
+    background-color: var(--overlay);
+    border: 0;
+    backdrop-filter: blur(3px);
   }
-}
 
-.modal__heading {
-  display: flex;
-  flex-direction: column;
-  gap: s.$space-1;
-  min-width: 0;
-}
+  &__panel {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    max-height: min(84dvh, 760px);
+    background-color: var(--surface);
+    border: 1px solid var(--border-subtle);
+    border-radius: s.$radius-xl;
+    box-shadow: var(--shadow-lg);
+    overflow: hidden;
 
-.modal__title {
-  color: var(--text-strong);
+    @include media.mobile {
+      max-height: 88dvh;
+      border-radius: s.$radius-xl s.$radius-xl 0 0;
+      border-bottom: 0;
+    }
 
-  @include t.title-lg;
-}
+    &--md {
+      max-width: 520px;
+    }
 
-.modal__description {
-  color: var(--text-muted);
+    &--lg {
+      max-width: 760px;
+    }
 
-  @include t.body-sm;
-}
+    &--full {
+      /*
+        크기를 못 박는다.
+        `max-*` 만 주면 창이 내용 높이까지만 서는데, 본문이 스스로 늘어나는 내용(지도)을 품고 있어
+        서로 상대가 커지기를 기다리다 둘 다 납작해진다. 바깥이 먼저 크기를 정해야 안쪽이 채운다.
+      */
+      width: 90vw;
+      max-width: 90vw;
+      height: 90dvh;
+      max-height: 90dvh;
 
-.modal__close {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-  width: 36px;
-  height: 36px;
-  background: none;
-  border: 1px solid var(--border);
-  border-radius: s.$radius-full;
-  color: var(--text-muted);
-  transition: color 0.16s ease, background-color 0.16s ease, border-color 0.16s ease;
+      .modal__body {
+        display: flex;
+        overflow: hidden;
 
-  @include mx.press;
+        > * {
+          flex: 1;
+          min-width: 0;
+        }
+      }
 
-  &:hover {
-    background-color: var(--surface-hover);
-    border-color: var(--border-strong);
+      @include media.mobile {
+        width: 100%;
+        max-width: none;
+        height: 88dvh;
+        max-height: 88dvh;
+      }
+    }
+  }
+
+  &__header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: s.$space-4;
+    padding: s.$space-6 s.$space-6 s.$space-4;
+    border-bottom: 1px solid var(--border-subtle);
+
+    @include media.mobile {
+      padding: s.$space-5 s.$space-5 s.$space-4;
+    }
+  }
+
+  &__heading {
+    display: flex;
+    flex-direction: column;
+    gap: s.$space-1;
+    min-width: 0;
+  }
+
+  &__title {
     color: var(--text-strong);
+
+    @include t.title-lg;
   }
-}
 
-.modal__body {
-  flex: 1;
-  min-height: 0;
-  overflow-y: auto;
-  padding: s.$space-5 s.$space-6 s.$space-6;
+  &__description {
+    color: var(--text-muted);
 
-  @include media.mobile {
-    padding: s.$space-4 s.$space-5 s.$space-6;
+    @include t.body-sm;
   }
-}
 
-.modal__footer {
-  padding: s.$space-4 s.$space-6;
-  border-top: 1px solid var(--border-subtle);
-  background-color: var(--surface-sunken);
-}
+  &__close {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    width: 36px;
+    height: 36px;
+    background: none;
+    border: 1px solid var(--border);
+    border-radius: s.$radius-full;
+    color: var(--text-muted);
+    transition: color 0.16s ease, background-color 0.16s ease, border-color 0.16s ease;
 
-// 본문이 없는 확인 대화상자에서는 머리글 아래 선만 남긴다.
-.modal__header + .modal__footer {
-  border-top: 0;
+    @include mx.press;
+
+    &:hover {
+      background-color: var(--surface-hover);
+      border-color: var(--border-strong);
+      color: var(--text-strong);
+    }
+  }
+
+  &__body {
+    flex: 1;
+    min-height: 0;
+    overflow-y: auto;
+    padding: s.$space-5 s.$space-6 s.$space-6;
+
+    @include media.mobile {
+      padding: s.$space-4 s.$space-5 s.$space-6;
+    }
+  }
+
+  &__footer {
+    padding: s.$space-4 s.$space-6;
+    border-top: 1px solid var(--border-subtle);
+    background-color: var(--surface-sunken);
+  }
 }

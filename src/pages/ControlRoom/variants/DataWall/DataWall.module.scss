@@ -39,44 +39,43 @@
   background-color: var(--surface);
   box-shadow: var(--shadow-sm);
   overflow: hidden;
-}
 
-/* 지도만 두 칸을 쓴다 — 한 칸에 넣으면 도 모양이 뭉개져 위치를 못 읽는다 */
-.cell--wide {
-  grid-column: span 2;
-}
+  &--wide {
+    grid-column: span 2;
+  }
 
-.cell__head {
-  display: flex;
-  align-items: baseline;
-  justify-content: space-between;
-  gap: s.$space-2;
-  margin-bottom: s.$space-2;
-}
+  &__head {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: s.$space-2;
+    margin-bottom: s.$space-2;
+  }
 
-.cell__title {
-  @include t.label-md;
+  &__title {
+    @include t.label-md;
 
-  color: var(--text-strong);
-}
+    color: var(--text-strong);
+  }
 
-.cell__note {
-  @include t.caption;
+  &__note {
+    @include t.caption;
 
-  color: var(--text-faint);
-  text-align: right;
-}
+    color: var(--text-faint);
+    text-align: right;
+  }
 
-.cell__body {
-  display: flex;
-  flex: 1;
-  flex-direction: column;
-  min-height: 0;
-
-  /* 칸을 꽉 채워야 하는 내용 (지도·차트·목록) */
-  > * {
+  &__body {
+    display: flex;
     flex: 1;
+    flex-direction: column;
     min-height: 0;
+
+    /* 칸을 꽉 채워야 하는 내용 (지도·차트·목록) */
+    > * {
+      flex: 1;
+      min-height: 0;
+    }
   }
 }
 
@@ -92,140 +91,133 @@
   display: flex;
   flex-direction: column;
   gap: 1px;
-}
 
-/* 금일치만 크게 — 나머지 셋은 견주는 값이다 */
-.figure--big {
-  grid-column: span 2;
+  &--big {
+    grid-column: span 2;
 
-  .figure__value {
-    font-size: 36px;
+    .figure__value {
+      font-size: 36px;
+    }
   }
-}
 
-.figure__label {
-  @include t.caption;
-
-  color: var(--text-muted);
-}
-
-.figure__value {
-  display: flex;
-  align-items: baseline;
-  gap: 2px;
-  color: var(--text-strong);
-  font-family: var(--font-data);
-  font-size: 21px;
-  font-weight: 700;
-  line-height: 1.15;
-  font-variant-numeric: tabular-nums;
-
-  span {
+  &__label {
     @include t.caption;
 
-    color: var(--text-faint);
-    font-weight: 500;
+    color: var(--text-muted);
+  }
+
+  &__value {
+    display: flex;
+    align-items: baseline;
+    gap: 2px;
+    color: var(--text-strong);
+    font-family: var(--font-data);
+    font-size: 21px;
+    font-weight: 700;
+    line-height: 1.15;
+    font-variant-numeric: tabular-nums;
+
+    span {
+      @include t.caption;
+
+      color: var(--text-faint);
+      font-weight: 500;
+    }
   }
 }
 
-// ── 운영 상태 판 ───────────────────────────────────────────
 .states {
   display: flex;
   flex-direction: column;
   justify-content: center;
   gap: s.$space-3;
-}
 
-/*
-  한 줄짜리 비율 막대.
-  칸마다 `flex-grow` 를 개수로 주면 자리가 곧 비율이 된다 — 정상 아흔둘과 이상 스물아홉이
-  숫자를 읽기 전에 눈으로 먼저 갈린다.
-*/
-.states__bar {
-  display: flex;
-  gap: 2px;
-  height: 14px;
-
-  span {
-    border-radius: 3px;
-    background-color: var(--tone, var(--text-faint));
-
-    &[data-tone="ok"] {
-      --tone: var(--ok);
-    }
-
-    &[data-tone="brand"] {
-      --tone: var(--brand);
-    }
-
-    &[data-tone="caution"] {
-      --tone: var(--caution);
-    }
-
-    &[data-tone="critical"] {
-      --tone: var(--critical);
-    }
-
-    &[data-tone="offline"] {
-      --tone: var(--offline);
-    }
-  }
-}
-
-.states__list {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: s.$space-1 s.$space-3;
-
-  > div {
+  &__bar {
     display: flex;
-    align-items: baseline;
-    justify-content: space-between;
-    gap: s.$space-2;
-
-    &[data-tone="ok"] {
-      --tone: var(--ok);
-    }
-
-    &[data-tone="brand"] {
-      --tone: var(--brand);
-    }
-
-    &[data-tone="caution"] {
-      --tone: var(--caution);
-    }
-
-    &[data-tone="critical"] {
-      --tone: var(--critical);
-    }
-
-    &[data-tone="offline"] {
-      --tone: var(--offline);
-    }
-  }
-
-  /* 색만으로 구분되지 않게 이름을 함께 적는다 (COR-003) */
-  dt {
-    @include t.caption;
-
-    display: flex;
-    align-items: center;
-    gap: s.$space-1;
-    color: var(--text-muted);
+    gap: 2px;
+    height: 14px;
 
     span {
-      width: 8px;
-      height: 8px;
-      border-radius: 2px;
-      background-color: var(--tone);
+      border-radius: 3px;
+      background-color: var(--tone, var(--text-faint));
+
+      &[data-tone="ok"] {
+        --tone: var(--ok);
+      }
+
+      &[data-tone="brand"] {
+        --tone: var(--brand);
+      }
+
+      &[data-tone="caution"] {
+        --tone: var(--caution);
+      }
+
+      &[data-tone="critical"] {
+        --tone: var(--critical);
+      }
+
+      &[data-tone="offline"] {
+        --tone: var(--offline);
+      }
     }
   }
 
-  dd {
-    @include t.label-sm;
+  &__list {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: s.$space-1 s.$space-3;
 
-    color: var(--text-strong);
-    font-family: var(--font-data);
-    font-variant-numeric: tabular-nums;
+    > div {
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      gap: s.$space-2;
+
+      &[data-tone="ok"] {
+        --tone: var(--ok);
+      }
+
+      &[data-tone="brand"] {
+        --tone: var(--brand);
+      }
+
+      &[data-tone="caution"] {
+        --tone: var(--caution);
+      }
+
+      &[data-tone="critical"] {
+        --tone: var(--critical);
+      }
+
+      &[data-tone="offline"] {
+        --tone: var(--offline);
+      }
+    }
+
+    /* 색만으로 구분되지 않게 이름을 함께 적는다 (COR-003) */
+    dt {
+      @include t.caption;
+
+      display: flex;
+      align-items: center;
+      gap: s.$space-1;
+      color: var(--text-muted);
+
+      span {
+        width: 8px;
+        height: 8px;
+        border-radius: 2px;
+        background-color: var(--tone);
+      }
+    }
+
+    dd {
+      @include t.label-sm;
+
+      color: var(--text-strong);
+      font-family: var(--font-data);
+      font-variant-numeric: tabular-nums;
+    }
   }
 }

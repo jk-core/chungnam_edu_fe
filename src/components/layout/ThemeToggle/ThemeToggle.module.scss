@@ -21,13 +21,13 @@
     border-color: var(--border-strong);
     color: var(--text-strong);
   }
-}
 
-.toggle__icon {
-  display: inline-flex;
+  &__icon {
+    display: inline-flex;
 
-  svg {
-    width: 18px;
-    height: 18px;
+    svg {
+      width: 18px;
+      height: 18px;
+    }
   }
 }

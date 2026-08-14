@@ -9,76 +9,101 @@
   gap: s.$space-3;
   min-height: 0;
   height: 100%;
+
+  &__head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: s.$space-3;
+    flex-wrap: wrap;
+  }
+
+  &__total {
+    @include t.data-sm;
+
+    display: flex;
+    align-items: baseline;
+    gap: 2px;
+    color: var(--text-strong);
+  }
+
+  &__unit {
+    @include t.caption;
+
+    color: var(--text-muted);
+  }
+
+  &__frame {
+    flex: 1;
+    min-height: 0;
+    overflow: hidden;
+  }
 }
 
-.agg__head {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: s.$space-3;
-  flex-wrap: wrap;
-}
-
-.agg__total {
-  @include t.data-sm;
-
-  display: flex;
-  align-items: baseline;
-  gap: 2px;
-  color: var(--text-strong);
-}
-
-.agg__unit {
-  @include t.caption;
-
-  color: var(--text-muted);
-}
-
-// 행이 많아도 패널 밖으로 밀지 않고 안에서 스크롤한다.
-// 스크롤 대신 쪽을 넘긴다. 칸에 담기는 만큼만 그리므로 넘칠 일이 없다.
-.agg__frame {
-  flex: 1;
-  min-height: 0;
-  overflow: hidden;
-}
-
-// ── 집계 표 ────────────────────────────────────────────────
 .table {
   width: 100%;
   border-collapse: collapse;
-}
 
-.table__caption {
-  @include mx.sr-only;
-}
+  & thead th {
+    @include t.caption;
 
-.table thead th {
-  @include t.caption;
+    position: sticky;
+    top: 0;
+    z-index: 1;
+    padding: s.$space-2 s.$space-2;
+    background-color: var(--surface);
+    border-bottom: 1px solid var(--border);
+    color: var(--text-faint);
+    text-align: left;
+    font-weight: 500;
+  }
 
-  position: sticky;
-  top: 0;
-  z-index: 1;
-  padding: s.$space-2 s.$space-2;
-  background-color: var(--surface);
-  border-bottom: 1px solid var(--border);
-  color: var(--text-faint);
-  text-align: left;
-  font-weight: 500;
-}
+  &__caption {
+    @include mx.sr-only;
+  }
 
-.table tbody th,
-.table tbody td {
-  padding: s.$space-2;
-  border-bottom: 1px solid var(--border-subtle);
-  vertical-align: middle;
-}
+  &__body {
+    animation: rows-slide 0.45s cubic-bezier(0.22, 0.68, 0.32, 1) both;
 
-// 쪽이 넘어갈 때 다음 줄들이 옆에서 밀려 들어온다 — 설비 카드가 넘어가는 결과 맞춘다.
-.table__body {
-  animation: rows-slide 0.45s cubic-bezier(0.22, 0.68, 0.32, 1) both;
+    @include media.reduced-motion {
+      animation: none;
+    }
+  }
 
-  @include media.reduced-motion {
-    animation: none;
+  &__name {
+    @include t.body-sm;
+
+    display: flex;
+    align-items: center;
+    gap: s.$space-2;
+    color: var(--text-strong);
+    text-align: left;
+    font-weight: 500;
+  }
+
+  &__count {
+    @include t.caption;
+
+    color: var(--text-faint);
+  }
+
+  &__num {
+    @include t.data-sm;
+
+    width: 96px;
+    color: var(--text);
+    text-align: right;
+  }
+
+  &__share {
+    width: 150px;
+  }
+
+  & tbody th,
+& tbody td {
+    padding: s.$space-2;
+    border-bottom: 1px solid var(--border-subtle);
+    vertical-align: middle;
   }
 }
 
@@ -94,58 +119,28 @@
   }
 }
 
-.table__name {
-  @include t.body-sm;
-
-  display: flex;
-  align-items: center;
-  gap: s.$space-2;
-  color: var(--text-strong);
-  text-align: left;
-  font-weight: 500;
-}
-
-.table__count {
-  @include t.caption;
-
-  color: var(--text-faint);
-}
-
-.table__num {
-  @include t.data-sm;
-
-  width: 96px;
-  color: var(--text);
-  text-align: right;
-}
-
-.table__share {
-  width: 150px;
-}
-
-// ── 비중 막대 ──────────────────────────────────────────────
 .bar {
   display: block;
   height: 6px;
   border-radius: s.$radius-full;
   background-color: var(--surface-sunken);
   overflow: hidden;
-}
 
-.bar__fill {
-  display: block;
-  height: 100%;
-  border-radius: s.$radius-full;
-  background: linear-gradient(90deg, var(--brand), var(--solar));
-  transition: width 0.5s cubic-bezier(0.22, 0.68, 0.32, 1);
-}
+  &__fill {
+    display: block;
+    height: 100%;
+    border-radius: s.$radius-full;
+    background: linear-gradient(90deg, var(--brand), var(--solar));
+    transition: width 0.5s cubic-bezier(0.22, 0.68, 0.32, 1);
+  }
 
-.bar__value {
-  @include t.caption;
+  &__value {
+    @include t.caption;
 
-  display: block;
-  margin-top: 2px;
-  color: var(--text-muted);
-  text-align: right;
-  font-family: var(--font-data);
+    display: block;
+    margin-top: 2px;
+    color: var(--text-muted);
+    text-align: right;
+    font-family: var(--font-data);
+  }
 }

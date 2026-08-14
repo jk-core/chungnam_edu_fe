@@ -33,12 +33,12 @@ export function Header() {
   return (
     <>
       <header className={cn(styles.header, { [styles['header--scrolled']]: isScrolled })}>
+
+        {/* 브랜드 줄 — 기관과 유틸리티만 선다. 길 고르는 일은 아래 주메뉴 줄이 맡는다 */}
         <div className={styles.header__inner}>
           <Link to={PATH.HOME} className={styles.header__brand} aria-label="충청남도교육청 신·재생에너지 통합관리시스템 홈">
             <Logo />
           </Link>
-
-          <Gnb />
 
           <div className={styles.header__utils}>
             <AccountMenu onOpenHelp={() => setIsHelpOpen(true)} />
@@ -56,6 +56,8 @@ export function Header() {
               {pendingCount > 0 ? <span className={styles.header__dot} aria-hidden /> : null}
             </button>
             <ThemeToggle />
+
+            {/* 좁은 화면에는 주메뉴 줄이 서지 않는다 — 그때는 이 단추가 길을 여는 유일한 문이다 */}
             <button
               type="button"
               className={styles.header__menu}
@@ -67,6 +69,15 @@ export function Header() {
             </button>
           </div>
         </div>
+
+        {/*
+          주메뉴 줄.
+
+          전체메뉴 단추를 두지 않는다 — 이 줄은 넓은 화면에만 서고, 그때는 1뎁스가 이미 다 보여
+          단추가 여는 것과 같은 것을 두 번 내놓게 된다. 좁은 화면에서는 이 줄이 통째로 사라지고
+          위 유틸리티 줄의 단추가 유일한 문이 된다.
+        */}
+        <Gnb />
       </header>
 
       <MobileDrawer

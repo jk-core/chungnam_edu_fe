@@ -1,7 +1,6 @@
 @use "@/styles/tokens/spacing" as s;
 @use "@/styles/tokens/typography" as t;
 
-// 판 아래쪽에 붙여, 위 지표와 사이가 벌어지더라도 바닥선을 지킨다.
 .health {
   display: flex;
   flex-direction: column;
@@ -9,148 +8,147 @@
   margin-top: auto;
   padding-top: s.$space-3;
   border-top: 1px solid var(--border-subtle);
-}
 
-.health__head {
-  display: flex;
-  align-items: baseline;
-  justify-content: space-between;
-  gap: s.$space-2;
-}
+  &__head {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: s.$space-2;
+  }
 
-.health__label {
-  @include t.caption;
+  &__label {
+    @include t.caption;
 
-  color: var(--text-faint);
-}
+    color: var(--text-faint);
+  }
 
-.health__rate {
-  @include t.data-md;
+  &__rate {
+    @include t.data-md;
 
-  color: var(--text-strong);
-}
+    color: var(--text-strong);
 
-.health__rate--low {
-  @include t.data-md;
+    &--low {
+      @include t.data-md;
 
-  color: var(--critical-text);
-}
+      color: var(--critical-text);
+    }
+  }
 
-.health__track {
-  position: relative;
-  height: 10px;
-  border-radius: s.$radius-full;
-  background-color: var(--surface-sunken);
-  overflow: hidden;
-}
+  &__track {
+    position: relative;
+    height: 10px;
+    border-radius: s.$radius-full;
+    background-color: var(--surface-sunken);
+    overflow: hidden;
+  }
 
-.health__fill {
-  display: block;
-  height: 100%;
-  border-radius: s.$radius-full;
-  background-color: var(--ok);
-  transition: width 0.6s cubic-bezier(0.22, 0.68, 0.32, 1);
-}
+  &__fill {
+    display: block;
+    height: 100%;
+    border-radius: s.$radius-full;
+    background-color: var(--ok);
+    transition: width 0.6s cubic-bezier(0.22, 0.68, 0.32, 1);
 
-.health__fill--low {
-  display: block;
-  height: 100%;
-  border-radius: s.$radius-full;
-  background-color: var(--critical);
-  transition: width 0.6s cubic-bezier(0.22, 0.68, 0.32, 1);
-}
+    &--low {
+      display: block;
+      height: 100%;
+      border-radius: s.$radius-full;
+      background-color: var(--critical);
+      transition: width 0.6s cubic-bezier(0.22, 0.68, 0.32, 1);
+    }
+  }
 
-// 검수 기준선(95%). 채움 위로 겹쳐 그려 넘겼는지가 바로 읽힌다.
-.health__target {
-  position: absolute;
-  top: 0;
-  bottom: 0;
-  width: 2px;
-  transform: translateX(-1px);
-  background-color: var(--text-strong);
-}
+  &__target {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    width: 2px;
+    transform: translateX(-1px);
+    background-color: var(--text-strong);
+  }
 
-.health__note {
-  @include t.caption;
+  &__note {
+    @include t.caption;
 
-  display: flex;
-  align-items: center;
-  gap: s.$space-2;
-  color: var(--text-faint);
-}
+    display: flex;
+    align-items: center;
+    gap: s.$space-2;
+    color: var(--text-faint);
+  }
 
-.health__ok {
-  color: var(--ok-text);
-  font-weight: 600;
-}
+  &__ok {
+    color: var(--ok-text);
+    font-weight: 600;
+  }
 
-.health__warn {
-  color: var(--critical-text);
-  font-weight: 600;
-}
+  &__warn {
+    color: var(--critical-text);
+    font-weight: 600;
+  }
 
-.health__missing {
-  margin-left: auto;
-}
+  &__missing {
+    margin-left: auto;
+  }
 
-.health__rtu {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 2px s.$space-3;
-}
+  &__rtu {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 2px s.$space-3;
+  }
 
-.health__rtuItem {
-  @include t.caption;
+  &__rtuItem {
+    @include t.caption;
 
-  display: flex;
-  align-items: center;
-  gap: s.$space-2;
-  color: var(--text-muted);
-}
+    display: flex;
+    align-items: center;
+    gap: s.$space-2;
+    color: var(--text-muted);
+  }
 
-.health__rtuValue {
-  @include t.data-sm;
+  &__rtuValue {
+    @include t.data-sm;
 
-  margin-left: auto;
-  color: var(--text-strong);
-}
+    margin-left: auto;
+    color: var(--text-strong);
+  }
 
-// 색만으로 구분되지 않게 상태 이름을 함께 적는다 (COR-003)
-.health__dot {
-  display: block;
-  width: 7px;
-  height: 7px;
-  border-radius: s.$radius-full;
-  flex-shrink: 0;
-}
+  &__dot {
+    display: block;
+    width: 7px;
+    height: 7px;
+    border-radius: s.$radius-full;
+    flex-shrink: 0;
 
-.health__dot--ok {
-  background-color: var(--ok);
-}
+    &--ok {
+      background-color: var(--ok);
+    }
 
-.health__dot--caution {
-  background-color: var(--caution);
-}
+    &--caution {
+      background-color: var(--caution);
+    }
 
-.health__dot--offline {
-  background-color: var(--offline);
-}
+    &--offline {
+      background-color: var(--offline);
+    }
 
-.health__dot--critical {
-  background-color: var(--critical);
-}
+    &--critical {
+      background-color: var(--critical);
+    }
+  }
 
-// 마지막으로 값이 들어온 시각 (SFR-004-04)
-.health__stamp,
-.health__stamp--stale {
-  @include t.caption;
+  &__stamp {
+    &--stale {
+      color: var(--caution-text);
+    }
+  }
 
-  margin-left: auto;
-  color: var(--text-faint);
-  font-family: var(--font-data);
-}
+  // 마지막으로 값이 들어온 시각 (SFR-004-04)
+  &__stamp,
+&__stamp--stale {
+    @include t.caption;
 
-// 수집이 늦으면 시각을 경고색으로 적는다.
-.health__stamp--stale {
-  color: var(--caution-text);
+    margin-left: auto;
+    color: var(--text-faint);
+    font-family: var(--font-data);
+  }
 }

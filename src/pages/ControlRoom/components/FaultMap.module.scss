@@ -2,7 +2,6 @@
 @use "@/styles/tokens/typography" as t;
 @use "@/styles/utils/media" as media;
 
-// 아래 장애 목록과 한 판을 나눠 쓴다 — 지도는 자기 몫만 쓰고 남는 높이는 목록이 가져간다.
 .map {
   // 설명 패널이 이 칸을 기준으로 얹힌다
   position: relative;
@@ -13,107 +12,97 @@
   min-height: 0;
   padding-bottom: s.$space-2;
   border-bottom: 1px solid var(--border-subtle);
-}
 
-.map__svg {
-  width: 100%;
-  min-height: 0;
-}
-
-// ── 장애 지점 ──────────────────────────────────────────────
-.dot {
-  stroke: var(--surface);
-  stroke-width: 1.5;
-}
-
-// 값이 계속 나쁜 상태라는 신호로 천천히 번진다.
-// 제 주기로 돌지 않고 전역 맥동 시계(--pulse)를 물려받아, 화면의 다른 점등과 박자를 맞춘다.
-.dot__halo {
-  transform: scale(calc(0.5 + var(--pulse) * 0.75));
-  opacity: calc(0.45 - var(--pulse) * 0.45);
-
-  @include media.reduced-motion {
-    transform: scale(0.9);
-    opacity: 0.18;
+  &__svg {
+    width: 100%;
+    min-height: 0;
   }
 }
 
-.dot--caution {
-  fill: var(--caution);
+.dot {
+  stroke: var(--surface);
+  stroke-width: 1.5;
+
+  &__halo {
+    transform: scale(calc(0.5 + var(--pulse) * 0.75));
+    opacity: calc(0.45 - var(--pulse) * 0.45);
+
+    @include media.reduced-motion {
+      transform: scale(0.9);
+      opacity: 0.18;
+    }
+  }
+
+  &--caution {
+    fill: var(--caution);
+  }
+
+  &--critical {
+    fill: var(--critical);
+  }
+
+  &--offline {
+    fill: var(--offline);
+  }
+
+  &--ok {
+    fill: var(--ok);
+  }
+
+  &--brand {
+    fill: var(--brand);
+  }
 }
 
-.dot--critical {
-  fill: var(--critical);
-}
-
-.dot--offline {
-  fill: var(--offline);
-}
-
-.dot--ok {
-  fill: var(--ok);
-}
-
-.dot--brand {
-  fill: var(--brand);
-}
-
-// ── 범례 ───────────────────────────────────────────────────
 .legend {
   display: flex;
   flex-wrap: wrap;
   gap: s.$space-1 s.$space-3;
   padding-top: s.$space-2;
   border-top: 1px solid var(--border-subtle);
+
+  &__item {
+    @include t.caption;
+
+    display: flex;
+    align-items: center;
+    gap: s.$space-1;
+    color: var(--text-muted);
+  }
+
+  &__dot {
+    display: block;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+
+    &--caution {
+      background-color: var(--caution);
+    }
+
+    &--critical {
+      background-color: var(--critical);
+    }
+
+    &--offline {
+      background-color: var(--offline);
+    }
+
+    &--ok {
+      background-color: var(--ok);
+    }
+
+    &--brand {
+      background-color: var(--brand);
+    }
+  }
+
+  &__count {
+    color: var(--text-strong);
+    font-family: var(--font-data);
+  }
 }
 
-.legend__item {
-  @include t.caption;
-
-  display: flex;
-  align-items: center;
-  gap: s.$space-1;
-  color: var(--text-muted);
-}
-
-// SVG 점은 fill, 범례 점은 background-color 라 따로 둔다.
-.legend__dot {
-  display: block;
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-}
-
-.legend__dot--caution {
-  background-color: var(--caution);
-}
-
-.legend__dot--critical {
-  background-color: var(--critical);
-}
-
-.legend__dot--offline {
-  background-color: var(--offline);
-}
-
-.legend__dot--ok {
-  background-color: var(--ok);
-}
-
-.legend__dot--brand {
-  background-color: var(--brand);
-}
-
-.legend__count {
-  color: var(--text-strong);
-  font-family: var(--font-data);
-}
-
-/*
-  고른 발전소 설명 (SFR-004-01).
-  자리를 미리 비워 두지 않고 누를 때만 지도 위로 얹힌다 — 상황판에서 빈 칸은
-  그대로 낭비이고, 지도는 넓을수록 어디가 아픈지 잘 보인다.
-*/
 .side {
   position: absolute;
   top: s.$space-2;
@@ -129,6 +118,23 @@
   box-shadow: var(--shadow-lg);
   overflow-y: auto;
   animation: fault-side-in 0.2s ease-out;
+
+  &__close {
+    position: absolute;
+    top: s.$space-1;
+    right: s.$space-1;
+    display: grid;
+    place-items: center;
+    width: 26px;
+    height: 26px;
+    border-radius: s.$radius-full;
+    color: var(--text-muted);
+
+    &:hover {
+      background-color: var(--surface-sunken);
+      color: var(--text-strong);
+    }
+  }
 }
 
 @keyframes fault-side-in {
@@ -146,23 +152,6 @@
 @include media.reduced-motion {
   .side {
     animation: none;
-  }
-}
-
-.side__close {
-  position: absolute;
-  top: s.$space-1;
-  right: s.$space-1;
-  display: grid;
-  place-items: center;
-  width: 26px;
-  height: 26px;
-  border-radius: s.$radius-full;
-  color: var(--text-muted);
-
-  &:hover {
-    background-color: var(--surface-sunken);
-    color: var(--text-strong);
   }
 }
 

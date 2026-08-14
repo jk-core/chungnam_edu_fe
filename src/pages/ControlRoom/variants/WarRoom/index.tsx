@@ -41,11 +41,7 @@ function WarRoomPage() {
   const output = scaleSi(data.totals.outputKw, 'W');
 
   return (
-    /*
-      어둠은 이 화면 안에서만 걸린다.
-      문서 전체 테마를 건드리면 다른 시안을 열었을 때 그쪽까지 따라 어두워진다.
-    */
-    <div className={styles.room} data-theme="dark">
+    <div className={styles.room}>
       {/* 지도는 배경이다. 유리판 뒤에서 계속 살아 있다 */}
       <div className={styles.canvas}>
         <FaultMap plants={data.rows} scope="all" height="100%" selectable />

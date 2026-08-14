@@ -39,20 +39,18 @@
   @include media.kiosk {
     gap: s.$space-5;
   }
-}
 
-/** 남는 세로 공간을 먹는 칸 — 컬럼마다 하나씩 둔다. */
-.col__grow {
-  flex: 1;
-  min-height: 0;
+  &__grow {
+    flex: 1;
+    min-height: 0;
 
-  @include media.tablet {
-    flex: none;
-    min-height: 420px;
+    @include media.tablet {
+      flex: none;
+      min-height: 420px;
+    }
   }
 }
 
-// ── 패널 공통 ──────────────────────────────────────────────
 .panel {
   position: relative;
   display: flex;
@@ -64,17 +62,42 @@
   background-color: var(--surface);
   box-shadow: var(--shadow-sm);
   overflow: hidden;
-}
 
-// 패널 위를 훑고 지나가는 스캔 라인 — 관제 화면이 살아있다는 신호
-.panel::before {
-  content: "";
-  position: absolute;
-  inset: 0 0 auto;
-  height: 2px;
-  background: linear-gradient(90deg, transparent, var(--brand), transparent);
-  opacity: 0.5;
-  animation: panel-scan 6s linear infinite;
+  // 패널 위를 훑고 지나가는 스캔 라인 — 관제 화면이 살아있다는 신호
+  &::before {
+    content: "";
+    position: absolute;
+    inset: 0 0 auto;
+    height: 2px;
+    background: linear-gradient(90deg, transparent, var(--brand), transparent);
+    opacity: 0.5;
+    animation: panel-scan 6s linear infinite;
+  }
+
+  &__head {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: s.$space-3;
+    margin-bottom: s.$space-3;
+  }
+
+  &__title {
+    @include t.label-md;
+
+    color: var(--text-strong);
+  }
+
+  &__note {
+    @include t.caption;
+
+    color: var(--text-faint);
+  }
+
+  &--open {
+    overflow: visible;
+    flex: none;
+  }
 }
 
 @keyframes panel-scan {
@@ -91,40 +114,4 @@
   .panel::before {
     animation: none;
   }
-}
-
-.panel__head {
-  display: flex;
-  align-items: baseline;
-  justify-content: space-between;
-  gap: s.$space-3;
-  margin-bottom: s.$space-3;
-}
-
-.panel__title {
-  @include t.label-md;
-
-  color: var(--text-strong);
-}
-
-.panel__note {
-  @include t.caption;
-
-  color: var(--text-faint);
-}
-
-.panel__body {
-  flex: 1;
-  min-height: 0;
-  overflow-y: auto;
-  overscroll-behavior: contain;
-}
-
-/**
- * 필터처럼 내용이 접히면 안 되는 패널.
- * .panel 의 overflow:hidden 이 셀렉트·배지를 잘라 먹어 그 칸만 예외로 둔다.
- */
-.panel--open {
-  overflow: visible;
-  flex: none;
 }

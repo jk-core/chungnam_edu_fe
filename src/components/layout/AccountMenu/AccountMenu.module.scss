@@ -5,61 +5,61 @@
 
 .account {
   position: relative;
-}
 
-.account__trigger {
-  display: inline-flex;
-  align-items: center;
-  gap: s.$space-2;
-  height: 38px;
-  padding: 0 s.$space-2 0 s.$space-3;
-  border: 1px solid var(--border);
-  border-radius: s.$radius-full;
-  background: none;
-  color: var(--text-muted);
-  transition: color 0.16s ease, background-color 0.16s ease, border-color 0.16s ease;
+  &__trigger {
+    display: inline-flex;
+    align-items: center;
+    gap: s.$space-2;
+    height: 38px;
+    padding: 0 s.$space-2 0 s.$space-3;
+    border: 1px solid var(--border);
+    border-radius: s.$radius-full;
+    background: none;
+    color: var(--text-muted);
+    transition: color 0.16s ease, background-color 0.16s ease, border-color 0.16s ease;
 
-  @include mx.press;
+    @include mx.press;
 
-  &:hover {
-    background-color: var(--surface-hover);
-    border-color: var(--border-strong);
-    color: var(--text-strong);
+    &:hover {
+      background-color: var(--surface-hover);
+      border-color: var(--border-strong);
+      color: var(--text-strong);
+    }
   }
-}
 
-.account__initial {
-  display: grid;
-  place-items: center;
-  width: 24px;
-  height: 24px;
-  flex-shrink: 0;
-  border-radius: 50%;
-  background-color: var(--brand);
-  color: var(--text-on-brand);
+  &__initial {
+    display: grid;
+    place-items: center;
+    width: 24px;
+    height: 24px;
+    flex-shrink: 0;
+    border-radius: 50%;
+    background-color: var(--brand);
+    color: var(--text-on-brand);
 
-  @include t.caption;
-}
-
-.account__name {
-  @include t.label-sm;
-
-  max-width: 120px;
-
-  @include mx.truncate;
-
-  @include media.tablet {
-    display: none;
+    @include t.caption;
   }
-}
 
-.account__caret {
-  flex-shrink: 0;
-  transition: transform 0.18s ease;
-}
+  &__name {
+    @include t.label-sm;
 
-.account__caret--open {
-  transform: rotate(180deg);
+    max-width: 120px;
+
+    @include mx.truncate;
+
+    @include media.tablet {
+      display: none;
+    }
+  }
+
+  &__caret {
+    flex-shrink: 0;
+    transition: transform 0.18s ease;
+
+    &--open {
+      transform: rotate(180deg);
+    }
+  }
 }
 
 .panel {
@@ -77,81 +77,81 @@
   @include media.mobile {
     width: 260px;
   }
-}
 
-.panel__head {
-  display: flex;
-  flex-direction: column;
-  gap: s.$space-1;
-  padding: s.$space-3;
-  border-bottom: 1px solid var(--border-subtle);
-  margin-bottom: s.$space-2;
-}
+  &__head {
+    display: flex;
+    flex-direction: column;
+    gap: s.$space-1;
+    padding: s.$space-3;
+    border-bottom: 1px solid var(--border-subtle);
+    margin-bottom: s.$space-2;
+  }
 
-.panel__name {
-  @include t.label-md;
+  &__name {
+    @include t.label-md;
 
-  color: var(--text-strong);
-}
-
-.panel__org {
-  @include t.caption;
-
-  color: var(--text-muted);
-}
-
-.panel__note {
-  @include t.caption;
-
-  margin-top: s.$space-1;
-  color: var(--text-faint);
-}
-
-.panel__list {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-}
-
-.panel__item {
-  display: flex;
-  align-items: center;
-  gap: s.$space-3;
-  width: 100%;
-  padding: s.$space-2 s.$space-3;
-  border: none;
-  border-radius: s.$radius-sm;
-  background: none;
-  color: var(--text);
-  text-align: left;
-  transition: background-color 0.16s ease, color 0.16s ease;
-
-  @include mx.press;
-  @include t.body-sm;
-
-  &:hover {
-    background-color: var(--surface-hover);
     color: var(--text-strong);
   }
 
-  // 패널 안쪽이라 전역 focus-visible 외곽선이 잘린다. 안으로 들여 그린다.
-  @include mx.keyboard-focus {
-    @include mx.focus-ring(-2px);
+  &__org {
+    @include t.caption;
+
+    color: var(--text-muted);
   }
-}
 
-.panel__item--danger {
-  color: var(--critical-text);
+  &__note {
+    @include t.caption;
 
-  &:hover {
-    background-color: var(--critical-soft);
-    color: var(--critical-text);
+    margin-top: s.$space-1;
+    color: var(--text-faint);
   }
-}
 
-.panel__itemNote {
-  @include t.caption;
+  &__list {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
 
-  margin-left: auto;
-  color: var(--text-faint);
+  &__item {
+    display: flex;
+    align-items: center;
+    gap: s.$space-3;
+    width: 100%;
+    padding: s.$space-2 s.$space-3;
+    border: none;
+    border-radius: s.$radius-sm;
+    background: none;
+    color: var(--text);
+    text-align: left;
+    transition: background-color 0.16s ease, color 0.16s ease;
+
+    @include mx.press;
+    @include t.body-sm;
+
+    &:hover {
+      background-color: var(--surface-hover);
+      color: var(--text-strong);
+    }
+
+    // 패널 안쪽이라 전역 focus-visible 외곽선이 잘린다. 안으로 들여 그린다.
+    @include mx.keyboard-focus {
+      @include mx.focus-ring(-2px);
+    }
+
+    &--danger {
+      color: var(--critical-text);
+
+      &:hover {
+        background-color: var(--critical-soft);
+        color: var(--critical-text);
+      }
+    }
+  }
+
+  &__itemNote {
+    @include t.caption;
+
+    margin-left: auto;
+    color: var(--text-faint);
+  }
 }

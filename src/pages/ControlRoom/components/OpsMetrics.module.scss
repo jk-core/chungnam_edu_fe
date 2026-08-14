@@ -5,128 +5,127 @@
   display: flex;
   flex-direction: column;
   gap: s.$space-3;
-}
 
-.ops__top {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: s.$space-3 s.$space-2;
-}
+  &__top {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: s.$space-3 s.$space-2;
+  }
 
-.ops__stat {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-}
+  &__stat {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
 
-.ops__label {
-  @include t.caption;
+  &__label {
+    @include t.caption;
 
-  color: var(--text-faint);
-}
+    color: var(--text-faint);
+  }
 
-.ops__value {
-  @include t.data-md;
+  &__value {
+    @include t.data-md;
 
-  display: flex;
-  align-items: baseline;
-  gap: 2px;
-  color: var(--text-strong);
-}
+    display: flex;
+    align-items: baseline;
+    gap: 2px;
+    color: var(--text-strong);
+  }
 
-.ops__valueAlert {
-  @include t.data-md;
+  &__valueAlert {
+    @include t.data-md;
 
-  display: flex;
-  align-items: baseline;
-  gap: 2px;
-  color: var(--critical-text);
-}
+    display: flex;
+    align-items: baseline;
+    gap: 2px;
+    color: var(--critical-text);
+  }
 
-.ops__unit {
-  @include t.caption;
+  &__unit {
+    @include t.caption;
 
-  color: var(--text-muted);
-}
+    color: var(--text-muted);
+  }
 
-// ── 상태 분포 막대 ─────────────────────────────────────────
-.ops__bar {
-  display: flex;
-  height: 10px;
-  border-radius: s.$radius-full;
-  background-color: var(--surface-sunken);
-  overflow: hidden;
-}
+  &__bar {
+    display: flex;
+    height: 10px;
+    border-radius: s.$radius-full;
+    background-color: var(--surface-sunken);
+    overflow: hidden;
+  }
 
-.ops__seg {
-  display: block;
-  height: 100%;
-  transition: width 0.5s cubic-bezier(0.22, 0.68, 0.32, 1);
-}
+  &__seg {
+    display: block;
+    height: 100%;
+    transition: width 0.5s cubic-bezier(0.22, 0.68, 0.32, 1);
 
-.ops__seg--ok {
-  background-color: var(--ok);
-}
+    &--ok {
+      background-color: var(--ok);
+    }
 
-.ops__seg--brand {
-  background-color: var(--brand);
-}
+    &--brand {
+      background-color: var(--brand);
+    }
 
-.ops__seg--caution {
-  background-color: var(--caution);
-}
+    &--caution {
+      background-color: var(--caution);
+    }
 
-.ops__seg--critical {
-  background-color: var(--critical);
-}
+    &--critical {
+      background-color: var(--critical);
+    }
 
-.ops__seg--offline {
-  background-color: var(--offline);
-}
+    &--offline {
+      background-color: var(--offline);
+    }
+  }
 
-.ops__legend {
-  display: flex;
-  flex-wrap: wrap;
-  gap: s.$space-1 s.$space-3;
-}
+  &__legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: s.$space-1 s.$space-3;
+  }
 
-.ops__legendItem {
-  @include t.caption;
+  &__legendItem {
+    @include t.caption;
 
-  display: flex;
-  align-items: center;
-  gap: s.$space-1;
-  color: var(--text-muted);
-}
+    display: flex;
+    align-items: center;
+    gap: s.$space-1;
+    color: var(--text-muted);
+  }
 
-.ops__legendValue {
-  color: var(--text-strong);
-  font-family: var(--font-data);
-}
+  &__legendValue {
+    color: var(--text-strong);
+    font-family: var(--font-data);
+  }
 
-.ops__dot {
-  display: block;
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-}
+  &__dot {
+    display: block;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
 
-.ops__dot--ok {
-  background-color: var(--ok);
-}
+    &--ok {
+      background-color: var(--ok);
+    }
 
-.ops__dot--brand {
-  background-color: var(--brand);
-}
+    &--brand {
+      background-color: var(--brand);
+    }
 
-.ops__dot--caution {
-  background-color: var(--caution);
-}
+    &--caution {
+      background-color: var(--caution);
+    }
 
-.ops__dot--critical {
-  background-color: var(--critical);
-}
+    &--critical {
+      background-color: var(--critical);
+    }
 
-.ops__dot--offline {
-  background-color: var(--offline);
+    &--offline {
+      background-color: var(--offline);
+    }
+  }
 }
