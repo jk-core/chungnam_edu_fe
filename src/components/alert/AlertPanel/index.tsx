@@ -9,6 +9,7 @@ import { CloseIcon } from '@/components/common/Icon';
 import { EmptyState } from '@/components/common/EmptyState';
 import { NOW } from '@/mocks/today';
 import { PATH } from '@/routes/routes';
+import { buildPath } from '@/routes/buildPath';
 import { formatDuration } from '@/utils/format';
 import type { AlertRecord } from '@/interface/alert';
 import styles from './AlertPanel.module.scss';
@@ -78,8 +79,9 @@ export function AlertPanel({ isOpen, onClose }: AlertPanelProps) {
               <ul className={styles.list}>
                 {items.map((alert) => (
                   <li key={alert.id}>
+                    {/* 누른 알림을 알림이력에서 그대로 펼친다 — 목록에서 다시 찾지 않는다 */}
                     <Link
-                      to={PATH.AI_DIAGNOSIS_ALERTS}
+                      to={buildPath.alertDetail(alert.id)}
                       className={styles.item}
                       onClick={onClose}
                     >

@@ -1,6 +1,7 @@
 import dayjs from 'dayjs';
 import { useState } from 'react';
-import { ALERT_TYPES, alertDurationMinutes } from '@/mocks/alerts';
+import { useSearchParams } from 'react-router-dom';
+import { ALERT_RECORDS, ALERT_TYPES, alertDurationMinutes } from '@/mocks/alerts';
 import { Badge, SEVERITY_LABEL, SEVERITY_TONE } from '@/components/common/Badge';
 import { Button } from '@/components/common/Button';
 import { Card } from '@/components/common/Card';
@@ -74,6 +75,28 @@ function ListView() {
   const [view, setView] = useState<ViewMode>('table');
   const [page, setPage] = useState(1);
   const [selected, setSelected] = useState<AlertRecord | null>(null);
+  const [params, setParams] = useSearchParams();
+
+  /*
+    헤더 종에서 건너온 알림.
+
+    종은 어느 화면에서나 도 전체를 가리키지만 이 목록은 조회 대상과 기간으로 거른다 —
+    누른 알림이 목록에 없을 수 있으므로, 걸러진 결과가 아니라 원본에서 그 건을 찾는다.
+    상태로 옮겨 담지 않고 주소에서 바로 읽는다. 옮겨 담으면 주소와 화면이 어긋날 자리가 생긴다.
+  */
+  const linkedId = params.get('alert');
+  const linked = linkedId ? ALERT_RECORDS.find((alert) => alert.id === linkedId) ?? null : null;
+  const detail = selected ?? linked;
+
+  /** 닫으면 주소에서도 지운다 — 남겨 두면 뒤로 갔다 오거나 새로 고칠 때 다시 열린다. */
+  const closeDetail = () => {
+    setSelected(null);
+
+    if (!linkedId) return;
+
+    params.delete('alert');
+    setParams(params, { replace: true });
+  };
 
   /*
    * 조회 기간은 일·월·연 단위로 고른다 (SFR-022-01/02).
@@ -338,7 +361,7 @@ function ListView() {
         </Card>
       </Reveal>
 
-      <AlertDetailModal alert={selected} onClose={() => setSelected(null)} />
+      <AlertDetailModal alert={detail} onClose={closeDetail} />
     </div>
   );
 }

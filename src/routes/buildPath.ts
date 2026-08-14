@@ -23,6 +23,12 @@ export const buildPath = {
   board: (kind: BoardKind) => (kind === 'notice' ? PATH.GUIDE_NOTICE : PATH.GUIDE_QNA),
   boardWrite: (kind: BoardKind) => `${buildPath.board(kind)}/write`,
   boardDetail: (kind: BoardKind, postId: string) => `${buildPath.board(kind)}/${postId}`,
+  /*
+    알림 하나를 펼친 알림이력 (SFR-022).
+    헤더 종에서 누른 알림이 목록의 조회 조건에 걸리지 않을 수 있어, 어느 알림인지를 주소에
+    실어 보낸다 — 받는 쪽이 조건과 무관하게 그 건을 찾아 편다.
+  */
+  alertDetail: (id: string) => `${PATH.AI_DIAGNOSIS_ALERTS}?alert=${encodeURIComponent(id)}`,
   /** 운전이력 상세 (SFR-009-04) */
   operationHistoryDetail: (id: string) => `${PATH.ENERGY_HISTORY}/${id}`,
   /*
