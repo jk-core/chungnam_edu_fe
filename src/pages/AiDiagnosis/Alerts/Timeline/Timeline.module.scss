@@ -1,0 +1,146 @@
+@use "@/styles/tokens/spacing" as s;
+@use "@/styles/tokens/typography" as t;
+@use "@/styles/utils/media" as media;
+@use "@/styles/utils/mixins" as mx;
+
+.item {
+  &__badges {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: s.$space-2;
+    flex-shrink: 0;
+  }
+}
+
+// ── 단계 이력 ───────────────────────────────────────────────
+.steps {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  padding-top: s.$space-2;
+}
+
+.step {
+  position: relative;
+  display: flex;
+  gap: s.$space-4;
+  padding-bottom: s.$space-4;
+
+  &:not(:last-child)::before {
+    content: "";
+    position: absolute;
+    top: 24px;
+    left: 11px;
+    bottom: 0;
+    width: 1px;
+    background-color: var(--border);
+  }
+
+  &:last-child {
+    padding-bottom: 0;
+  }
+
+  &__marker {
+    display: grid;
+    place-items: center;
+    width: 24px;
+    height: 24px;
+    flex-shrink: 0;
+    border: 1.5px solid var(--border-strong);
+    border-radius: 50%;
+    background-color: var(--surface);
+    color: var(--text-faint);
+
+    &--detected {
+      border-color: var(--critical);
+      background-color: var(--critical-soft);
+      color: var(--critical-text);
+    }
+
+    &--notified {
+      border-color: var(--caution);
+      background-color: var(--caution-soft);
+      color: var(--caution-text);
+    }
+
+    &--inProgress {
+      border-color: var(--brand);
+      background-color: var(--brand-soft);
+      color: var(--brand-contrast);
+    }
+
+    &--resolved {
+      border-color: var(--ok);
+      background-color: var(--ok);
+      color: var(--text-on-brand);
+    }
+  }
+
+  &__body {
+    min-width: 0;
+    padding-top: 2px;
+  }
+
+  &__top {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: s.$space-2;
+  }
+
+  &__phase {
+    @include t.label-sm;
+
+    color: var(--text-strong);
+  }
+
+  &__at {
+    @include t.caption;
+
+    color: var(--text-faint);
+    font-family: var(--font-data);
+  }
+
+  &__manual {
+    @include t.caption;
+
+    display: inline-flex;
+    align-items: center;
+    gap: 3px;
+    padding: 1px s.$space-2;
+    border: 1px solid var(--brand-soft-border);
+    border-radius: s.$radius-full;
+    background-color: var(--brand-soft);
+    color: var(--brand-contrast);
+  }
+
+  &__note {
+    @include t.body-sm;
+
+    margin-top: 2px;
+    color: var(--text);
+  }
+}
+
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: s.$space-4;
+}
+
+.summary {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: s.$space-4;
+
+  @include mx.stretch-cells;
+
+  @include media.tablet {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  @include media.mobile {
+    grid-template-columns: 1fr;
+  }
+}

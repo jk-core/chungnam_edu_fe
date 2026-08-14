@@ -1,0 +1,369 @@
+@use "@/styles/tokens/spacing" as s;
+@use "@/styles/tokens/typography" as t;
+@use "@/styles/utils/media" as media;
+@use "@/styles/utils/mixins" as mx;
+
+.gantt {
+  display: flex;
+  flex-direction: column;
+  gap: s.$space-3;
+}
+
+.layout {
+  display: flex;
+}
+
+// ── 좌측 이름 열 (가로 스크롤에도 남는다) ────────────────────
+.labelCol {
+  flex-shrink: 0;
+  width: 224px;
+  border-right: 1px solid var(--border-subtle);
+  background-color: var(--surface);
+}
+
+.labelHead {
+  @include t.label-sm;
+
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: s.$space-2;
+  padding: 0 s.$space-3;
+  border-bottom: 1px solid var(--border);
+  color: var(--text-muted);
+
+  &__meta {
+    color: var(--text-faint);
+    font-variant-numeric: tabular-nums;
+  }
+}
+
+.label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding-right: s.$space-3;
+  border-bottom: 1px solid var(--border-subtle);
+  color: var(--text-faint);
+
+  &--device .label__name {
+    @include t.caption;
+
+    color: var(--text);
+  }
+
+  &--device {
+    background-color: var(--surface-hover);
+  }
+
+  &__name {
+    @include t.body-sm;
+    @include mx.truncate;
+
+    flex: 1;
+    color: var(--text-strong);
+  }
+
+  &__count {
+    @include t.caption;
+
+    color: var(--text-faint);
+    font-variant-numeric: tabular-nums;
+  }
+}
+
+.expand {
+  &__icon {
+    transition: transform 0.16s ease;
+
+    &--open {
+      transform: rotate(90deg);
+    }
+  }
+
+  &,
+&__spacer {
+    display: inline-flex;
+    width: 18px;
+    height: 18px;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+}
+
+button.expand {
+  border: 1px solid var(--border);
+  border-radius: s.$radius-xs;
+  background-color: var(--surface);
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: background-color 0.14s ease, color 0.14s ease, border-color 0.14s ease;
+
+  &:hover {
+    border-color: var(--brand);
+    background-color: var(--brand-soft);
+    color: var(--brand-contrast);
+  }
+}
+
+// ── 우측 시간축 ────────────────────────────────────────────
+.scroll {
+  flex: 1;
+  min-width: 0;
+  overflow-x: auto;
+}
+
+.inner {
+  position: relative;
+}
+
+.timeHead {
+  position: relative;
+  border-bottom: 1px solid var(--border);
+}
+
+.monthRow,
+.dayRow {
+  position: relative;
+}
+
+.month {
+  @include t.caption;
+
+  position: absolute;
+  top: 0;
+  display: flex;
+  align-items: center;
+  height: 100%;
+  padding-left: 6px;
+  border-left: 1px solid var(--border);
+  color: var(--text-muted);
+  white-space: nowrap;
+}
+
+.day {
+  @include t.caption;
+
+  position: absolute;
+  top: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  color: var(--text-faint);
+  font-variant-numeric: tabular-nums;
+
+  &--monthFirst {
+    border-left: 1px solid var(--border);
+  }
+
+  &--weekend {
+    color: var(--text-muted);
+  }
+
+  &--sunday {
+    color: var(--critical);
+  }
+
+  &--today {
+    border-radius: s.$radius-full;
+    background-color: var(--brand);
+    color: var(--text-on-brand);
+  }
+}
+
+.body {
+  position: relative;
+  background-image: repeating-linear-gradient(
+    to right,
+    var(--border-subtle) 0,
+    var(--border-subtle) 1px,
+    transparent 1px,
+    transparent var(--day-width, 30px)
+  );
+}
+
+// 오늘 자리 — 지금이 어디인지 늘 보이게 둔다
+.todayLine {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  z-index: 4;
+  width: 2px;
+  background-color: var(--brand);
+  opacity: 0.5;
+}
+
+.lane {
+  position: relative;
+  border-bottom: 1px solid var(--border-subtle);
+
+  &--device {
+    background-color: var(--surface-hover);
+  }
+}
+
+.bar {
+  position: absolute;
+  top: 9px;
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  height: 22px;
+  padding: 0 5px;
+  border-radius: s.$radius-xs;
+  cursor: pointer;
+  overflow: hidden;
+  transition: transform 0.14s ease, box-shadow 0.14s ease, filter 0.14s ease;
+
+  &:hover {
+    transform: translateY(-1px);
+    box-shadow: var(--shadow-sm);
+    filter: brightness(1.06);
+  }
+
+  &:active {
+    transform: none;
+  }
+
+  &__label {
+    @include t.caption;
+    @include mx.truncate;
+
+    color: inherit;
+  }
+
+  &__manual {
+    display: inline-flex;
+    flex-shrink: 0;
+    margin-left: auto;
+    opacity: 0.9;
+  }
+
+  &--critical {
+    background-color: var(--critical);
+    color: var(--text-on-brand);
+  }
+
+  &--caution {
+    background-color: var(--caution);
+    color: var(--caution-text);
+  }
+
+  &--offline {
+    background-color: var(--offline);
+    color: var(--text-on-brand);
+  }
+
+  &--ongoing {
+    background-image: repeating-linear-gradient(
+      45deg,
+      rgb(255 255 255 / 26%),
+      rgb(255 255 255 / 26%) 4px,
+      transparent 4px,
+      transparent 8px
+    );
+  }
+}
+
+.legend {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: s.$space-2 s.$space-3;
+  padding-top: s.$space-1;
+
+  &__item {
+    @include t.caption;
+
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 3px s.$space-2;
+    color: var(--text-muted);
+
+    &--off {
+      opacity: 0.5;
+
+      .legend__swatch {
+        background-color: var(--border-strong);
+        background-image: none;
+      }
+    }
+  }
+
+  &__swatch {
+    display: block;
+    width: 10px;
+    height: 10px;
+    border-radius: 3px;
+  }
+
+  &__hint {
+    @include t.caption;
+
+    margin-left: auto;
+    color: var(--text-faint);
+  }
+}
+
+// 눌러서 끌 수 있는 구분만 칩 모양을 준다 — 나머지는 글자만 둔다
+button.legend__item {
+  border-radius: s.$radius-full;
+  background-color: var(--surface-sunken);
+  transition: background-color 0.14s ease, color 0.14s ease, opacity 0.14s ease;
+
+  &:hover {
+    background-color: var(--surface-hover);
+    color: var(--text);
+  }
+}
+
+.swatch {
+  &--caution {
+    background-color: var(--caution);
+  }
+
+  &--critical {
+    background-color: var(--critical);
+  }
+
+  &--offline {
+    background-color: var(--offline);
+  }
+
+  &--ongoing {
+    background-color: var(--text-faint);
+    background-image: repeating-linear-gradient(
+      45deg,
+      rgb(255 255 255 / 40%),
+      rgb(255 255 255 / 40%) 3px,
+      transparent 3px,
+      transparent 6px
+    );
+  }
+}
+
+@include media.tablet {
+  .labelCol {
+    width: 156px;
+  }
+
+  .legend__hint {
+    display: none;
+  }
+}
+
+@include media.reduced-motion {
+  .bar,
+  .expand,
+  .expand__icon,
+  button.legend__item {
+    transition: none;
+  }
+
+  .bar:hover {
+    transform: none;
+  }
+}

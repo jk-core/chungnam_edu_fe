@@ -1,0 +1,67 @@
+@use "@/styles/tokens/spacing" as s;
+@use "@/styles/tokens/typography" as t;
+@use "@/styles/utils/media" as media;
+@use "@/styles/utils/mixins" as mx;
+@use "@/styles/patterns/toolbar" as toolbar;
+@include toolbar.bar;
+
+.toolbar {
+  &__note {
+    @include media.mobile {
+      display: none;
+    }
+  }
+}
+
+.tab {
+  display: flex;
+  flex-direction: column;
+  gap: s.$space-4;
+}
+
+.criteria {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: s.$space-2 s.$space-3;
+  padding: 0 s.$space-5 s.$space-4;
+
+  &__label {
+    @include t.caption;
+
+    color: var(--text-faint);
+  }
+
+  &__item {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 3px s.$space-3;
+    border-radius: s.$radius-full;
+    background-color: var(--surface-sunken);
+  }
+
+  &__key {
+    @include t.caption;
+
+    color: var(--text-faint);
+  }
+
+  &__value {
+    @include t.label-sm;
+
+    color: var(--text-strong);
+  }
+}
+
+// 카드 머리의 보기 전환 + 내려받기
+.actions {
+  display: flex;
+  align-items: center;
+  gap: s.$space-2;
+}
+
+// 그래프 보기는 표와 달리 좌우 여백이 필요하다 — 카드가 padding: none 이라 여기서 준다.
+.chartWrap {
+  padding: 0 s.$space-5 s.$space-4;
+}

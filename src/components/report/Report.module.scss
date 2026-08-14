@@ -1,0 +1,501 @@
+@use "@/styles/tokens/spacing" as s;
+@use "@/styles/tokens/typography" as t;
+@use "@/styles/utils/media" as media;
+
+/*
+  월간보고서 지면.
+
+  A4(210×297mm)를 5px/mm 로 환산해 1050×1485px 로 못박는다. 화면에서 본 자리가
+  종이에 그대로 찍혀야 어느 장에 무엇이 실리는지 미리 알 수 있고, PDF 로 뽑을 때도
+  장 단위로 잘라 담을 수 있다.
+*/
+$page-width: 1050px;
+$page-height: 1485px;
+
+// 지면은 A4 실제 크기라 본문보다 넓을 수 있다. 넘치는 만큼만 줄여 담는다.
+.stage {
+  width: 100%;
+  min-width: 0;
+}
+
+.sheet {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: s.$space-6;
+  width: $page-width;
+
+  &--scaled {
+    transform-origin: top left;
+  }
+}
+
+.page {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  width: $page-width;
+  height: $page-height;
+  flex-shrink: 0;
+  padding: 46px 52px 58px;
+  border: 1px solid var(--border-subtle);
+  border-radius: s.$radius-sm;
+  background-color: #fff;
+  box-shadow: 0 8px 26px rgb(31 56 92 / 10%);
+  color: #14233d;
+  overflow: hidden;
+
+  // 지면은 흰 종이다. 어두운 테마에서도 색이 뒤집히지 않게 이 안에서 값을 고정한다.
+  --text: #1d2b41;
+  --text-strong: #0e1a2b;
+  --text-muted: #46587a;
+  --text-faint: #6c7d95;
+  --surface: #fff;
+  --surface-sunken: #f2f5fa;
+  --border: #d6dfec;
+  --border-subtle: #e4eaf3;
+
+  &__head {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    padding-bottom: s.$space-3;
+    border-bottom: 2px solid #0e1a2b;
+  }
+
+  &__title {
+    @include t.label-md;
+
+    color: var(--text-strong);
+    font-size: 15px;
+  }
+
+  &__period {
+    @include t.caption;
+
+    color: var(--text-muted);
+    font-size: 13px;
+  }
+
+  &__heading {
+    @include t.title-sm;
+
+    margin-top: s.$space-5;
+    color: var(--text-strong);
+    font-size: 22px;
+  }
+
+  &__body {
+    display: flex;
+    flex-direction: column;
+    gap: s.$space-5;
+    flex: 1;
+    min-height: 0;
+    margin-top: s.$space-4;
+
+    &--spread {
+      justify-content: space-between;
+      gap: s.$space-6;
+    }
+  }
+
+  &__foot {
+    position: absolute;
+    right: 52px;
+    bottom: 24px;
+    left: 52px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding-top: s.$space-2;
+    border-top: 1px solid var(--border-subtle);
+
+    @include t.caption;
+
+    color: var(--text-faint);
+    font-size: 12px;
+  }
+
+  &__no {
+    font-variant-numeric: tabular-nums;
+  }
+
+  &__badge {
+    @include t.label-sm;
+
+    margin-left: s.$space-3;
+    padding: 3px s.$space-3;
+    border-radius: s.$radius-full;
+    background-color: var(--brand-soft);
+    color: var(--brand-contrast);
+    font-size: 14px;
+    vertical-align: middle;
+  }
+}
+
+.block {
+  display: flex;
+  flex-direction: column;
+  gap: s.$space-2;
+
+  &__head {
+    @include t.label-md;
+
+    display: flex;
+    align-items: baseline;
+    gap: s.$space-2;
+    color: var(--brand);
+    font-size: 16px;
+  }
+
+  &__note {
+    @include t.caption;
+
+    color: var(--text-muted);
+    font-size: 12px;
+    font-weight: 400;
+  }
+
+  &__text {
+    @include t.body-sm;
+
+    color: var(--text-strong);
+    font-size: 14px;
+    line-height: 1.9;
+  }
+}
+
+// 두 표를 나란히 두는 자리 (인버터 정보 · 발전 정보)
+.pair {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: s.$space-4;
+}
+
+.notice {
+  display: flex;
+  flex-direction: column;
+  gap: s.$space-2;
+  padding: s.$space-4;
+  border: 1px solid var(--border-subtle);
+  border-radius: s.$radius-sm;
+  background-color: #f4f8fd;
+
+  &__head {
+    @include t.label-md;
+
+    display: flex;
+    align-items: center;
+    gap: s.$space-2;
+    color: var(--brand-contrast);
+    font-size: 14px;
+  }
+
+  &__list {
+    display: flex;
+    flex-direction: column;
+    gap: s.$space-2;
+  }
+
+  &__item {
+    @include t.body-sm;
+
+    display: flex;
+    gap: s.$space-2;
+    color: var(--text-muted);
+    font-size: 13px;
+    line-height: 1.8;
+
+    &::before {
+      content: "";
+      width: 4px;
+      height: 4px;
+      margin-top: 7px;
+      flex-shrink: 0;
+      border-radius: 1px;
+      background-color: var(--brand);
+    }
+  }
+}
+
+.heatmap {
+  display: flex;
+  flex-direction: column;
+  gap: s.$space-3;
+  padding: s.$space-4;
+  border: 1px solid var(--border-subtle);
+  border-radius: s.$radius-sm;
+
+  &__legend {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: s.$space-3;
+  }
+
+  &__key {
+    @include t.caption;
+
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    color: var(--text-muted);
+    font-size: 11px;
+  }
+
+  &__dot {
+    display: inline-block;
+    width: 10px;
+    height: 10px;
+    border-radius: 2px;
+    border: 1px solid var(--border);
+  }
+
+  &__days {
+    display: grid;
+    grid-template-columns: repeat(31, minmax(0, 1fr));
+    gap: 3px;
+  }
+
+  &__cell {
+    aspect-ratio: 1;
+    border-radius: 2px;
+    border: 1px solid var(--border-subtle);
+  }
+
+  &__scale {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+
+    @include t.caption;
+
+    color: var(--text-faint);
+    font-size: 11px;
+  }
+}
+
+.faultTable {
+  width: 100%;
+  height: 100%;
+  border-collapse: collapse;
+  table-layout: fixed;
+
+  th,
+  td {
+    padding: s.$space-2;
+    border: 1px solid var(--border-subtle);
+    vertical-align: top;
+
+    @include t.body-sm;
+
+    font-size: 11px;
+    line-height: 1.5;
+  }
+
+  th {
+    background-color: #eef4fb;
+    color: var(--brand-contrast);
+    font-weight: 700;
+    text-align: center;
+  }
+
+  &__verdict {
+    color: var(--brand-contrast);
+    font-weight: 700;
+    text-align: center;
+    white-space: nowrap;
+  }
+
+  &__photo {
+    text-align: center;
+  }
+
+  &__image {
+    display: block;
+    width: 100%;
+    height: 96px;
+    border-radius: 2px;
+    object-fit: cover;
+  }
+
+  &__list {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+  }
+
+  &__item {
+    display: flex;
+    gap: 5px;
+
+    &::before {
+      content: "·";
+      flex-shrink: 0;
+    }
+  }
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+
+  th,
+  td {
+    padding: s.$space-3 s.$space-4;
+    border: 1px solid var(--border-subtle);
+
+    @include t.body-sm;
+
+    font-size: 13px;
+  }
+
+  th {
+    background-color: var(--surface-sunken);
+    color: var(--text-muted);
+    font-weight: 600;
+    text-align: left;
+    white-space: nowrap;
+  }
+
+  td {
+    color: var(--text-strong);
+  }
+
+  &--right td:not(:first-child) {
+    text-align: right;
+    font-variant-numeric: tabular-nums;
+  }
+}
+
+.summary {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: s.$space-3;
+}
+
+.metric {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: s.$space-3 s.$space-4;
+  border: 1px solid var(--border-subtle);
+  border-radius: s.$radius-sm;
+  background-color: var(--surface-sunken);
+
+  &__label {
+    @include t.caption;
+
+    color: var(--text-muted);
+    font-size: 12px;
+  }
+
+  &__value {
+    @include t.data-md;
+
+    color: var(--text-strong);
+    font-size: 22px;
+  }
+
+  &__unit {
+    @include t.caption;
+
+    margin-left: 2px;
+    color: var(--text-muted);
+  }
+}
+
+.list {
+  display: flex;
+  flex-direction: column;
+  gap: s.$space-2;
+  counter-reset: guide;
+
+  &__item {
+    display: flex;
+    align-items: flex-start;
+    gap: s.$space-3;
+    padding: s.$space-3 s.$space-4;
+    border: 1px solid var(--border-subtle);
+    border-radius: s.$radius-sm;
+    background-color: var(--surface-sunken);
+
+    @include t.body-sm;
+
+    color: var(--text-strong);
+    font-size: 13px;
+    line-height: 1.6;
+
+    &::before {
+      counter-increment: guide;
+      content: counter(guide);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 20px;
+      height: 20px;
+      flex-shrink: 0;
+      border-radius: s.$radius-full;
+      background-color: var(--brand);
+      color: #fff;
+      font-size: 11px;
+      font-weight: 700;
+    }
+  }
+}
+
+.toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: s.$space-3;
+  margin-bottom: s.$space-4;
+
+  &__left {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: s.$space-3;
+  }
+
+  &__note {
+    @include t.body-sm;
+
+    color: var(--text-muted);
+  }
+}
+
+@include media.mobile {
+  .toolbar {
+    align-items: stretch;
+  }
+}
+
+/*
+  브라우저 인쇄로도 뽑을 수 있게 둔다.
+  PDF 버튼은 이미지로 담고, 이 규칙은 Ctrl+P 로 뽑는 사람을 위한 몫이다.
+*/
+@media print {
+  .sheet {
+    gap: 0;
+  }
+
+  .sheet--scaled {
+    transform: none !important;
+  }
+
+  .page {
+    width: 100%;
+    height: auto;
+    min-height: 0;
+    border: 0;
+    border-radius: 0;
+    box-shadow: none;
+    break-after: page;
+
+    &:last-child {
+      break-after: auto;
+    }
+  }
+}

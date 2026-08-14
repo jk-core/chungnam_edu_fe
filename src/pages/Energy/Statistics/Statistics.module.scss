@@ -1,0 +1,394 @@
+@use "@/styles/tokens/spacing" as s;
+@use "@/styles/tokens/typography" as t;
+@use "@/styles/utils/media" as media;
+@use "@/styles/utils/mixins" as mx;
+
+.tab {
+  display: flex;
+  flex-direction: column;
+  gap: s.$space-4;
+}
+
+.deltaUp,
+.deltaDown {
+  @include t.data-sm;
+}
+
+.deltaUp {
+  color: var(--ok-text);
+}
+
+.deltaDown {
+  color: var(--critical-text);
+}
+
+.scopePath {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: s.$space-1;
+
+  &__item {
+    display: inline-flex;
+    align-items: center;
+    gap: s.$space-1;
+  }
+
+  &__sep {
+    color: var(--text-faint);
+  }
+
+  &__link {
+    padding: 2px s.$space-2;
+    background: none;
+    border: 0;
+    border-radius: s.$radius-xs;
+    color: var(--text-muted);
+    transition: color 0.14s ease, background-color 0.14s ease;
+
+    @include t.body-sm;
+
+    &:hover {
+      background-color: var(--surface-hover);
+      color: var(--brand-contrast);
+    }
+  }
+
+  &__current {
+    display: inline-flex;
+    align-items: center;
+    gap: s.$space-2;
+    padding: 2px s.$space-2;
+    color: var(--text-strong);
+
+    @include t.label-md;
+  }
+
+  &__kind {
+    padding: 1px s.$space-2;
+    background-color: var(--brand-soft);
+    border-radius: s.$radius-full;
+    color: var(--brand-contrast);
+
+    @include t.label-sm;
+
+    font-size: 0.6875rem;
+  }
+}
+
+.infoGrid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: s.$space-5 s.$space-6;
+  margin: 0;
+  padding-top: s.$space-4;
+
+  @include media.tablet {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  @include media.mobile {
+    grid-template-columns: 1fr;
+    gap: s.$space-4;
+  }
+
+  dt {
+    margin-bottom: s.$space-1;
+    color: var(--text-faint);
+
+    @include t.label-sm;
+  }
+
+  dd {
+    display: flex;
+    align-items: baseline;
+    gap: s.$space-2;
+    margin: 0;
+    color: var(--text-strong);
+
+    @include t.data-md;
+  }
+
+  &__unit {
+    color: var(--text-muted);
+
+    @include t.caption;
+  }
+
+  &__accent {
+    color: var(--solar-text);
+  }
+}
+
+// ── 인버터 카드 그리드 ─────────────────────────────────────
+.inverterCards {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: s.$space-3;
+  padding-top: s.$space-4;
+
+  @include mx.stretch-cells;
+
+  @include media.tablet {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  @include media.mobile {
+    grid-template-columns: 1fr;
+  }
+}
+
+.inverterCard {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: s.$space-2;
+  padding: s.$space-4;
+  text-align: left;
+  background-color: var(--surface);
+  border: 1px solid var(--border-subtle);
+  border-radius: s.$radius-md;
+  transition:
+    transform 0.2s cubic-bezier(0.2, 0.8, 0.3, 1),
+    border-color 0.18s ease,
+    box-shadow 0.2s ease,
+    background-color 0.18s ease;
+
+  &:hover {
+    transform: translateY(-2px);
+    border-color: var(--border-strong);
+    box-shadow: var(--shadow-md);
+  }
+
+  &--static {
+    cursor: default;
+
+    &:hover {
+      transform: none;
+      border-color: var(--border-subtle);
+      box-shadow: none;
+    }
+  }
+
+  &--abnormal {
+    border-color: color-mix(in srgb, var(--critical) 28%, transparent);
+  }
+
+  &--selected {
+    border-color: var(--brand);
+    background-color: var(--brand-soft);
+    box-shadow: var(--shadow-sm);
+  }
+
+  &__head {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: s.$space-3;
+  }
+
+  &__title {
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+    min-width: 0;
+  }
+
+  &__name {
+    color: var(--text-strong);
+
+    @include t.title-sm;
+  }
+
+  &__school {
+    color: var(--text-muted);
+
+    @include t.caption;
+    @include mx.truncate;
+  }
+
+  &__figure {
+    display: flex;
+    align-items: baseline;
+    gap: s.$space-2;
+    color: var(--text-strong);
+
+    @include t.data-lg;
+
+    font-size: 1.625rem;
+  }
+
+  &__unit {
+    color: var(--text-muted);
+
+    @include t.label-md;
+  }
+
+  &__spark {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+
+    svg {
+      width: 100%;
+      height: 44px;
+    }
+  }
+
+  &__sparkLabel {
+    color: var(--text-faint);
+
+    @include t.caption;
+
+    font-size: 0.6875rem;
+  }
+
+  &__bar {
+    display: block;
+    height: 6px;
+    background-color: var(--surface-sunken);
+    border-radius: s.$radius-full;
+    overflow: hidden;
+  }
+
+  &__barFill {
+    display: block;
+    height: 100%;
+    border-radius: s.$radius-full;
+    background: linear-gradient(90deg, color-mix(in srgb, var(--solar) 50%, transparent), var(--solar));
+    transition: width 0.6s cubic-bezier(0.2, 0.8, 0.3, 1);
+  }
+
+  &__metrics {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: s.$space-2;
+    padding-block: s.$space-3;
+    border-block: 1px solid var(--border-subtle);
+
+    > span {
+      display: flex;
+      flex-direction: column;
+      gap: 1px;
+      color: var(--text-strong);
+
+      @include t.data-sm;
+    }
+  }
+
+  &__metricLabel {
+    color: var(--text-faint);
+
+    @include t.caption;
+
+    font-size: 0.6875rem;
+  }
+}
+
+// ── 시점별 세부 데이터 표 ──────────────────────────────────
+.timeTableWrap {
+  margin-top: s.$space-2;
+  overflow-x: auto;
+}
+
+.timeTable {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+
+  caption {
+    @include mx.sr-only;
+  }
+
+  th,
+  td {
+    padding: s.$space-3 s.$space-4;
+    border-bottom: 1px solid var(--border-subtle);
+    white-space: nowrap;
+  }
+
+  thead th {
+    text-align: right;
+    color: var(--text-muted);
+    border-bottom-color: var(--border);
+    background-color: var(--surface);
+
+    @include t.label-sm;
+  }
+
+  tbody tr:last-child th,
+  tbody tr:last-child td {
+    border-bottom: 0;
+  }
+
+  &__metric {
+    min-width: 132px;
+    font-weight: 400;
+  }
+
+  &__metricName {
+    display: block;
+    color: var(--text-strong);
+
+    @include t.label-md;
+  }
+
+  &__metricUnit {
+    display: block;
+    color: var(--text-faint);
+
+    @include t.caption;
+
+    font-size: 0.6875rem;
+  }
+
+  &__cell {
+    text-align: right;
+    color: var(--text-muted);
+
+    @include t.data-sm;
+
+    &--strong {
+      color: var(--text-strong);
+    }
+  }
+
+  // 좌측 지표 열은 가로로 스크롤해도 자리를 지킨다.
+  &__corner,
+&__metric {
+    position: sticky;
+    left: 0;
+    z-index: 1;
+    text-align: left;
+    background-color: var(--surface);
+    border-right: 1px solid var(--border-subtle);
+  }
+}
+
+// ── 환경 기여도 (발전정보 요약 안으로 들여왔다) ──────────────
+.ecoGrid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: s.$space-4;
+  margin: s.$space-4 0 0;
+  padding-top: s.$space-4;
+  border-top: 1px solid var(--border-subtle);
+
+  @include media.mobile {
+    grid-template-columns: 1fr;
+  }
+
+  dt {
+    @include t.label-sm;
+
+    margin-bottom: 2px;
+    color: var(--text-faint);
+  }
+
+  dd {
+    @include t.data-md;
+
+    margin: 0;
+    color: var(--ok-text);
+  }
+}

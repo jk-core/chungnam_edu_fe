@@ -2,6 +2,8 @@
 @use "@/styles/tokens/typography" as t;
 @use "@/styles/utils/media" as media;
 @use "@/styles/utils/mixins" as mx;
+@use "@/styles/patterns/toolbar" as toolbar;
+@include toolbar.bar;
 
 .tab {
   display: flex;
@@ -9,499 +11,79 @@
   gap: s.$space-4;
 }
 
-.grid2 {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: s.$space-4;
-
-  @include mx.stretch-cells;
-
-  @include media.tablet {
-    grid-template-columns: 1fr;
-  }
-}
-
-// ── 툴바 ───────────────────────────────────────────────────
-.toolbar {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  flex-wrap: wrap;
-  gap: s.$space-3;
-  margin-top: s.$space-2;
-}
-
-.toolbar__left {
-  display: flex;
-  align-items: center;
-  flex-wrap: wrap;
-  gap: s.$space-3;
-}
-
-.toolbar__note {
-  color: var(--text-muted);
-
-  @include t.body-sm;
-}
-
-.toolbar__count {
-  color: var(--text-muted);
-
-  @include t.data-sm;
-}
-
-.tableInset {
-  margin-top: s.$space-2;
-}
-
-// ── 발전시간·이용률 요약 패널 ──────────────────────────────
-.pane {
-  display: flex;
-  flex-direction: column;
-  gap: s.$space-3;
-  height: 100%;
-  padding: s.$space-6;
-  background-color: var(--surface);
-  border: 1px solid var(--border-subtle);
-  border-radius: s.$radius-lg;
-  box-shadow: var(--shadow-sm);
-}
-
-.pane--warn {
-  border-color: color-mix(in srgb, var(--critical) 34%, transparent);
-  background-color: color-mix(in srgb, var(--critical-soft) 60%, var(--surface));
-}
-
-.pane__head {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: s.$space-4;
-}
-
-.pane__title {
-  color: var(--text-strong);
-
-  @include t.title-sm;
-}
-
-.pane__hint {
-  margin-top: 2px;
-  max-width: 34ch;
-  color: var(--text-muted);
-
-  @include t.caption;
-}
-
-.pane__delta {
-  flex-shrink: 0;
-
-  @include t.data-sm;
-}
-
-.pane__value {
-  display: flex;
-  align-items: baseline;
-  gap: s.$space-3;
-  color: var(--text-strong);
-
-  @include t.data-lg;
-
-  font-size: 2.5rem;
-}
-
-.pane__valueNote {
-  color: var(--text-faint);
-
-  @include t.label-sm;
-}
-
-.pane__spark {
-  width: 100%;
-  height: 52px;
-}
-
-.pane__extremes {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: s.$space-4;
-  margin: 0;
-  padding-top: s.$space-3;
-  border-top: 1px solid var(--border-subtle);
-
-  dt {
-    margin-bottom: 2px;
-    color: var(--text-faint);
-
-    @include t.label-sm;
-  }
-
-  dd {
-    display: flex;
-    align-items: baseline;
-    gap: s.$space-2;
-    margin: 0;
-    color: var(--text-muted);
-
-    @include t.body-sm;
-  }
-}
-
-.pane__extremeValue {
-  color: var(--text-strong);
-
-  @include t.data-sm;
-}
-
-.pane__warning {
-  color: var(--critical-text);
-
-  @include t.body-sm;
-}
-
-.pane__ok {
-  color: var(--ok-text);
-
-  @include t.body-sm;
-}
-
-.pane__foot {
-  margin-top: auto;
-  color: var(--text-faint);
-
-  @include t.caption;
-}
-
-// ── 상태 요약 칩 ───────────────────────────────────────────
-.statusChips {
-  display: flex;
-  flex-wrap: wrap;
-  gap: s.$space-8;
-  padding-top: s.$space-2;
-
-  @include media.mobile {
-    gap: s.$space-4;
-  }
-}
-
-.statusChips__group {
-  display: flex;
-  align-items: center;
-  gap: s.$space-3;
-}
-
-.statusChips__label {
-  color: var(--text-faint);
-
-  @include t.label-sm;
-}
-
-.statusChips__list {
-  display: flex;
-  flex-wrap: wrap;
-  gap: s.$space-2;
-}
-
-.statusChips__note {
-  margin-top: s.$space-4;
-  padding-top: s.$space-4;
-  border-top: 1px solid var(--border-subtle);
-  color: var(--text-muted);
-
-  @include t.body-sm;
-}
-
-// ── 인버터 카드 ────────────────────────────────────────────
-.inverterGrid {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: s.$space-4;
-
-  @include mx.stretch-cells;
-
-  @include media.tablet {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-
-  @include media.mobile {
-    grid-template-columns: 1fr;
-  }
-}
-
-.inverter {
-  display: flex;
-  flex-direction: column;
-  gap: s.$space-3;
-  padding: s.$space-5;
-  background-color: var(--surface);
-  border: 1px solid var(--border-subtle);
-  border-radius: s.$radius-lg;
-  box-shadow: var(--shadow-sm);
-  transition: transform 0.2s cubic-bezier(0.2, 0.8, 0.3, 1), box-shadow 0.2s ease, border-color 0.2s ease;
-
-  &:hover {
-    transform: translateY(-2px);
-    box-shadow: var(--shadow-md);
-  }
-}
-
-.inverter--abnormal {
-  border-color: color-mix(in srgb, var(--critical) 30%, transparent);
-}
-
-.inverter__head {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: s.$space-3;
-}
-
-.inverter__title {
-  min-width: 0;
-}
-
-.inverter__name {
-  color: var(--text-strong);
-
-  @include t.title-sm;
-}
-
-.inverter__school {
-  color: var(--text-muted);
-
-  @include t.caption;
-  @include mx.truncate;
-}
-
-.inverter__badges {
-  display: flex;
-  align-items: center;
-  gap: s.$space-2;
-  flex-shrink: 0;
-  flex-wrap: wrap;
-  justify-content: flex-end;
-}
-
-.inverter__fault {
-  display: flex;
-  align-items: center;
-  flex-wrap: wrap;
-  gap: s.$space-2;
-  width: 100%;
-  padding: s.$space-2 s.$space-3;
-  text-align: left;
-  background-color: var(--critical-soft);
-  border: 1px solid color-mix(in srgb, var(--critical) 26%, transparent);
-  border-radius: s.$radius-sm;
-  color: var(--critical-text);
-  transition: background-color 0.16s ease, border-color 0.16s ease;
-
-  @include t.label-sm;
-
-  &:hover {
-    border-color: var(--critical);
-  }
-}
-
-.inverter__faultCode {
-  padding: 1px s.$space-2;
-  background-color: color-mix(in srgb, var(--critical) 18%, transparent);
-  border-radius: s.$radius-xs;
-
-  @include t.data-sm;
-
-  font-size: 0.6875rem;
-}
-
-.inverter__faultMore {
-  margin-left: auto;
-  color: var(--text-faint);
-  text-decoration: underline;
-  text-underline-offset: 2px;
-
-  @include t.caption;
-}
-
-.inverter__spark {
-  width: 100%;
-  height: 40px;
-}
-
-.inverter__metrics {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: s.$space-3;
-  margin: 0;
-  padding-block: s.$space-3;
-  border-block: 1px solid var(--border-subtle);
-
-  dt {
-    margin-bottom: 2px;
-    color: var(--text-faint);
-
-    @include t.caption;
-  }
-
-  dd {
-    margin: 0;
-    color: var(--text-strong);
-
-    @include t.data-sm;
-  }
-}
-
-.inverter__strings {
-  display: flex;
-  flex-wrap: wrap;
-  gap: s.$space-2;
-}
-
-.stringPill {
-  display: inline-flex;
-  align-items: center;
-  gap: s.$space-1 + 2px;
-  padding: 2px s.$space-2 + 2px;
-  border: 1px solid var(--border-subtle);
-  border-radius: s.$radius-full;
-  background-color: var(--surface-sunken);
-  color: var(--text-muted);
-
-  @include t.caption;
-}
-
-.stringPill__dot {
-  width: 6px;
-  height: 6px;
-  border-radius: 50%;
-  background-color: currentcolor;
-}
-
-.stringPill--normal {
-  color: var(--ok-text);
-}
-
-.stringPill--caution {
-  color: var(--caution-text);
-}
-
-.stringPill--critical {
-  color: var(--critical-text);
-}
-
-.stringPill--offline {
-  color: var(--offline-text);
-}
-
-// 좌측 트리에서 고른 판정 대상. 어느 칸을 보고 있는지 눈으로 잇는다.
-.stringPill--selected {
-  border-color: var(--brand);
-  background-color: var(--brand-soft);
-  box-shadow: 0 0 0 1px var(--brand-soft-border);
-}
-
-// ── 일자별 효율 매트릭스 ───────────────────────────────────
-.matrixWrap {
-  margin-top: s.$space-2;
-  overflow-x: auto;
-}
-
-.matrix {
-  width: 100%;
-
-  caption {
-    @include mx.sr-only;
-  }
-
-  th,
-  td {
-    padding: s.$space-3 s.$space-4;
-    border-bottom: 1px solid var(--border-subtle);
-    white-space: nowrap;
-  }
-
-  thead th {
-    color: var(--text-muted);
-    text-align: right;
-    border-bottom-color: var(--border);
-
-    @include t.label-sm;
-
-    &:first-child {
-      text-align: left;
-    }
-  }
-
-  tbody th {
-    text-align: left;
-    font-weight: 400;
-  }
-
-  tbody tr:last-child th,
-  tbody tr:last-child td {
-    border-bottom: 0;
-  }
-}
-
-.matrix__name {
-  display: block;
-  color: var(--text-strong);
-
-  @include t.label-md;
-}
-
-.matrix__school {
-  display: block;
-  color: var(--text-faint);
-
-  @include t.caption;
-}
-
-.matrix__cell {
-  text-align: right;
-  color: var(--text);
-
-  @include t.data-sm;
-}
-
-.matrix__cell--low {
-  color: var(--critical-text);
-  background-color: var(--critical-soft);
-}
-
-.matrix__cell--none {
-  color: var(--text-faint);
-}
-
-// ── 고장코드 모달 ──────────────────────────────────────────
 .fault {
   display: flex;
   flex-direction: column;
   gap: s.$space-5;
   align-items: flex-start;
-}
 
-// 글로만 읽으면 무슨 모습인지 모른다. 실제 사례 사진을 함께 붙인다 (SFR-013-06).
-.fault__images {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  gap: s.$space-3;
-  width: 100%;
-}
+  &__images {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: s.$space-3;
+    width: 100%;
+  }
 
-.fault__image {
-  display: block;
-  width: 100%;
-  aspect-ratio: 4 / 3;
-  border: 1px solid var(--border-subtle);
-  border-radius: s.$radius-md;
-  background-color: var(--surface-sunken);
-  object-fit: cover;
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  &__image {
+    display: block;
+    width: 100%;
+    aspect-ratio: 4 / 3;
+    border: 1px solid var(--border-subtle);
+    border-radius: s.$radius-md;
+    background-color: var(--surface-sunken);
+    object-fit: cover;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
 
-  // 사진을 훑을 때 어느 것을 보고 있는지 드러나게 한다
-  &:hover {
-    transform: scale(1.02);
-    box-shadow: var(--shadow-md);
+    // 사진을 훑을 때 어느 것을 보고 있는지 드러나게 한다
+    &:hover {
+      transform: scale(1.02);
+      box-shadow: var(--shadow-md);
+    }
+  }
+
+  &__block {
+    display: flex;
+    flex-direction: column;
+    gap: s.$space-2;
+    width: 100%;
+    padding-left: s.$space-4;
+    border-left: 2px solid var(--border);
+
+    &--action {
+      border-left-color: var(--solar);
+    }
+  }
+
+  &__blockTitle {
+    color: var(--text-strong);
+
+    @include t.label-md;
+  }
+
+  &__list {
+    display: flex;
+    flex-direction: column;
+    gap: s.$space-2;
+    color: var(--text-muted);
+    list-style: none;
+
+    @include t.body-md;
+
+    li {
+      position: relative;
+      padding-left: s.$space-4;
+
+      &::before {
+        content: "";
+        position: absolute;
+        top: 0.62em;
+        left: 0;
+        width: 5px;
+        height: 5px;
+        border-radius: 50%;
+        background-color: var(--border-strong);
+      }
+    }
   }
 }
 
@@ -515,246 +97,8 @@
   }
 }
 
-.fault__block {
-  display: flex;
-  flex-direction: column;
-  gap: s.$space-2;
-  width: 100%;
-  padding-left: s.$space-4;
-  border-left: 2px solid var(--border);
-}
-
-.fault__block--action {
-  border-left-color: var(--solar);
-}
-
-.fault__blockTitle {
-  color: var(--text-strong);
-
-  @include t.label-md;
-}
-
-.fault__list {
-  display: flex;
-  flex-direction: column;
-  gap: s.$space-2;
-  color: var(--text-muted);
-  list-style: none;
-
-  @include t.body-md;
-
-  li {
-    position: relative;
-    padding-left: s.$space-4;
-
-    &::before {
-      content: "";
-      position: absolute;
-      top: 0.62em;
-      left: 0;
-      width: 5px;
-      height: 5px;
-      border-radius: 50%;
-      background-color: var(--border-strong);
-    }
-  }
-}
-
-// ── 표 셀 ──────────────────────────────────────────────────
-.cellStack {
-  display: flex;
-  flex-direction: column;
-  gap: 1px;
-}
-
-.cellStrong {
-  color: var(--text-strong);
-  font-weight: 600;
-}
-
-.cellSub {
-  color: var(--text-faint);
-
-  @include t.caption;
-}
-
-.cellMuted {
-  color: var(--text-muted);
-
-  @include t.body-sm;
-}
-
-.cellData {
-  color: var(--text-strong);
-
-  @include t.data-sm;
-}
-
-.cellId {
-  color: var(--text-faint);
-
-  @include t.data-sm;
-
-  font-size: 0.75rem;
-}
-
-.deltaUp {
-  color: var(--ok-text);
-}
-
 .deltaDown {
   color: var(--critical-text);
-}
-
-// ── 점검 일정 타임라인 ─────────────────────────────────────
-.timeline {
-  display: flex;
-  flex-direction: column;
-  gap: s.$space-5;
-  padding-top: s.$space-2;
-}
-
-.timeline__item {
-  position: relative;
-  display: flex;
-  gap: s.$space-4;
-  padding-left: 2px;
-
-  // 항목 사이를 잇는 세로선
-  &:not(:last-child)::before {
-    content: "";
-    position: absolute;
-    top: 36px;
-    left: 17px;
-    bottom: calc(#{s.$space-5} * -1);
-    width: 1px;
-    background-color: var(--border);
-  }
-}
-
-.timeline__marker {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-  width: 34px;
-  height: 34px;
-  border-radius: 50%;
-  border: 1px solid var(--border);
-  background-color: var(--surface);
-
-  svg {
-    width: 16px;
-    height: 16px;
-  }
-}
-
-.timeline__marker--done {
-  border-color: color-mix(in srgb, var(--ok) 40%, transparent);
-  background-color: var(--ok-soft);
-  color: var(--ok-text);
-}
-
-.timeline__marker--scheduled {
-  border-color: var(--brand-soft-border);
-  background-color: var(--brand-soft);
-  color: var(--brand-contrast);
-}
-
-.timeline__marker--overdue {
-  border-color: color-mix(in srgb, var(--critical) 40%, transparent);
-  background-color: var(--critical-soft);
-  color: var(--critical-text);
-}
-
-.timeline__body {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-  padding-top: s.$space-1;
-  min-width: 0;
-}
-
-.timeline__head {
-  display: flex;
-  align-items: baseline;
-  gap: s.$space-3;
-}
-
-.timeline__title {
-  color: var(--text-strong);
-
-  @include t.title-sm;
-}
-
-.timeline__state {
-  @include t.label-sm;
-}
-
-.timeline__state--done {
-  color: var(--ok-text);
-}
-
-.timeline__state--scheduled {
-  color: var(--brand-contrast);
-}
-
-.timeline__state--overdue {
-  color: var(--critical-text);
-}
-
-.timeline__meta {
-  color: var(--text-muted);
-
-  @include t.data-sm;
-}
-
-.timeline__note {
-  color: var(--text-faint);
-
-  @include t.body-sm;
-}
-
-// ── 모델 지표 요약 ─────────────────────────────────────────
-.infoGrid {
-  display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: s.$space-5 s.$space-6;
-  margin: 0;
-  padding-top: s.$space-4;
-
-  @include media.tablet {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-
-  @include media.mobile {
-    grid-template-columns: 1fr;
-    gap: s.$space-4;
-  }
-
-  dt {
-    margin-bottom: s.$space-1;
-    color: var(--text-faint);
-
-    @include t.label-sm;
-  }
-
-  dd {
-    margin: 0;
-    color: var(--text-strong);
-    font-variant-numeric: tabular-nums;
-
-    @include t.data-md;
-  }
-}
-
-// 기준 아래로 떨어진 행 — 좌측에 세로선을 세운다.
-.rowHighlight {
-  background-color: var(--critical-soft) !important;
-
-  td:first-child {
-    box-shadow: inset 3px 0 0 var(--critical);
-  }
 }
 
 // ── 일자별 발전효율 카드 조작부 ─────────────────────────────
@@ -773,81 +117,85 @@
   list-style: none;
 }
 
-.guideItem__button {
-  display: flex;
-  align-items: center;
-  gap: s.$space-3;
-  width: 100%;
-  padding: s.$space-3;
-  border: 1px solid var(--border-subtle);
-  border-radius: s.$radius-sm;
-  background-color: var(--surface);
-  text-align: left;
-  cursor: pointer;
-  transition: border-color 0.16s ease, background-color 0.16s ease, transform 0.16s ease;
+.guideItem {
+  &__button {
+    display: flex;
+    align-items: center;
+    gap: s.$space-3;
+    width: 100%;
+    padding: s.$space-3;
+    border: 1px solid var(--border-subtle);
+    border-radius: s.$radius-sm;
+    background-color: var(--surface);
+    text-align: left;
+    cursor: pointer;
+    transition: border-color 0.16s ease, background-color 0.16s ease, transform 0.16s ease;
 
-  &:hover {
-    border-color: var(--brand-soft-border);
-    background-color: var(--brand-soft);
+    &:hover {
+      border-color: var(--brand-soft-border);
+      background-color: var(--brand-soft);
+    }
+
+    &:active {
+      transform: scale(0.995);
+    }
   }
 
-  &:active {
-    transform: scale(0.995);
+  &__swatch {
+    display: block;
+    width: 14px;
+    height: 14px;
+    flex-shrink: 0;
+    border: 1px solid var(--border-subtle);
+    border-radius: 3px;
+  }
+
+  &__name {
+    @include t.label-md;
+
+    min-width: 92px;
+    color: var(--text-strong);
+  }
+
+  &__summary {
+    @include t.body-sm;
+
+    color: var(--text-muted);
   }
 }
 
-.guideItem__swatch {
-  display: block;
-  width: 14px;
-  height: 14px;
-  flex-shrink: 0;
-  border: 1px solid var(--border-subtle);
-  border-radius: 3px;
-}
+.guideSwatch {
+  &--c0 {
+    background-color: var(--ok-soft);
+  }
 
-.guideItem__name {
-  @include t.label-md;
+  &--c1 {
+    background-color: color-mix(in srgb, var(--series-5) 26%, transparent);
+  }
 
-  min-width: 92px;
-  color: var(--text-strong);
-}
+  &--c2 {
+    background-color: color-mix(in srgb, var(--series-3) 26%, transparent);
+  }
 
-.guideItem__summary {
-  @include t.body-sm;
+  &--c3 {
+    background-color: color-mix(in srgb, var(--caution) 24%, transparent);
+  }
 
-  color: var(--text-muted);
-}
+  &--c4 {
+    background-color: color-mix(in srgb, var(--caution) 38%, transparent);
+  }
 
-.guideSwatch--c0 {
-  background-color: var(--ok-soft);
-}
+  &--c5 {
+    background-color: color-mix(in srgb, var(--series-6) 30%, transparent);
+  }
 
-.guideSwatch--c1 {
-  background-color: color-mix(in srgb, var(--series-5) 26%, transparent);
-}
+  &--c6 {
+    background-color: color-mix(in srgb, var(--solar) 34%, transparent);
+  }
 
-.guideSwatch--c2 {
-  background-color: color-mix(in srgb, var(--series-3) 26%, transparent);
-}
-
-.guideSwatch--c3 {
-  background-color: color-mix(in srgb, var(--caution) 24%, transparent);
-}
-
-.guideSwatch--c4 {
-  background-color: color-mix(in srgb, var(--caution) 38%, transparent);
-}
-
-.guideSwatch--c5 {
-  background-color: color-mix(in srgb, var(--series-6) 30%, transparent);
-}
-
-.guideSwatch--c6 {
-  background-color: color-mix(in srgb, var(--solar) 34%, transparent);
-}
-
-.guideSwatch--c7 {
-  background-color: var(--critical-soft);
+  &--c7 {
+    background-color: var(--critical-soft);
+  }
 }
 
 @include media.reduced-motion {
@@ -860,7 +208,6 @@
   }
 }
 
-// ── 설비별 진단 현황 (한 계층 아래만) ───────────────────────
 .unitSummary {
   display: flex;
   align-items: center;
@@ -868,79 +215,81 @@
   gap: s.$space-3 s.$space-5;
   padding-bottom: s.$space-3;
   border-bottom: 1px solid var(--border-subtle);
-}
 
-.unitSummary__head {
-  display: flex;
-  align-items: center;
-  gap: s.$space-2;
-  color: var(--text-muted);
-}
-
-.unitSummary__title {
-  @include t.label-md;
-
-  color: var(--text-strong);
-}
-
-.unitSummary__total {
-  @include t.data-sm;
-
-  color: var(--text-strong);
-
-  small {
-    @include t.caption;
-
-    margin-left: 2px;
+  &__head {
+    display: flex;
+    align-items: center;
+    gap: s.$space-2;
     color: var(--text-muted);
   }
-}
 
-.unitSummary__counts {
-  display: flex;
-  flex-wrap: wrap;
-  gap: s.$space-2 s.$space-4;
-  margin-left: auto;
-  list-style: none;
-}
-
-.unitSummary__chip {
-  @include t.caption;
-
-  display: inline-flex;
-  align-items: center;
-  gap: 5px;
-  color: var(--text-muted);
-
-  strong {
-    @include t.data-sm;
+  &__title {
+    @include t.label-md;
 
     color: var(--text-strong);
   }
+
+  &__total {
+    @include t.data-sm;
+
+    color: var(--text-strong);
+
+    small {
+      @include t.caption;
+
+      margin-left: 2px;
+      color: var(--text-muted);
+    }
+  }
+
+  &__counts {
+    display: flex;
+    flex-wrap: wrap;
+    gap: s.$space-2 s.$space-4;
+    margin-left: auto;
+    list-style: none;
+  }
+
+  &__chip {
+    @include t.caption;
+
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    color: var(--text-muted);
+
+    strong {
+      @include t.data-sm;
+
+      color: var(--text-strong);
+    }
+  }
+
+  &__dot {
+    display: block;
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+  }
 }
 
-.unitSummary__dot {
-  display: block;
-  width: 7px;
-  height: 7px;
-  border-radius: 50%;
-}
+.unitDot {
+  &--running {
+    background-color: var(--ok);
+  }
 
-.unitDot--running {
-  background-color: var(--ok);
-}
+  &--degraded {
+    background-color: var(--caution);
+  }
 
-.unitDot--degraded {
-  background-color: var(--caution);
-}
+  &--fault {
+    background-color: var(--critical);
+  }
 
-.unitDot--fault {
-  background-color: var(--critical);
-}
-
-.unitDot--commLost,
-.unitDot--ready {
-  background-color: var(--offline);
+  &--commLost,
+&--ready {
+    background-color: var(--offline);
+  }
 }
 
 // 계측 추이 차트 아래 조작 안내
@@ -952,21 +301,20 @@
   text-align: right;
 }
 
-// 표 보기 (SFR-013-07) — 카드와 같은 자료를 값으로 견주는 자리
 .unitTable {
   margin-top: s.$space-4;
-}
 
-.unitTable__name {
-  color: var(--brand-contrast);
-  text-align: left;
-  text-decoration: underline;
-  text-decoration-color: transparent;
-  text-underline-offset: 3px;
-  transition: text-decoration-color 0.16s ease;
+  &__name {
+    color: var(--brand-contrast);
+    text-align: left;
+    text-decoration: underline;
+    text-decoration-color: transparent;
+    text-underline-offset: 3px;
+    transition: text-decoration-color 0.16s ease;
 
-  &:hover {
-    text-decoration-color: currentcolor;
+    &:hover {
+      text-decoration-color: currentcolor;
+    }
   }
 }
 
@@ -1020,6 +368,13 @@
   @include media.tablet {
     grid-template-columns: 1fr;
   }
+
+  &__more {
+    @include t.caption;
+
+    margin-top: s.$space-3;
+    color: var(--text-muted);
+  }
 }
 
 .unit {
@@ -1054,45 +409,112 @@
   :root[data-input="keyboard"] &:has(.unit__overlay:focus-visible) {
     border-color: var(--brand);
   }
-}
 
-// 정상은 점등하지 않는다 — 눈이 갈 곳은 이상이 있는 카드다.
-.unit--running {
-  --unit-accent: var(--ok);
-}
+  &--running {
+    --unit-accent: var(--ok);
+  }
 
-.unit--fault {
-  --unit-accent: var(--critical);
-  --unit-tint: var(--critical);
-  --unit-edge: color-mix(in srgb, var(--critical) 36%, transparent);
-  --unit-base: 8%;
-  --unit-peak: 12%;
-}
+  &--fault {
+    --unit-accent: var(--critical);
+    --unit-tint: var(--critical);
+    --unit-edge: color-mix(in srgb, var(--critical) 36%, transparent);
+    --unit-base: 8%;
+    --unit-peak: 12%;
+  }
 
-.unit--degraded {
-  --unit-accent: var(--caution);
-  --unit-tint: var(--caution);
-  --unit-edge: color-mix(in srgb, var(--caution) 32%, transparent);
-  --unit-base: 8%;
-  --unit-peak: 11%;
-}
+  &--degraded {
+    --unit-accent: var(--caution);
+    --unit-tint: var(--caution);
+    --unit-edge: color-mix(in srgb, var(--caution) 32%, transparent);
+    --unit-base: 8%;
+    --unit-peak: 11%;
+  }
 
-.unit--commLost,
-.unit--ready {
-  --unit-accent: var(--offline);
-  --unit-tint: var(--offline);
-  --unit-edge: color-mix(in srgb, var(--offline) 26%, transparent);
-  --unit-base: 5%;
-  --unit-peak: 7%;
-}
+  &__overlay {
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+    border-radius: inherit;
+    cursor: pointer;
+  }
 
-// 카드 전체를 누를 수 있게 깔되, 안쪽 버튼이 위로 오도록 층을 나눈다
-.unit__overlay {
-  position: absolute;
-  inset: 0;
-  z-index: 0;
-  border-radius: inherit;
-  cursor: pointer;
+  &__head {
+    display: flex;
+    align-items: center;
+    gap: s.$space-2;
+  }
+
+  &__icon {
+    display: inline-flex;
+    color: var(--text-faint);
+  }
+
+  &__name {
+    @include t.label-md;
+    @include mx.truncate;
+
+    flex: 1;
+    color: var(--text-strong);
+  }
+
+  &__spark {
+    display: flex;
+    flex-direction: column;
+    gap: s.$space-2;
+    padding-top: s.$space-1;
+  }
+
+  &__sparkLine {
+    display: block;
+    width: 100%;
+    height: 44px;
+  }
+
+  &__sparkCaption {
+    @include t.caption;
+
+    color: var(--text-faint);
+    text-align: right;
+  }
+
+  &__metrics {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: s.$space-3;
+    margin: 0;
+    padding-top: s.$space-3;
+    border-top: 1px solid var(--border-subtle);
+
+    dt {
+      @include t.caption;
+
+      margin-bottom: 2px;
+      color: var(--text-faint);
+    }
+
+    dd {
+      @include t.data-sm;
+
+      margin: 0;
+      color: var(--text-strong);
+
+      small {
+        @include t.caption;
+
+        margin-left: 2px;
+        color: var(--text-muted);
+      }
+    }
+  }
+
+  &--commLost,
+&--ready {
+    --unit-accent: var(--offline);
+    --unit-tint: var(--offline);
+    --unit-edge: color-mix(in srgb, var(--offline) 26%, transparent);
+    --unit-base: 5%;
+    --unit-peak: 7%;
+  }
 }
 
 /*
@@ -1115,25 +537,6 @@ p.unitAlert {
   pointer-events: none;
 }
 
-.unit__head {
-  display: flex;
-  align-items: center;
-  gap: s.$space-2;
-}
-
-.unit__icon {
-  display: inline-flex;
-  color: var(--text-faint);
-}
-
-.unit__name {
-  @include t.label-md;
-  @include mx.truncate;
-
-  flex: 1;
-  color: var(--text-strong);
-}
-
 .unitAlert {
   display: flex;
   align-items: center;
@@ -1145,27 +548,33 @@ p.unitAlert {
   transition: filter 0.16s ease;
 
   @include t.body-sm;
-}
 
-.unitAlert--normal {
-  background-color: var(--ok-soft);
-  color: var(--ok-text);
-}
+  &--normal {
+    background-color: var(--ok-soft);
+    color: var(--ok-text);
+  }
 
-.unitAlert--degraded {
-  background-color: var(--caution-soft);
-  color: var(--caution-text);
-}
+  &--degraded {
+    background-color: var(--caution-soft);
+    color: var(--caution-text);
+  }
 
-.unitAlert--fault,
-.unitAlert--commLost {
-  background-color: var(--critical-soft);
-  color: var(--critical-text);
-}
+  &--running {
+    background-color: var(--ok-soft);
+    color: var(--ok-text);
+  }
 
-.unitAlert--running {
-  background-color: var(--ok-soft);
-  color: var(--ok-text);
+  &__cause {
+    @include mx.truncate;
+
+    flex: 1;
+  }
+
+  &--fault,
+&--commLost {
+    background-color: var(--critical-soft);
+    color: var(--critical-text);
+  }
 }
 
 button.unitAlert {
@@ -1173,62 +582,6 @@ button.unitAlert {
 
   &:hover {
     filter: brightness(0.97);
-  }
-}
-
-.unitAlert__cause {
-  @include mx.truncate;
-
-  flex: 1;
-}
-
-.unit__spark {
-  display: flex;
-  flex-direction: column;
-  gap: s.$space-2;
-  padding-top: s.$space-1;
-}
-
-.unit__sparkLine {
-  display: block;
-  width: 100%;
-  height: 44px;
-}
-
-.unit__sparkCaption {
-  @include t.caption;
-
-  color: var(--text-faint);
-  text-align: right;
-}
-
-.unit__metrics {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: s.$space-3;
-  margin: 0;
-  padding-top: s.$space-3;
-  border-top: 1px solid var(--border-subtle);
-
-  dt {
-    @include t.caption;
-
-    margin-bottom: 2px;
-    color: var(--text-faint);
-  }
-
-  dd {
-    @include t.data-sm;
-
-    margin: 0;
-    color: var(--text-strong);
-
-    small {
-      @include t.caption;
-
-      margin-left: 2px;
-      color: var(--text-muted);
-    }
   }
 }
 
@@ -1247,11 +600,4 @@ button.unitAlert {
       transform: none;
     }
   }
-}
-
-.unitGrid__more {
-  @include t.caption;
-
-  margin-top: s.$space-3;
-  color: var(--text-muted);
 }

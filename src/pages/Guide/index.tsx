@@ -1,6 +1,6 @@
 import { Navigate, useParams } from 'react-router-dom';
 import { PATH } from '@/routes/routes';
-import { BoardTab } from '@/pages/Reports/components/BoardTab';
+import { Board } from './components/Board';
 
 /**
  * 이용안내 — 공지사항·Q&A.
@@ -15,7 +15,7 @@ function GuidePage() {
 
   if (!tab || !(tab in KINDS)) return <Navigate to={PATH.GUIDE_NOTICE} replace />;
 
-  return <BoardTab initialKind={KINDS[tab as TabKey]} />;
+  return <Board initialKind={KINDS[tab as TabKey]} />;
 }
 
 export default GuidePage;

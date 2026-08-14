@@ -1,0 +1,17 @@
+@use "@/styles/tokens/spacing" as s;
+
+.filter {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: s.$space-4;
+  flex-wrap: wrap;
+  margin-bottom: s.$space-5;
+
+  &__left {
+    display: flex;
+    align-items: center;
+    gap: s.$space-4;
+    flex-wrap: wrap;
+  }
+}

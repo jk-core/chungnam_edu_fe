@@ -1,0 +1,48 @@
+@use "@/styles/tokens/spacing" as s;
+@use "@/styles/tokens/typography" as t;
+
+/*
+  카드 위에 걸리는 조회 조건 줄.
+
+  왼쪽에 무엇을 볼지 고르는 것들이 서고, 오른쪽에 그 결과가 몇 건인지 또는 무엇을 할 수 있는지가
+  붙는다. 화면마다 다시 적으면 어느 한 쪽만 손댔을 때 줄 간격이 조금씩 어긋난다.
+
+  CSS 모듈은 파일 단위로 이름을 흐리므로 클래스를 직접 나눠 쓸 수 없다. 규칙을 믹스인으로 두고
+  각 모듈이 불러 쓴다 — 이름은 저마다 흐려지되 모양은 하나다.
+*/
+@mixin bar {
+  .toolbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: s.$space-3;
+    margin-top: s.$space-2;
+
+    &__left {
+      display: flex;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: s.$space-3;
+    }
+
+    &__note {
+      @include t.body-sm;
+
+      color: var(--text-muted);
+    }
+
+    /* 몇 건인지 — 숫자라 폭이 흔들리지 않는 글꼴로 둔다 */
+    &__count {
+      @include t.data-sm;
+
+      color: var(--text-muted);
+    }
+
+    &__actions {
+      display: flex;
+      align-items: center;
+      gap: s.$space-2;
+    }
+  }
+}

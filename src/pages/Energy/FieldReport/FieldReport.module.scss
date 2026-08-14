@@ -1,0 +1,405 @@
+@use "@/styles/tokens/spacing" as s;
+@use "@/styles/tokens/typography" as t;
+@use "@/styles/utils/media" as media;
+@use "@/styles/utils/mixins" as mx;
+@use "@/styles/patterns/board" as board;
+
+/*
+  현장보고서 (SFR-021).
+
+  목록·상세·댓글 뼈대는 공지사항과 같으므로 패턴에서 가져오고, 여기서는 점검표·반복이상·
+  결재 흐름·공유·비교처럼 이 화면에만 있는 것만 적는다.
+*/
+@include board.skeleton;
+
+.checkItem {
+  display: flex;
+  flex-direction: column;
+  gap: s.$space-2;
+  padding: s.$space-4;
+  border: 1px solid var(--border-subtle);
+  border-radius: s.$radius-md;
+  background-color: var(--surface);
+
+  &--abnormal {
+    border-color: var(--critical-soft);
+    background-color: var(--critical-soft);
+  }
+
+  &__label {
+    @include t.label-md;
+
+    color: var(--text-strong);
+  }
+}
+
+.repeat {
+  display: flex;
+  flex-direction: column;
+  gap: s.$space-2;
+  padding: s.$space-4;
+  border: 1px solid var(--caution);
+  border-radius: s.$radius-md;
+  background-color: var(--caution-soft);
+
+  &__title {
+    @include t.label-sm;
+
+    color: var(--caution-text);
+  }
+
+  &__item {
+    @include t.body-sm;
+
+    color: var(--text);
+  }
+
+  &__scope {
+    @include t.caption;
+
+    color: var(--text-muted);
+    font-weight: 400;
+  }
+}
+
+.stateFlow {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: s.$space-2;
+  padding-top: s.$space-2;
+
+  &__step {
+    @include t.caption;
+
+    padding: 3px s.$space-3;
+    border: 1px solid var(--border);
+    border-radius: s.$radius-full;
+    background-color: var(--surface);
+    color: var(--text-faint);
+
+    &--done {
+      border-color: var(--ok);
+      background-color: var(--ok-soft);
+      color: var(--ok-text);
+    }
+
+    &--current {
+      border-color: var(--brand);
+      background-color: var(--brand);
+      color: var(--text-on-brand);
+    }
+  }
+}
+
+.share {
+  display: flex;
+  flex-direction: column;
+  gap: s.$space-4;
+
+  &__note {
+    @include t.body-sm;
+
+    color: var(--text-muted);
+  }
+
+  &__list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: s.$space-2;
+  }
+
+  &__chip {
+    display: inline-flex;
+    align-items: center;
+    gap: s.$space-2;
+    padding: s.$space-2 s.$space-3;
+    border: 1px solid var(--border);
+    border-radius: s.$radius-full;
+    background-color: var(--surface);
+    cursor: pointer;
+    transition: border-color 0.16s ease, background-color 0.16s ease;
+
+    &:hover {
+      border-color: var(--border-strong);
+    }
+
+    &--on {
+      border-color: var(--brand);
+      background-color: var(--brand-soft);
+    }
+  }
+
+  &__name {
+    @include t.label-md;
+
+    color: var(--text);
+  }
+
+  &__org {
+    @include t.caption;
+
+    color: var(--text-muted);
+  }
+}
+
+.photoLinks {
+  display: flex;
+  flex-direction: column;
+  gap: s.$space-2;
+  margin-top: s.$space-3;
+  list-style: none;
+
+  &__row {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 220px;
+    align-items: center;
+    gap: s.$space-3;
+
+    @include media.mobile {
+      grid-template-columns: 1fr;
+      gap: s.$space-1;
+    }
+  }
+
+  &__name {
+    @include t.body-sm;
+    @include mx.truncate;
+
+    color: var(--text-muted);
+  }
+}
+
+.post {
+  &__fileItem {
+    @include t.caption;
+
+    margin-left: s.$space-2;
+    color: var(--text-faint);
+  }
+}
+
+// ── 현장보고서 개편 (SFR-021) ───────────────────────────────
+
+// 목록 한 줄 — 비교 체크박스와 본문 버튼이 나란히 선다
+.rowWrap {
+  display: flex;
+  align-items: center;
+  gap: s.$space-3;
+}
+
+.rowPick {
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+  padding: s.$space-2;
+  cursor: pointer;
+
+  &__label {
+    @include mx.sr-only;
+  }
+}
+
+// 표준 점검표의 대분류 — 문항 묶음이 어디서 갈리는지 보여 준다
+.sectionHead {
+  @include t.label-sm;
+
+  margin: s.$space-4 0 s.$space-2;
+  padding-bottom: s.$space-2;
+  border-bottom: 1px solid var(--border-subtle);
+  color: var(--brand);
+}
+
+.reject {
+  display: flex;
+  flex-direction: column;
+  gap: s.$space-2;
+  padding: s.$space-4;
+  border: 1px solid var(--critical);
+  border-radius: s.$radius-md;
+  background-color: var(--critical-soft);
+
+  &__title {
+    @include t.label-sm;
+
+    color: var(--critical-text);
+  }
+}
+
+// PDF 로 담을 지면을 화면 밖에 세워 둔다 — 크기가 살아 있어야 캡처된다
+.offscreen {
+  position: fixed;
+  top: 0;
+  left: -20000px;
+  pointer-events: none;
+}
+
+.compare {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: s.$space-4;
+
+  @include media.mobile {
+    grid-template-columns: 1fr;
+  }
+
+  &__head {
+    @include t.label-md;
+
+    padding-bottom: s.$space-2;
+    border-bottom: 1px solid var(--border-subtle);
+    color: var(--text-strong);
+  }
+
+  &__meta {
+    @include t.caption;
+
+    display: block;
+    margin-top: 2px;
+    color: var(--text-muted);
+    font-weight: 400;
+  }
+}
+
+.compareRow {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 96px 96px;
+  gap: s.$space-3;
+  align-items: center;
+  padding: s.$space-2 s.$space-3;
+  border-radius: s.$radius-sm;
+
+  &--diff {
+    background-color: var(--caution-soft);
+  }
+
+  &__label {
+    @include t.body-sm;
+
+    color: var(--text);
+  }
+
+  &__value {
+    @include t.caption;
+
+    color: var(--text-strong);
+    text-align: center;
+  }
+}
+
+.compareLegend {
+  @include t.caption;
+
+  display: flex;
+  gap: s.$space-4;
+  margin-bottom: s.$space-3;
+  color: var(--text-muted);
+}
+
+.timeline {
+  display: flex;
+  flex-direction: column;
+  gap: s.$space-5;
+  padding-top: s.$space-2;
+
+  &__item {
+    position: relative;
+    display: flex;
+    gap: s.$space-4;
+    padding-left: 2px;
+
+    // 항목 사이를 잇는 세로선
+    &:not(:last-child)::before {
+      content: "";
+      position: absolute;
+      top: 36px;
+      left: 17px;
+      bottom: calc(#{s.$space-5} * -1);
+      width: 1px;
+      background-color: var(--border);
+    }
+  }
+
+  &__marker {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    border: 1px solid var(--border);
+    background-color: var(--surface);
+
+    svg {
+      width: 16px;
+      height: 16px;
+    }
+
+    &--done {
+      border-color: color-mix(in srgb, var(--ok) 40%, transparent);
+      background-color: var(--ok-soft);
+      color: var(--ok-text);
+    }
+
+    &--scheduled {
+      border-color: var(--brand-soft-border);
+      background-color: var(--brand-soft);
+      color: var(--brand-contrast);
+    }
+
+    &--overdue {
+      border-color: color-mix(in srgb, var(--critical) 40%, transparent);
+      background-color: var(--critical-soft);
+      color: var(--critical-text);
+    }
+  }
+
+  &__body {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    padding-top: s.$space-1;
+    min-width: 0;
+  }
+
+  &__head {
+    display: flex;
+    align-items: baseline;
+    gap: s.$space-3;
+  }
+
+  &__title {
+    color: var(--text-strong);
+
+    @include t.title-sm;
+  }
+
+  &__state {
+    @include t.label-sm;
+
+    &--done {
+      color: var(--ok-text);
+    }
+
+    &--scheduled {
+      color: var(--brand-contrast);
+    }
+
+    &--overdue {
+      color: var(--critical-text);
+    }
+  }
+
+  &__meta {
+    color: var(--text-muted);
+
+    @include t.data-sm;
+  }
+
+  &__note {
+    color: var(--text-faint);
+
+    @include t.body-sm;
+  }
+}

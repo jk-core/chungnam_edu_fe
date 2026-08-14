@@ -1,0 +1,7 @@
+@use "@/styles/patterns/board" as board;
+
+/*
+  게시판·월간보고 (SFR-020, SFR-022).
+  목록에서 글을 골라 상세를 열고 댓글을 다는 뼈대가 전부다 — 규칙은 패턴에 한 벌만 둔다.
+*/
+@include board.skeleton;

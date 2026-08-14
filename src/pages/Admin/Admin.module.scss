@@ -2,39 +2,13 @@
 @use "@/styles/tokens/typography" as t;
 @use "@/styles/utils/media" as media;
 @use "@/styles/utils/mixins" as mx;
+@use "@/styles/patterns/toolbar" as toolbar;
+@include toolbar.bar;
 
 .tab {
   display: flex;
   flex-direction: column;
   gap: s.$space-4;
-}
-
-.toolbar {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  flex-wrap: wrap;
-  gap: s.$space-3;
-  margin-top: s.$space-2;
-}
-
-.toolbar__left {
-  display: flex;
-  align-items: center;
-  flex-wrap: wrap;
-  gap: s.$space-3;
-}
-
-.toolbar__note {
-  @include t.body-sm;
-
-  color: var(--text-muted);
-}
-
-.toolbar__actions {
-  display: flex;
-  align-items: center;
-  gap: s.$space-2;
 }
 
 .summary {
@@ -51,17 +25,17 @@
   @include media.mobile {
     grid-template-columns: 1fr;
   }
-}
 
-.summary--three {
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-
-  @include media.tablet {
+  &--three {
     grid-template-columns: repeat(3, minmax(0, 1fr));
-  }
 
-  @include media.mobile {
-    grid-template-columns: 1fr;
+    @include media.tablet {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+
+    @include media.mobile {
+      grid-template-columns: 1fr;
+    }
   }
 }
 
@@ -120,39 +94,38 @@
   border: 1px solid var(--border-subtle);
   border-radius: s.$radius-sm;
   background-color: var(--surface-sunken);
-}
 
-.historyItem__at {
-  @include t.caption;
+  &__at {
+    @include t.caption;
 
-  color: var(--text-faint);
-  font-variant-numeric: tabular-nums;
-}
-
-.historyItem__body {
-  @include t.body-sm;
-
-  color: var(--text);
-  flex: 1;
-  min-width: 200px;
-}
-
-.historyItem__diff {
-  color: var(--text-muted);
-
-  del {
-    color: var(--critical-text);
-    text-decoration: line-through;
+    color: var(--text-faint);
+    font-variant-numeric: tabular-nums;
   }
 
-  ins {
-    color: var(--ok-text);
-    text-decoration: none;
-    font-weight: 600;
+  &__body {
+    @include t.body-sm;
+
+    color: var(--text);
+    flex: 1;
+    min-width: 200px;
+  }
+
+  &__diff {
+    color: var(--text-muted);
+
+    del {
+      color: var(--critical-text);
+      text-decoration: line-through;
+    }
+
+    ins {
+      color: var(--ok-text);
+      text-decoration: none;
+      font-weight: 600;
+    }
   }
 }
 
-// ── 용량 자동 산출 안내 (SFR-016-03) ──────────────────────
 .capacity {
   display: flex;
   align-items: baseline;
@@ -161,24 +134,24 @@
   border: 1px solid var(--brand-soft-border);
   border-radius: s.$radius-sm;
   background-color: var(--brand-soft);
-}
 
-.capacity__label {
-  @include t.label-sm;
+  &__label {
+    @include t.label-sm;
 
-  color: var(--text-muted);
-}
+    color: var(--text-muted);
+  }
 
-.capacity__value {
-  @include t.data-md;
+  &__value {
+    @include t.data-md;
 
-  color: var(--brand-contrast);
-}
+    color: var(--brand-contrast);
+  }
 
-.capacity__note {
-  @include t.caption;
+  &__note {
+    @include t.caption;
 
-  color: var(--text-faint);
+    color: var(--text-faint);
+  }
 }
 
 .form {
@@ -187,96 +160,41 @@
   gap: s.$space-6;
 }
 
-// ── 성공률·비율 막대 ───────────────────────────────────────
 .rate {
   display: flex;
   align-items: center;
   gap: s.$space-3;
-}
 
-.rate__track {
-  position: relative;
-  display: block;
-  flex: 1;
-  height: 10px;
-  border-radius: s.$radius-full;
-  background-color: var(--surface-sunken);
-  overflow: hidden;
-}
+  &__track {
+    position: relative;
+    display: block;
+    flex: 1;
+    height: 10px;
+    border-radius: s.$radius-full;
+    background-color: var(--surface-sunken);
+    overflow: hidden;
+  }
 
-.rate__bar {
-  position: absolute;
-  inset: 0 auto 0 0;
-  display: block;
-  border-radius: s.$radius-full;
-  background-color: var(--ok);
-}
+  &__bar {
+    position: absolute;
+    inset: 0 auto 0 0;
+    display: block;
+    border-radius: s.$radius-full;
+    background-color: var(--ok);
 
-.rate__bar--low {
-  background-color: var(--critical);
-}
+    &--low {
+      background-color: var(--critical);
+    }
+  }
 
-.rate__value {
-  @include t.data-sm;
+  &__value {
+    @include t.data-sm;
 
-  min-width: 52px;
-  color: var(--text-strong);
-  text-align: right;
-  font-variant-numeric: tabular-nums;
-}
-
-// ── 보안 이벤트 ────────────────────────────────────────────
-.event {
-  display: flex;
-  gap: s.$space-3;
-  padding: s.$space-4;
-  border: 1px solid var(--border-subtle);
-  border-left-width: 3px;
-  border-radius: s.$radius-md;
-  background-color: var(--surface);
-}
-
-.event--critical {
-  border-left-color: var(--critical);
-}
-
-.event--caution {
-  border-left-color: var(--caution);
-}
-
-.event--info {
-  border-left-color: var(--brand);
-}
-
-.event__body {
-  flex: 1;
-  min-width: 0;
-}
-
-.event__head {
-  display: flex;
-  align-items: center;
-  flex-wrap: wrap;
-  gap: s.$space-2;
-}
-
-.event__title {
-  @include t.label-md;
-
-  color: var(--text-strong);
-}
-
-.event__at {
-  @include t.caption;
-
-  color: var(--text-faint);
-}
-
-.event__detail {
-  @include t.body-sm;
-
-  margin-top: 2px;
-  color: var(--text-muted);
+    min-width: 52px;
+    color: var(--text-strong);
+    text-align: right;
+    font-variant-numeric: tabular-nums;
+  }
 }
 
 // ── 권한 매트릭스 (SFR-023) ────────────────────────────────
@@ -289,20 +207,19 @@
   color: var(--text-faint);
 }
 
-// ── 계정 트리 ──────────────────────────────────────────────
 .orgTree {
   display: flex;
   flex-direction: column;
   gap: s.$space-2;
-}
 
-.orgTree__branch {
-  display: flex;
-  flex-direction: column;
-  gap: s.$space-2;
-  padding-left: s.$space-6;
-  border-left: 2px solid var(--border-subtle);
-  margin-left: s.$space-3;
+  &__branch {
+    display: flex;
+    flex-direction: column;
+    gap: s.$space-2;
+    padding-left: s.$space-6;
+    border-left: 2px solid var(--border-subtle);
+    margin-left: s.$space-3;
+  }
 }
 
 .orgNode {
@@ -314,47 +231,23 @@
   border: 1px solid var(--border-subtle);
   border-radius: s.$radius-sm;
   background-color: var(--surface);
-}
 
-.orgNode__name {
-  @include t.label-md;
+  &__name {
+    @include t.label-md;
 
-  color: var(--text-strong);
-}
+    color: var(--text-strong);
+  }
 
-.orgNode__meta {
-  @include t.caption;
+  &__meta {
+    @include t.caption;
 
-  color: var(--text-muted);
+    color: var(--text-muted);
+  }
 }
 
 // 행 강조 — 품질 미달·잠금 계정
 .rowAlert {
   background-color: var(--critical-soft);
-}
-
-// ── 서버 자원 모니터링 (ECR-002-20/21) ─────────────────────
-// 임계선을 넘은 건은 화면 맨 위에서 먼저 알린다.
-.alertBar {
-  display: flex;
-  flex-direction: column;
-  gap: s.$space-2;
-  padding: s.$space-4;
-  border: 1px solid var(--critical);
-  border-radius: s.$radius-md;
-  background-color: var(--critical-soft);
-}
-
-.alertBar__title {
-  @include t.label-md;
-
-  color: var(--critical-text);
-}
-
-.alertBar__item {
-  @include t.body-sm;
-
-  color: var(--text);
 }
 
 .serverGrid {
@@ -372,33 +265,33 @@
   border: 1px solid var(--border-subtle);
   border-radius: s.$radius-md;
   background-color: var(--surface);
-}
 
-.server--warning {
-  border-color: var(--caution);
-  background-color: var(--caution-soft);
-}
+  &--warning {
+    border-color: var(--caution);
+    background-color: var(--caution-soft);
+  }
 
-.server--critical {
-  border-color: var(--critical);
-  background-color: var(--critical-soft);
-}
+  &--critical {
+    border-color: var(--critical);
+    background-color: var(--critical-soft);
+  }
 
-.server__head {
-  @include t.label-md;
+  &__head {
+    @include t.label-md;
 
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: s.$space-2;
-  color: var(--text-strong);
-}
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: s.$space-2;
+    color: var(--text-strong);
+  }
 
-.server__role,
-.server__net {
-  @include t.caption;
+  &__role,
+&__net {
+    @include t.caption;
 
-  color: var(--text-muted);
+    color: var(--text-muted);
+  }
 }
 
 .meter {
@@ -406,56 +299,55 @@
   grid-template-columns: 52px minmax(0, 1fr) 44px;
   align-items: center;
   gap: s.$space-2;
+
+  &__label {
+    @include t.caption;
+
+    color: var(--text-muted);
+  }
+
+  &__track {
+    display: block;
+    height: 8px;
+    border-radius: s.$radius-full;
+    background-color: var(--surface-sunken);
+    overflow: hidden;
+  }
+
+  &__bar {
+    display: block;
+    height: 100%;
+    border-radius: s.$radius-full;
+    background-color: var(--brand);
+
+    &--warning {
+      background-color: var(--caution);
+    }
+
+    &--critical {
+      background-color: var(--critical);
+    }
+  }
+
+  &__value {
+    @include t.caption;
+
+    color: var(--text-strong);
+    font-variant-numeric: tabular-nums;
+    text-align: right;
+  }
 }
 
-.meter__label {
-  @include t.caption;
-
-  color: var(--text-muted);
-}
-
-.meter__track {
-  display: block;
-  height: 8px;
-  border-radius: s.$radius-full;
-  background-color: var(--surface-sunken);
-  overflow: hidden;
-}
-
-.meter__bar {
-  display: block;
-  height: 100%;
-  border-radius: s.$radius-full;
-  background-color: var(--brand);
-}
-
-.meter__bar--warning {
-  background-color: var(--caution);
-}
-
-.meter__bar--critical {
-  background-color: var(--critical);
-}
-
-.meter__value {
-  @include t.caption;
-
-  color: var(--text-strong);
-  font-variant-numeric: tabular-nums;
-  text-align: right;
-}
-
-// 한 칸에 두 줄 — 발전소 아래 설비 이름을 받쳐 준다
 .stackCell {
   display: flex;
   flex-direction: column;
   gap: 2px;
-}
 
-.stackCell__sub {
-  @include t.caption;
+  &__sub {
+    @include t.caption;
 
-  color: var(--text-muted);
+    color: var(--text-muted);
+  }
 }
 
 // 스트링 일괄 편집 — 한 줄이 스트링 하나다. 표가 아니라 입력 줄이라 그리드로 세운다

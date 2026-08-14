@@ -1,13 +1,19 @@
 import { Navigate, useParams } from 'react-router-dom';
 import { PATH } from '@/routes/routes';
-import { MonthlyTab } from '@/pages/Reports/components/MonthlyTab';
-import { AlertsTab } from './components/AlertsTab';
-import { DiagnosisTab } from './components/DiagnosisTab';
+import AlertsPage from './Alerts';
+import MonthlyPage from './Monthly';
+import OverviewPage from './Overview';
 
+/**
+ * AI진단 — 진단 개요·월간보고서·알림.
+ *
+ * 탭 하나가 곧 폴더 하나다. 그 안에서 다시 갈라지는 것(알림의 네 갈래)은 각자의 `index.tsx`
+ * 가 맡으므로, 이 파일은 어느 탭을 세울지만 고른다.
+ */
 const TABS = {
-  overview: DiagnosisTab,
-  monthly: MonthlyTab,
-  alerts: AlertsTab,
+  overview: OverviewPage,
+  monthly: MonthlyPage,
+  alerts: AlertsPage,
 } as const;
 
 type TabKey = keyof typeof TABS;

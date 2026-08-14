@@ -1,0 +1,4 @@
+@use "@/styles/patterns/toolbar" as toolbar;
+
+/* 조회 조건 줄 — 모양은 다른 화면의 툴바와 같아야 한다 */
+@include toolbar.bar;

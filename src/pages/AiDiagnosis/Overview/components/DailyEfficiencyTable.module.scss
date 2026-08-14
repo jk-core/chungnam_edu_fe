@@ -1,0 +1,336 @@
+@use "@/styles/tokens/spacing" as s;
+@use "@/styles/tokens/typography" as t;
+@use "@/styles/utils/media" as media;
+@use "@/styles/utils/mixins" as mx;
+
+.wrap {
+  display: flex;
+  flex-direction: column;
+  gap: s.$space-3;
+}
+
+.scroll {
+  overflow-x: auto;
+}
+
+.table {
+  width: max-content;
+  min-width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+}
+
+.srOnly {
+  @include mx.sr-only;
+}
+
+.head {
+  @include t.label-sm;
+
+  padding: s.$space-2 s.$space-3;
+  border-bottom: 1px solid var(--border);
+  background-color: var(--surface);
+  color: var(--text-muted);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+
+  &--name {
+    position: sticky;
+    left: 0;
+    z-index: 3;
+    min-width: 260px;
+    box-shadow: 1px 0 0 var(--border);
+    text-align: left;
+  }
+
+  &--avg {
+    position: sticky;
+    right: 0;
+    z-index: 3;
+    box-shadow: -1px 0 0 var(--border);
+  }
+}
+
+.row {
+  &:hover .name,
+  &:hover .cell {
+    background-color: var(--surface-hover);
+  }
+
+  // 접혀 있던 하위 줄 — 부모보다 옅게 두어 층이 보이게 한다
+  &--child .name__text {
+    color: var(--text);
+    font-weight: 400;
+  }
+}
+
+.name {
+  position: sticky;
+  left: 0;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 260px;
+  padding: s.$space-2 s.$space-3;
+  border-bottom: 1px solid var(--border-subtle);
+  background-color: var(--surface);
+  box-shadow: 1px 0 0 var(--border-subtle);
+  text-align: left;
+  transition: background-color 0.14s ease;
+
+  &--child {
+    padding-left: s.$space-6;
+  }
+
+  &__toggle {
+    display: inline-flex;
+    width: 18px;
+    height: 18px;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+
+  &__toggleIcon {
+    transition: transform 0.16s ease;
+
+    &--open {
+      transform: rotate(90deg);
+    }
+  }
+
+  &__dot {
+    display: block;
+    width: 7px;
+    height: 7px;
+    flex-shrink: 0;
+    border-radius: 50%;
+  }
+
+  &__text {
+    @include t.label-sm;
+
+    color: var(--text-strong);
+    white-space: nowrap;
+  }
+
+  &__meta {
+    @include t.caption;
+
+    color: var(--text-faint);
+    white-space: nowrap;
+  }
+}
+
+// 펼치고 접는 버튼임이 드러나게 테두리를 두르고, 화살표를 돌려 상태를 알린다
+button.name__toggle {
+  border: 1px solid var(--border);
+  border-radius: s.$radius-xs;
+  background-color: var(--surface);
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: background-color 0.14s ease, color 0.14s ease, border-color 0.14s ease;
+
+  &:hover {
+    border-color: var(--brand);
+    background-color: var(--brand-soft);
+    color: var(--brand-contrast);
+  }
+}
+
+.dot {
+  &--running {
+    background-color: var(--ok);
+  }
+
+  &--degraded {
+    background-color: var(--caution);
+  }
+
+  &--fault {
+    background-color: var(--critical);
+  }
+
+  &--commLost,
+&--ready {
+    background-color: var(--offline);
+  }
+}
+
+.cell {
+  padding: 3px;
+  border-bottom: 1px solid var(--border-subtle);
+  background-color: var(--surface);
+  text-align: center;
+  transition: background-color 0.14s ease;
+
+  &--avg {
+    position: sticky;
+    right: 0;
+    z-index: 2;
+
+    @include t.data-sm;
+
+    padding: s.$space-2 s.$space-3;
+    box-shadow: -1px 0 0 var(--border-subtle);
+    color: var(--text-strong);
+    font-variant-numeric: tabular-nums;
+  }
+}
+
+.chip {
+  @include t.caption;
+
+  display: block;
+  min-width: 62px;
+  padding: 6px;
+  border-radius: s.$radius-xs;
+  color: var(--text-strong);
+  font-variant-numeric: tabular-nums;
+  transition: transform 0.14s ease, box-shadow 0.14s ease;
+
+  &--clickable {
+    cursor: pointer;
+
+    @include mx.keyboard-focus {
+      outline-offset: -2px;
+    }
+
+    &:hover {
+      transform: translateY(-1px);
+      box-shadow: var(--shadow-sm);
+    }
+
+    &:active {
+      transform: none;
+    }
+  }
+
+  &--c0 {
+    background-color: var(--ok-soft);
+    color: var(--ok-text);
+  }
+
+  &--c1 {
+    background-color: color-mix(in srgb, var(--series-5) 26%, transparent);
+  }
+
+  &--c2 {
+    background-color: color-mix(in srgb, var(--series-3) 26%, transparent);
+  }
+
+  &--c3 {
+    background-color: color-mix(in srgb, var(--caution) 24%, transparent);
+  }
+
+  &--c4 {
+    background-color: color-mix(in srgb, var(--caution) 38%, transparent);
+  }
+
+  &--c5 {
+    background-color: color-mix(in srgb, var(--series-6) 30%, transparent);
+  }
+
+  &--c6 {
+    background-color: color-mix(in srgb, var(--solar) 34%, transparent);
+  }
+
+  &--c7 {
+    background-color: var(--critical-soft);
+    color: var(--critical-text);
+  }
+
+  &--missing {
+    background-image: repeating-linear-gradient(
+      45deg,
+      var(--surface-sunken),
+      var(--surface-sunken) 3px,
+      transparent 3px,
+      transparent 6px
+    );
+    color: var(--text-faint);
+  }
+}
+
+.legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: s.$space-2 s.$space-4;
+  list-style: none;
+
+  &__item {
+    @include t.caption;
+
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    color: var(--text-muted);
+  }
+
+  &__swatch {
+    display: block;
+    width: 12px;
+    height: 12px;
+    border: 1px solid var(--border-subtle);
+    border-radius: 3px;
+  }
+}
+
+.swatch {
+  &--c0 {
+    background-color: var(--ok-soft);
+  }
+
+  &--c1 {
+    background-color: color-mix(in srgb, var(--series-5) 26%, transparent);
+  }
+
+  &--c2 {
+    background-color: color-mix(in srgb, var(--series-3) 26%, transparent);
+  }
+
+  &--c3 {
+    background-color: color-mix(in srgb, var(--caution) 24%, transparent);
+  }
+
+  &--c4 {
+    background-color: color-mix(in srgb, var(--caution) 38%, transparent);
+  }
+
+  &--c5 {
+    background-color: color-mix(in srgb, var(--series-6) 30%, transparent);
+  }
+
+  &--c6 {
+    background-color: color-mix(in srgb, var(--solar) 34%, transparent);
+  }
+
+  &--c7 {
+    background-color: var(--critical-soft);
+  }
+
+  &--missing {
+    background-image: repeating-linear-gradient(
+      45deg,
+      var(--surface-sunken),
+      var(--surface-sunken) 3px,
+      transparent 3px,
+      transparent 6px
+    );
+  }
+}
+
+@include media.reduced-motion {
+  .chip,
+  .cell,
+  .name,
+  .name__toggleIcon,
+  button.name__toggle {
+    transition: none;
+  }
+
+  .chip--clickable:hover {
+    transform: none;
+  }
+}
