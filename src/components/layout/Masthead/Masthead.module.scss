@@ -1,0 +1,35 @@
+@use "@/styles/tokens/spacing" as s;
+@use "@/styles/tokens/typography" as t;
+@use "@/styles/utils/mixins" as mx;
+
+/*
+  정부 누리집 안내 띠 (KRDS 마스트헤드).
+
+  본문과 겨루지 않아야 하는 안내다. 바탕을 한 단 눌러 깔고 글자도 가장 작은 단으로 두어,
+  눈이 먼저 닿되 붙들리지는 않게 한다.
+*/
+.masthead {
+  background-color: var(--surface-sunken);
+  border-bottom: 1px solid var(--border-subtle);
+
+  &__inner {
+    @include t.caption;
+    @include mx.container;
+
+    display: flex;
+    align-items: center;
+    gap: s.$space-2;
+    padding-top: 5px;
+    padding-bottom: 5px;
+    color: var(--text-muted);
+  }
+
+  /* 깃면 비율(3:2)을 지키고 테두리를 둘러 흰 깃면이 눌린 바탕에 묻히지 않게 한다 */
+  &__flag {
+    width: 21px;
+    height: 14px;
+    flex-shrink: 0;
+    border: 1px solid var(--border-subtle);
+    border-radius: 1px;
+  }
+}

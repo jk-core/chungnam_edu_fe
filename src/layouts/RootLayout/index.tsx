@@ -3,6 +3,7 @@ import { Outlet, useLocation } from 'react-router-dom';
 import { motion } from 'motion/react';
 import { Footer } from '@/components/layout/Footer';
 import { Header } from '@/components/layout/Header';
+import { Masthead } from '@/components/layout/Masthead';
 import { SkipLink } from '@/components/layout/SkipLink';
 import { ToastViewport } from '@/components/common/Toast';
 import { useResetDepth } from '@/stores/plantStore';
@@ -36,6 +37,8 @@ export default function RootLayout() {
   return (
     <>
       <SkipLink />
+      {/* 정부 누리집 안내는 로고·메뉴보다 위, 화면에서 가장 먼저 닿는 곳에 선다 */}
+      <Masthead />
       <Header />
 
       <main id="main" className={styles.main}>
