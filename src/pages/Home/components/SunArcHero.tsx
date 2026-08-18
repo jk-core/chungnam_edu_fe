@@ -44,7 +44,7 @@ export function SunArcHero() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5 }}
           >
-            Today · {formatDate(now)} {formatTime(now)} 기준
+            {formatDate(now)} {formatTime(now)} 기준
           </motion.p>
 
           <motion.h1
@@ -120,8 +120,8 @@ export function SunArcHero() {
         <div className={styles.hero__viz}>
           <SunArc nowHour={nowHour} />
           <p className={styles.hero__vizCaption}>
-            점선은 오늘 해가 지나는 길, 막대는 그 시각의 실제 발전 출력입니다. 막대와 호 사이가 벌어진 만큼이 구름
-            등으로 놓친 몫입니다.
+            점선은 오늘 해가 지나는 길이고, 막대는 그 시각에 실제로 낸 출력입니다.
+            둘 사이가 벌어진 만큼은 구름에 가려 놓친 몫입니다.
           </p>
         </div>
       </div>

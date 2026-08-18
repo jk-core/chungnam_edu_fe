@@ -2,6 +2,7 @@ import { KpiStrip } from './components/KpiStrip';
 import { MonitoringBoard } from './components/MonitoringBoard';
 import { NationalBoard } from './components/NationalBoard';
 import { NoticePopup } from './components/NoticePopup';
+import { ProgramNotice } from './components/ProgramNotice';
 import { SunArcHero } from './components/SunArcHero';
 import styles from './Home.module.scss';
 
@@ -13,6 +14,7 @@ import styles from './Home.module.scss';
 function HomePage() {
   return (
     <div className={styles.home}>
+      <ProgramNotice />
       <SunArcHero />
       <KpiStrip />
       {/* 지도를 주역으로 올린다 — 홈에서 학교를 찾아 들어가는 길이 가장 잦다. */}

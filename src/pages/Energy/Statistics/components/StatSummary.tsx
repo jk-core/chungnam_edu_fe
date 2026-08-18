@@ -83,7 +83,7 @@ export function StatSummary({ view }: { view: StatisticsView }) {
             </dd>
           </div>
           <div>
-            <dt>등가 발전시간</dt>
+            <dt>발전시간</dt>
             <dd>
               {formatNumber(stat.hours, 1)}
               <span className={styles.infoGrid__unit}>h</span>

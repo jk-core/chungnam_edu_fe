@@ -262,13 +262,16 @@ export function pickEnergyUnit(maxKwh: number): { divider: number; unit: string 
 }
 
 /** 누적 지표 — 홈 KPI와 환경 기여도에서 함께 쓴다. */
+/** CO₂ 배출계수 (환경부 고시) — 발전량을 저감량으로 옮길 때 쓴다 */
+export const CO2_PER_KWH = 0.4594;
+
 export const CUMULATIVE = {
   /** 시스템 가동 이후 누적 발전량(kWh) */
   totalKwh: 148_620_000,
   /** CO₂ 배출계수 0.4594 kgCO₂/kWh 적용 */
-  co2SavedKg: Math.round(148_620_000 * 0.4594),
+  co2SavedKg: Math.round(148_620_000 * CO2_PER_KWH),
   /** 30년생 소나무 1그루 연간 흡수량 6.6kgCO₂ */
-  pineTrees: Math.round((148_620_000 * 0.4594) / 6.6),
+  pineTrees: Math.round((148_620_000 * CO2_PER_KWH) / 6.6),
   /** 4인 가구 월평균 사용량 350kWh 기준 */
   households: Math.round(148_620_000 / 350 / 12),
 };

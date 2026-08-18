@@ -17,6 +17,13 @@
     stroke-width: 1;
   }
 
+  /* 양 끝의 일출·일몰 — 정시 눈금보다 한 톤 옅게 두어 눈금과 섞이지 않는다 */
+  &__edge {
+    fill: var(--text-faint);
+    font-family: var(--font-data);
+    font-size: 10px;
+  }
+
   &__tick {
     fill: var(--text-faint);
     font-family: var(--font-data);

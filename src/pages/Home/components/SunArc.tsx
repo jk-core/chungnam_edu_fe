@@ -8,7 +8,19 @@ const HORIZON_Y = 250;
 const CX = 330;
 const RX = 282;
 const RY = 196;
-const HOUR_LABELS = [6, 9, 12, 15, 18];
+/*
+  가운데 눈금만 둔다.
+  양 끝은 일출·일몰 시각이 지키므로 6시와 18시를 함께 적으면 그 옆에 붙어 글자가 겹친다.
+*/
+const HOUR_LABELS = [9, 12, 15];
+
+/** 시각을 「05:30」 처럼 적는다 — 일출·일몰은 정시가 아니다 */
+function clockOf(hour: number): string {
+  const h = Math.floor(hour);
+  const m = Math.round((hour - h) * 60);
+
+  return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`;
+}
 
 /** 하루 진행률(0~1)을 태양 궤적 위의 좌표로 바꾼다. */
 function pointAt(progress: number) {
@@ -80,7 +92,10 @@ export function SunArc({ nowHour }: SunArcProps) {
   }, [targetProgress, reduceMotion]);
 
   const sun = pointAt(sunProgress);
-  const bars = HOURLY_OUTPUT.filter((point) => point.hour >= 6 && point.hour <= 19);
+  // 해가 떠 있는 동안은 모두 그린다 — 잘라 내면 하루가 실제보다 짧아 보인다.
+  const bars = HOURLY_OUTPUT.filter(
+    (point) => point.hour >= Math.floor(SUNRISE_HOUR) && point.hour <= Math.ceil(SUNSET_HOUR),
+  );
 
   return (
     <svg
@@ -149,6 +164,18 @@ export function SunArc({ nowHour }: SunArcProps) {
           </text>
         );
       })}
+
+      {/*
+        해가 뜨고 지는 자리.
+        정시 눈금만 두면 하루가 6시에 시작해 18시에 끝나는 것처럼 보인다 — 양 끝에 실제 시각을
+        적어 두어야 그 사이가 오늘 해가 떠 있던 동안이라는 것이 읽힌다.
+      */}
+      <text x={pointAt(0).x} y={HORIZON_Y + 24} className={styles.arc__edge} textAnchor="start">
+        일출 {clockOf(SUNRISE_HOUR)}
+      </text>
+      <text x={pointAt(1).x} y={HORIZON_Y + 24} className={styles.arc__edge} textAnchor="end">
+        일몰 {clockOf(SUNSET_HOUR)}
+      </text>
 
       {/* 현재 시각 */}
       <motion.g initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.6, duration: 0.5 }}>
