@@ -17,7 +17,7 @@ interface ControlRoomLayoutProps {
    * 이름표가 없으면 회의 자리에서 "왼쪽 그거" 로만 불리게 된다. 고르고 나면 지운다.
    */
   variantLabel?: string;
-  /** 손봐야 할 경보 중 가장 급한 결. 없으면 null — 화면 테두리가 그 색으로 점등한다. */
+  /** 손봐야 할 경보 중 가장 급한 결. 없으면 null — 화면 테두리와 바탕이 그 색으로 점등한다. */
   alertTone: 'critical' | 'caution' | 'offline' | null;
   /** 검색창을 눌렀을 때 — 조회 조건 모달을 연다 (SFR-004-11/12) */
   onSearch: () => void;
@@ -41,9 +41,10 @@ export function ControlRoomLayout({
   const { isFullscreen, toggle: toggleFullscreen } = useFullscreen();
 
   return (
-    <div className={styles.room}>
+    /* 결을 화면 전체가 물려받는다 — 바탕과 가장자리가 같은 색으로 함께 점등한다 */
+    <div className={styles.room} data-alert={alertTone ?? undefined}>
       {/* 멀리서도 "지금 뭔가 잘못됐다" 가 읽히도록 화면 가장자리가 맥동한다 */}
-      {alertTone ? <span className={styles.edge} data-tone={alertTone} aria-hidden="true" /> : null}
+      {alertTone ? <span className={styles.edge} aria-hidden="true" /> : null}
 
       <header className={styles.bar}>
         <div className={styles.bar__left}>
