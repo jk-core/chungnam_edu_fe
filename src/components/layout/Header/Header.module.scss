@@ -99,14 +99,30 @@
     }
   }
 
-  &__dot {
+  /*
+    미조치 건수.
+
+    7px 점 하나로는 있는지조차 눈에 걸리지 않았다. 수를 적어 종 위에 얹고, 화면이 나눠 쓰는
+    맥동 시계를 따라 옅게 숨 쉬게 한다 — 지도 마커·경보 테두리와 같은 박자라 화면 전체가
+    하나의 신호로 읽힌다.
+  */
+  &__badge {
+    @include t.data-sm;
+
     position: absolute;
-    top: 6px;
-    right: 6px;
-    width: 7px;
-    height: 7px;
-    border: 1.5px solid var(--surface);
-    border-radius: 50%;
+    top: -2px;
+    right: -2px;
+    display: grid;
+    place-items: center;
+    min-width: 18px;
+    height: 18px;
+    padding: 0 5px;
+    border: 2px solid var(--surface);
+    border-radius: s.$radius-full;
     background-color: var(--critical);
+    color: var(--text-on-brand);
+    font-size: 0.6875rem;
+    line-height: 1;
+    box-shadow: 0 0 0 calc(var(--pulse) * 4px) rgb(from var(--critical) r g b / calc(30% - var(--pulse) * 30%));
   }
 }

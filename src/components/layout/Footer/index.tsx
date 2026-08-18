@@ -1,6 +1,4 @@
-import { Link } from 'react-router-dom';
 import { Logo } from '@/components/layout/Logo';
-import { NAVIGATION } from '@/configs/navigation';
 import styles from './Footer.module.scss';
 
 const RELATED_SITES = [
@@ -22,22 +20,11 @@ export function Footer() {
           </address>
         </div>
 
-        <nav className={styles.footer__nav} aria-label="푸터 메뉴">
-          {NAVIGATION.filter((section) => section.children.length > 0).map((section) => (
-            <div key={section.path} className={styles.footer__group}>
-              <p className={styles.footer__groupTitle}>{section.label}</p>
-              <ul className={styles.footer__links}>
-                {section.children.map((child) => (
-                  <li key={child.path}>
-                    <Link to={child.path} className={styles.footer__link}>
-                      {child.label}
-                    </Link>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          ))}
-
+        {/*
+          메뉴는 되풀이하지 않는다 — 머리띠가 어느 화면에서나 같은 길을 이미 열어 두고 있어,
+          발치에 한 벌 더 두면 같은 이름이 두 번 읽힐 뿐이다. 바깥으로 나가는 길만 남긴다.
+        */}
+        <nav className={styles.footer__nav} aria-label="관련 기관">
           <div className={styles.footer__group}>
             <p className={styles.footer__groupTitle}>관련 기관</p>
             <ul className={styles.footer__links}>

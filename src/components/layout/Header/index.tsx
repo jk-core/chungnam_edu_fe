@@ -52,7 +52,15 @@ export function Header() {
               onClick={() => setIsAlertOpen((prev) => !prev)}
             >
               <BellIcon />
-              {pendingCount > 0 ? <span className={styles.header__dot} aria-hidden /> : null}
+              {/*
+                점 하나로는 몇 건인지도, 급한지도 알 수 없어 눈에 걸리지 않았다.
+                수를 적어 두면 지나치기 어렵고, 누르기 전에 무게를 가늠할 수 있다.
+              */}
+              {pendingCount > 0 ? (
+                <span className={styles.header__badge} aria-hidden>
+                  {pendingCount > 99 ? '99+' : pendingCount}
+                </span>
+              ) : null}
             </button>
 
             {/* 좁은 화면에는 주메뉴 줄이 서지 않는다 — 그때는 이 단추가 길을 여는 유일한 문이다 */}
