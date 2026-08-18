@@ -264,9 +264,10 @@ export const IMPACT_ICONS: Record<string, ReactNode> = {
 /** 지금 이 순간의 수치들 */
 export const STAT_ICONS: Record<string, ReactNode> = {
   today: <BoltIcon />,
-  irradiance: <IrradianceIcon />,
   insolation: <InsolationIcon />,
-  area: <AreaIcon />,
+  co2: <LeafIcon />,
+  irradiance: <IrradianceIcon />,
+  capacity: <AreaIcon />,
 };
 
 /** 곡선 읽는 법 */

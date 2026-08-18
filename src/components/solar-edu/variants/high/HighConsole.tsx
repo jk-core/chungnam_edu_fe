@@ -46,7 +46,7 @@ export function HighConsole({ scopeLabel, stats, content }: HighConsoleProps) {
     { id: 'irradiance', label: '일사강도', raw: `${formatNumber(stats.irradianceNow)} W/m²`, ratio: stats.irradianceNow / FULL_SUN_WM2 },
     { id: 'load', label: '출력 / 설비용량', raw: formatPercent(stats.loadRatio), ratio: stats.loadRatio },
     { id: 'achieved', label: '기대 대비 달성률', raw: formatPercent(achieved), ratio: achieved },
-    { id: 'hours', label: '등가 발전시간', raw: `${formatNumber(stats.equivalentHours, 1)} h`, ratio: stats.equivalentHours / 8 },
+    { id: 'hours', label: '발전시간', raw: `${formatNumber(stats.equivalentHours, 1)} h`, ratio: stats.equivalentHours / 8 },
   ];
 
   // 결론. 목데이터에는 확률이 없으므로 달성률을 그대로 신뢰도로 삼되, 무엇으로 셈했는지 밝힌다.

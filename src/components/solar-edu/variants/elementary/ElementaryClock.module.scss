@@ -103,27 +103,6 @@
   font-weight: 600;
 }
 
-.core {
-  &__label {
-    fill: var(--text-muted);
-    font-family: var(--font-sans);
-    font-size: 16px;
-  }
-
-  &__value {
-    fill: var(--text-strong);
-    font-family: var(--font-data);
-    font-size: 42px;
-    font-weight: 700;
-  }
-
-  &__unit {
-    fill: var(--text-muted);
-    font-family: var(--font-data);
-    font-size: 17px;
-  }
-}
-
 // ── 해 ─────────────────────────────────────────────────────
 
 /* 걸어 두는 화면이라 움직임은 전부 CSS 로 둔다 — 문서가 가려져도 계속 돈다 */

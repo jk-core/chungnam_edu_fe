@@ -80,69 +80,6 @@
   color: var(--text-muted);
 }
 
-.dial {
-  position: relative;
-  display: grid;
-  place-items: center;
-  width: 62px;
-  height: 62px;
-  flex-shrink: 0;
-
-  &__aura {
-    @include ai.aura;
-
-    inset: 4px;
-  }
-
-  &__sweep {
-    @include ai.sweep;
-  }
-
-  &__svg {
-    position: relative;
-    z-index: 1;
-    width: 100%;
-    height: 100%;
-  }
-
-  &__track {
-    fill: none;
-    stroke: var(--border-subtle);
-  }
-
-  &__value {
-    @include ai.gauge-stroke;
-  }
-
-  &__percent {
-    @include t.data-sm;
-
-    position: absolute;
-    z-index: 2;
-    color: var(--ai-stage, var(--brand));
-    font-variant-numeric: tabular-nums;
-    transition: color 0.7s ease;
-
-    small {
-      font-size: 9px;
-      margin-left: 1px;
-    }
-  }
-}
-
-.tick {
-  stroke: var(--border-strong);
-  stroke-width: 2;
-  stroke-linecap: round;
-  opacity: 0.4;
-  transition: stroke 0.4s ease, opacity 0.4s ease;
-
-  &--lit {
-    stroke: var(--ai-stage, var(--brand));
-    opacity: 1;
-  }
-}
-
 /* ── 설비 그림 ────────────────────────────────────────────── */
 .plant {
   display: flex;

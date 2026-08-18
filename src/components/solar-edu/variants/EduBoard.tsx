@@ -2,17 +2,14 @@ import type { EduLevel } from '@/interface/edu';
 import type { EduContent } from '@/mocks/eduContent';
 import type { EduStats } from '@/mocks/solarEdu';
 import { ElementaryClock } from './elementary/ElementaryClock';
-import { ElementaryCount } from './elementary/ElementaryCount';
 import { ElementaryPoster } from './elementary/ElementaryPoster';
 import { MiddleCompare } from './middle/MiddleCompare';
 import { MiddleFlow } from './middle/MiddleFlow';
-import { MiddleQuiz } from './middle/MiddleQuiz';
 import { HighConsole } from './high/HighConsole';
-import { HighLab } from './high/HighLab';
 import { HighTimeline } from './high/HighTimeline';
 
 /** 비교용 시안. 현행은 이름이 없다 — 그것이 시안 A 다. */
-export type EduVariant = 'b' | 'c' | 'd';
+export type EduVariant = 'b' | 'd';
 
 /**
  * 시안 이름표.
@@ -25,11 +22,6 @@ export const EDU_VARIANT_LABEL: Record<EduVariant, Record<EduLevel, string>> = {
     elementary: '시안 B · 우리 학교의 하루',
     middle: '시안 B · 흐름도 한 장',
     high: '시안 B · AI 콘솔',
-  },
-  c: {
-    elementary: '시안 C · 숫자 놀이터',
-    middle: '시안 C · 질문 타일',
-    high: '시안 C · 데이터 랩',
   },
   d: {
     elementary: '시안 D · 한 장 그림',
@@ -56,20 +48,17 @@ interface EduBoardProps {
 export function EduBoard({ variant, scopeLabel, stats, content, nowHour }: EduBoardProps) {
   if (content.level === 'elementary') {
     if (variant === 'b') return <ElementaryClock stats={stats} content={content} nowHour={nowHour} />;
-    if (variant === 'c') return <ElementaryCount stats={stats} content={content} />;
 
     return <ElementaryPoster stats={stats} content={content} nowHour={nowHour} />;
   }
 
   if (content.level === 'middle') {
     if (variant === 'b') return <MiddleFlow stats={stats} content={content} />;
-    if (variant === 'c') return <MiddleQuiz stats={stats} content={content} />;
 
     return <MiddleCompare scopeLabel={scopeLabel} stats={stats} content={content} />;
   }
 
   if (variant === 'b') return <HighConsole scopeLabel={scopeLabel} stats={stats} content={content} />;
-  if (variant === 'c') return <HighLab scopeLabel={scopeLabel} stats={stats} content={content} />;
 
   return <HighTimeline scopeLabel={scopeLabel} stats={stats} content={content} />;
 }

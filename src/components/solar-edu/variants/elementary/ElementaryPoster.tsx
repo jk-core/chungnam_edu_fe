@@ -4,6 +4,7 @@ import { formatNumber } from '@/utils/format';
 import type { ElementaryContent } from '@/mocks/eduContent';
 import type { EduStats } from '@/mocks/solarEdu';
 import { BenefitScene } from '../../scene-art/BenefitScene';
+import { ImpactArt } from '../../scene-art/ImpactArt';
 import { JourneyScene } from '../../scene-art/JourneyScene';
 import styles from './ElementaryPoster.module.scss';
 
@@ -33,6 +34,12 @@ export function ElementaryPoster({ stats, content, nowHour }: ElementaryPosterPr
     값만 적으면 그림 아래 붙은 숫자표가 된다. 마디마다 **여기서 무슨 일이 일어나는지** 를 한 줄씩
     적어야 벽보가 설명이 된다 — 걸어 두는 화면의 목적이 태양광을 설명하는 것이기 때문이다.
   */
+  const IMPACTS = [
+    { id: 'tree', art: 'tree' as const, label: '나무를 심은 만큼', unit: '그루', value: (v: typeof stats) => kwhToTrees(v.dayKwh) },
+    { id: 'aircon', art: 'aircon' as const, label: '에어컨을 켜 두면', unit: '시간', value: (v: typeof stats) => (v.dayKwh * 1000) / AIRCON_WATT },
+    { id: 'house', art: 'house' as const, label: '한 집이 쓰는 날', unit: '일', value: (v: typeof stats) => kwhToHouseholdDays(v.dayKwh) },
+  ];
+
   const marks = [
     {
       id: 'sun',
@@ -44,8 +51,8 @@ export function ElementaryPoster({ stats, content, nowHour }: ElementaryPosterPr
     {
       id: 'panel',
       label: '태양전지',
-      value: `${formatNumber(stats.moduleArea)}m²`,
-      note: '햇빛 받는 넓이',
+      value: `${formatNumber(stats.capacityKw, 1)}kW`,
+      note: '우리 학교 설비',
       why: '햇빛을 받으면 판 안에서 전기가 한 방향으로 흐르기 시작해요',
     },
     {
@@ -97,10 +104,25 @@ export function ElementaryPoster({ stats, content, nowHour }: ElementaryPosterPr
         <section className={styles.numbers} aria-label="오늘 만든 전기로 할 수 있는 일">
           <h2 className={styles.stage__title}>이만큼 할 수 있어요</h2>
 
+          {/*
+            숫자만 늘어놓으면 표가 된다. 그림을 앞에 세우면 무엇에 빗댄 수인지가 읽기 전에
+            먼저 들어온다 — 시안 B 의 환산 판이 쓰는 방식을 그대로 가져왔다.
+          */}
           <ul className={styles.numbers__list}>
-            <Number label="나무를 심은 만큼" value={formatNumber(kwhToTrees(stats.dayKwh))} unit="그루" tone="ok" />
-            <Number label="에어컨을 켜 두면" value={formatNumber((stats.dayKwh * 1000) / AIRCON_WATT)} unit="시간" tone="brand" />
-            <Number label="한 집이 쓰는 날" value={formatNumber(kwhToHouseholdDays(stats.dayKwh))} unit="일" tone="brand" />
+            {IMPACTS.map((item) => (
+              <li key={item.id} className={styles.impact}>
+                <span className={styles.impact__art}>
+                  <ImpactArt id={item.art} />
+                </span>
+                <span className={styles.impact__text}>
+                  <span className={styles.impact__label}>{item.label}</span>
+                  <strong className={styles.impact__value}>
+                    {formatNumber(item.value(stats))}
+                    <span className={styles.impact__unit}>{item.unit}</span>
+                  </strong>
+                </span>
+              </li>
+            ))}
           </ul>
         </section>
 
@@ -127,28 +149,5 @@ export function ElementaryPoster({ stats, content, nowHour }: ElementaryPosterPr
         </section>
       </div>
     </div>
-  );
-}
-
-/** 왼쪽 아래 숫자 한 줄 */
-function Number({
-  label,
-  value,
-  unit,
-  tone,
-}: {
-  label: string;
-  value: string;
-  unit: string;
-  tone: 'ok' | 'brand';
-}) {
-  return (
-    <li className={styles.number} data-tone={tone}>
-      <span className={styles.number__label}>{label}</span>
-      <p className={styles.number__value}>
-        {value}
-        <span>{unit}</span>
-      </p>
-    </li>
   );
 }

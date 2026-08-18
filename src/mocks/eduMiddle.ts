@@ -44,16 +44,24 @@ export interface MiddleBenefitContent {
 
 export const MIDDLE_CONTENT: MiddleContent = {
   level: 'middle',
-  emphasis: 'normal',
+  emphasis: 'large',
   headline: {
     mainLabel: '지금 만들고 있는 전기',
     mainNote: (stats) =>
       `가장 셀 때(${formatNumber(stats.capacityKw)}kW)와 견주면 지금 이만큼 만들고 있어요`,
-    statIds: ['today', 'irradiance', 'insolation'],
+    statIds: ['today', 'insolation', 'co2', 'irradiance', 'capacity'],
     copy: {
       insolation: {
-        label: '해를 모은 시간',
+        label: '발전시간',
         note: () => '가장 셀 때로만 돌렸다면 이만큼 걸렸을 거예요',
+      },
+      co2: {
+        label: '줄인 온실가스',
+        note: () => '화력발전이 그만큼 덜 돌아서 아낀 양이에요',
+      },
+      capacity: {
+        label: '설비용량',
+        note: () => '한꺼번에 낼 수 있는 가장 큰 출력이에요',
       },
     },
   },

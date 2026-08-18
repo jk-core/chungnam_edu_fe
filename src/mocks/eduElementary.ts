@@ -218,15 +218,27 @@ export const ELEMENTARY_CONTENT: ElementaryContent = {
   headline: {
     mainLabel: '지금 만들고 있는 전기',
     mainNote: () => '가장 셀 때랑 견주면 지금 이만큼 만들고 있어요',
-    statIds: ['today', 'irradiance'],
+    statIds: ['today', 'insolation', 'co2', 'irradiance', 'capacity'],
     copy: {
       today: {
         label: '오늘 만든 전기',
         note: (stats) => `집 ${formatNumber(kwhToHouseholdDays(stats.todayKwh))}곳이 하루 쓸 만큼이에요`,
       },
+      insolation: {
+        label: '해를 모은 시간',
+        note: () => '해가 가장 좋을 때로만 치면 이만큼이에요',
+      },
+      co2: {
+        label: '지킨 공기',
+        note: () => '나쁜 연기가 그만큼 덜 나왔어요',
+      },
       irradiance: {
         label: '지금 햇빛 세기',
         note: () => '해가 가장 좋은 낮이 100점이에요',
+      },
+      capacity: {
+        label: '우리 학교 설비',
+        note: () => '한 번에 가장 많이 만들 수 있는 양이에요',
       },
     },
   },

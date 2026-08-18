@@ -35,6 +35,18 @@ export function HeadlineStrip({ stats, content, large }: HeadlineStripProps) {
           />
           <span className={styles.headline__unit}>kW</span>
         </p>
+        {/*
+          지금 출력이 설비가 낼 수 있는 최대의 몇 할인지.
+          숫자만 있으면 300kW 가 센지 약한지 견줄 것이 없다. 높이는 늘 같게 두어 값이
+          오르내려도 아래 그림이 밀리지 않는다.
+        */}
+        <span className={styles.headline__gauge} role="img" aria-label={`설비 최대 대비 ${Math.round(stats.loadRatio * 100)}퍼센트`}>
+          <span
+            className={styles.headline__gaugeFill}
+            style={{ width: `${Math.min(100, Math.max(2, stats.loadRatio * 100))}%` }}
+          />
+        </span>
+
         <p className={styles.headline__note}>{content.mainNote(stats)}</p>
       </div>
 

@@ -13,13 +13,6 @@ import { TraceBorder } from './ai/TraceBorder';
 import styles from './AiScanPanel.module.scss';
 import type { CSSProperties } from 'react';
 
-/** 게이지 호의 반지름과 둘레 — viewBox 100×100 기준 */
-const RADIUS = 42;
-const CIRCUMFERENCE = 2 * Math.PI * RADIUS;
-
-/** 링 둘레의 눈금 수. 계기판처럼 보이게 하되, 촘촘하면 뭉개져 이 정도가 한계다. */
-const TICKS = 48;
-
 interface AiScanPanelProps {
   content: EduAiContent;
   /** 화면이 이미 만들어 둔 값 — 여기서 다시 계산하면 옆 곡선과 숫자가 갈린다 */
@@ -42,7 +35,6 @@ interface AiScanPanelProps {
 export function AiScanPanel({ content, stats, insight, scan }: AiScanPanelProps) {
   const current = scan.stage.stage;
   const shown = insight.lines.slice(0, scan.revealed);
-  const litTicks = Math.round((scan.percent / 100) * TICKS);
   const writing = current === 'reason' || current === 'done';
 
   return (
@@ -69,43 +61,6 @@ export function AiScanPanel({ content, stats, insight, scan }: AiScanPanelProps)
           <span className={styles.note}>{content.note}</span>
         </span>
 
-        {/* 진행은 아래 파이프라인이 자세히 말하므로 여기서는 작은 링으로 몇 %인지만 남긴다 */}
-        <span className={styles.dial}>
-          <span className={styles.dial__aura} aria-hidden="true" />
-          <span className={styles.dial__sweep} aria-hidden="true" />
-
-          <svg className={styles.dial__svg} viewBox="0 0 100 100" aria-hidden="true" focusable="false">
-            <g>
-              {Array.from({ length: TICKS }, (_, index) => (
-                <line
-                  key={index}
-                  className={cn(styles.tick, { [styles['tick--lit']]: index < litTicks })}
-                  x1="50"
-                  y1="2.5"
-                  x2="50"
-                  y2="7"
-                  transform={`rotate(${(index * 360) / TICKS} 50 50)`}
-                />
-              ))}
-            </g>
-            <circle className={styles.dial__track} cx="50" cy="50" r={RADIUS} strokeWidth="6" />
-            <circle
-              className={styles.dial__value}
-              cx="50"
-              cy="50"
-              r={RADIUS}
-              strokeWidth="6"
-              strokeDasharray={CIRCUMFERENCE}
-              strokeDashoffset={CIRCUMFERENCE * (1 - scan.percent / 100)}
-              transform="rotate(-90 50 50)"
-            />
-          </svg>
-
-          <span className={styles.dial__percent}>
-            {Math.round(scan.percent)}
-            <small>%</small>
-          </span>
-        </span>
       </div>
 
       {/* AI 가 들여다보는 설비 한 벌. 단계가 넘어가면 겨냥 상자가 다음 자리로 옮겨 간다 */}

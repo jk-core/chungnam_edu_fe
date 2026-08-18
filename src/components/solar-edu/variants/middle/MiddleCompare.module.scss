@@ -237,28 +237,6 @@
   box-shadow: var(--shadow-sm);
 }
 
-.panel {
-  &__head {
-    display: flex;
-    align-items: baseline;
-    justify-content: space-between;
-    gap: s.$space-3;
-    flex-wrap: wrap;
-  }
-
-  &__title {
-    @include t.label-md;
-
-    color: var(--text-strong);
-  }
-
-  &__note {
-    @include t.caption;
-
-    color: var(--text-muted);
-  }
-}
-
 .curve {
   &__canvas {
     display: flex;

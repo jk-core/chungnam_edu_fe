@@ -56,10 +56,7 @@ export function resolveEduLevel(plant: School | null, param: string | null): Edu
 
 // ── 지표 레지스트리 ────────────────────────────────────────
 
-/** 표준 교실 한 칸의 넓이(m²) — 넓이를 몸으로 아는 단위로 바꿔 준다. */
-const CLASSROOM_M2 = 66;
-
-export type StatId = 'today' | 'irradiance' | 'insolation' | 'area';
+export type StatId = 'today' | 'insolation' | 'co2' | 'irradiance' | 'capacity';
 
 export interface StatDef {
   label: string;
@@ -93,12 +90,24 @@ export const STAT_DEFS: Record<StatId, StatDef> = {
     fractionDigits: 1,
     note: () => '가장 셀 때로 치면 이만큼 돌린 셈이에요',
   },
-  area: {
-    label: '햇빛 받는 넓이',
-    value: (stats) => stats.moduleArea,
-    unit: 'm²',
+  co2: {
+    label: '줄인 온실가스',
+    value: (stats) => stats.todayKwh * CO2_PER_KWH,
+    unit: 'kg',
     fractionDigits: 0,
-    note: (stats) => `교실 ${formatNumber(stats.moduleArea / CLASSROOM_M2)}칸만 한 넓이예요`,
+    note: () => '화력발전이 그만큼 덜 돌아서 아낀 양이에요',
+  },
+  /*
+    설비용량.
+    처음에는 모듈 넓이를 적었는데 그 값은 실제로 들어오지 않는 수였다 — 화면에 있으면
+    있는 값처럼 읽히므로 걷어내고, 대신 이 학교 설비가 얼마나 큰지를 적는다.
+  */
+  capacity: {
+    label: '설비 크기',
+    value: (stats) => stats.capacityKw,
+    unit: 'kW',
+    fractionDigits: 1,
+    note: () => '한꺼번에 가장 많이 만들 수 있는 양이에요',
   },
 };
 
@@ -321,7 +330,34 @@ const HIGH: HighContent = {
     mainLabel: '지금 만들고 있는 전기',
     mainNote: (stats) =>
       `가장 셀 때(${formatNumber(stats.capacityKw)}kW)의 ${formatPercent(stats.loadRatio)}만큼 만들고 있어요`,
-    statIds: ['today', 'irradiance', 'insolation', 'area'],
+    statIds: ['today', 'insolation', 'co2', 'irradiance', 'capacity'],
+    /*
+      고등은 교과서에서 쓰는 말을 그대로 쓴다.
+      초등·중등에 맞춰 풀어 쓴 말("해를 모은 시간")을 여기에 그대로 두면, 정작 그 값을
+      다른 자료에서 다시 만났을 때 같은 것인 줄 알아보지 못한다.
+    */
+    copy: {
+      today: {
+        label: '금일 발전량',
+        note: (stats) => `4인 가구 ${formatNumber(kwhToHouseholdDays(stats.todayKwh))}가구의 하루 사용량에 해당해요`,
+      },
+      insolation: {
+        label: '발전시간',
+        note: () => '발전량 ÷ 설비용량. 크기가 다른 설비를 같은 눈금에 세우는 값이에요',
+      },
+      co2: {
+        label: '탄소 저감량',
+        note: () => `배출계수 ${CO2_PER_KWH}kgCO₂/kWh 를 적용했어요`,
+      },
+      irradiance: {
+        label: '일사강도',
+        note: (stats) => `${formatNumber(stats.irradianceNow)} W/m² · 맑은 날 정오 1,000W/m² 를 100 으로 봤어요`,
+      },
+      capacity: {
+        label: '설비용량',
+        note: () => '설치된 모듈이 한꺼번에 낼 수 있는 최대 출력이에요',
+      },
+    },
   },
   sunPath: {
     head: '해는 하루 동안 이렇게 지나가요',
@@ -395,8 +431,8 @@ const HIGH: HighContent = {
     ],
   },
   ai: {
-    head: 'AI 가 지금 이 설비를 살펴보고 있어요',
-    note: '계측값을 모아 기대치와 견주고, 왜 그런지 문장으로 남깁니다',
+    head: '햇빛이 전기가 되기까지, 단계마다 무슨 일이 일어날까요',
+    note: '태양전지 셀에서 계통까지 네 단계를 차례로 짚어 봅니다. 각 자리에서 AI 가 무엇을 보는지도 함께 적었어요',
     stages: {
       scan: {
         label: '센서 값 모으기',
