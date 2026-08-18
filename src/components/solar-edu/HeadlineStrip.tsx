@@ -6,6 +6,7 @@ import type { HeadlineContent } from '@/mocks/eduContent';
 import type { EduStats } from '@/mocks/solarEdu';
 import { STAT_ICONS } from './EduIcons';
 import styles from './SolarEdu.module.scss';
+import type { CSSProperties } from 'react';
 
 interface HeadlineStripProps {
   stats: EduStats;
@@ -50,7 +51,11 @@ export function HeadlineStrip({ stats, content, large }: HeadlineStripProps) {
         <p className={styles.headline__note}>{content.mainNote(stats)}</p>
       </div>
 
-      <ul className={styles.headline__list}>
+      {/* 열 수를 항목 수에서 끌어온다 — 스타일 쪽에 숫자를 박아 두면 지표를 늘릴 때 두 곳을 고쳐야 한다 */}
+      <ul
+        className={styles.headline__list}
+        style={{ '--stat-count': content.statIds.length } as CSSProperties}
+      >
         {content.statIds.map((id) => {
           const item = statOf(id, content.copy?.[id]);
 
