@@ -38,7 +38,7 @@ export function HighBoard({ scopeLabel, stats, content }: HighBoardProps) {
     <div className={styles.grid}>
       <div className={styles.column}>
         {/* 값을 모으고 견주는 두 단계는 계측 곡선을 읽는다 */}
-        <ScanFrame active={stage === 'scan' || stage === 'classify'} label="계측값 읽는 중">
+        <ScanFrame active={stage === 'scan' || stage === 'classify'} label="계측값 수집 중">
           <DayCurvePanel stats={stats} content={content.day} />
         </ScanFrame>
 
@@ -53,7 +53,7 @@ export function HighBoard({ scopeLabel, stats, content }: HighBoardProps) {
         <ImpactPanel scopeLabel={scopeLabel} stats={stats} content={content.impact} />
 
         {/* 왜 그런지 따질 때는 설비 쪽을 살핀다 */}
-        <ScanFrame active={stage === 'reason'} label="설비 살펴보는 중">
+        <ScanFrame active={stage === 'reason'} label="설비 점검 중">
           <JourneyPanel stats={stats} content={content.journey} />
         </ScanFrame>
       </div>

@@ -23,16 +23,16 @@ const COPY: Record<EduLevel, Record<StepId, { label: string; line: string }>> = 
     school: { label: '교실', line: '불을 켜고 선풍기를 돌리는 데 써요' },
   },
   middle: {
-    sun: { label: '햇빛', line: '해가 높을수록 판 1m²가 받는 힘이 세져요' },
-    cell: { label: '태양전지', line: '빛 알갱이가 전자를 떼어 내 한 방향으로 흘려요' },
-    inverter: { label: '인버터', line: '한 방향으로만 흐르는 직류를 교류로 바꿔요' },
-    school: { label: '학교', line: '학교가 먼저 쓰고, 남으면 전기망으로 내보내요' },
+    sun: { label: '일사강도', line: '해가 높을수록 판 1m² 가 받는 에너지가 커진다' },
+    cell: { label: '태양전지', line: '햇빛을 받은 전자가 한 방향으로 흘러 직류가 된다' },
+    inverter: { label: '인버터', line: '한 방향으로만 흐르는 직류를 교류로 바꾼다' },
+    school: { label: '학교', line: '학교가 먼저 쓰고, 남으면 전기망으로 내보낸다' },
   },
   high: {
     sun: { label: '일사강도', line: '수평면 도달 복사 에너지. STC 기준 1,000W/m²' },
     cell: { label: '태양전지', line: 'PN 접합의 광기전력 효과로 직류를 만든다' },
     inverter: { label: '인버터', line: 'MPPT 로 최대 전력점을 좇으며 DC 를 AC 로 바꾼다' },
-    school: { label: '계통', line: '자가소비 후 잉여분은 계통으로 역송한다' },
+    school: { label: '계통', line: '자가소비 후 잉여 전력은 계통으로 역송한다' },
   },
 };
 
@@ -57,7 +57,12 @@ interface PrincipleStripProps {
  * 시안마다 자리와 크기만 다르게 품는다. 같은 부품을 쓰되 어디에 놓느냐가 그 시안의 주장이다.
  */
 export function PrincipleStrip({ stats, level, heading }: PrincipleStripProps) {
-  // 판이 받는 빛의 힘(kW) — 일사강도 × 모듈 면적. 첫 마디가 이 값이다.
+  /*
+    모듈 전면에 들어오는 빛의 세기(kW) — 일사강도 × 모듈 면적.
+
+    모듈 면적은 계측값이 아니라 설비용량에서 어림한 값이라 화면에 수로 적지 않는다. 적어 두면
+    실제로 재어 온 값처럼 읽힌다. 여기서는 다음 마디(출력)와 견주기 위한 밑값으로만 쓴다.
+  */
   const sunKw = (stats.irradianceNow * stats.moduleArea) / 1000;
   // 빛이 전기가 되는 비율. 계측값끼리 나눈 값이라 날씨에 따라 오르내린다.
   const efficiency = sunKw > 0 ? (stats.outputKw / sunKw) * 100 : 0;
@@ -75,21 +80,21 @@ export function PrincipleStrip({ stats, level, heading }: PrincipleStripProps) {
       id: 'cell' as const,
       value: formatNumber(sunKw, 1),
       unit: 'kW',
-      foot: `${formatNumber(stats.moduleArea)}m²가 받는 빛의 힘`,
+      foot: '모듈 전면에 들어오는 빛의 세기',
       tone: 'solar',
     },
     {
       id: 'inverter' as const,
       value: formatNumber(stats.outputKw, 1),
       unit: 'kW',
-      foot: `받은 빛의 ${formatNumber(efficiency, 1)}%가 전기로`,
+      foot: `들어온 빛의 ${formatNumber(efficiency, 1)}% 가 전기로`,
       tone: 'brand',
     },
     {
       id: 'school' as const,
       value: formatNumber(stats.todayKwh, 0),
       unit: 'kWh',
-      foot: '오늘 지금까지 쌓인 양',
+      foot: '금일 지금까지 쌓인 발전량',
       tone: 'ok',
     },
   ];

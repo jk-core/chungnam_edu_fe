@@ -101,7 +101,7 @@ export function JourneyOverviewArt({ stats, focus }: JourneyOverviewArtProps) {
           DC
         </text>
         {/* 배지는 케이블·설비를 가리지 않는 빈자리에 둔다 */}
-        <Badge x={120} y={116} tone="solar" title="지금 햇빛 세기" value={`${formatNumber(stats.irradianceNow)} W/m²`} />
+        <Badge x={120} y={116} tone="solar" title="일사강도" value={`${formatNumber(stats.irradianceNow)} W/m²`} />
       </g>
 
       {/* ── 3. 인버터 두 대 ─────────────────────────────── */}
@@ -137,7 +137,7 @@ export function JourneyOverviewArt({ stats, focus }: JourneyOverviewArtProps) {
         <text x="244" y="134" fill="var(--ok-text)" fontSize="10" fontFamily="Space Grotesk, sans-serif">
           AC
         </text>
-        <Badge x={302} y={116} tone="ok" title="교류 60Hz · 지금 출력" value={`${formatNumber(stats.outputKw, 1)} kW`} />
+        <Badge x={302} y={116} tone="ok" title="교류 60Hz · 실시간 출력" value={`${formatNumber(stats.outputKw, 1)} kW`} />
       </g>
 
       {/*

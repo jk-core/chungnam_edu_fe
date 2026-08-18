@@ -59,7 +59,7 @@ export function MiddleCompare({ scopeLabel, stats, content }: MiddleCompareProps
       id: 'day',
       question: '오늘과 어제, 무엇이 달랐을까?',
       variable: '날씨만 다름',
-      because: '설비는 그대로예요. 달라진 것은 하늘뿐이라, 차이는 곧 햇빛의 차이예요.',
+      because: '설비는 그대로다. 달라진 것은 날씨뿐이므로, 이 차이는 곧 일사량의 차이다.',
       left: { label: '오늘', value: stats.dayKwh },
       right: { label: '어제', value: stats.dayKwh * YESTERDAY_RATIO },
       unit: 'kWh',
@@ -70,7 +70,7 @@ export function MiddleCompare({ scopeLabel, stats, content }: MiddleCompareProps
       id: 'weather',
       question: '맑은 날과 흐린 날은 얼마나 차이 날까?',
       variable: '구름만 다름',
-      because: '구름이 햇빛을 가리면 판이 받는 힘 자체가 줄어요. 설비가 고장 난 것이 아니에요.',
+      because: '구름이 햇빛을 가리면 판에 닿는 에너지 자체가 줄어든다. 설비 고장이 아니다.',
       left: { label: '맑은 날', value: stats.dayKwh },
       right: { label: '흐린 날', value: stats.dayKwh * CLOUDY_RATIO },
       unit: 'kWh',
@@ -80,8 +80,8 @@ export function MiddleCompare({ scopeLabel, stats, content }: MiddleCompareProps
     {
       id: 'peer',
       question: '우리 학교는 다른 학교와 견주면 어떨까?',
-      variable: '설비 크기를 지움',
-      because: '설비 크기가 다르니 총량으로는 못 견줘요. 1kW 가 몇 시간치를 냈는지로 나눠야 해요.',
+      variable: '설비용량 차이를 지움',
+      because: '설비용량이 다르므로 총량으로는 견줄 수 없다. 1kW 가 몇 시간치를 냈는지로 나눠야 한다.',
       left: { label: scopeLabel, value: stats.equivalentHours },
       right: { label: '관내 평균', value: stats.equivalentHours * PEER_RATIO },
       unit: '시간',
@@ -97,7 +97,7 @@ export function MiddleCompare({ scopeLabel, stats, content }: MiddleCompareProps
       <header className={styles.head}>
         <h2 className={styles.head__title}>둘씩 놓고 견줘 보기</h2>
         <p className={styles.head__note}>
-          한 번에 하나만 달리해 놓고 견주면, 무엇이 발전량을 바꾸는지가 보여요
+          한 번에 하나만 달리해 놓고 견주면, 무엇이 발전량을 바꾸는지가 드러난다
         </p>
       </header>
 
@@ -120,9 +120,9 @@ export function MiddleCompare({ scopeLabel, stats, content }: MiddleCompareProps
       <PrincipleStrip stats={stats} level="middle" heading="견주기 전에 — 햇빛이 전기가 되는 길" />
 
       <div className={styles.bottom}>
-        <section className={styles.curve} aria-label="오늘 하루 발전 곡선">
+        <section className={styles.curve} aria-label="금일 발전 곡선">
           <header className={styles.panel__head}>
-            <h2 className={styles.panel__title}>오늘 하루의 모양</h2>
+            <h2 className={styles.panel__title}>금일 발전 곡선</h2>
             <p className={styles.panel__note}>{content.production.note(stats)}</p>
           </header>
           <div className={styles.curve__canvas}>
@@ -135,16 +135,15 @@ export function MiddleCompare({ scopeLabel, stats, content }: MiddleCompareProps
             <h2 className={styles.panel__title}>견줄 때 쓴 값</h2>
             {/* 지어 낸 값을 실측인 척 내놓지 않는다 */}
             <p className={styles.facts__disclaimer}>
-              어제·흐린 날·관내 평균은 견주려고 어림한 예시예요
+              어제·흐린 날·관내 평균은 견주기 위해 어림한 예시값이다
             </p>
           </header>
 
           <dl className={styles.facts__list}>
             <Fact label="설비용량" value={`${formatNumber(stats.capacityKw)}kW`} />
-            <Fact label="햇빛 받는 넓이" value={`${formatNumber(stats.moduleArea)}m²`} />
-            <Fact label="지금 햇빛 세기" value={`${Math.round((stats.irradianceNow / FULL_SUN_WM2) * 100)}점`} />
-            <Fact label="해가 떠 있는 시간" value={`${formatNumber(SUNSET_HOUR - SUNRISE_HOUR, 1)}시간`} />
-            <Fact label="해를 모은 시간" value={`${formatNumber(stats.equivalentHours, 1)}시간`} />
+            <Fact label="일사강도" value={`${Math.round((stats.irradianceNow / FULL_SUN_WM2) * 100)}점`} />
+            <Fact label="일조 시간" value={`${formatNumber(SUNSET_HOUR - SUNRISE_HOUR, 1)}시간`} />
+            <Fact label="발전시간" value={`${formatNumber(stats.equivalentHours, 1)}시간`} />
             <Fact
               label={impact.label}
               value={`${formatNumber(stats.dayKwh * impact.perKwh, impact.fractionDigits)}${impact.unit}`}

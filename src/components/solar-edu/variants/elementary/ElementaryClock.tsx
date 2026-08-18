@@ -50,7 +50,7 @@ const HEIGHT_LESSON = [
   {
     until: 0.22,
     title: '해가 낮게 떠 있어요',
-    body: '햇빛이 비스듬히 들어와 판 위에 넓게 퍼져요. 같은 빛이 넓게 나뉘니 한 자리가 받는 힘은 약해요.',
+    body: '햇빛이 비스듬히 들어와 판 위에 넓게 퍼져요. 같은 빛이 넓게 나뉘니 한 자리가 받는 양은 적어요.',
   },
   {
     until: 0.4,
@@ -65,12 +65,12 @@ const HEIGHT_LESSON = [
   {
     until: 0.82,
     title: '해가 내려가고 있어요',
-    body: '다시 비스듬해지면서 힘이 빠져요. 아직 밝아 보여도 판이 받는 빛은 아까보다 적어요.',
+    body: '다시 비스듬해지면서 약해져요. 아직 밝아 보여도 판이 받는 빛은 아까보다 적어요.',
   },
   {
     until: 1.01,
     title: '해가 지고 있어요',
-    body: '빛이 지나야 할 공기가 두꺼워져 많이 흩어져요. 곧 오늘의 발전이 끝나요.',
+    body: '빛이 지나야 할 공기층이 두꺼워져 많이 흩어져요. 곧 오늘의 발전이 끝나요.',
   },
 ];
 
@@ -151,7 +151,7 @@ export function ElementaryClock({ stats, content, nowHour }: ElementaryClockProp
           {/*
             하루가 지나가는 길.
             해가 도는 자리를 옅은 띠로 먼저 깔아 둔다 — 아직 오지 않은 시간도 자리를 갖고 있어야
-            "앞으로 이만큼 더 남았다" 가 보인다.
+            "앞으로 이만큼 더 남았어요" 가 보인다.
           */}
           <path d={describeArc(TRACK, ARC_FROM, ARC_TO)} stroke="var(--surface-sunken)" strokeWidth="18" strokeLinecap="round" />
 
@@ -225,7 +225,7 @@ export function ElementaryClock({ stats, content, nowHour }: ElementaryClockProp
           <circle cx={CENTER} cy={CENTER} r={CORE} fill="none" stroke="var(--border-subtle)" strokeWidth="1.5" />
 
           <text className={styles.core__label} x={CENTER} y={CENTER - 22} textAnchor="middle">
-            {isDay ? '오늘 만든 전기' : '해가 쉬고 있어요'}
+            {isDay ? '금일 발전량' : '해가 지고 없어요'}
           </text>
           <text className={styles.core__value} x={CENTER} y={CENTER + 20} textAnchor="middle">
             {formatNumber(stats.todayKwh, 0)}
@@ -254,7 +254,7 @@ export function ElementaryClock({ stats, content, nowHour }: ElementaryClockProp
           </p>
         ) : (
           <p className={styles.lesson}>
-            <strong>해가 쉬고 있어요</strong>
+            <strong>해가 지고 없어요</strong>
             해가 지면 판은 전기를 만들지 않아요. 내일 아침 해가 다시 뜨면 막대가 왼쪽부터 자라기 시작해요.
           </p>
         )}
@@ -263,7 +263,7 @@ export function ElementaryClock({ stats, content, nowHour }: ElementaryClockProp
       {/* 오른쪽 — 그 시계가 뜻하는 것 */}
       <div className={styles.side}>
         <Card
-          label="지금 만드는 힘"
+          label="실시간 출력"
           value={formatNumber(stats.outputKw, 1)}
           unit="kW"
           note={`가장 셀 때의 ${Math.round(stats.loadRatio * 100)}만큼 내고 있어요`}
@@ -271,7 +271,7 @@ export function ElementaryClock({ stats, content, nowHour }: ElementaryClockProp
           art={<SunArt />}
         />
         <Card
-          label="해를 모은 시간"
+          label="발전시간"
           value={formatNumber(stats.equivalentHours, 1)}
           unit="시간"
           note="가장 셀 때로 치면 이만큼 돌린 셈이에요"
@@ -279,15 +279,15 @@ export function ElementaryClock({ stats, content, nowHour }: ElementaryClockProp
           art={<CupArt ratio={Math.min(1, stats.equivalentHours / 8)} />}
         />
         <Card
-          label="나무를 심은 만큼"
+          label="소나무로 환산하면"
           value={formatNumber(kwhToTrees(stats.dayKwh))}
           unit="그루"
-          note="공기가 그만큼 깨끗해졌어요"
+          note="탄소가 그만큼 줄었어요"
           tone="ok"
           art={<TreeArt />}
         />
         <Card
-          label="한 집이 쓰는 날"
+          label="4인 가구 사용일수"
           value={formatNumber(kwhToHouseholdDays(stats.dayKwh))}
           unit="일"
           note={`에어컨이라면 ${formatNumber((stats.dayKwh * 1000) / AIRCON_WATT)}시간이에요`}
@@ -380,7 +380,7 @@ function SunArt() {
 }
 
 /**
- * 해를 모은 시간.
+ * 발전시간.
  *
  * 시계판이나 모래시계를 그리면 "몇 시" 로 읽힌다. 여기서 말하는 것은 시각이 아니라 **모은 양** 이라,
  * 잔이 차오르는 모양으로 그려 두는 편이 뜻에 맞는다.

@@ -133,7 +133,7 @@ export function GrowingTree({ stage, trees }: GrowingTreeProps) {
       viewBox="0 0 200 200"
       fill="none"
       role="img"
-      aria-label={`오늘 만든 전기는 나무 ${trees}그루를 심은 효과예요. 자란 정도는 4단계 중 ${stage}단계예요.`}
+      aria-label={`금일 발전량을 소나무 ${trees}그루로 환산했다. 자란 정도는 4단계 중 ${stage}단계다.`}
     >
       <SceneDefs />
 

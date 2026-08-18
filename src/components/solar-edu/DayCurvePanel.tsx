@@ -60,7 +60,7 @@ export function DayCurvePanel({ stats, content }: DayCurvePanelProps) {
       borderWidth: 1,
       textStyle: { color: palette.text, fontSize: 12, fontFamily: 'Pretendard Variable, sans-serif' },
     },
-    legend: topLegend(palette, content.showIrradiance ? ['발전량', '햇빛 세기'] : ['발전량']),
+    legend: topLegend(palette, content.showIrradiance ? ['발전량', '일사강도'] : ['발전량']),
     xAxis: {
       type: 'category',
       boundaryGap: false,
@@ -71,7 +71,7 @@ export function DayCurvePanel({ stats, content }: DayCurvePanelProps) {
     },
     // 세로 눈금은 두지 않는다 — 값을 하나씩 읽는 화면이 아니라 하루의 모양을 보는 화면이다.
     // 정확한 값이 필요하면 위쪽 고정 수치와 정보창에 있다.
-    // 햇빛 세기를 끄면 보조축도 함께 지운다 — 남겨 두면 series 의 yAxisIndex 가 빈 축을 가리킨다.
+    // 일사강도를 끄면 보조축도 함께 지운다 — 남겨 두면 series 의 yAxisIndex 가 빈 축을 가리킨다.
     yAxis: content.showIrradiance
       ? [{ type: 'value', show: false }, { type: 'value', show: false }]
       : [{ type: 'value', show: false }],
@@ -113,7 +113,7 @@ export function DayCurvePanel({ stats, content }: DayCurvePanelProps) {
       },
       ...(content.showIrradiance
         ? [{
-          name: '햇빛 세기',
+          name: '일사강도',
           type: 'line' as const,
           yAxisIndex: 1,
           smooth: true,
@@ -142,7 +142,7 @@ export function DayCurvePanel({ stats, content }: DayCurvePanelProps) {
             className={styles.split__canvas}
             option={option}
             height={chartHeight}
-            summary={`시간대별 발전량과 햇빛 세기예요. 오늘 하루 모두 ${formatNumber(stats.dayKwh)}kWh 만들었어요.`}
+            summary={`시간대별 발전량과 일사강도. 금일 합계 ${formatNumber(stats.dayKwh)}kWh.`}
           />
         </div>
 

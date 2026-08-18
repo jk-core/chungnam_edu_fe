@@ -76,7 +76,7 @@ export function AiScanPanel({ content, stats, insight, scan }: AiScanPanelProps)
       */}
       <div key={current} className={styles.lesson}>
         <div className={styles.lesson__item}>
-          <p className={styles.lesson__tag}>여기서 일어나는 일</p>
+          <p className={styles.lesson__tag}>이 단계에서 일어나는 일</p>
           <p className={styles.lesson__body}>{content.stages[current].physics}</p>
         </div>
 

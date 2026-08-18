@@ -21,7 +21,7 @@ export function AiClassifyStage({ stats, progress }: AiClassifyStageProps) {
 
   return (
     <div className={styles.classify}>
-      <p className={styles.classify__head}>오늘 곡선과 견준 결과</p>
+      <p className={styles.classify__head}>금일 발전 곡선과 대조한 결과</p>
 
       <ul className={styles.bars}>
         {classes.map((item, index) => {

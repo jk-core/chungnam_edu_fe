@@ -58,7 +58,7 @@ export function ImpactScene({ focus, bubbleAt, bubble }: ImpactSceneProps) {
           </g>
         ))}
 
-        <SceneLabel x={177} y={348} label="나무를 심은 만큼" />
+        <SceneLabel x={177} y={348} label="소나무로 환산하면" />
       </g>
 
       {/* ── 에어컨 ───────────────────────────────────────── */}
@@ -87,7 +87,7 @@ export function ImpactScene({ focus, bubbleAt, bubble }: ImpactSceneProps) {
           <path className={styles.breeze} style={delay(0.8)} d="M482 248q7 9 0 18t0 18" />
         </g>
 
-        <SceneLabel x={450} y={348} label="에어컨을 켜 둘 수 있어요" />
+        <SceneLabel x={450} y={348} label="에어컨 가동 시간" />
       </g>
 
       {/* ── 집 ───────────────────────────────────────────── */}
@@ -105,7 +105,7 @@ export function ImpactScene({ focus, bubbleAt, bubble }: ImpactSceneProps) {
           <circle cx="120" cy="68" r="2.6" fill="var(--solar)" />
         </House>
 
-        <SceneLabel x={736} y={348} label="한 집이 쓰는 날" />
+        <SceneLabel x={736} y={348} label="4인 가구 사용일수" />
       </g>
 
       {bubble && bubbleAt ? (

@@ -12,8 +12,8 @@ const BUBBLE = { w: 250, h: 132 };
 
 /** 넷을 나란히 세울 자리. 그림은 저마다 300×190 좌표로 그려 여기서 줄여 놓는다 */
 const SPOTS: { id: BenefitArt; x: number; label: string }[] = [
-  { id: 'free', x: 6, label: '햇빛은 공짜' },
-  { id: 'clean', x: 232, label: '연기 없음' },
+  { id: 'free', x: 6, label: '연료가 들지 않음' },
+  { id: 'clean', x: 232, label: '매연 없음' },
   { id: 'quiet', x: 458, label: '소리 없음' },
   { id: 'roof', x: 678, label: '지붕이면 충분' },
 ];
@@ -82,7 +82,7 @@ export function BenefitScene({ focus, bubbleAt, bubble }: BenefitSceneProps) {
   );
 }
 
-/** 햇빛은 공짜 — 해가 빛을 그침 없이 쏟아붓고, 판이 그것을 받는다 */
+/** 연료가 들지 않음 — 해가 빛을 그침 없이 쏟아붓고, 판이 그것을 받는다 */
 function FreeArt() {
   return (
     <g>
@@ -97,12 +97,12 @@ function FreeArt() {
 
       <SolarPanel x={148} y={110} scale={0.62} glow={0.24} />
 
-      <text x="150" y="28" fill="var(--ok-text)" fontSize="22" textAnchor="middle" fontWeight="700">0원</text>
+      <text x="150" y="28" fill="var(--ok-text)" fontSize="22" textAnchor="middle" fontWeight="700">연료비 0</text>
     </g>
   );
 }
 
-/** 연기가 나지 않는다 — 굴뚝의 연기가 피어오르다 지워진다 */
+/** 매연이 나오지 않는다 — 굴뚝의 연기가 피어오르다 지워진다 */
 function CleanArt() {
   return (
     <g>

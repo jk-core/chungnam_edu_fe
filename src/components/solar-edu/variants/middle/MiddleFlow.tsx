@@ -34,7 +34,10 @@ interface MiddleFlowProps {
  * 벌어지는 일이라는 것이 보인다.
  */
 export function MiddleFlow({ stats, content }: MiddleFlowProps) {
-  // 판이 받는 빛의 힘(kW) — 일사강도 × 모듈 면적. 흐름의 첫 마디가 이 값이다.
+  /*
+    모듈 전면에 들어오는 빛의 세기(kW) — 일사강도 × 모듈 면적.
+    모듈 면적은 계측값이 아니라 설비용량에서 어림한 값이라 화면에 수로 적지 않는다.
+  */
   const sunKw = (stats.irradianceNow * stats.moduleArea) / 1000;
   // 빛이 전기가 되는 비율. 계측값끼리 나눈 값이라 날씨에 따라 오르내린다.
   const efficiency = sunKw > 0 ? (stats.outputKw / sunKw) * 100 : 0;
@@ -43,7 +46,7 @@ export function MiddleFlow({ stats, content }: MiddleFlowProps) {
     {
       id: 'sun',
       step: 1,
-      label: '햇빛',
+      label: '일사강도',
       value: formatNumber(stats.irradianceNow),
       unit: 'W/m²',
       note: `맑은 날 정오(${formatNumber(FULL_SUN_WM2)})의 ${Math.round((stats.irradianceNow / FULL_SUN_WM2) * 100)}%`,
@@ -55,7 +58,7 @@ export function MiddleFlow({ stats, content }: MiddleFlowProps) {
       label: '태양전지',
       value: formatNumber(sunKw, 1),
       unit: 'kW',
-      note: `${formatNumber(stats.moduleArea)}m² 가 받는 빛의 힘`,
+      note: '모듈 전면에 들어오는 빛의 세기',
       tone: 'solar',
     },
     {
@@ -64,7 +67,7 @@ export function MiddleFlow({ stats, content }: MiddleFlowProps) {
       label: '인버터',
       value: formatNumber(stats.outputKw, 1),
       unit: 'kW',
-      note: `받은 빛의 ${formatNumber(efficiency, 1)}%가 전기로 · 직류를 교류로`,
+      note: `들어온 빛의 ${formatNumber(efficiency, 1)}% 가 전기로 · 직류를 교류로`,
       tone: 'brand',
     },
     {
@@ -73,7 +76,7 @@ export function MiddleFlow({ stats, content }: MiddleFlowProps) {
       label: '학교',
       value: formatNumber(stats.todayKwh, 0),
       unit: 'kWh',
-      note: '오늘 지금까지 만든 양',
+      note: '금일 지금까지 쌓인 발전량',
       tone: 'ok',
     },
   ];
@@ -83,7 +86,7 @@ export function MiddleFlow({ stats, content }: MiddleFlowProps) {
       <section className={styles.flow} aria-label={content.principle.head}>
         <header className={styles.flow__head}>
           <h2 className={styles.title}>{content.principle.head}</h2>
-          <p className={styles.note}>빛이 들어와 전기가 되어 나가기까지 · 마디마다 지금 이 학교의 실제 값이에요</p>
+          <p className={styles.note}>빛이 들어와 전기가 되어 나가기까지 · 마디마다 지금 이 학교의 실측값이다</p>
         </header>
 
         {/*

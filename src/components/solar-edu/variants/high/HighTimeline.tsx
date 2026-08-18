@@ -59,7 +59,7 @@ export function HighTimeline({ scopeLabel, stats, content }: HighTimelineProps) 
     <div className={styles.board}>
       <header className={styles.head}>
         <div>
-          <h2 className={styles.head__title}>오늘 하루, AI 가 짚은 시각</h2>
+          <h2 className={styles.head__title}>금일 AI 가 짚은 시각</h2>
           <p className={styles.head__note}>
             {scopeLabel} · 관측과 판단을 갈라 적었다 — 같은 관측에서 다른 판단이 나올 수도 있다
           </p>

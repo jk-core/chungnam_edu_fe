@@ -154,7 +154,7 @@ export function HighConsole({ scopeLabel, stats, content }: HighConsoleProps) {
           {scan.revealed === 0 ? (
             <p className={styles.waiting}>
               {insight.detail[stage]}
-              <span>판단이 서면 근거가 한 줄씩 여기에 쌓입니다</span>
+              <span>판단이 서면 근거가 한 줄씩 쌓인다</span>
             </p>
           ) : null}
 

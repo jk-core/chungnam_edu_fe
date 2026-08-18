@@ -9,7 +9,7 @@ import type { EduStats } from './solarEdu';
 
   운영용 진단(`llmDiagnosis.ts`)은 인버터·스트링 단위로 고장코드를 짚는다. 그 화면을 그대로 줄여 놓으면
   학생에게는 읽을 수 없는 표가 된다. 여기서는 같은 4단계 골격만 빌려 오고, 판단의 재료를 학생이 이미 보고 있는
-  값(오늘 만든 전기·기대 발전량·햇빛 세기)으로 바꿨다. 화면 왼쪽 곡선에 있는 숫자가 그대로 소견에 나와야
+  값(금일 발전량·기대 발전량·일사강도)으로 바꿨다. 화면 왼쪽 곡선에 있는 숫자가 그대로 소견에 나와야
   "AI 가 저 그래프를 보고 말하는구나" 가 읽힌다.
 
   그래서 이 파일의 모든 함수는 화면이 이미 만들어 둔 `EduStats` 를 **받아서** 파생시킨다. 여기서 다시 계산하면
@@ -57,8 +57,8 @@ export type EduBand = 'good' | 'fair' | 'low' | 'offline';
 const BAND_LABEL: Record<EduBand, string> = {
   good: '이상 없음',
   fair: '조금 낮음',
-  low: '살펴볼 값',
-  offline: '값이 안 들어와요',
+  low: '점검 필요',
+  offline: '계측 중단',
 };
 
 export interface EduInsight {
@@ -148,8 +148,8 @@ export function buildEduLogs(stats: EduStats): EduScanLog[] {
   return [
     { id: 'load', text: `계측 채널 연결 · 발전량 ${stats.hourly.length}칸, 일사 ${stats.irradianceSeries.length}칸` },
     { id: 'gap', text: '결측값 0건 · 범위를 벗어난 값 0건' },
-    { id: 'sun', text: `해가 떠 있던 시간 ${daylight}시간 · 적산 일사 ${formatNumber(stats.insolation, 2)}kWh/m²` },
-    { id: 'corr', text: `햇빛–발전량 상관 ${formatNumber(correlation, 2)} · 두 값이 나란히 움직였어요` },
+    { id: 'sun', text: `일조 시간 ${daylight}시간 · 적산 일사량 ${formatNumber(stats.insolation, 2)}kWh/m²` },
+    { id: 'corr', text: `햇빛–발전량 상관 ${formatNumber(correlation, 2)} · 두 값이 나란히 움직였다` },
     { id: 'model', text: `기대 발전량 모델 적용 · ${formatNumber(stats.expectedKwh)}kWh` },
   ];
 }
@@ -182,25 +182,25 @@ export function buildEduClasses(stats: EduStats): EduClass[] {
     {
       id: 'clear',
       label: '맑음 · 정상',
-      note: '햇빛도 발전량도 기대한 만큼이에요',
+      note: '일사량도 발전량도 기대한 수준이다',
       score: (dim ? 0.12 : 1) * (cloudy ? 0.4 : 1) * (achieved >= 0.95 ? 1 : 0.45),
     },
     {
       id: 'cloud',
       label: '구름 지나감',
-      note: '햇빛이 잠깐 꺾인 자리가 있어요',
+      note: '일사량이 일시적으로 꺾인 구간이 있다',
       score: (cloudy ? 1 : 0.2) * (dim ? 1.3 : 1),
     },
     {
       id: 'shade',
       label: '그늘 짐',
-      note: '한낮에 무언가가 판을 가렸을 수 있어요',
+      note: '한낮에 모듈이 가려졌을 가능성이 있다',
       score: 0.06 + short * 3.2,
     },
     {
       id: 'dust',
       label: '판 오염',
-      note: '먼지가 쌓이면 햇빛만큼 못 만들어요',
+      note: '표면이 오염되면 일사량만큼 발전하지 못한다',
       score: 0.05 + short * 2,
     },
   ];
@@ -235,13 +235,13 @@ export function buildEduInsight(stats: EduStats, scopeLabel: string): EduInsight
       band: 'offline',
       verdict: BAND_LABEL.offline,
       lines: [
-        `${withParticle(scopeLabel, '은')} 지금 계측값이 들어오지 않아, 마지막으로 받은 값까지만 볼 수 있어요.`,
-        '값이 없으면 AI 도 판단하지 않아요. 모르는 것을 지어내지 않는 것도 진단의 일이에요.',
+        `${withParticle(scopeLabel, '은')} 현재 계측값이 들어오지 않아, 마지막 수신값까지만 볼 수 있다.`,
+        '값이 없으면 AI 도 판단하지 않는다. 모르는 것을 지어내지 않는 것도 진단의 일이다.',
       ],
       detail: {
-        scan: '계측값이 들어오지 않아요',
-        classify: '견줄 값이 없어요',
-        reason: '판단을 미뤄요',
+        scan: '계측값 미수신',
+        classify: '대조할 값 없음',
+        reason: '판단 보류',
         done: BAND_LABEL.offline,
       },
     };
@@ -252,27 +252,27 @@ export function buildEduInsight(stats: EduStats, scopeLabel: string): EduInsight
   const cloudHour = findCloudHour(stats.irradianceSeries);
 
   const lines = [
-    `${withParticle(scopeLabel, '이')} 오늘 만든 전기는 ${formatNumber(stats.dayKwh)}kWh예요. `
-    + `같은 햇빛이면 기대되는 ${formatNumber(stats.expectedKwh)}kWh의 ${formatPercent(achieved)}입니다.`,
-    `하루 동안 모은 햇빛은 ${formatNumber(stats.insolation, 2)}kWh/m², 지금 햇빛 세기는 ${score}점이에요. `
-    + '날씨를 이미 셈에 넣은 값이라, 흐린 날이라고 해서 비율이 낮게 나오지는 않아요.',
-    `설비를 가장 셀 때로만 돌렸다면 ${formatNumber(stats.equivalentHours, 1)}시간 만에 만들 양이고, `
-    + `하루 내내 최대로 돌린 것에 견주면 ${formatPercent(stats.capacityFactor)}예요.`,
+    `${withParticle(scopeLabel, '은')} 금일 발전량이 ${formatNumber(stats.dayKwh)}kWh 이다. `
+    + `동일 일사 조건의 기대 발전량 ${formatNumber(stats.expectedKwh)}kWh 대비 ${formatPercent(achieved)} 수준이다.`,
+    `일간 적산 일사량은 ${formatNumber(stats.insolation, 2)}kWh/m², 현재 일사강도는 ${score}점이다. `
+    + '기대 발전량이 날씨를 이미 반영한 값이므로, 흐린 날이라고 해서 이 비율이 낮아지지는 않는다.',
+    `설비용량으로 나누면 ${formatNumber(stats.equivalentHours, 1)}시간분이고, `
+    + `하루 내내 정격으로 가동한 경우와 견주면 ${formatPercent(stats.capacityFactor)} 이다.`,
   ];
 
   if (cloudHour !== null) {
     lines.push(
-      `${cloudHour}시 무렵 햇빛이 잠깐 꺾였어요. 곡선이 움푹 팬 자리는 대개 구름이 지난 자리이고, `
-      + '이건 설비 탓이 아니에요.',
+      `${cloudHour}시 무렵 일사량이 일시적으로 꺾였다. 곡선이 움푹 팬 구간은 대개 구름이 지난 자리이며, `
+      + '설비 요인이 아니다.',
     );
   }
 
   lines.push(
     band === 'good'
-      ? '기대한 만큼 나오고 있어요. 지금은 손볼 곳이 없어 보여요.'
+      ? '기대치를 충족하고 있다. 현재로서는 조치할 항목이 없다.'
       : band === 'fair'
-        ? '기대보다 조금 낮아요. 판이 더러워졌거나 한낮에 그늘이 지는지 살펴보면 좋겠어요.'
-        : '기대보다 많이 낮아요. 판의 오염·그늘과 인버터 상태를 사람이 직접 확인해 봐야 해요.',
+        ? '기대치보다 다소 낮다. 모듈 오염이나 한낮의 음영 여부를 살펴볼 필요가 있다.'
+        : '기대치보다 크게 낮다. 모듈 오염·음영과 인버터 상태를 현장에서 직접 확인해야 한다.',
   );
 
   return {
@@ -280,9 +280,9 @@ export function buildEduInsight(stats: EduStats, scopeLabel: string): EduInsight
     verdict: BAND_LABEL[band],
     lines,
     detail: {
-      scan: `발전량 ${stats.hourly.length}칸 · 햇빛 ${stats.irradianceSeries.length}칸을 읽었어요`,
+      scan: `발전량 ${stats.hourly.length}칸 · 일사량 ${stats.irradianceSeries.length}칸 수신`,
       classify: `기대 ${formatNumber(stats.expectedKwh)}kWh 대비 ${formatPercent(achieved)}`,
-      reason: `소견 ${lines.length}줄을 쓰는 중이에요`,
+      reason: `소견 ${lines.length}줄 작성 중`,
       done: BAND_LABEL[band],
     },
   };

@@ -119,7 +119,7 @@ export function MiddleProductionCard({ stats, content }: MiddleProductionCardPro
             className={styles.production__canvas}
             option={option}
             height={chartHeight}
-            summary={`시간대별 발전량이에요. 오늘 하루 모두 ${formatNumber(stats.dayKwh)}kWh 만들었어요.`}
+            summary={`시간대별 발전량. 금일 합계 ${formatNumber(stats.dayKwh)}kWh.`}
           />
         </div>
 

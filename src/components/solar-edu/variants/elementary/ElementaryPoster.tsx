@@ -35,9 +35,9 @@ export function ElementaryPoster({ stats, content, nowHour }: ElementaryPosterPr
     적어야 벽보가 설명이 된다 — 걸어 두는 화면의 목적이 태양광을 설명하는 것이기 때문이다.
   */
   const IMPACTS = [
-    { id: 'tree', art: 'tree' as const, label: '나무를 심은 만큼', unit: '그루', value: (v: typeof stats) => kwhToTrees(v.dayKwh) },
-    { id: 'aircon', art: 'aircon' as const, label: '에어컨을 켜 두면', unit: '시간', value: (v: typeof stats) => (v.dayKwh * 1000) / AIRCON_WATT },
-    { id: 'house', art: 'house' as const, label: '한 집이 쓰는 날', unit: '일', value: (v: typeof stats) => kwhToHouseholdDays(v.dayKwh) },
+    { id: 'tree', art: 'tree' as const, label: '소나무로 환산하면', unit: '그루', value: (v: typeof stats) => kwhToTrees(v.dayKwh) },
+    { id: 'aircon', art: 'aircon' as const, label: '에어컨 가동 시간', unit: '시간', value: (v: typeof stats) => (v.dayKwh * 1000) / AIRCON_WATT },
+    { id: 'house', art: 'house' as const, label: '4인 가구 사용일수', unit: '일', value: (v: typeof stats) => kwhToHouseholdDays(v.dayKwh) },
   ];
 
   const marks = [
@@ -45,28 +45,28 @@ export function ElementaryPoster({ stats, content, nowHour }: ElementaryPosterPr
       id: 'sun',
       label: '햇빛',
       value: `${formatNumber((stats.irradianceNow / 1000) * 100)}점`,
-      note: '지금 햇빛 세기',
+      note: '일사강도',
       why: '해가 높이 뜰수록 빛이 판에 똑바로 닿아 더 많이 만들어요',
     },
     {
       id: 'panel',
       label: '태양전지',
       value: `${formatNumber(stats.capacityKw, 1)}kW`,
-      note: '우리 학교 설비',
+      note: '설비용량',
       why: '햇빛을 받으면 판 안에서 전기가 한 방향으로 흐르기 시작해요',
     },
     {
       id: 'inverter',
       label: '인버터',
       value: `${formatNumber(stats.outputKw, 1)}kW`,
-      note: '지금 만드는 힘',
+      note: '실시간 출력',
       why: '판이 만든 전기를 교실 콘센트에서 쓸 수 있게 바꿔 줘요',
     },
     {
       id: 'school',
       label: '교실',
       value: `${formatNumber(stats.todayKwh, 0)}kWh`,
-      note: '오늘 만든 전기',
+      note: '금일 발전량',
       why: '불을 켜고 선풍기를 돌리고, 남으면 바깥으로 보내요',
     },
   ];
@@ -101,7 +101,7 @@ export function ElementaryPoster({ stats, content, nowHour }: ElementaryPosterPr
 
       <div className={styles.bottom}>
         {/* 왼쪽 아래 — 그래서 무엇이 좋아졌나 */}
-        <section className={styles.numbers} aria-label="오늘 만든 전기로 할 수 있는 일">
+        <section className={styles.numbers} aria-label="금일 발전량으로 할 수 있는 일">
           <h2 className={styles.stage__title}>이만큼 할 수 있어요</h2>
 
           {/*

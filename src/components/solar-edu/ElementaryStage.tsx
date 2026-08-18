@@ -133,7 +133,7 @@ export function ElementaryStage({ stats, content }: ElementaryStageProps) {
             type="button"
             className={styles.play}
             onClick={clock.togglePause}
-            aria-label={clock.paused ? '이야기 다시 틀기' : '이야기 잠깐 멈추기'}
+            aria-label={clock.paused ? '다시 재생' : '잠깐 멈추기'}
           >
             {clock.paused ? (
               <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true">
