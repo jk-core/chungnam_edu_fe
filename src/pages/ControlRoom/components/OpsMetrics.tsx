@@ -6,7 +6,7 @@ import styles from './OpsMetrics.module.scss';
 
 interface OpsMetricsProps {
   schools: School[];
-  /** 등가 발전시간(h) */
+  /** 발전시간(h) */
   hours: number;
   /** 미수신 개소 */
   staleCount: number;
@@ -29,7 +29,7 @@ export function OpsMetrics({ schools, hours, staleCount }: OpsMetricsProps) {
     <div className={styles.ops}>
       <div className={styles.ops__top}>
         <div className={styles.ops__stat}>
-          <span className={styles.ops__label}>등가 발전시간</span>
+          <span className={styles.ops__label}>발전시간</span>
           <span className={styles.ops__value}>
             <CountUp value={hours} fractionDigits={1} startOnView={false} />
             <span className={styles.ops__unit}>h</span>

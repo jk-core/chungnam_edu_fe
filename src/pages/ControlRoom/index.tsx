@@ -5,11 +5,10 @@ import { formatNumber } from '@/utils/format';
 import { CUMULATIVE } from '@/mocks/generation';
 import { PlantSearchModal } from '@/components/plant/PlantSearchModal';
 import { AggregationPanel } from './components/AggregationPanel';
-import { CollectionHealth } from './components/CollectionHealth';
-import { MissingInverters } from './components/MissingInverters';
 import { FaultList } from './components/FaultList';
 import { FaultMap } from './components/FaultMap';
 import { OpsMetrics } from './components/OpsMetrics';
+import { RegionOutput } from './components/RegionOutput';
 import { OutputGauge } from './components/OutputGauge';
 import { RankingStrip } from './components/RankingStrip';
 import { LiveTrendChart } from './components/LiveTrendChart';
@@ -59,7 +58,7 @@ function ControlRoomPage() {
             />
           </section>
 
-          <section className={`${styles.panel} ${styles.col__grow}`} aria-label="운영지표">
+          <section className={styles.panel} aria-label="운영지표">
             <div className={styles.panel__head}>
               <h2 className={styles.panel__title}>운영지표</h2>
               <span className={styles.panel__note}>{data.rows.length}개소 기준</span>
@@ -69,17 +68,19 @@ function ControlRoomPage() {
               hours={data.stat.hours}
               staleCount={data.collection.stale.length}
             />
+          </section>
 
-            {/* 미수신이 몇 대인지 위에서 봤으면, 어느 인버터인지는 여기서 흘려 보여 준다 (SFR-004-05) */}
-            <MissingInverters plantIds={data.plantIds} collection={data.collection.byId} />
-
-            {/* 위 지표가 "얼마나 잘 만들고 있나" 라면, 여기서는 "그 숫자를 믿어도 되나" 를 답한다 */}
-            <CollectionHealth
-              rows={data.collection.rows}
-              belowThreshold={data.belowThreshold}
-              collectedAt={data.collection.latest}
-              isStale={data.collection.stale.length > 0}
-            />
+          {/*
+            어디가 얼마나 내는지.
+            미수신 목록과 수집 현황이 있던 자리다 — 둘 다 "숫자를 믿어도 되나" 를 묻는 판이라
+            지켜보는 화면에서는 뒤로 물러나도 된다. 그 자리를 도 안의 분포가 대신한다.
+          */}
+          <section className={`${styles.panel} ${styles.col__grow}`} aria-label="시·군별 발전량">
+            <div className={styles.panel__head}>
+              <h2 className={styles.panel__title}>시·군별 발전량</h2>
+              <span className={styles.panel__note}>금일 · kWh</span>
+            </div>
+            <RegionOutput />
           </section>
         </div>
 
@@ -96,7 +97,7 @@ function ControlRoomPage() {
                 {formatNumber(data.rows.length)}개소 · 이상 {formatNumber(data.abnormalCount)}개소
               </span>
             </div>
-            <FaultMap plants={data.rows} scope="all" height={MAIN_MAP_HEIGHT} selectable />
+            <FaultMap plants={data.rows} scope="all" height={MAIN_MAP_HEIGHT} selectable tour />
           </section>
 
           {/* 표는 가운데 넓은 자리에 둔다 — 다섯 칸짜리 표를 좁은 컬럼에 밀어 넣으면 줄이 접힌다 */}
@@ -115,16 +116,17 @@ function ControlRoomPage() {
           <section className={styles.panel} aria-label="금일 실적 순위">
             <div className={styles.panel__head}>
               <h2 className={styles.panel__title}>금일 실적 순위</h2>
-              <span className={styles.panel__note}>조회 {formatNumber(data.rows.length)}개소 중 상위 5</span>
+              <span className={styles.panel__note}>발전시간 기준 · 상위 5개소</span>
             </div>
             <RankingStrip schools={data.rows} />
           </section>
 
           <section className={styles.panel} aria-label="시간대별 발전량">
             <div className={styles.panel__head}>
-              <h2 className={styles.panel__title}>시간대별 발전량 · 권역 집계</h2>
+              <h2 className={styles.panel__title}>시간대별 발전량</h2>
+              <span className={styles.panel__note}>일사량 함께</span>
             </div>
-            <LiveTrendChart schools={data.rows} date={TODAY.toDate()} />
+            <LiveTrendChart date={TODAY.toDate()} />
           </section>
 
           {/* 지도가 어디가 아픈지를 답했으면, 여기서는 무엇이 얼마나 아픈지를 답한다 */}

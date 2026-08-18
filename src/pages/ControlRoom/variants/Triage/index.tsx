@@ -128,7 +128,7 @@ function TriagePage() {
           */}
           <section className={styles.panel} aria-label="시간대별 발전량">
             <h2 className={styles.panel__title}>시간대별 발전량</h2>
-            <LiveTrendChart schools={data.rows} date={TODAY.toDate()} />
+            <LiveTrendChart date={TODAY.toDate()} />
           </section>
         </div>
       </div>

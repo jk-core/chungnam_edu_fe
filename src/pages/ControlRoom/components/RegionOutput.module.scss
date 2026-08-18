@@ -1,0 +1,71 @@
+@use "@/styles/tokens/spacing" as s;
+@use "@/styles/tokens/typography" as t;
+@use "@/styles/utils/mixins" as mx;
+
+/*
+  시·군별 금일 발전량.
+  열다섯 줄이 한 판에 들어가야 하므로 줄 높이를 낮추고 이름·막대·값을 한 줄에 나란히 둔다.
+*/
+.region {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: s.$space-2;
+  min-height: 0;
+
+  &__list {
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+    justify-content: space-between;
+    min-height: 0;
+    list-style: none;
+    overflow: hidden;
+  }
+
+  &__row {
+    display: grid;
+    grid-template-columns: 54px minmax(0, 1fr) 62px;
+    align-items: center;
+    gap: s.$space-2;
+  }
+
+  &__name {
+    @include t.caption;
+    @include mx.truncate;
+
+    color: var(--text-muted);
+  }
+
+  &__track {
+    display: block;
+    height: 6px;
+    border-radius: s.$radius-full;
+    background-color: var(--surface-sunken);
+    overflow: hidden;
+  }
+
+  &__bar {
+    display: block;
+    height: 100%;
+    border-radius: s.$radius-full;
+    background: linear-gradient(90deg, var(--brand), var(--solar));
+    transition: width 0.5s cubic-bezier(0.22, 0.68, 0.32, 1);
+  }
+
+  &__value {
+    @include t.data-sm;
+
+    color: var(--text-strong);
+    text-align: right;
+  }
+
+  &__foot {
+    @include t.caption;
+
+    flex-shrink: 0;
+    padding-top: s.$space-2;
+    border-top: 1px solid var(--border-subtle);
+    color: var(--text-faint);
+  }
+}

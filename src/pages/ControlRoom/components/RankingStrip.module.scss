@@ -78,6 +78,12 @@
     transition: width 0.6s cubic-bezier(0.22, 0.68, 0.32, 1);
   }
 
+  &__unit {
+    margin-left: 2px;
+    color: var(--text-faint);
+    font-size: 0.75em;
+  }
+
   &__value {
     @include t.data-sm;
 

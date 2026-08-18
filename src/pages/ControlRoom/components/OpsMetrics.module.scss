@@ -6,10 +6,17 @@
   flex-direction: column;
   gap: s.$space-3;
 
+  /*
+    2열 × 3줄.
+
+    아래에 있던 미수신 목록과 수집 현황을 걷어냈으므로 이 판이 남는 높이를 다 쓴다.
+    3열로 촘촘히 늘어놓으면 아래가 휑해 보이던 것이, 2열로 넓히면 값이 커지고 줄 사이가
+    벌어져 같은 자리를 채우면서도 읽기 쉬워진다.
+  */
   &__top {
     display: grid;
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-    gap: s.$space-3 s.$space-2;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: s.$space-3 s.$space-4;
   }
 
   &__stat {

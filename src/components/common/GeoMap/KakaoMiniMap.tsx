@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { Map } from 'react-kakao-maps-sdk';
 import type { School } from '@/interface/energy';
-import { CENTER, centerOn, DEFAULT_LEVEL, fitToCluster } from './kakaoMarkers';
+import { CENTER, centerOn, DEFAULT_LEVEL, fitToCluster, focusOn, resetView } from './kakaoMarkers';
 import { PlantMapLayer } from './PlantMapLayer';
 import styles from './GeoMap.module.scss';
 import type { MapCluster } from './clusterMarkers';
@@ -15,13 +15,20 @@ interface KakaoMiniMapProps {
   /** 점을 눌러 고를 수 있게 할 때만 넘긴다 */
   onPick?: (plantId: string) => void;
   selectedId?: string;
+  /**
+   * 고른 곳으로 당겨서 그 하나만 보이게 할지.
+   *
+   * 상황판이 이상 설비를 돌아가며 펼칠 때 쓴다 — 도 전체 배율에서는 그 학교가 묶음 안에
+   * 숨어, 옆에 상세를 띄워 놓고도 지도에서는 어디인지 짚어 주지 못한다.
+   */
+  focusSelected?: boolean;
 }
 
 /**
  * 한 칸에 들어가는 작은 카카오맵 (SFR-004-01/14, SFR-004-11).
  * 확대·이동이 멈춘 뒤에만 묶음을 다시 센다 — 그동안 마커는 지도를 따라 함께 움직인다.
  */
-export function KakaoMiniMap({ plants, height, label, onPick, selectedId }: KakaoMiniMapProps) {
+export function KakaoMiniMap({ plants, height, label, onPick, selectedId, focusSelected }: KakaoMiniMapProps) {
   const [map, setMap] = useState<kakao.maps.Map | null>(null);
   const frameRef = useRef<HTMLDivElement>(null);
   /*
@@ -58,6 +65,22 @@ export function KakaoMiniMap({ plants, height, label, onPick, selectedId }: Kaka
 
     return () => observer.disconnect();
   }, [map]);
+
+  /*
+    고른 곳으로 당긴다.
+
+    배율은 지도에게 직접 시킨다. 여기서 상태를 건드리면 그 값으로 다시 그려지고 지도가 또
+    움직여 서로를 밀어내는데, 지도가 멎은 뒤 `onIdle` 이 실제 배율을 되받아 적어 주므로
+    묶음을 가르는 기준은 저절로 맞춰진다.
+  */
+  useEffect(() => {
+    if (!map || !focusSelected) return;
+
+    const target = plants.find((plant) => plant.id === selectedId);
+
+    if (target) focusOn(map, target.location);
+    else resetView(map);
+  }, [map, focusSelected, selectedId, plants]);
 
   return (
     <div ref={frameRef} className={styles.mini} style={{ height }} role={onPick ? 'group' : 'img'} aria-label={label}>

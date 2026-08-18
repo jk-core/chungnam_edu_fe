@@ -57,7 +57,7 @@ function DataWallPage() {
           <OutputGauge outputKw={data.totals.outputKw} capacityKw={data.totals.capacityKw} />
         </Cell>
 
-        <Cell title="발전량" note={`등가 발전시간 ${formatNumber(data.stat.hours, 1)}h`}>
+        <Cell title="발전량" note={`발전시간 ${formatNumber(data.stat.hours, 1)}h`}>
           <div className={styles.figures}>
             <Figure label="금일" amount={today.amount} unit={today.unit} digits={today.fractionDigits} big />
             <Figure label="금월" amount={data.totals.monthKwh / 1000} unit="MWh" digits={1} />
@@ -120,7 +120,7 @@ function DataWallPage() {
         </Cell>
 
         <Cell title="시간대별 발전량" note="권역 집계">
-          <LiveTrendChart schools={data.rows} date={TODAY.toDate()} />
+          <LiveTrendChart date={TODAY.toDate()} />
         </Cell>
 
         <Cell title="금일 실적 순위" note="상위 5개소">

@@ -54,55 +54,6 @@
   }
 }
 
-.legend {
-  display: flex;
-  flex-wrap: wrap;
-  gap: s.$space-1 s.$space-3;
-  padding-top: s.$space-2;
-  border-top: 1px solid var(--border-subtle);
-
-  &__item {
-    @include t.caption;
-
-    display: flex;
-    align-items: center;
-    gap: s.$space-1;
-    color: var(--text-muted);
-  }
-
-  &__dot {
-    display: block;
-    width: 8px;
-    height: 8px;
-    border-radius: 50%;
-
-    &--caution {
-      background-color: var(--caution);
-    }
-
-    &--critical {
-      background-color: var(--critical);
-    }
-
-    &--offline {
-      background-color: var(--offline);
-    }
-
-    &--ok {
-      background-color: var(--ok);
-    }
-
-    &--brand {
-      background-color: var(--brand);
-    }
-  }
-
-  &__count {
-    color: var(--text-strong);
-    font-family: var(--font-data);
-  }
-}
-
 .side {
   position: absolute;
   top: s.$space-2;

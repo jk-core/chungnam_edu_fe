@@ -27,6 +27,14 @@ export const CENTER = { lat: 36.58, lng: 126.85 };
 export const DEFAULT_LEVEL = 11;
 
 /**
+ * 한 곳만 볼 때의 배율.
+ *
+ * 이 정도면 둘레에 다른 발전소가 없어 묶음으로 뭉치지 않고 그 학교 하나만 남는다.
+ * 더 당기면 주변 지형이 사라져 어디인지 알 수 없고, 덜 당기면 옆 학교와 다시 묶인다.
+ */
+export const FOCUS_LEVEL = 5;
+
+/**
  * 묶음을 펼칠 때 가장자리에 두는 여백(px).
  * 딱 맞춰 담으면 화면 끝에 걸린 마커의 이름표가 잘린다.
  */
@@ -68,4 +76,21 @@ export function fitToCluster(map: kakao.maps.Map, points: { x: number; y: number
  */
 export function centerOn(map: kakao.maps.Map, point: { lat: number; lng: number }): void {
   map.panTo(new kakao.maps.LatLng(point.lat, point.lng));
+}
+
+/**
+ * 한 곳을 가운데 두고 그 곳만 남게 당긴다.
+ *
+ * 배율을 먼저 바꾸고 자리를 옮긴다. 순서를 뒤집으면 넓은 화면에서 옮긴 뒤 당기게 되어,
+ * 가운데가 한 번 흔들린 뒤에야 자리를 잡는다.
+ */
+export function focusOn(map: kakao.maps.Map, point: { lat: number; lng: number }, level = FOCUS_LEVEL): void {
+  map.setLevel(level);
+  map.panTo(new kakao.maps.LatLng(point.lat, point.lng));
+}
+
+/** 도 전체가 한눈에 들어오는 처음 자리로 되돌린다 */
+export function resetView(map: kakao.maps.Map): void {
+  map.setLevel(DEFAULT_LEVEL);
+  map.panTo(new kakao.maps.LatLng(CENTER.lat, CENTER.lng));
 }

@@ -19,35 +19,3 @@
     min-width: 0;
   }
 }
-
-.regions {
-  display: flex;
-  flex-direction: column;
-  gap: s.$space-1;
-  padding-top: s.$space-6;
-
-  &__item {
-    display: flex;
-    align-items: baseline;
-    justify-content: space-between;
-    gap: s.$space-3;
-    padding: 2px s.$space-2;
-    border-radius: s.$radius-xs;
-
-    &:nth-child(odd) {
-      background-color: var(--surface-sunken);
-    }
-  }
-
-  &__name {
-    @include t.caption;
-
-    color: var(--text-muted);
-  }
-
-  &__value {
-    @include t.data-sm;
-
-    color: var(--text-strong);
-  }
-}
