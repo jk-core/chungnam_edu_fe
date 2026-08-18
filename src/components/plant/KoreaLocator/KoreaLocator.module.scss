@@ -1,0 +1,16 @@
+@use "@/styles/utils/media" as media;
+
+/*
+  한반도 안에서 충남을 짚는 작은 지도.
+  좁은 컬럼에 들어가므로 도형만 남기고 이름표·눈금은 두지 않는다 — 읽을 것이 없어야 위치가 읽힌다.
+*/
+.locator {
+  display: block;
+  width: 100%;
+  height: 100%;
+
+  &__here {
+    /* 밝힌 도가 살짝 떠 보이게 — 배경 도들과 같은 평면이면 눈이 구분하지 못한다 */
+    filter: drop-shadow(0 1px 2px rgb(0 0 0 / 18%));
+  }
+}

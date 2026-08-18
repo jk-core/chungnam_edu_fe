@@ -75,8 +75,16 @@
     }
   }
 
+  /*
+    지도가 앉는 자리.
+
+    `max-height` 만 걸어 두면 안쪽이 inline 이라 먹히지 않아 지도가 상자를 넘어 잘렸다.
+    블록으로 세우고 높이를 정해 주면, 뷰박스를 가진 SVG 가 그 안에 통째로 맞춰 들어간다 —
+    한반도는 세로로 길어 폭이 아니라 높이가 크기를 정한다.
+  */
   &__map {
-    max-height: 104px;
+    display: block;
+    height: 148px;
   }
 
   &__cta {
@@ -144,25 +152,5 @@
 
       color: var(--text-muted);
     }
-  }
-}
-
-.legend {
-  display: flex;
-  flex-wrap: wrap;
-  gap: s.$space-3;
-
-  &__item {
-    @include t.caption;
-
-    display: flex;
-    align-items: center;
-    gap: s.$space-1;
-    color: var(--text-muted);
-  }
-
-  &__count {
-    color: var(--text-strong);
-    font-variant-numeric: tabular-nums;
   }
 }

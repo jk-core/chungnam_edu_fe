@@ -1,19 +1,14 @@
 import { useCallback, useMemo, useState } from 'react';
-import { Badge } from '@/components/common/Badge';
 import { Modal } from '@/components/common/Modal';
-import { OPERATION_LABEL, OPERATION_TONE } from '@/mocks/status';
 import { REGIONS } from '@/mocks/regions';
+import { MapStatusFilter, useStatusFilter } from '@/components/plant/MapStatusFilter';
 import { KakaoMiniMap } from '@/components/common/GeoMap/KakaoMiniMap';
 import { Select } from '@/components/common/Select';
 import { formatNumber } from '@/utils/format';
 import { useKakaoMaps } from '@/hooks/useKakaoMaps';
-import type { OperationStatus } from '@/interface/status';
 import type { School } from '@/interface/energy';
 import { PlantMapCanvas } from './PlantMapCanvas';
 import styles from './PlantScopeMap.module.scss';
-
-/** 범례에 세울 상태 — 화면 어디서나 같은 순서로 읽히게 못 박는다. */
-const STATES: OperationStatus[] = ['running', 'ready', 'degraded', 'fault', 'commLost'];
 
 const ALL = 'all';
 
@@ -41,15 +36,14 @@ export function PlantMapModal({ isOpen, onClose, plants, selectedId, onSelect }:
   const [regionCode, setRegionCode] = useState(ALL);
   const mapStatus = useKakaoMaps();
 
-  const shown = useMemo(
+  const inRegion = useMemo(
     () => (regionCode === ALL ? plants : plants.filter((plant) => plant.regionCode === regionCode)),
     [plants, regionCode],
   );
 
-  const counts = STATES.map((status) => ({
-    status,
-    count: shown.filter((plant) => plant.status === status).length,
-  }));
+  // 시·군으로 한 번 좁힌 뒤 상태로 한 번 더 좁힌다 — 「서산시의 경고만」 처럼 겹쳐 볼 수 있다.
+  const status = useStatusFilter(inRegion);
+  const shown = status.visible;
 
   /*
     참조가 렌더마다 바뀌면 지도가 마커를 지웠다 다시 그리기를 되풀이한다 —
@@ -106,16 +100,12 @@ export function PlantMapModal({ isOpen, onClose, plants, selectedId, onSelect }:
           )}
         </div>
 
-        <ul className={styles.legend}>
-          {counts.map(({ status, count }) => (
-            <li key={status} className={styles.legend__item}>
-              <Badge tone={OPERATION_TONE[status]} withDot>
-                {OPERATION_LABEL[status]}
-              </Badge>
-              <span className={styles.legend__count}>{formatNumber(count)}</span>
-            </li>
-          ))}
-        </ul>
+        <MapStatusFilter
+          counts={status.counts}
+          picked={status.picked}
+          onToggle={status.toggle}
+          onReset={status.reset}
+        />
 
         {/*
           이름은 마커 자체의 툴팁으로 띄운다.

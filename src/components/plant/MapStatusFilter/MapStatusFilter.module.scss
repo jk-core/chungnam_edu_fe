@@ -1,0 +1,99 @@
+@use "@/styles/tokens/spacing" as s;
+@use "@/styles/tokens/typography" as t;
+@use "@/styles/utils/mixins" as mx;
+
+/*
+  지도 아래 상태 칸.
+  범례이면서 필터라, 누를 수 있다는 것이 보이되 눌리지 않은 상태가 기본으로 읽혀야 한다.
+*/
+.filter {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: s.$space-1;
+
+  &__item {
+    @include t.caption;
+
+    display: inline-flex;
+    align-items: center;
+    gap: s.$space-1;
+    padding: 3px s.$space-2;
+    border: 1px solid transparent;
+    border-radius: s.$radius-full;
+    background: none;
+    color: var(--text-muted);
+    transition: background-color 0.16s ease, border-color 0.16s ease, color 0.16s ease;
+
+    &:hover {
+      background-color: var(--surface-hover);
+      color: var(--text-strong);
+    }
+
+    /* 고른 것 — 테두리와 바탕으로 남기고 색점은 그대로 두어 상태색과 섞이지 않게 한다 */
+    &--on {
+      border-color: var(--brand);
+      background-color: var(--brand-soft);
+      color: var(--brand-contrast);
+      font-weight: 600;
+    }
+
+    @include mx.keyboard-focus;
+  }
+
+  &__dot {
+    display: block;
+    width: 7px;
+    height: 7px;
+    flex-shrink: 0;
+    border-radius: 50%;
+    background-color: var(--tone, var(--text-faint));
+
+    &--ok {
+      --tone: var(--ok);
+    }
+
+    &--brand {
+      --tone: var(--brand);
+    }
+
+    &--caution {
+      --tone: var(--caution);
+    }
+
+    &--critical {
+      --tone: var(--critical);
+    }
+
+    &--offline {
+      --tone: var(--offline);
+    }
+
+    &--neutral {
+      --tone: var(--text-faint);
+    }
+  }
+
+  &__count {
+    font-family: var(--font-data);
+    font-feature-settings: "tnum" 1;
+  }
+
+  &__reset {
+    @include t.caption;
+
+    margin-left: s.$space-1;
+    padding: 3px s.$space-2;
+    border: 0;
+    border-radius: s.$radius-full;
+    background: none;
+    color: var(--text-faint);
+    text-decoration: underline;
+
+    &:hover {
+      color: var(--text-strong);
+    }
+
+    @include mx.keyboard-focus;
+  }
+}

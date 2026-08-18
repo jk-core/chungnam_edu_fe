@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/common/Button';
 import { Card } from '@/components/common/Card';
 import { GeoMap } from '@/components/common/GeoMap';
+import { MapStatusFilter, useStatusFilter } from '@/components/plant/MapStatusFilter';
 import { ALL, EMPTY_FILTERS, matchPlants, PlantSearchModal } from '@/components/plant/PlantSearchModal';
 import { NOW } from '@/mocks/today';
 import { isAbnormal, OPERATION_LABEL, OPERATION_ORDER } from '@/mocks/status';
@@ -62,6 +63,8 @@ export function MonitoringBoard() {
   }, []);
 
   const rows = useMemo(() => matchPlants(filters), [filters]);
+  // 범례가 곧 필터다 — 지도에 무엇을 남길지 여기서 고른다.
+  const status = useStatusFilter(rows);
 
   // 걸어 둔 조건을 짧은 말로 되짚는다.
   const chips = [
@@ -76,7 +79,6 @@ export function MonitoringBoard() {
     <section className={styles.board} aria-labelledby="monitoring-title">
       <Reveal>
         <Card
-          eyebrow="Monitoring"
           title={<span id="monitoring-title">통합관제</span>}
           description="왼쪽은 지금 운영 상태, 오른쪽은 실제 위치입니다. 도면에서 발전소를 누르면 그 발전소의 발전 현황으로 넘어갑니다."
         >
@@ -111,18 +113,29 @@ export function MonitoringBoard() {
             <div className={styles.layout}>
               <StatusDonut rows={rows} />
 
-              <GeoMap
-                plants={rows}
-                selectedId={selectedId}
-                /*
-                  마커를 누르면 옆 칸에 설명만 편다.
-                  누르자마자 화면을 넘겨 버리면 무엇을 골랐는지 볼 틈이 없다 —
-                  넘어가는 일은 설명 안 "발전 현황 보기"가 맡는다.
-                */
-                // 지도를 못 읽는 환경에서는 검색 모달의 발전소 목록으로 같은 내용을 훑을 수 있다.
-                fallback={<p>지도를 볼 수 없다면 위 발전소 검색에서 같은 목록을 조건별로 확인할 수 있습니다.</p>}
-                renderPopup={(plant) => <PlantDetailPanel plant={plant} onOpen={() => openPlant(plant)} />}
-              />
+              <div className={styles.mapArea}>
+                <GeoMap
+                  plants={status.visible}
+                  selectedId={selectedId}
+                  /*
+                    마커를 누르면 옆 칸에 설명만 편다.
+                    누르자마자 화면을 넘겨 버리면 무엇을 골랐는지 볼 틈이 없다 —
+                    넘어가는 일은 설명 안 "발전 현황 보기"가 맡는다.
+                  */
+                  // 지도를 못 읽는 환경에서는 검색 모달의 발전소 목록으로 같은 내용을 훑을 수 있다.
+                  fallback={<p>지도를 볼 수 없다면 위 발전소 검색에서 같은 목록을 조건별로 확인할 수 있습니다.</p>}
+                  renderPopup={(plant) => <PlantDetailPanel plant={plant} onOpen={() => openPlant(plant)} />}
+                />
+
+                {/* 지도 아래 범례가 곧 필터다 — 「경고」만 남겨 어디인지 볼 수 있다 */}
+                <MapStatusFilter
+                  counts={status.counts}
+                  picked={status.picked}
+                  onToggle={status.toggle}
+                  onReset={status.reset}
+                  hideEmpty
+                />
+              </div>
             </div>
           </div>
         </Card>

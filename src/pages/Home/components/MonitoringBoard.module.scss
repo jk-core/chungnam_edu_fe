@@ -196,3 +196,11 @@
     color: var(--text-muted);
   }
 }
+
+/* 지도와 그 아래 상태 칸을 한 덩이로 — 칸이 지도 폭에 맞춰 서야 짝으로 읽힌다 */
+.mapArea {
+  display: flex;
+  flex-direction: column;
+  gap: s.$space-2;
+  min-width: 0;
+}
