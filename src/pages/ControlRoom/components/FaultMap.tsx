@@ -5,7 +5,7 @@ import { MAP_FIT, MAP_VIEW, projectPoint } from '@/components/common/GeoMap/useM
 import { KakaoMiniMap } from '@/components/common/GeoMap/KakaoMiniMap';
 import { useKakaoMaps } from '@/hooks/useKakaoMaps';
 import { MapStatusFilter, useStatusFilter } from '@/components/plant/MapStatusFilter';
-import { CloseIcon } from '@/components/common/Icon';
+import { CloseIcon, PauseIcon, PlayIcon } from '@/components/common/Icon';
 import { PlantDetailPanel } from '@/components/plant/PlantDetailPanel';
 import type { School } from '@/interface/energy';
 import styles from './FaultMap.module.scss';
@@ -40,8 +40,15 @@ const TOUR_MS = 7000;
 export function FaultMap({ plants, scope = 'faults', height = MAP_HEIGHT, selectable, tour }: FaultMapProps) {
   const mapStatus = useKakaoMaps();
   const [openId, setOpenId] = useState<string | null>(null);
-  // 사람이 한 번이라도 고르면 순회를 멈춘다 — 보고 있는 것을 화면이 빼앗으면 안 된다.
-  const [isTouring, setIsTouring] = useState(Boolean(tour));
+  /*
+    순회가 멈추는 까닭은 둘인데 서로 다른 것이라 따로 쥔다.
+
+    `isPlaying` 은 아래 단추로 사람이 정한 것이고, `isHeld` 는 점 하나를 눌러 들여다보는
+    동안만 잠시 붙잡아 두는 것이다. 하나로 묶으면 들여다보다 설명을 닫는 순간 "정지" 로
+    세워 둔 것까지 함께 풀려, 멈춰 놓고 자리를 뜬 사람이 돌아왔을 때 화면이 또 돌고 있다.
+  */
+  const [isPlaying, setIsPlaying] = useState(true);
+  const [isHeld, setIsHeld] = useState(false);
   const showAll = scope === 'all';
   const shown = showAll ? plants : plants.filter((plant) => isAbnormal(plant.status));
   // 범례가 곧 필터다 — 「경고 11개소」를 읽고 그 열한 곳만 남겨 볼 수 있어야 한다.
@@ -62,9 +69,10 @@ export function FaultMap({ plants, scope = 'faults', height = MAP_HEIGHT, select
   const abnormalIds = plants.filter((plant) => isAbnormal(plant.status)).map((plant) => plant.id);
   const idsKey = abnormalIds.join(',');
   const cursor = useRef(0);
+  const isRunning = Boolean(tour) && isPlaying && !isHeld;
 
   useEffect(() => {
-    if (!isTouring || abnormalIds.length === 0) return undefined;
+    if (!isRunning || abnormalIds.length === 0) return undefined;
 
     const ids = idsKey.split(',');
     const step = () => {
@@ -76,9 +84,13 @@ export function FaultMap({ plants, scope = 'faults', height = MAP_HEIGHT, select
 
     const timer = window.setInterval(step, TOUR_MS);
 
+    /*
+      멈출 때 시계만 끄고 펼쳐 둔 설명은 그대로 둔다 — 정지는 지금 보이는 것을 붙잡는 일이지
+      지우는 일이 아니다. 다시 켜면 `cursor` 가 그대로라 섰던 자리에서 이어 간다.
+    */
     return () => window.clearInterval(timer);
     // 목록이 바뀌면 처음부터 다시 돈다. 배열 자체는 매 렌더 새로 만들어지므로 이름만 이어 붙여 견준다.
-  }, [isTouring, idsKey, abnormalIds.length]);
+  }, [isRunning, idsKey, abnormalIds.length]);
 
   /*
     고른 발전소 설명은 지도 옆에 편다 (SFR-004-01).
@@ -91,8 +103,8 @@ export function FaultMap({ plants, scope = 'faults', height = MAP_HEIGHT, select
         className={styles.side__close}
         onClick={() => {
           setOpenId(null);
-          // 닫으면 다시 순회로 돌아간다 — 지켜보는 화면은 손을 떼면 제자리로 와야 한다.
-          if (tour) setIsTouring(true);
+          // 붙잡아 둔 것만 푼다 — 아래 단추로 세워 둔 것이라면 닫아도 서 있어야 한다.
+          setIsHeld(false);
         }}
         aria-label="설명 닫기"
       >
@@ -102,11 +114,39 @@ export function FaultMap({ plants, scope = 'faults', height = MAP_HEIGHT, select
     </aside>
   ) : null;
 
-  /** 사람이 고른 것 — 순회를 멈추고 그 자리에 머문다 */
+  /** 사람이 고른 것 — 보는 동안 순회를 붙잡아 둔다. 설명을 닫으면 풀린다 */
   const pick = (id: string) => {
-    setIsTouring(false);
+    setIsHeld(true);
     setOpenId(id);
   };
+
+  /*
+    지도 아래 순회 제어 (SFR-004-01).
+
+    스스로 넘어가는 화면은 읽던 것을 빼앗는다 — 설명을 다 읽기 전에 다음 학교로 넘어가면
+    되짚을 방법이 없다. 세워 둘 수 있어야 회의 자리에서 한 곳을 놓고 이야기할 수 있다.
+
+    다시 켤 때는 붙잡아 둔 것도 함께 푼다. 그러지 않으면 재생을 눌러도 지금 펼친 설명이
+    순회를 막고 있어 화면이 그대로 서 있는다.
+  */
+  const tourControl = tour && abnormalIds.length > 0 ? (
+    <button
+      type="button"
+      className={styles.tour}
+      aria-pressed={isPlaying}
+      aria-label={isPlaying ? '이상 설비 자동 순회 정지' : '이상 설비 자동 순회 재생'}
+      onClick={() => {
+        setIsPlaying((playing) => !playing);
+        if (!isPlaying) setIsHeld(false);
+      }}
+    >
+      {isPlaying ? <PauseIcon width={13} height={13} /> : <PlayIcon width={13} height={13} />}
+      {isPlaying ? '정지' : '재생'}
+      <span className={styles.tour__count}>
+        {abnormalIds.length}개소 순회
+      </span>
+    </button>
+  ) : null;
 
   // 지도 키가 없거나 외부망이 막히면 내장 지도로 간다 — 상황판이 멈추면 안 된다.
   if (mapStatus === 'ready') {
@@ -121,13 +161,16 @@ export function FaultMap({ plants, scope = 'faults', height = MAP_HEIGHT, select
           focusSelected={Boolean(tour)}
           onPick={selectable ? pick : undefined}
         />
-        <MapStatusFilter
-          counts={status.counts}
-          picked={status.picked}
-          onToggle={status.toggle}
-          onReset={status.reset}
-          hideEmpty
-        />
+        <div className={styles.map__foot}>
+          <MapStatusFilter
+            counts={status.counts}
+            picked={status.picked}
+            onToggle={status.toggle}
+            onReset={status.reset}
+            hideEmpty
+          />
+          {tourControl}
+        </div>
         {side}
       </div>
     );
@@ -172,13 +215,17 @@ export function FaultMap({ plants, scope = 'faults', height = MAP_HEIGHT, select
         </g>
       </svg>
 
-      <MapStatusFilter
-        counts={status.counts}
-        picked={status.picked}
-        onToggle={status.toggle}
-        onReset={status.reset}
-        hideEmpty
-      />
+      <div className={styles.map__foot}>
+        <MapStatusFilter
+          counts={status.counts}
+          picked={status.picked}
+          onToggle={status.toggle}
+          onReset={status.reset}
+          hideEmpty
+        />
+        {tourControl}
+      </div>
+
       {side}
     </div>
   );

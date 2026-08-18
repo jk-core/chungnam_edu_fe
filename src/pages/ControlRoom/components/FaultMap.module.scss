@@ -1,6 +1,7 @@
 @use "@/styles/tokens/spacing" as s;
 @use "@/styles/tokens/typography" as t;
 @use "@/styles/utils/media" as media;
+@use "@/styles/utils/mixins" as mx;
 
 .map {
   // 설명 패널이 이 칸을 기준으로 얹힌다
@@ -17,6 +18,57 @@
     width: 100%;
     min-height: 0;
   }
+
+  /*
+    지도 아래 줄 — 왼쪽은 상태 필터, 오른쪽 끝은 순회 제어.
+
+    둘 다 "지금 무엇이 보이는가" 를 다루는 것이라 한 줄에 세운다. 순회 단추만 따로 떼어
+    아래에 두면 줄이 하나 더 생겨 지도가 그만큼 눌린다 — 벽에 거는 화면에서 세로는 아깝다.
+    필터가 여러 줄로 접히면 단추는 그 마지막 줄 오른쪽에 남는다.
+  */
+  &__foot {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: s.$space-2;
+  }
+}
+
+/*
+  자동 순회 재생·정지.
+
+  글자를 함께 둔다 — 아이콘만으로는 지금이 도는 중인지 멈춘 중인지가 삼각형과 두 막대의
+  뜻을 아는 사람에게만 읽힌다. 뒤에 붙는 개소 수가 무엇을 도는지를 말한다.
+*/
+.tour {
+  @include t.caption;
+
+  display: inline-flex;
+  align-items: center;
+  gap: s.$space-1;
+  flex-shrink: 0;
+  padding: 3px s.$space-2;
+  border: 1px solid var(--border-subtle);
+  border-radius: s.$radius-full;
+  background: none;
+  color: var(--text-muted);
+  white-space: nowrap;
+  transition: border-color 0.16s ease, background-color 0.16s ease, color 0.16s ease;
+
+  &:hover {
+    border-color: var(--brand-soft-border);
+    background-color: var(--brand-soft);
+    color: var(--text-strong);
+  }
+
+  /* 개소 수는 곁들이는 말이라 한 단 물린다 — 단추 이름은 「정지」·「재생」 두 글자다 */
+  &__count {
+    color: var(--text-faint);
+    font-family: var(--font-data);
+    font-feature-settings: "tnum" 1;
+  }
+
+  @include mx.keyboard-focus;
 }
 
 .dot {
