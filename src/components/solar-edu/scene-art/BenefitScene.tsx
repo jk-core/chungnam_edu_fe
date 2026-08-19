@@ -21,6 +21,18 @@ const SPOTS: { id: BenefitArt; x: number; label: string }[] = [
 const SCALE = 0.72;
 const TOP = 140;
 
+/*
+  그림이 차지하는 자리.
+
+  위쪽 140 은 말풍선 몫이라 그림이 없다. 말풍선을 쓰지 않는 쪽(한 장에 넷을 함께 세우는 판)에서
+  이 좌표계를 그대로 쓰면, 빈 자리까지 함께 맞추느라 그림이 절반 크기로 줄어든다 — 재어 보니
+  칸 높이의 55% 밖에 쓰지 못했다. 말풍선이 없으면 그림이 있는 곳만 잘라 보여 준다.
+
+  6 만큼 더 여는 것은 후광과 선 끝이 경계 밖으로 조금 나가기 때문이다.
+*/
+const VIEW_WITH_BUBBLE = '0 0 900 330';
+const VIEW_ART_ONLY = `0 ${TOP - 6} 900 ${330 - TOP + 6}`;
+
 interface BenefitSceneProps {
   /** 지금 말풍선이 붙은 자리 — 그 덩이만 또렷해진다 */
   focus: BenefitArt;
@@ -41,7 +53,7 @@ export function BenefitScene({ focus, bubbleAt, bubble }: BenefitSceneProps) {
   return (
     <svg
       className={styles.canvas}
-      viewBox="0 0 900 330"
+      viewBox={bubble && bubbleAt ? VIEW_WITH_BUBBLE : VIEW_ART_ONLY}
       fill="none"
       focusable="false"
       preserveAspectRatio="xMidYMid meet"

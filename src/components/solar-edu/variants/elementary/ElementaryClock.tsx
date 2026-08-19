@@ -35,6 +35,19 @@ const BAR_MAX = 40;
 /** 가운데 판의 반지름 — 막대가 닿는 곳(134 − 40 = 94)보다 안쪽이어야 겹치지 않는다 */
 const CORE = 88;
 
+/*
+  「지금」 을 가리키는 바늘.
+
+  뿌리는 가운데 판 밑에서 시작해 판이 덮어 주고, 끝은 막대 띠를 가로질러 해 바로 앞에서 멎는다.
+  판과 막대 사이에는 6px 밖에 없어(88 ~ 94) 그 틈에만 두면 아예 보이지 않는다 — 막대를 넘어
+  가리키는 수밖에 없고, 그래서 막대와 다른 색으로 그린다.
+*/
+const NEEDLE_FROM = CORE - 10;
+const NEEDLE_TO = TRACK - 22;
+
+/** 뿌리 쪽 반폭. 끝으로 갈수록 좁아져 가리키는 방향이 뾰족해진다 */
+const NEEDLE_HALF = 6;
+
 /** 해가 도는 각도 범위. 위쪽이 정오가 되도록 왼쪽 아래에서 시작해 오른쪽 아래로 진다 */
 const ARC_FROM = 150;
 const ARC_TO = 390;
@@ -60,7 +73,7 @@ const HEIGHT_LESSON = [
   {
     until: 0.62,
     title: '해가 가장 높아요',
-    body: '빛이 판에 거의 똑바로 내리쬐어요. 같은 넓이에 빛이 가장 많이 모이는 때라 지금이 하루의 봉우리예요.',
+    body: '빛이 판에 거의 똑바로 내리쬐어요. 같은 넓이에 빛이 가장 많이 모이는 때라, 지금이 하루 중 전기를 가장 많이 만드는 시간이에요.',
   },
   {
     until: 0.82,
@@ -70,7 +83,7 @@ const HEIGHT_LESSON = [
   {
     until: 1.01,
     title: '해가 지고 있어요',
-    body: '빛이 지나야 할 공기층이 두꺼워져 많이 흩어져요. 곧 오늘의 발전이 끝나요.',
+    body: '햇빛이 지나오는 공기층이 두꺼워져서 많이 흩어져요. 이제 곧 오늘 발전이 끝나요.',
   },
 ];
 
@@ -234,6 +247,33 @@ export function ElementaryClock({ stats, content, nowHour }: ElementaryClockProp
             kWh
           </text>
 
+          {/*
+            지금을 가리키는 바늘.
+
+            해가 어디에 있는지는 해 자체가 이미 말한다. 다만 그것은 길 **바깥** 의 표시라 눈이
+            테두리를 훑어야 찾는데, 가운데에서 뻗어 나온 바늘은 눈이 숫자에 머물러 있을 때 그대로
+            읽힌다 — 숫자를 보다가 고개를 들지 않아도 시각이 함께 들어온다.
+
+            가운데 판 위에 그린다. 뿌리는 판 테두리 안쪽에서 시작해 판에서 뻗어 나온 것으로 보이고,
+            몸통은 막대 띠를 가로질러 해 앞에서 멎는다. 도는 축을 점으로 찍어 두지는 않는다 —
+            판 한가운데는 오늘 만든 전기가 쓰는 자리라, 점 하나가 숫자를 가린다.
+
+            0도(오른쪽)를 향해 그려 두고 통째로 돌린다 — 점마다 좌표를 셈하면 시각이 바뀔 때
+            모양이 미세하게 달라지고, 회전만 바꾸면 CSS 가 그 사이를 이어 줄 수 있다.
+          */}
+          {isDay ? (
+            <g className={styles.needle} transform={`rotate(${sun} ${CENTER} ${CENTER})`}>
+              <polygon
+                className={styles.needle__blade}
+                points={[
+                  `${CENTER + NEEDLE_FROM},${CENTER - NEEDLE_HALF}`,
+                  `${CENTER + NEEDLE_TO},${CENTER}`,
+                  `${CENTER + NEEDLE_FROM},${CENTER + NEEDLE_HALF}`,
+                ].join(' ')}
+              />
+            </g>
+          ) : null}
+
           {/* 시계 아래 우리 학교 — 이 시계가 무엇의 하루인지 그림이 말한다 */}
           <g transform={`translate(${CENTER - 46} ${VIEW - 22})`}>
             <CastShadow cx={46} cy={4} rx={64} ry={9} />
@@ -274,7 +314,7 @@ export function ElementaryClock({ stats, content, nowHour }: ElementaryClockProp
           label="발전시간"
           value={formatNumber(stats.equivalentHours, 1)}
           unit="시간"
-          note="가장 셀 때로 치면 이만큼 돌린 셈이에요"
+          note="해가 가장 셀 때만 골라서 발전했다면 이만큼 걸렸을 시간이에요"
           tone="brand"
           art={<CupArt ratio={Math.min(1, stats.equivalentHours / 8)} />}
         />

@@ -221,10 +221,11 @@
   list-style: none;
 
   &__caption {
-    @include t.caption;
+    @include t.body-sm;
 
     flex: none;
     margin-top: s.$space-2;
+    font-size: 14px;
     padding: s.$space-2 s.$space-3;
     border-radius: s.$radius-sm;
     background-color: var(--ok-soft);
@@ -264,9 +265,17 @@
     min-width: 0;
   }
 
-  &__label {
-    @include t.caption;
+  /*
+    글씨 크기를 앱 기본 단계보다 키운다.
 
+    본문 기준으로 잡아 두었더니 이름표와 설명이 11px 이었다. 손에 쥐고 보는 화면이라면 충분하지만
+    이 판은 교실 뒤나 복도에서 몇 걸음 떨어져 보는 화면이라, 큰 숫자만 읽히고 그 숫자가 무엇인지와
+    왜 좋은지는 읽히지 않았다. 값 아래 한 줄이 읽혀야 표가 아니라 설명이 된다.
+  */
+  &__label {
+    @include t.label-md;
+
+    font-size: 16px;
     color: var(--text-muted);
   }
 
@@ -275,19 +284,23 @@
 
     display: flex;
     align-items: baseline;
-    gap: 3px;
+    gap: 4px;
     color: var(--text-strong);
 
     span {
-      @include t.caption;
+      @include t.label-md;
 
+      font-size: 16px;
       color: var(--text-muted);
     }
   }
 
   &__line {
-    @include t.caption;
+    @include t.body-sm;
 
+    margin-top: 2px;
+    font-size: 15px;
+    line-height: 1.5;
     color: var(--text-muted);
   }
 }

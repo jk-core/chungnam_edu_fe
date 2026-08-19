@@ -9,11 +9,23 @@
   gap: s.$space-7;
   flex-wrap: wrap;
 
+  /*
+    왼쪽 수치 칸.
+
+    폭을 못 박아 둔다. 내용에 맡기면 아래 안내 문구가 길수록 칸이 넓어져, 눈높이를 바꿔 볼 때
+    오른쪽 지표 격자의 시작점이 몇 px 씩 옮겨 앉는다 — 같은 항목이 같은 자리에 있어야 값이
+    바뀐 것인지 화면이 바뀐 것인지 헷갈리지 않는다. 좁은 화면에서는 다시 내용에 맡긴다.
+  */
   &__main {
     display: flex;
     flex-direction: column;
     gap: 2px;
     flex-shrink: 0;
+    width: 264px;
+
+    @include media.tablet {
+      width: auto;
+    }
   }
 
   &__label {
@@ -96,6 +108,14 @@
   }
 
   &--large {
+    .headline__main {
+      width: 364px;
+
+      @include media.tablet {
+        width: auto;
+      }
+    }
+
     .headline__value {
       font-size: 64px;
     }

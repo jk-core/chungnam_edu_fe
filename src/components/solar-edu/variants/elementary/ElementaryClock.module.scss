@@ -10,7 +10,12 @@
 */
 .board {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) 340px;
+
+  /*
+    시계는 둥근 판이라 칸을 넓게 줘도 좌우가 하늘로 남는다. 넓힌 만큼 원판이 커지는 것이 아니라
+    빈자리만 늘어나므로, 남는 폭은 옆의 숫자 칸에 넘긴다 — 그쪽은 넓어진 만큼 글씨가 커진다.
+  */
+  grid-template-columns: minmax(0, 1fr) 420px;
 
   /* 원리 띠는 제 높이만 쓰고, 남는 높이는 전부 시계와 숫자에 준다 */
   grid-template-rows: minmax(0, 1fr) auto;
@@ -19,7 +24,7 @@
   min-height: 0;
 
   @include media.kiosk {
-    grid-template-columns: minmax(0, 1fr) 400px;
+    grid-template-columns: minmax(0, 1fr) 500px;
     gap: s.$space-4;
   }
 
@@ -103,9 +108,61 @@
   font-weight: 600;
 }
 
+/*
+  가운데 판의 글자.
+
+  SVG 안의 글자는 `color` 가 아니라 `fill` 로 칠해진다. 이 세 줄은 클래스가 아예 없어 뿌리
+  `<svg fill="none">` 을 그대로 물려받았고, 그래서 판 한가운데가 내내 비어 있었다.
+*/
+.core {
+  &__label {
+    fill: var(--text-muted);
+    font-family: var(--font-sans);
+    font-size: 14px;
+    font-weight: 600;
+  }
+
+  &__value {
+    fill: var(--text-strong);
+    font-family: var(--font-data);
+    font-size: 34px;
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+  }
+
+  &__unit {
+    fill: var(--text-muted);
+    font-family: var(--font-sans);
+    font-size: 15px;
+    font-weight: 600;
+  }
+}
+
 // ── 해 ─────────────────────────────────────────────────────
 
 /* 걸어 두는 화면이라 움직임은 전부 CSS 로 둔다 — 문서가 가려져도 계속 돈다 */
+
+/*
+  「지금」 을 가리키는 바늘.
+
+  막대 띠 위를 가로지르므로 막대와 같은 주황으로 두면 어디까지가 바늘인지 사라진다. 파랑으로
+  긋고 흰 테를 둘러, 흰 판 위에서도 주황 막대 위에서도 윤곽이 끊기지 않게 한다.
+*/
+.needle {
+  transition: transform 0.8s cubic-bezier(0.22, 0.68, 0.32, 1);
+
+  &__blade {
+    fill: var(--brand);
+    stroke: var(--surface);
+    stroke-width: 2;
+    stroke-linejoin: round;
+  }
+
+  @include media.reduced-motion {
+    transition: none;
+  }
+}
+
 .sunGlow {
   animation: clock-breathe 3.4s ease-in-out infinite;
   transform-box: fill-box;

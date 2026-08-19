@@ -215,7 +215,7 @@
 // ── 아래 두 칸 ─────────────────────────────────────────────
 .bottom {
   display: grid;
-  grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr);
+  grid-template-columns: minmax(0, 1.7fr) minmax(0, 1fr);
   gap: s.$space-3;
   min-height: 0;
 
@@ -246,11 +246,18 @@
 }
 
 .facts {
+  /*
+    값 여섯 줄.
+
+    두 열로 접어 위쪽에만 붙여 두었더니 칸의 아래 절반이 통째로 비었다. 한 열로 펴서 남는 높이에
+    고르게 벌려 세우면 같은 여섯 줄이 칸을 채우고, 이름과 값이 한 줄에서 좌우로 마주 보게 되어
+    읽기도 낫다.
+  */
   &__list {
     display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    align-content: start;
-    gap: s.$space-1 s.$space-4;
+    grid-auto-rows: min-content;
+    align-content: space-between;
+    gap: s.$space-1;
     flex: 1;
     min-height: 0;
     margin-top: s.$space-1;
