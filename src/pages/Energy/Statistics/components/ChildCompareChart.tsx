@@ -1,12 +1,11 @@
-import { Card } from '@/components/common/Card';
 import { DETAIL_UNIT } from '@/mocks/generation';
 import { EChart } from '@/components/common/EChart';
 import { KIND_LABEL } from '@/mocks/tree';
-import { Reveal } from '@/components/common/Reveal';
 import { AXIS_NAME_GAP, LEGEND_GRID_TOP, seriesPalette, topLegend } from '@/utils/chart';
 import { formatNumber } from '@/utils/format';
 import { useChartPalette } from '@/hooks/useChartPalette';
 import type { NodeKind } from '@/interface/tree';
+import type { PeriodKey } from '@/mocks/generation';
 import type { EChartsOption } from 'echarts';
 import type { StatisticsView } from '../hooks/useStatisticsView';
 
@@ -18,12 +17,23 @@ interface ChildCompareChartProps {
   childKind: NodeKind;
 }
 
+/** 이 판의 제목과 설명 — 칸을 바깥에서 씌우므로 문구도 바깥이 가져다 쓴다 */
+export function childCompareHead(period: PeriodKey, childKind: NodeKind) {
+  return {
+    title: `${DETAIL_UNIT[period]}별 ${KIND_LABEL[childKind]} 발전시간`,
+    description: `${KIND_LABEL[childKind]}마다 다른 색과 선 모양으로 구분했습니다. `
+      + `선 위에 마우스를 올리면 그 ${DETAIL_UNIT[period]}의 값이 한꺼번에 나옵니다.`,
+  };
+}
+
 /**
  * 하위 설비별 발전시간을 한 판에 겹친 차트 (SFR-008-05/06/07).
  *
  * 발전량을 그대로 겹치면 용량 큰 설비가 판을 덮어 버린다. 설비용량으로 나눈 발전시간이라야
- * 크기가 다른 설비를 같은 눈금 위에서 견줄 수 있다. 설비마다 다른 색을 주고 한 시점의
+ * 크기가 다른 설비를 같은 눈금 위에서 비교할 수 있다. 설비마다 다른 색을 주고 한 시점의
  * 모든 설비 값을 툴팁 하나에 모아, 어느 설비가 언제 처졌는지 좌우로 훑어볼 수 있게 한다.
+ *
+ * 칸(`Card`)은 씌우지 않는다 — 시점별 추이와 한 칸 안에서 번갈아 선다.
  */
 export function ChildCompareChart({ view, childKind }: ChildCompareChartProps) {
   const { label, period, detail, childStats } = view;
@@ -70,18 +80,10 @@ export function ChildCompareChart({ view, childKind }: ChildCompareChartProps) {
   };
 
   return (
-    <Reveal delay={0.08}>
-      <Card
-        eyebrow="Compare"
-        title={`${DETAIL_UNIT[period]}별 ${KIND_LABEL[childKind]} 발전시간`}
-        description={`${KIND_LABEL[childKind]}마다 다른 색과 선 모양으로 구분했습니다. 선 위에 마우스를 올리면 그 ${DETAIL_UNIT[period]}의 값이 한꺼번에 나옵니다.`}
-      >
-        <EChart
-          option={option}
-          height={320}
-          summary={`${label} 아래 ${KIND_LABEL[childKind]} ${childStats.length}개의 ${DETAIL_UNIT[period]}별 발전시간 비교.`}
-        />
-      </Card>
-    </Reveal>
+    <EChart
+      option={option}
+      height={320}
+      summary={`${label} 아래 ${KIND_LABEL[childKind]} ${childStats.length}개의 ${DETAIL_UNIT[period]}별 발전시간 비교.`}
+    />
   );
 }

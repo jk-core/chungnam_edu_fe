@@ -87,47 +87,109 @@
   }
 }
 
-.infoGrid {
-  display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: s.$space-5 s.$space-6;
-  margin: 0;
-  padding-top: s.$space-4;
+/*
+  요약 박스 셋.
 
-  @include media.tablet {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
+  이 화면에 온 사람이 가장 먼저 찾는 값 셋만 크게 세운다. 값마다 아이콘을 앞에 두는 것은
+  멀리서 훑을 때 글자보다 모양이 먼저 걸리기 때문이고, 셋이 같은 크기인 것은 셋 사이에는
+  우열이 없기 때문이다.
+*/
+.metrics {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: s.$space-4;
+  padding-top: s.$space-4;
+  list-style: none;
 
   @include media.mobile {
     grid-template-columns: 1fr;
-    gap: s.$space-4;
+  }
+}
+
+.metric {
+  display: grid;
+  grid-template-columns: 40px minmax(0, 1fr);
+  gap: s.$space-3;
+  padding: s.$space-4;
+  border: 1px solid var(--border-subtle);
+  border-radius: s.$radius-lg;
+  background-color: var(--surface-sunken);
+
+  &__icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    border-radius: s.$radius-md;
+    background-color: var(--surface);
+    color: var(--solar-text);
+
+    svg {
+      width: 20px;
+      height: 20px;
+    }
   }
 
-  dt {
-    margin-bottom: s.$space-1;
-    color: var(--text-faint);
+  &__body {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    min-width: 0;
+  }
 
+  &__label {
     @include t.label-sm;
+
+    color: var(--text-faint);
   }
 
-  dd {
+  &__value {
+    @include t.data-lg;
+
     display: flex;
     align-items: baseline;
-    gap: s.$space-2;
-    margin: 0;
+    gap: s.$space-1;
     color: var(--text-strong);
-
-    @include t.data-md;
   }
 
   &__unit {
-    color: var(--text-muted);
-
     @include t.caption;
+
+    color: var(--text-muted);
+  }
+}
+
+/*
+  박스에 올리지 않은 값.
+
+  요구사항이 짚어 둔 값이라 지우지 않되, 먼저 볼 것이 위 박스 셋이라는 순서를 크기로 말한다.
+*/
+.subInfo {
+  display: flex;
+  flex-wrap: wrap;
+  gap: s.$space-2 s.$space-6;
+  margin: s.$space-4 0 0;
+  padding-top: s.$space-3;
+  border-top: 1px solid var(--border-subtle);
+
+  > div {
+    display: flex;
+    align-items: baseline;
+    gap: s.$space-2;
   }
 
-  &__accent {
-    color: var(--solar-text);
+  dt {
+    @include t.caption;
+
+    color: var(--text-faint);
+  }
+
+  dd {
+    @include t.label-md;
+
+    margin: 0;
+    color: var(--text);
   }
 }
 
@@ -385,29 +447,10 @@
 }
 
 // ── 환경 기여도 (발전정보 요약 안으로 들여왔다) ──────────────
-.ecoGrid {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: s.$space-4;
-  margin: s.$space-4 0 0;
-  padding-top: s.$space-4;
-  border-top: 1px solid var(--border-subtle);
 
-  @include media.mobile {
-    grid-template-columns: 1fr;
-  }
-
-  dt {
-    @include t.label-sm;
-
-    margin-bottom: 2px;
-    color: var(--text-faint);
-  }
-
-  dd {
-    @include t.data-md;
-
-    margin: 0;
-    color: var(--ok-text);
-  }
+/* 차트 위 오른쪽에 서는 보기 방식 — 칸 머리는 바깥 토글이 쓰고 있어 여기로 내렸다 */
+.trendBar {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: s.$space-3;
 }

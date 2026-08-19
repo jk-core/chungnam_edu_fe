@@ -4,12 +4,11 @@ import { exportCsv } from '@/utils/export';
 import { toast } from '@/stores/toastStore';
 import type { CsvColumn } from '@/utils/export';
 import { BasisTable } from './components/BasisTable';
-import { ChildCompareChart } from './components/ChildCompareChart';
-import { DetailTrend } from './components/DetailTrend';
 import { InverterDepth } from './Inverter';
 import { PeriodFilter } from './components/PeriodFilter';
 import { PowerPlantDepth } from './PowerPlant';
 import { ScopePath } from './components/ScopePath';
+import { TrendSection } from './components/TrendSection';
 import { StatSummary } from './components/StatSummary';
 import { useStatisticsView } from './hooks/useStatisticsView';
 import styles from './Statistics.module.scss';
@@ -70,9 +69,9 @@ function StatisticsPage() {
       <StatSummary view={view} />
 
       {childKind ? <Depth view={view} childKind={childKind} /> : null}
-      {childKind ? <ChildCompareChart view={view} childKind={childKind} /> : null}
 
-      <DetailTrend view={view} />
+      {/* 시점별 추이 — 전체와 하위 설비별을 한 칸 안에서 바꿔 끼운다 */}
+      <TrendSection view={view} childKind={childKind ?? null} />
     </div>
   );
 }
