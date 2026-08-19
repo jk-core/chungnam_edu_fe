@@ -23,7 +23,6 @@ export function PowerPlantDepth({ view, childKind }: PowerPlantDepthProps) {
   return (
     <Reveal delay={0.06}>
       <Card
-        eyebrow="Children"
         title={`${KIND_LABEL[childKind]}별 발전`}
         description={
           node.kind === 'root'

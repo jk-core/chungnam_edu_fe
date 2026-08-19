@@ -267,7 +267,6 @@ function PyranometerDepth() {
 
       <Reveal delay={0.05}>
         <Card
-          eyebrow="Pyranometer"
           title="일사량계 목록"
           description="일사량은 AI 진단이 기대 발전량을 계산할 때 쓰는 값입니다. 캘리브레이션 인수를 정확히 넣어 주세요."
         >

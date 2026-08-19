@@ -56,7 +56,7 @@ function MyPage() {
     >
       <div className={styles.grid}>
         <Reveal>
-          <Card eyebrow="Account" title="계정 정보" description="아이디와 권한은 화면에서 바꿀 수 없습니다.">
+          <Card title="계정 정보" description="아이디와 권한은 화면에서 바꿀 수 없습니다.">
             <dl className={styles.info}>
               <div>
                 <dt>아이디</dt>
@@ -97,7 +97,6 @@ function MyPage() {
 
         <Reveal delay={0.06}>
           <Card
-            eyebrow="Password"
             title="비밀번호 변경"
             description={`비밀번호는 ${policy.passwordResetDays}일마다 변경해야 합니다.`}
           >

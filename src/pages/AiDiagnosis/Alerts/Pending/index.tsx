@@ -167,7 +167,7 @@ function PendingView() {
       )}
 
       <Reveal delay={0.08}>
-        <Card eyebrow="Guide" title="조치 순서" variant="outline">
+        <Card title="조치 순서" variant="outline">
           <ol className={styles.guide}>
             <li>
               <span className={styles.guide__step}>1</span>

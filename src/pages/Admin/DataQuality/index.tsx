@@ -106,7 +106,6 @@ function DataQualityPage() {
 
       <Reveal delay={0.08}>
         <Card
-          eyebrow="Plants"
           title="발전소별 품질"
           description="품질률이 낮은 순입니다. 기준 미달 행은 붉게 표시했습니다."
         >

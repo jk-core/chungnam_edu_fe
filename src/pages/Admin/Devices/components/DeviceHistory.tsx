@@ -33,7 +33,6 @@ export function DeviceHistory({ kind, keyword = '', title }: DeviceHistoryProps)
   return (
     <Reveal delay={0.06}>
       <Card
-        eyebrow="History"
         title={title}
         description="누가 언제 어떤 항목을 바꿨는지 남습니다. 위 검색어로 좁혀 볼 수 있습니다."
       >

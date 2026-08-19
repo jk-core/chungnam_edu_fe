@@ -308,7 +308,6 @@ function UsersPage() {
 
       <Reveal>
         <Card
-          eyebrow="Users"
           title="설비 담당자"
           description="로그인 실패가 누적돼 잠긴 계정은 여기서 풀어 줍니다."
         >
@@ -336,7 +335,6 @@ function UsersPage() {
 
       <Reveal delay={0.06}>
         <Card
-          eyebrow="History"
           title="담당자 변경 이력"
           description="누가 언제 어떤 항목을 바꿨는지 남습니다. 위 검색어로 사람을 좁혀 볼 수 있습니다."
         >

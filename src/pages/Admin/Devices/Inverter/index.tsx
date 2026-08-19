@@ -383,7 +383,6 @@ function InverterDepth() {
 
       <Reveal delay={0.05}>
         <Card
-          eyebrow="Inverter"
           title="인버터 목록"
           description="등록 정보를 고치면 설비용량은 모듈 구성에서 다시 계산합니다."
         >

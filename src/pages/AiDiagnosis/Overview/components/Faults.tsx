@@ -197,7 +197,6 @@ export function DiagnosisFaults() {
         <>
           <Reveal delay={0.06}>
             <Card
-              eyebrow="Daily efficiency"
               title={`${unitNoun} 일자별 발전효율`}
               description={`${label} 하위 ${unitNoun}의 일자별 발전 효율(%) — 행을 펼치면 하위 설비별 효율이 표시됩니다`}
               action={(

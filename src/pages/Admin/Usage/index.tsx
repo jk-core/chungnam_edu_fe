@@ -170,7 +170,7 @@ function UsagePage() {
 
       <div className={styles.grid2}>
         <Reveal delay={0.05}>
-          <Card eyebrow="Menu" title="메뉴별 조회수 상위 10개" description="어떤 화면이 실제로 쓰이는지 봅니다.">
+          <Card title="메뉴별 조회수 상위 10개" description="어떤 화면이 실제로 쓰이는지 봅니다.">
             <EChart
               option={menuOption}
               height={320}
@@ -181,7 +181,6 @@ function UsagePage() {
 
         <Reveal delay={0.08}>
           <Card
-            eyebrow="Login"
             title="일별 로그인 추이"
             description="실선은 성공, 점선은 실패입니다."
             action={(
@@ -201,7 +200,6 @@ function UsagePage() {
 
       <Reveal delay={0.1}>
         <Card
-          eyebrow="Detail"
           title="화면별 상세"
           description="조회수 순으로 정렬했습니다."
           action={(

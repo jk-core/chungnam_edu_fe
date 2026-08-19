@@ -368,7 +368,6 @@ function StringDepth() {
 
       <Reveal delay={0.05}>
         <Card
-          eyebrow="String"
           title="스트링 목록"
           description="설비별로 묶어 순번대로 보여 줍니다. 수정을 누르면 그 설비의 스트링을 한 판에서 함께 고칩니다."
         >

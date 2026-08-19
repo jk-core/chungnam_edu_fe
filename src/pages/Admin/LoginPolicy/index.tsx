@@ -63,7 +63,6 @@ function LoginPolicyPage() {
     <div className={styles.tab}>
       <Reveal>
         <Card
-          eyebrow="Policy"
           title="로그인 정책"
           description="저장하면 로그인 화면 안내문과 세션 만료 시간에 바로 반영됩니다."
         >
@@ -130,7 +129,7 @@ function LoginPolicyPage() {
       </Reveal>
 
       <Reveal delay={0.06}>
-        <Card eyebrow="Now" title="현재 적용값" variant="outline">
+        <Card title="현재 적용값" variant="outline">
           <dl className={styles.infoGrid}>
             <div>
               <dt>비밀번호 재설정 주기</dt>

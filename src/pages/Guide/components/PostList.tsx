@@ -48,7 +48,7 @@ export function PostList({ kind }: { kind: BoardKind }) {
       </div>
 
       <Reveal>
-        <Card eyebrow="Board" title={KIND_LABEL[kind]} description={DESCRIPTION[kind]}>
+        <Card title={KIND_LABEL[kind]} description={DESCRIPTION[kind]}>
           {posts.length === 0 ? (
             <EmptyState title="글이 없습니다" description="아직 올라온 글이 없습니다." />
           ) : (

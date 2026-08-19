@@ -136,7 +136,6 @@ function ServerHealthPage() {
 
       <Reveal delay={0.06}>
         <Card
-          eyebrow="Servers"
           title="서버 자원 사용률"
           description={`${NOW.format('HH:mm')} 기준. CPU·메모리·디스크가 임계선을 넘으면 카드에 색이 들어옵니다.`}
         >
@@ -149,7 +148,7 @@ function ServerHealthPage() {
       </Reveal>
 
       <Reveal delay={0.08}>
-        <Card eyebrow="Trend" title="24시간 CPU 사용률" description="점선은 주의·위험 임계선입니다.">
+        <Card title="24시간 CPU 사용률" description="점선은 주의·위험 임계선입니다.">
           <EChart
             option={trendOption}
             height={300}
@@ -159,7 +158,7 @@ function ServerHealthPage() {
       </Reveal>
 
       <Reveal delay={0.1}>
-        <Card eyebrow="Database" title="데이터베이스 상태" description="연결 수와 저장소, 백업·복제 지연을 함께 봅니다.">
+        <Card title="데이터베이스 상태" description="연결 수와 저장소, 백업·복제 지연을 함께 봅니다.">
           <dl className={styles.infoGrid}>
             <div>
               <dt>연결</dt>
@@ -190,7 +189,7 @@ function ServerHealthPage() {
       </Reveal>
 
       <Reveal delay={0.12}>
-        <Card eyebrow="Incidents" title="임계 초과 이력" description="언제 무엇이 어디까지 올라갔는지 남습니다.">
+        <Card title="임계 초과 이력" description="언제 무엇이 어디까지 올라갔는지 남습니다.">
           <Table
             caption="자원 임계 초과 이력. 발생 시각, 서버, 지표, 등급, 내용, 해소 시각 순입니다."
             columns={incidentColumns}

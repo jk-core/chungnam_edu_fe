@@ -25,7 +25,6 @@ function SettingsView() {
     <div className={styles.tab}>
       <Reveal>
         <Card
-          eyebrow="Rules"
           title="알림 조건"
           description={`${ALERT_RULES.length}개 조건 중 ${onCount}개가 켜져 있습니다. 끄면 해당 상황이 생겨도 알림을 보내지 않습니다.`}
           padding="none"
@@ -65,7 +64,7 @@ function SettingsView() {
       </Reveal>
 
       <Reveal delay={0.08}>
-        <Card eyebrow="Note" title="알아 두실 점" variant="outline">
+        <Card title="알아 두실 점" variant="outline">
           <ul className={styles.notes}>
             <li>긴급 알림은 조건을 꺼도 시스템 화면에는 남습니다. 문자·메일 발송만 멈춥니다.</li>
             <li>수신 담당자는 시스템 관리에서 학교별로 지정합니다.</li>

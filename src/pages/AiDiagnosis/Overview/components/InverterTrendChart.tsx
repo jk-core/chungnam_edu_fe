@@ -217,7 +217,6 @@ export function InverterTrendChart({ target }: InverterTrendChartProps) {
   return (
     <Reveal delay={0.04}>
       <Card
-        eyebrow="Trend"
         title="전력 · 전압 · 전류 추이"
         description="버튼으로 측정값을 바꿔 봅니다 · 초록 띠는 기대값 둘레의 정상 범위, 붉은 선은 AI가 고장으로 분류한 구간입니다"
         action={(

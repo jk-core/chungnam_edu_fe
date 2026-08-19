@@ -293,7 +293,6 @@ function ModuleDepth() {
 
       <Reveal delay={0.05}>
         <Card
-          eyebrow="Module"
           title="모듈 제품"
           description="여기에 등록한 제품을 인버터 등록에서 고릅니다. 용량은 설비용량 산출에 그대로 쓰입니다."
         >

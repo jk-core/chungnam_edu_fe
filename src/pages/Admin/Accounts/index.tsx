@@ -73,7 +73,6 @@ function AccountsPage() {
     <div className={styles.tab}>
       <Reveal>
         <Card
-          eyebrow="Tree"
           title="계정 트리"
           description="교육청 아래에 교육기관 계정이 달립니다. 교육기관 계정은 담당 학교만 조회합니다."
         >
@@ -105,7 +104,6 @@ function AccountsPage() {
 
       <Reveal delay={0.06}>
         <Card
-          eyebrow="Matrix"
           title="계정 종류별 접근 화면"
           description="메뉴 노출 규칙과 같은 데이터를 쓰므로 이 표와 실제 화면이 어긋나지 않습니다."
         >

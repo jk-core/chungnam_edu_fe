@@ -145,7 +145,6 @@ function TemplatesDepth() {
     <>
       <Reveal>
         <Card
-          eyebrow="Templates"
           title="점검 양식"
           description="문항을 고치면 새 판으로 나갑니다. 이미 작성된 보고서는 그때 문항을 그대로 지킵니다."
         >
@@ -154,7 +153,7 @@ function TemplatesDepth() {
       </Reveal>
 
       <Reveal delay={0.06}>
-        <Card eyebrow="History" title="양식 개정 이력" description="누가 언제 무엇을 고쳐 몇 판으로 냈는지 남습니다.">
+        <Card title="양식 개정 이력" description="누가 언제 무엇을 고쳐 몇 판으로 냈는지 남습니다.">
           <div className={styles.history}>
             {history.slice(0, 10).map((item) => (
               <div key={item.id} className={styles.historyItem}>

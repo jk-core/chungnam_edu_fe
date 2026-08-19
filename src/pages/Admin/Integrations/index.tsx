@@ -190,7 +190,6 @@ function IntegrationsPage() {
 
       <Reveal delay={0.05}>
         <Card
-          eyebrow="Trend"
           title="일자별 전송 성공률"
           description="어느 날부터 실패가 늘었는지 추이로 봅니다. 100%에 못 미친 날은 붉게 표시했습니다."
         >
@@ -207,7 +206,6 @@ function IntegrationsPage() {
 
       <Reveal delay={0.09}>
         <Card
-          eyebrow="REMS"
           title="교육부 전송 이력"
           description="최근 30일, 하루 4회 수집 데이터를 가공 없이 그대로 보냅니다. 실패 건은 사유 확인 후 재송신합니다."
         >

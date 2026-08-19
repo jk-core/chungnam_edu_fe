@@ -24,7 +24,6 @@ export function InverterDepth({ view, childKind }: InverterDepthProps) {
   return (
     <Reveal delay={0.06}>
       <Card
-        eyebrow="Children"
         title={`${KIND_LABEL[childKind]}별 발전`}
         description={`${node.name} 아래 ${KIND_LABEL[childKind]} ${childStats.length}개입니다. 발전통계는 인버터까지가 조회 단위라 여기서 더 내려가지는 않습니다 — ${KIND_LABEL[childKind]} 단위 판정은 AI진단에서 봅니다.`}
       >

@@ -270,7 +270,7 @@ function ListView() {
       </div>
 
       <Reveal delay={0.06}>
-        <Card eyebrow="Filter" title="조회 조건" padding="md" variant="outline">
+        <Card title="조회 조건" padding="md" variant="outline">
           <div className={styles.filters}>
             <SegmentedControl
               label="조회 단위"
@@ -318,7 +318,6 @@ function ListView() {
 
       <Reveal delay={0.1}>
         <Card
-          eyebrow="Alerts"
           title="알림 이력"
           description={`${label} 기준 ${formatNumber(results.length)}건. 처리율 ${formatPercent(stats.handledRate, 1)}.`}
           action={

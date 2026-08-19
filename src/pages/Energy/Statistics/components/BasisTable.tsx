@@ -72,7 +72,6 @@ export function BasisTable({ view }: { view: StatisticsView }) {
   return (
     <Reveal>
       <Card
-        eyebrow="Basis"
         title={`${BASIS_LABEL[basis]}별 발전 집계`}
         description={`${meta.label} 기준 · ${basisRows.length}개 ${BASIS_LABEL[basis]}를 발전량 순으로 늘어놓았습니다. 설비이용률은 용량 대비 실제 발전량입니다.`}
         action={(

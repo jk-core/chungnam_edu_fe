@@ -47,7 +47,6 @@ export function InspectionSchedule() {
 
       <Reveal>
         <Card
-          eyebrow="Schedule"
           title="점검 일정"
           description={`${label} · ${formatShort(range.start)} ~ ${formatShort(range.end)}. 예정된 점검과 완료된 점검을 시간 순으로 보여줍니다.`}
         >

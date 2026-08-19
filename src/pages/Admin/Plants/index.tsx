@@ -485,7 +485,6 @@ function PlantsPage() {
 
       <Reveal>
         <Card
-          eyebrow="Plants"
           title="발전소 목록"
           description="위 등록 버튼으로 발전소를 새로 세우고, 행의 수정 버튼으로 등록 정보를 고칩니다. 변경 내역은 아래 이력에 남습니다."
         >
@@ -506,7 +505,7 @@ function PlantsPage() {
       </Reveal>
 
       <Reveal delay={0.06}>
-        <Card eyebrow="History" title="수정 이력" description="누가 언제 무엇을 바꿨는지 필드 단위로 남습니다.">
+        <Card title="수정 이력" description="누가 언제 무엇을 바꿨는지 필드 단위로 남습니다.">
           <div className={styles.history}>
             {history.slice(0, 8).map((item) => (
               <div key={item.id} className={styles.historyItem}>

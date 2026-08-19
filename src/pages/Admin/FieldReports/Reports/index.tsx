@@ -212,7 +212,6 @@ function ReportsDepth() {
 
       <Reveal>
         <Card
-          eyebrow="Field reports"
           title="현장보고서 전체 목록"
           description="제출된 보고서를 검토·확인으로 넘기거나 사유를 적어 반려합니다. 처리 내역은 보고서 이력에 남습니다."
         >

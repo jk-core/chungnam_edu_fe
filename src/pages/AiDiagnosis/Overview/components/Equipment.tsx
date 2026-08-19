@@ -164,7 +164,6 @@ export function DiagnosisEquipment() {
     <>
       <Reveal>
         <Card
-          eyebrow="Equipment"
           title="설비별 진단 현황"
           description={view === 'table'
             ? `${label}의 ${childNoun}별 발전효율·추정값·측정값 — 줄을 누르면 그 설비의 심층 진단이 열립니다`

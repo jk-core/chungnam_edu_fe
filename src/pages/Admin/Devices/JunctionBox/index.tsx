@@ -250,7 +250,6 @@ function JunctionBoxDepth() {
 
       <Reveal delay={0.05}>
         <Card
-          eyebrow="Junction"
           title="접속반 목록"
           description="접속반 한 면이 받는 직렬·병렬 수를 적습니다. 스트링 구성과 어긋나면 진단 기대값이 흔들립니다."
         >

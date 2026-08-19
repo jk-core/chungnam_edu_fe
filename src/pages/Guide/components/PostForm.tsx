@@ -115,7 +115,6 @@ export function PostForm({ kind }: { kind: BoardKind }) {
     <div className={styles.tab}>
       <Reveal>
         <Card
-          eyebrow="Write"
           title={`${KIND_LABEL[kind]} 글쓰기`}
           description={
             kind === 'notice'

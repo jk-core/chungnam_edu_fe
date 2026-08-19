@@ -251,7 +251,6 @@ function RtuDepth() {
 
       <Reveal delay={0.05}>
         <Card
-          eyebrow="RTU"
           title="RTU 목록"
           description="연계 상태와 수집 주기를 확인하고, 이력 버튼으로 교체·이설 내역을 봅니다."
         >
