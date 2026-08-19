@@ -51,8 +51,11 @@
 .lesson,
 .body,
 .footer {
+  @include t.caption;
+
   position: relative;
   z-index: 1;
+  color: var(--text-muted);
 }
 
 .head {
@@ -233,19 +236,7 @@
   }
 }
 
-.footer {
-  @include t.caption;
 
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-  color: var(--text-muted);
-}
-
-.model {
-  color: var(--text-faint);
-  font-family: "Space Grotesk", sans-serif;
-}
 
 @include media.reduced-motion {
   .dial__aura,

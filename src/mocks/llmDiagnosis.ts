@@ -16,8 +16,10 @@ import { createRandom, hashSeed, pickNumber } from './random';
 import type { ScopeNode } from './tree';
 
 /**
- * 판정을 내린 모델 이름.
- * 교육용 대시보드도 같은 이름을 띄우므로, 두 화면이 다른 모델을 말하지 않도록 한곳에 둔다.
+ * 판정을 내린 모델 이름 — 진단 기록에 함께 남긴다.
+ *
+ * 교육용 대시보드에도 띄우고 있었으나 걷어냈다. 태양광을 배우러 온 화면에서 판정 엔진의
+ * 이름과 버전은 배울 것도 확인할 것도 없는 수다.
  */
 export const DIAGNOSIS_MODEL = 'cne-diagnosis-1.2 (규칙엔진 + 생성형 소견)';
 
@@ -148,7 +150,7 @@ function buildInsight(node: ScopeNode, findings: DiagnosisFinding[]): string[] {
   lines.push(
     abnormal.length === 0
       ? '다음 정기점검까지 별도 현장 조치는 필요하지 않습니다.'
-      : '고장코드가 붙은 설비부터 현장 확인 순서를 잡는 편이 회수 효과가 큽니다.',
+      : '고장코드가 붙은 설비부터 먼저 현장을 확인하면 발전량을 더 많이 되찾을 수 있습니다.',
   );
 
   return lines;

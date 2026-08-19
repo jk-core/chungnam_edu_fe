@@ -1,5 +1,4 @@
 import { cn } from '@/utils/cn';
-import { DIAGNOSIS_MODEL } from '@/mocks/llmDiagnosis';
 import type { EduAiContent } from '@/mocks/eduContent';
 import type { EduInsight } from '@/mocks/eduDiagnosis';
 import type { EduScan } from '@/hooks/useEduAiScan';
@@ -127,10 +126,7 @@ export function AiScanPanel({ content, stats, insight, scan }: AiScanPanelProps)
         ) : null}
       </div>
 
-      <p className={styles.footer}>
-        {content.footer}
-        <span className={styles.model}>{DIAGNOSIS_MODEL}</span>
-      </p>
+      <p className={styles.footer}>{content.footer}</p>
     </section>
   );
 }
