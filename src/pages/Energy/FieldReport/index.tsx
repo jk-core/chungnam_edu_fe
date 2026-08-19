@@ -13,8 +13,13 @@ import {
 } from '@/components/common/Form';
 import {
   CHECK_LABEL,
+  CHECKLIST_NOTICE,
   findRepeatIssues,
   flattenTemplate,
+  INSPECTOR_ROLE_OPTIONS,
+  INSTALL_FORM_OPTIONS,
+  OPERATION_OPTIONS,
+  PROGRAM_OPTIONS,
   REPEAT_WINDOW_DAYS,
   REPORT_STATE_LABEL,
   STATE_ORDER,
@@ -36,7 +41,7 @@ import { usePrint } from '@/hooks/usePrint';
 import { useReportPdf } from '@/hooks/useReportPdf';
 import useFieldReportStore from '@/stores/fieldReportStore';
 import type { BadgeTone } from '@/components/common/Badge';
-import type { CheckResult, FieldReport, InspectedDevice, ReportState, ReportTemplate } from '@/interface/fieldReport';
+import type { CheckResult, FieldReport, InspectedDevice, ReportBasics, ReportState, ReportTemplate } from '@/interface/fieldReport';
 import type { ManagedUser } from '@/interface/account';
 import sheetStyles from '@/components/report/Report.module.scss';
 import type { UploadFile } from '@/components/common/Form';
@@ -58,9 +63,27 @@ const STATE_TONE: Record<ReportState, BadgeTone> = {
 /** 점검 설비로 고를 수 있는 갈래 (SFR-021-06) */
 const DEVICE_KINDS = ['인버터', 'RTU', '접속반', '모듈 어레이', '일사량계', '기타'];
 
+/** 새 보고서의 머리 표 기본값 — 고른 학교에서 끌어온다 */
+function emptyBasics(plant: { name: string; address: string; capacityKw: number } | null): ReportBasics {
+  return {
+    ownerName: plant?.name ?? '',
+    address: plant?.address ?? '',
+    capacityKw: plant?.capacityKw ?? 0,
+    operation: '가동',
+    installForm: '건축물',
+    installFormEtc: '',
+    program: '설치의무화',
+    programEtc: '',
+    inspectorRole: '설비관리자',
+    contact: '',
+  };
+}
+
 interface DraftState {
   id: string;
   templateId: string;
+  /** 체크리스트 머리의 설비·점검자 정보 */
+  basics: ReportBasics;
   targetName: string;
   inspector: string;
   summary: string;
@@ -129,6 +152,7 @@ function FieldReportPage() {
     setDraft({
       id: nextId(),
       templateId: templates[0].id,
+      basics: emptyBasics(plant),
       targetName: plant?.name ?? '',
       inspector: user?.name ?? '',
       summary: '',
@@ -149,6 +173,7 @@ function FieldReportPage() {
     setDraft({
       id: report.id,
       templateId: report.templateId,
+      basics: report.basics,
       targetName: report.targetName,
       inspector: report.inspector,
       summary: report.summary,
@@ -197,6 +222,13 @@ function FieldReportPage() {
     return true;
   };
 
+  /** 머리 표 한 칸만 바꾼다 — 칸마다 setDraft 를 통째로 적으면 같은 줄이 열 번 되풀이된다 */
+  const setBasics = (patch: Partial<ReportBasics>) => {
+    if (!draft) return;
+
+    setDraft({ ...draft, basics: { ...draft.basics, ...patch } });
+  };
+
   const buildReport = (state: ReportState): FieldReport | null => {
     if (!draft || !template) return null;
 
@@ -226,6 +258,7 @@ function FieldReportPage() {
       inspector: draft.inspector,
       date: origin?.date ?? TODAY.format('YYYY-MM-DD'),
       state,
+      basics: draft.basics,
       checklist,
       devices: draft.devices,
       photos: draft.photos.map((file) => ({
@@ -375,9 +408,8 @@ function FieldReportPage() {
 
       <Reveal delay={0.06}>
         <Card
-          eyebrow="Reports"
           title="점검 보고서 목록"
-          description="보고서를 누르면 점검 항목과 상태 이력을 펼쳐 봅니다. 왼쪽 칸으로 두 건을 골라 나란히 견줄 수 있습니다."
+          description="보고서를 누르면 점검 항목과 상태 이력을 펼쳐 봅니다. 왼쪽 칸으로 두 건을 골라 나란히 비교할 수 있습니다."
         >
           {reports.length === 0 ? (
             <EmptyState title="보고서가 없습니다" description="위 버튼으로 첫 보고서를 작성해 보세요." />
@@ -632,6 +664,95 @@ function FieldReportPage() {
             </FormSection>
 
             {/*
+              체크리스트 머리 표.
+              종이 양식이 문항보다 먼저 두는 표라, 화면에서도 같은 자리에 둔다 — 뒤에 남는 기록은
+              문항 답만으로 읽히지 않고 「어떤 설비를 누가 점검했는가」 와 함께 읽힌다.
+            */}
+            <FormSection legend="설비 정보" hint="점검 대상 설비의 기본 사항입니다.">
+              <FormRow cols={2}>
+                <TextField
+                  label="사용자(기관)"
+                  value={draft.basics.ownerName}
+                  onChange={(value) => setBasics({ ownerName: value })}
+                  required
+                  error={error?.includes('사용자') ? error : undefined}
+                />
+                <TextField
+                  label="용량"
+                  value={String(draft.basics.capacityKw)}
+                  onChange={(value) => setBasics({ capacityKw: Number(value.replace(/[^0-9.]/g, '')) || 0 })}
+                  ime="numeric"
+                  width="sm"
+                  hint="kW"
+                />
+              </FormRow>
+
+              <TextField
+                label="주소"
+                value={draft.basics.address}
+                onChange={(value) => setBasics({ address: value })}
+              />
+
+              <FormRow cols={2}>
+                <RadioGroup
+                  legend="가동여부"
+                  value={draft.basics.operation}
+                  onChange={(value) => setBasics({ operation: value })}
+                  options={OPERATION_OPTIONS.map((item) => ({ value: item, label: item }))}
+                />
+                <RadioGroup
+                  legend="설치형태"
+                  value={draft.basics.installForm}
+                  onChange={(value) => setBasics({ installForm: value })}
+                  options={INSTALL_FORM_OPTIONS.map((item) => ({ value: item, label: item }))}
+                />
+              </FormRow>
+
+              {/* 「기타」 를 고른 사람만 적는다 — 늘 띄워 두면 채우지 않아도 되는 칸이 하나 늘어난다 */}
+              {draft.basics.installForm === '기타' ? (
+                <TextField
+                  label="설치형태 (기타)"
+                  value={draft.basics.installFormEtc}
+                  onChange={(value) => setBasics({ installFormEtc: value })}
+                  placeholder="어떤 형태인지 적어 주세요."
+                />
+              ) : null}
+
+              <RadioGroup
+                legend="보급사업 종류"
+                value={draft.basics.program}
+                onChange={(value) => setBasics({ program: value })}
+                options={PROGRAM_OPTIONS.map((item) => ({ value: item, label: item }))}
+              />
+
+              {draft.basics.program === '기타' ? (
+                <TextField
+                  label="보급사업 종류 (기타)"
+                  value={draft.basics.programEtc}
+                  onChange={(value) => setBasics({ programEtc: value })}
+                  placeholder="어떤 사업인지 적어 주세요."
+                />
+              ) : null}
+
+              <FormRow cols={2}>
+                <RadioGroup
+                  legend="점검자 구분"
+                  value={draft.basics.inspectorRole}
+                  onChange={(value) => setBasics({ inspectorRole: value })}
+                  options={INSPECTOR_ROLE_OPTIONS.map((item) => ({ value: item, label: item }))}
+                />
+                <TextField
+                  label="연락처"
+                  value={draft.basics.contact}
+                  onChange={(value) => setBasics({ contact: value })}
+                  ime="numeric"
+                  width="md"
+                  placeholder="000-0000-0000"
+                />
+              </FormRow>
+            </FormSection>
+
+            {/*
               점검한 설비를 따로 적는다 (SFR-021-06).
               점검 항목은 "무엇을 봤는가"이고, 여기는 "어느 설비를 봤는가"다 — 사진·이상 이력이 이 축으로 묶인다.
             */}
@@ -695,7 +816,7 @@ function FieldReportPage() {
 
             <FormSection
               legend="점검 항목"
-              hint="항목마다 정상·이상·해당없음 중 하나를 골라 주세요. 전부 골라야 제출할 수 있습니다."
+              hint="항목마다 양호·미흡·해당없음 중 하나를 골라 주세요. 전부 골라야 제출할 수 있습니다."
             >
               {questions.map((question, index) => {
                 const result = draft.results[question.id] ?? null;
@@ -720,13 +841,13 @@ function FieldReportPage() {
                       />
                       {result === 'abnormal' ? (
                         <TextField
-                          label="이상 내용"
+                          label="미흡 내용"
                           value={draft.notes[question.id] ?? ''}
                           onChange={(value) => setDraft({
                             ...draft,
                             notes: { ...draft.notes, [question.id]: value },
                           })}
-                          placeholder="무엇이 어떻게 이상한지 적어 주세요."
+                          placeholder="무엇이 어떻게 미흡한지 적어 주세요."
                         />
                       ) : null}
                     </div>
@@ -735,7 +856,12 @@ function FieldReportPage() {
               })}
             </FormSection>
 
-            <FormSection legend="현장 사진" hint="이상 항목이 있으면 사진을 함께 남겨 주세요.">
+            {/* 미흡이 하나라도 있으면 종이 양식 하단과 같은 안내를 띄운다 */}
+            {Object.values(draft.results).some((value) => value === 'abnormal') ? (
+              <p className={styles.checklistNotice}>{CHECKLIST_NOTICE}</p>
+            ) : null}
+
+            <FormSection legend="현장 사진" hint="미흡 항목이 있으면 사진을 함께 남겨 주세요.">
               <FileUpload
                 label="사진 올리기"
                 value={draft.photos}

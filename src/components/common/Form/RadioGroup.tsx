@@ -23,9 +23,10 @@ interface RadioGroupProps<T extends string> {
 }
 
 /** 점검 체크리스트 기본 3지 (SFR-021-02) */
+/** 점검 결과 — 표준 체크리스트가 쓰는 「양호 / 미흡」 에 「해당없음」 을 더한 셋 (SFR-021-02) */
 export const CHECK_OPTIONS: RadioOption<'normal' | 'abnormal' | 'na'>[] = [
-  { value: 'normal', label: '정상', tone: 'ok' },
-  { value: 'abnormal', label: '이상', tone: 'critical' },
+  { value: 'normal', label: '양호', tone: 'ok' },
+  { value: 'abnormal', label: '미흡', tone: 'critical' },
   { value: 'na', label: '해당없음', tone: 'offline' },
 ];
 

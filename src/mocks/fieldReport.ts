@@ -2,8 +2,13 @@ import type {
   CheckResult,
   FieldReport,
   InspectedDevice,
+  InspectorRole,
+  InstallForm,
+  OperationState,
+  ReportBasics,
   ReportState,
   ReportTemplate,
+  SupportProgram,
   TemplateRevision,
 } from '@/interface/fieldReport';
 import { SCHOOLS } from './schools';
@@ -11,10 +16,30 @@ import { createRandom, hashSeed, pickNumber } from './random';
 import { daysAgo, stampAgo } from './today';
 
 export const CHECK_LABEL: Record<CheckResult, string> = {
-  normal: '정상',
-  abnormal: '이상',
+  normal: '양호',
+  abnormal: '미흡',
   na: '해당없음',
 };
+
+/** 머리 표의 네모칸 — 종이 양식에 적힌 순서를 그대로 쓴다 */
+export const OPERATION_OPTIONS: OperationState[] = ['가동', '미가동', '휴지·폐업'];
+export const INSTALL_FORM_OPTIONS: InstallForm[] = ['건축물', '일반부지', '기타'];
+export const PROGRAM_OPTIONS: SupportProgram[] = [
+  '주택지원',
+  '건물지원',
+  '융복합',
+  '지역지원',
+  '설치의무화',
+  '태양광 대여',
+  '기타',
+];
+export const INSPECTOR_ROLE_OPTIONS: InspectorRole[] = ['소유자', '설비관리자', '시공기업'];
+
+/**
+ * 점검결과에 미흡이 하나라도 있으면 띄우는 안내 (표준 체크리스트 하단).
+ * 종이 양식이 표 아래 굵게 적어 두는 문장이라, 화면에서도 같은 자리에 같은 말로 남긴다.
+ */
+export const CHECKLIST_NOTICE = '점검결과 1개 이상의 미흡사항이 발생할 경우, 시공기업과 연락하여 반드시 개선 조치를 하여야 합니다.';
 
 export const REPORT_STATE_LABEL: Record<ReportState, string> = {
   draft: '작성중',
@@ -30,133 +55,29 @@ export const STATE_ORDER: ReportState[] = ['draft', 'submitted', 'reviewing', 'c
 /**
  * 점검 양식 (SFR-021-03/14/15).
  *
- * 표준 점검표를 그대로 옮겨 대분류 아래 문항을 둔다 — 현장에서 쓰는 종이 양식과 같은 순서라
- * 점검자가 옮겨 적기 쉽다. 항목을 여기서 관리하므로 양식을 고쳐도 화면은 그대로다.
+ * 「자가용 태양광 설비 안전점검 체크리스트」 를 그대로 옮겼다. 현장에서 쓰는 종이와 문항도
+ * 순서도 같아야 점검자가 옮겨 적을 때 줄을 세지 않는다.
+ *
+ * 종이의 「구분」 칸이 여기서는 대분류가 된다 — 구분마다 문항이 하나뿐이라 분류가 과해 보이지만,
+ * 표를 그대로 옮기는 쪽이 낫다. 구분을 떼고 문항만 늘어놓으면 종이와 나란히 놓고 대조할 수 없다.
  */
 export const CHECKLIST_TEMPLATES: ReportTemplate[] = [
   {
-    id: 'TPL-PLANT-REG',
+    id: 'TPL-SELF-SAFETY',
     inspectType: '정기',
     targetKind: 'plant',
-    label: '발전소 정기점검',
-    version: 2,
-    revisedAt: daysAgo(120),
-    sections: [
-      {
-        title: '태양전지',
-        items: [
-          '출력: 일사량 대비 안정적 출력(월간 발전량 등) 확인',
-          '외관: 변색(황변, 백화, Glass Back sheet 등), 변형 여부 확인',
-          '외관: 적외선 열화상 측정 시 핫스팟 등 열화 현상 확인',
-          '외관: 프레임 부식, 손상(파손) 확인',
-          '음영: 어레이 설치 장소 주변으로 인한 음영 발생 확인',
-          '접속함: 외함의 부식 및 손상, 접속점 및 부속품 발열 등 확인',
-        ],
-      },
-      {
-        title: '지지물',
-        items: [
-          '설치상태: 지지물이 충격 등에 대하여 안전한 상태인지 확인',
-          '도금상태: 용융아연도금 상태, 절단면·용접 부분 녹 방지 유지 확인',
-          '기초상태: 기초 부위, 지지대 등의 결속 및 정착 상태 이상 여부 확인',
-          '볼트 체결상태: 녹 발생과 풀림 방지 와셔 사용 등 이상 여부 확인',
-          '본딩: 태양전지 모듈과 지지대의 전기적 접속 상태 이상 여부 확인',
-        ],
-      },
-      {
-        title: '전선로',
-        items: [
-          '전선연결: 스트링별 DC 케이블 및 간선 접속부 발열 등 이상 여부 확인',
-          '커넥터: 모듈·출력단자 파손 등 습기 및 빗물 침투 방지 구조 확인',
-          '고정: 모듈 간 직렬 배선이 바람에 흔들리지 않도록 고정 확인',
-        ],
-      },
-      {
-        title: '전력변환장치 및 보호장치',
-        items: [
-          '외관: 외함 손상, 도금 상태 등 변형 여부 확인',
-          '작동상태: 소음, 진동, 냄새 등 평소와 다른 현상 발생 확인',
-          '전선로: 배선 손상, 접속단자(AC·DC) 체결, 관통 부분 마감 처리 확인',
-          '설치환경: 제조사가 제시한 설치 환경(온도·습도·청소 상태) 준수 여부',
-          '보호값 설정: 인버터 보호 요소 및 계전기 설정치 적정 여부',
-        ],
-      },
-      {
-        title: '주변환경',
-        items: [
-          '부지안전: 배수시설 맨홀 및 배수로 정비 상태 확인',
-          '부지안전: 지지대 또는 지반의 침하가 없으며 고정 상태 확인',
-          '부지안전: 부지 내 지반 침하, 토사 유출 등 흔적 유무',
-          '구조물 등: 지붕과 기초, 구조물이 헐거움 없이 고정되었는지 확인',
-          '구조물 등: 별도의 추가 하중 적재 등 위험물 설치 여부 확인',
-        ],
-      },
-      {
-        title: '기타',
-        items: [
-          '측정값: 절연 및 접지저항 측정',
-          '기술기준: 기타 기술기준 등 관련 규정 적합 여부',
-        ],
-      },
-    ],
-  },
-  {
-    id: 'TPL-OM-REG',
-    inspectType: '정기',
-    targetKind: 'rtu',
-    label: '설비 O&M 점검',
+    label: '자가용 태양광 설비 안전점검 체크리스트',
     version: 1,
-    revisedAt: daysAgo(240),
+    revisedAt: daysAgo(30),
     sections: [
-      {
-        title: '태양광 인버터 확인',
-        items: [
-          '인버터 동작 상태를 확인했는가? (발전 여부 및 LED 표시 등)',
-          '인버터 디스플레이의 누적 발전량·전력 등 추가 정보를 확인했는가?',
-          '인버터 국번을 확인하여 RTU 국번과 동일한지 확인했는가?',
-        ],
-      },
-      {
-        title: 'RTU 확인',
-        items: [
-          'RTU 의 전원 LED 표시등을 확인했는가?',
-          '485 통신선이 정상적으로 체결되어 있는지 확인했는가?',
-          '차단기 상태를 확인했는가?',
-          '차단기가 내려간 경우 모니터링함 전원 케이블 체결 상태를 확인했는가?',
-        ],
-      },
-      {
-        title: '전원 공급 점검 절차',
-        items: [
-          '전원이 켜지지 않을 경우 멀티탭 연결 상태를 확인했는가?',
-          '멀티미터기로 220V 전압을 확인했는가?',
-        ],
-      },
-    ],
-  },
-  {
-    id: 'TPL-INV-REG',
-    inspectType: '정기',
-    targetKind: 'inverter',
-    label: '인버터 정기점검',
-    version: 1,
-    revisedAt: daysAgo(240),
-    sections: [
-      { title: '외관', items: ['외관 손상·부식 여부', '냉각 팬 동작과 통풍구 상태'] },
-      { title: '동작', items: ['내부 온도 기준치(65℃) 이내', '표시부 경고 코드 유무'] },
-      { title: '결선', items: ['단자대 조임 상태', '접지선 연결 상태'] },
-    ],
-  },
-  {
-    id: 'TPL-PLANT-SP',
-    inspectType: '특별',
-    targetKind: 'plant',
-    label: '발전소 특별점검 (우천·강풍 후)',
-    version: 1,
-    revisedAt: daysAgo(240),
-    sections: [
-      { title: '침수·누전', items: ['침수·누수 흔적', '절연저항 측정값'] },
-      { title: '구조물', items: ['구조물 변형·유격', '배수로 막힘'] },
+      { title: '가동', items: ['시공기준에 적합하게 모듈, 인버터, 접속함 등은 정상적으로 운영 중인가?'] },
+      { title: '모듈', items: ['외관상 모듈 파손이나 균열이 있는가?'] },
+      { title: '결속', items: ['모듈과 지지대 사이의 결속은 양호한가?'] },
+      { title: '지지대', items: ['각 지지대의 휨, 균열 등이 있는가?'] },
+      { title: '기초', items: ['기초부위(콘크리트 등)의 균열 및 파손이 있는가?'] },
+      { title: '인버터·접속함', items: ['인버터 및 접속함 내부상태는 양호한가?'] },
+      { title: '배수·방수', items: ['설비 주변 배수 및 지붕방수 등에 문제는 없는가?'] },
+      { title: '주변', items: ['태양광 설비 주변 정리 상태는 양호한가?'] },
     ],
   },
 ];
@@ -176,22 +97,13 @@ export function flattenTemplate(template: ReportTemplate): { id: string; section
 /** 양식 개정 이력 (SFR-021-14) — 관리자 콘솔에서 새 판을 내면 이 위에 쌓인다. */
 export const SEED_TEMPLATE_REVISIONS: TemplateRevision[] = [
   {
-    id: 'TR-2602',
-    templateId: 'TPL-PLANT-REG',
-    templateLabel: '발전소 정기점검',
-    version: 2,
-    at: stampAgo(120, '10:30'),
-    actor: '김도현',
-    note: '태양전지 분류에 적외선 열화상 항목을 더했습니다.',
-  },
-  {
     id: 'TR-2601',
-    templateId: 'TPL-PLANT-REG',
-    templateLabel: '발전소 정기점검',
+    templateId: 'TPL-SELF-SAFETY',
+    templateLabel: '자가용 태양광 설비 안전점검 체크리스트',
     version: 1,
-    at: stampAgo(240, '09:00'),
+    at: stampAgo(30, '09:00'),
     actor: '김도현',
-    note: '표준 점검표로 최초 등록했습니다.',
+    note: '자가용 태양광 설비 안전점검 체크리스트를 표준 양식으로 등록했습니다.',
   },
 ];
 
@@ -202,6 +114,22 @@ function pickResult(next: () => number): CheckResult {
   if (roll > 0.82) return 'na';
 
   return 'normal';
+}
+
+/** 머리 표 — 학교마다 값이 갈리도록 순번으로 돌려 고른다 */
+function seedBasics(school: { name: string; address: string; capacityKw: number }, order: number): ReportBasics {
+  return {
+    ownerName: school.name,
+    address: school.address,
+    capacityKw: school.capacityKw,
+    operation: '가동',
+    installForm: '건축물',
+    installFormEtc: '',
+    program: PROGRAM_OPTIONS[order % 5],
+    programEtc: '',
+    inspectorRole: INSPECTOR_ROLE_OPTIONS[order % INSPECTOR_ROLE_OPTIONS.length],
+    contact: `041-${String(500 + order)}-${String(1000 + order * 7).slice(0, 4)}`,
+  };
 }
 
 /** 점검한 설비 목록 — 양식이 겨눈 갈래에 맞춰 한두 대를 깔아 둔다 (SFR-021-06). */
@@ -227,13 +155,13 @@ function seedDevices(targetKind: ReportTemplate['targetKind'], order: number): I
 /** 시드 보고서 — 목록·이력 비교를 볼 수 있게 몇 건 깔아 둔다. */
 function buildSeed(): FieldReport[] {
   const seeds: { index: number; templateId: string; state: ReportState; daysAgo: number; inspector: string }[] = [
-    { index: 3, templateId: 'TPL-PLANT-REG', state: 'confirmed', daysAgo: 26, inspector: '이현수' },
-    { index: 3, templateId: 'TPL-PLANT-REG', state: 'reviewing', daysAgo: 5, inspector: '이현수' },
-    { index: 3, templateId: 'TPL-PLANT-REG', state: 'confirmed', daysAgo: 210, inspector: '이현수' },
-    { index: 17, templateId: 'TPL-INV-REG', state: 'submitted', daysAgo: 9, inspector: '박정민' },
-    { index: 31, templateId: 'TPL-OM-REG', state: 'confirmed', daysAgo: 14, inspector: '최유진' },
-    { index: 46, templateId: 'TPL-PLANT-SP', state: 'draft', daysAgo: 2, inspector: '김도현' },
-    { index: 17, templateId: 'TPL-INV-REG', state: 'rejected', daysAgo: 20, inspector: '박정민' },
+    { index: 3, templateId: 'TPL-SELF-SAFETY', state: 'confirmed', daysAgo: 26, inspector: '이현수' },
+    { index: 3, templateId: 'TPL-SELF-SAFETY', state: 'reviewing', daysAgo: 5, inspector: '이현수' },
+    { index: 3, templateId: 'TPL-SELF-SAFETY', state: 'confirmed', daysAgo: 210, inspector: '이현수' },
+    { index: 17, templateId: 'TPL-SELF-SAFETY', state: 'submitted', daysAgo: 9, inspector: '박정민' },
+    { index: 31, templateId: 'TPL-SELF-SAFETY', state: 'confirmed', daysAgo: 14, inspector: '최유진' },
+    { index: 46, templateId: 'TPL-SELF-SAFETY', state: 'draft', daysAgo: 2, inspector: '김도현' },
+    { index: 17, templateId: 'TPL-SELF-SAFETY', state: 'rejected', daysAgo: 20, inspector: '박정민' },
   ];
 
   return seeds.map((seed, order) => {
@@ -264,6 +192,7 @@ function buildSeed(): FieldReport[] {
       inspector: seed.inspector,
       date: daysAgo(seed.daysAgo),
       state: seed.state,
+      basics: seedBasics(school, order),
       checklist,
       devices: seedDevices(template.targetKind, order),
       photos: abnormalCount > 0

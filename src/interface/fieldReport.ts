@@ -1,5 +1,40 @@
-/** 점검 결과 3지 (SFR-021-02) */
+/**
+ * 점검 결과 (SFR-021-02).
+ *
+ * 표준 체크리스트가 「양호 / 미흡」 둘로만 표시하므로 이름표도 그 말을 쓴다. 다만 요구사항이
+ * 3지를 적어 두었고, 현장에는 그 설비가 아예 없어 볼 것이 없는 칸이 실제로 생긴다 —
+ * 「해당없음」 을 없애면 그런 칸을 「양호」 로 적게 되어 점검한 것과 구분되지 않는다.
+ */
 export type CheckResult = 'normal' | 'abnormal' | 'na';
+
+/** 체크리스트 머리의 선택 항목 — 종이 양식이 네모칸으로 두는 것들 */
+export type OperationState = '가동' | '미가동' | '휴지·폐업';
+export type InstallForm = '건축물' | '일반부지' | '기타';
+export type SupportProgram = '주택지원' | '건물지원' | '융복합' | '지역지원' | '설치의무화' | '태양광 대여' | '기타';
+export type InspectorRole = '소유자' | '설비관리자' | '시공기업';
+
+/**
+ * 보고서 머리에 적는 설비·점검자 정보 (표준 체크리스트 상단).
+ *
+ * 점검 문항만으로는 「어떤 설비를 누가 점검했는가」 가 남지 않는다. 종이 양식이 문항보다 먼저
+ * 이 표를 두는 것도 그래서다 — 뒤에 남는 기록은 문항 답이 아니라 이 표와 함께 읽힌다.
+ */
+export interface ReportBasics {
+  /** 사용자(기관) */
+  ownerName: string;
+  address: string;
+  capacityKw: number;
+  operation: OperationState;
+  installForm: InstallForm;
+  /** 설치형태가 「기타」 일 때 적는 말 */
+  installFormEtc: string;
+  program: SupportProgram;
+  /** 보급사업 종류가 「기타」 일 때 적는 말 */
+  programEtc: string;
+  inspectorRole: InspectorRole;
+  /** 점검자 연락처 */
+  contact: string;
+}
 
 /**
  * 보고서 상태 (SFR-021-08).
@@ -81,6 +116,8 @@ export interface FieldReport {
   inspector: string;
   date: string;
   state: ReportState;
+  /** 체크리스트 머리의 설비·점검자 정보 */
+  basics: ReportBasics;
   checklist: ChecklistItem[];
   /** 점검한 설비와 설비별 특이사항 (SFR-021-06) */
   devices: InspectedDevice[];

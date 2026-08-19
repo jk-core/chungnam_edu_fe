@@ -403,3 +403,17 @@
     @include t.body-sm;
   }
 }
+
+/*
+  체크리스트 하단 안내.
+  종이 양식이 표 아래 굵게 적어 두는 문장이라, 화면에서도 미흡이 잡힌 순간 같은 자리에 세운다.
+*/
+.checklistNotice {
+  @include t.body-sm;
+
+  padding: s.$space-3 s.$space-4;
+  border: 1px solid var(--critical-border);
+  border-radius: s.$radius-md;
+  background-color: var(--critical-soft);
+  color: var(--critical-text);
+}

@@ -65,7 +65,7 @@ export function FieldCompareModal({ isOpen, reports, onClose }: FieldCompareModa
 
           {!sameTemplate ? (
             <EmptyState
-              title="양식이 서로 달라 항목을 견줄 수 없습니다"
+              title="양식이 서로 달라 항목을 비교할 수 없습니다"
               description={`${left.date} 는 다른 양식으로 작성됐습니다. 같은 양식으로 쓴 보고서끼리 골라 주세요.`}
             />
           ) : (
