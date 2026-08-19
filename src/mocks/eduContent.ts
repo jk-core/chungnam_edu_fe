@@ -89,14 +89,14 @@ export const STAT_DEFS: Record<StatId, StatDef> = {
     value: (stats) => (stats.irradianceNow / FULL_SUN_WM2) * 100,
     unit: '점',
     fractionDigits: 0,
-    note: (stats) => `${formatNumber(stats.irradianceNow)} W/m². 맑은 날 정오의 1,000W/m² 를 100 으로 본 값이다`,
+    note: (stats) => `${formatNumber(stats.irradianceNow)} W/m². 맑은 날 정오의 햇빛 1,000W/m² 를 100점으로 놓고 환산한 값이다`,
   },
   insolation: {
     label: '발전시간',
     value: (stats) => stats.equivalentHours,
     unit: '시간',
     fractionDigits: 1,
-    note: () => '발전량 ÷ 설비용량. 크기가 다른 설비를 같은 눈금에 세우는 값이다',
+    note: () => '발전량을 설비용량으로 나눈 값이다. 설비 크기가 달라도 서로 비교할 수 있다',
   },
   co2: {
     label: '탄소 저감량',
@@ -150,32 +150,32 @@ export const IMPACT_DEFS: Record<ImpactId, ImpactDef> = {
     label: '탄소 저감량',
     perKwh: CO2_PER_KWH,
     unit: 'kg CO₂',
-    basis: `전기 1kWh 를 만들 때 나오는 ${CO2_PER_KWH}kg 으로 셈했다`,
+    basis: `전기 1kWh 를 만들 때 평균 ${CO2_PER_KWH}kg 의 탄소가 나온다고 보고 계산했다`,
     fractionDigits: 0,
-    line: '여기서 만든 만큼 화력발전이 덜 돌아, 그만큼 연료를 태우지 않아도 된다',
+    line: '여기서 만든 만큼 화력발전소가 덜 돌아가고, 그만큼 석탄과 가스를 태우지 않아도 된다',
   },
   tree: {
     label: '소나무로 환산하면',
     // 줄인 CO₂ 를 소나무가 1년 동안 마시는 양으로 나눈다. 계수는 utils/eco 와 한 곳을 본다.
     perKwh: CO2_PER_KWH / CO2_PER_TREE_YEAR,
     unit: '그루',
-    basis: `소나무 한 그루가 1년에 흡수하는 ${CO2_PER_TREE_YEAR}kg 으로 셈했다`,
+    basis: `소나무 한 그루가 1년에 ${CO2_PER_TREE_YEAR}kg 을 흡수한다고 보고 계산했다`,
     fractionDigits: 0,
-    line: '줄인 탄소를 소나무가 1년 동안 흡수하는 양으로 바꿔 본 값이다',
+    line: '줄인 탄소를 소나무가 1년에 흡수하는 양으로 나눈 값이다. 소나무를 몇 그루 심은 것과 같은 효과인지 보여 준다',
   },
   household: {
     label: '4인 가구 사용일수',
     perKwh: 1 / (350 / 30),
     unit: '일',
-    basis: '한 가구가 하루에 쓰는 11.7kWh 로 셈했다',
+    basis: '4인 가구 한 곳이 하루에 11.7kWh 를 쓴다고 보고 계산했다',
     fractionDigits: 1,
-    line: '4인 가구 한 곳이 며칠을 쓸 수 있는 양인지 헤아려 본 값이다',
+    line: '4인 가구 한 곳이 며칠 동안 쓸 수 있는 양인지 계산한 값이다',
   },
   led: {
     label: '교실 조명 점등 시간',
     perKwh: 25,
     unit: '시간',
-    basis: '40W 조명 하나를 켠다고 셈했다',
+    basis: '40W 짜리 조명 하나를 계속 켜 둔다고 보고 계산했다',
     fractionDigits: 0,
     line: '교실 조명 하나를 쉬지 않고 켜 둘 수 있는 시간이다',
   },
@@ -337,7 +337,7 @@ const HIGH: HighContent = {
   headline: {
     mainLabel: '실시간 출력',
     mainNote: (stats) =>
-      `설비용량 ${formatNumber(stats.capacityKw)}kW 대비 ${formatPercent(stats.loadRatio)} 수준이다`,
+      `설비용량 ${formatNumber(stats.capacityKw)}kW 로 낼 수 있는 최대치의 ${formatPercent(stats.loadRatio)} 를 내고 있다`,
     statIds: ['today', 'insolation', 'co2', 'irradiance', 'capacity'],
     // 기본 문구가 이미 서술체이자 표준 용어라 덮어쓸 것이 없다.
   },
@@ -370,15 +370,15 @@ const HIGH: HighContent = {
         id: 'shape',
         term: '곡선의 모양은 태양 경로를 따라간다',
         body:
-          '봉우리가 솟은 시각이 태양이 가장 높이 뜬 때다. 옆 그림의 태양 고도 변화가 그대로 곡선이 된다. '
-          + '발전량을 결정하는 것은 설비가 아니라 입사하는 일사량이다.',
+          '차트가 가장 높은 시각이 태양이 가장 높이 뜬 때다. 옆 그림의 태양 고도 변화가 그대로 차트 모양이 된다. '
+          + '발전량을 정하는 것은 설비 성능이 아니라 그 시각에 들어온 햇빛의 양이다.',
       },
       {
         id: 'cloud',
-        term: '두 선이 함께 내려가면 기상 요인이다',
+        term: '두 선이 같이 내려갔다면 날씨 때문이다',
         body:
-          '움푹 팬 구간은 대개 구름이 지난 자리다. 일사량 곡선까지 함께 내려갔다면 날씨 탓이고, '
-          + '일사량은 그대로인데 발전량만 떨어졌다면 오염·음영·고장을 살펴야 한다.',
+          '차트가 잠깐 뚝 떨어진 구간은 대개 구름이 해를 잠시 가린 순간이다. 일사량 선까지 같이 내려갔다면 '
+          + '날씨 때문이고, 일사량은 그대로인데 발전량만 떨어졌다면 표면 오염·그늘·고장을 살펴야 한다.',
       },
     ],
   },
@@ -386,8 +386,8 @@ const HIGH: HighContent = {
     head: '환산해 본 의미',
     // 대상 이름의 받침에 따라 조사가 달라지지 않도록 "에서" 로 받는다
     note: (scopeLabel, stats) =>
-      `${scopeLabel}에서 금일 생산한 ${formatNumber(stats.dayKwh)}kWh 를 다른 단위로 환산한 값이다`,
-    caption: '발전시간이 길었던 날일수록 환산값도 함께 커진다',
+      `${scopeLabel}에서 오늘 만든 ${formatNumber(stats.dayKwh)}kWh 가 어느 정도인지 익숙한 단위로 바꾸면 이만큼이다`,
+    caption: '발전시간이 길었던 날일수록 이 값들도 함께 커진다',
     // 가운데 열을 AI 판단에 내주면서 이 칸이 좁아졌다 — 넉 장은 눌려 읽히지 않아 석 장으로 줄인다.
     itemIds: ['co2', 'tree', 'led'],
     showBasis: true,
@@ -414,7 +414,7 @@ const HIGH: HighContent = {
   },
   ai: {
     head: '햇빛이 전기가 되기까지, 단계마다 무슨 일이 일어나는가',
-    note: '태양전지 셀에서 계통까지 네 단계를 차례로 짚는다. 각 지점에서 AI 가 무엇을 보는지도 함께 적었다',
+    note: '태양전지 셀에서 계통까지 네 단계를 차례로 살펴본다. 각 단계에서 AI 가 무엇을 보는지도 함께 적었다',
     stages: {
       scan: {
         label: '계측값 수집',
@@ -425,11 +425,11 @@ const HIGH: HighContent = {
           + '한 방향으로만 이동시키므로 전류가 된다. 발전이 실제로 일어나는 지점이 여기다.',
         diagnosis:
           '진단의 출발점도 여기서 나온 값이다. 셀이 생산한 전력을 시간대별로 빠짐없이 읽어 들인다 — '
-          + '결측이나 이상값이 섞이면 이후 판단이 통째로 흔들린다.',
+          + '빠진 값이나 튀는 값이 섞이면 그 뒤의 판단이 전부 어긋난다.',
       },
       classify: {
         label: '정상 범위와 대조',
-        teach: '판단은 비교에서 나온다. 같은 일사 조건에서 나와야 할 값과 실측값을 맞대어 본다.',
+        teach: '판단은 비교에서 나온다. 같은 햇빛 조건이라면 나와야 할 값과 실제 측정값을 비교한다.',
         spot: 'module',
         physics:
           '모듈 여러 장을 직렬로 이어 전압을 높인다. 직렬이므로 한 장에만 음영이 져도 스트링 전체의 출력이 '
@@ -440,7 +440,7 @@ const HIGH: HighContent = {
       },
       reason: {
         label: '편차 원인 분해',
-        teach: '수치만으로는 조치할 수 없다. 기대치와 벌어진 까닭을 문장으로 남긴다.',
+        teach: '숫자만 있으면 무엇을 해야 할지 알 수 없다. 기대치와 차이가 난 이유를 문장으로 적어 남긴다.',
         spot: 'inverter',
         physics:
           '모듈이 생산한 직류를 인버터가 교류로 변환해 학교로 보낸다. 이때 전압과 전류의 곱이 최대가 되는 '
@@ -458,15 +458,15 @@ const HIGH: HighContent = {
           + '남은 전력은 계통으로 역송되어 다른 곳에서 쓰인다.',
         diagnosis:
           '판정과 함께 근거를 문장으로 남긴다. 근거 없이 경보만 울리면 사람이 신뢰하지 않고, '
-          + '신뢰받지 못한 진단은 고장을 고치지 못한다.',
+          + '사람이 믿지 못하는 진단은 실제 조치로 이어지지 않는다.',
       },
     },
     footer: '전국의 태양광 발전소를 이 절차로 하루 한 번 점검한다.',
   },
   facts: [
-    '태양전지는 온도가 높을수록 효율이 떨어진다. 한여름보다 일사가 좋은 봄가을에 발전량이 더 나오는 까닭이다.',
-    '모듈 표면에 쌓인 먼지는 발전량을 몇 %씩 깎는다. 비가 한 번 내리면 그만큼 회복된다.',
-    '직렬로 이은 모듈 하나에 음영이 지면 스트링 전체의 출력이 함께 떨어진다.',
+    '태양전지는 온도가 높을수록 효율이 떨어진다. 일사량이 가장 큰 한여름에 오히려 효율이 떨어지는 이유다.',
+    '모듈 표면에 먼지가 쌓이면 발전량이 몇 % 씩 줄어든다. 비가 한 번 내리면 그만큼 회복된다.',
+    '직렬로 이은 모듈 하나에만 그늘이 져도 스트링 전체의 출력이 그 모듈에 맞춰 함께 떨어진다.',
     '모듈에 든 바이패스 다이오드는 음영이 진 셀 구간을 우회해 전류를 흘려보낸다.',
     'kW 는 순간의 출력, kWh 는 그 출력으로 쌓은 양이다. 속도와 거리의 관계와 같다.',
   ],

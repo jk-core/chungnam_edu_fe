@@ -59,7 +59,7 @@ export function MiddleCompare({ scopeLabel, stats, content }: MiddleCompareProps
       id: 'day',
       question: '오늘과 어제, 무엇이 달랐을까?',
       variable: '날씨만 다름',
-      because: '설비는 그대로다. 달라진 것은 날씨뿐이므로, 이 차이는 곧 일사량의 차이다.',
+      because: '설비는 어제와 똑같다. 달라진 것은 날씨뿐이므로, 이 차이는 그대로 햇빛 양의 차이다.',
       left: { label: '오늘', value: stats.dayKwh },
       right: { label: '어제', value: stats.dayKwh * YESTERDAY_RATIO },
       unit: 'kWh',
@@ -79,9 +79,9 @@ export function MiddleCompare({ scopeLabel, stats, content }: MiddleCompareProps
     },
     {
       id: 'peer',
-      question: '우리 학교는 다른 학교와 견주면 어떨까?',
+      question: '우리 학교는 다른 학교와 비교하면 어떨까?',
       variable: '설비용량 차이를 지움',
-      because: '설비용량이 다르므로 총량으로는 견줄 수 없다. 1kW 가 몇 시간치를 냈는지로 나눠야 한다.',
+      because: '설비용량이 다르면 총 발전량만으로는 비교할 수 없다. 1kW 당 몇 시간을 발전했는지로 바꿔서 봐야 한다.',
       left: { label: scopeLabel, value: stats.equivalentHours },
       right: { label: '관내 평균', value: stats.equivalentHours * PEER_RATIO },
       unit: '시간',
@@ -95,9 +95,9 @@ export function MiddleCompare({ scopeLabel, stats, content }: MiddleCompareProps
   return (
     <div className={styles.board}>
       <header className={styles.head}>
-        <h2 className={styles.head__title}>둘씩 놓고 견줘 보기</h2>
+        <h2 className={styles.head__title}>둘씩 놓고 비교해 보기</h2>
         <p className={styles.head__note}>
-          한 번에 하나만 달리해 놓고 견주면, 무엇이 발전량을 바꾸는지가 드러난다
+          한 번에 한 가지만 바꿔서 비교하면, 무엇이 발전량을 바꾸는지 알 수 있다
         </p>
       </header>
 
@@ -117,7 +117,7 @@ export function MiddleCompare({ scopeLabel, stats, content }: MiddleCompareProps
         이 화면은 "무엇이 값을 바꾸는가" 를 답하는데, 그 값이 애초에 **어떻게 만들어지는가** 는
         다루지 않는다. 걸어 두는 화면의 목적이 태양광 설명이라면 원리가 빠져서는 안 된다.
       */}
-      <PrincipleStrip stats={stats} level="middle" heading="견주기 전에 — 햇빛이 전기가 되는 길" />
+      <PrincipleStrip stats={stats} level="middle" heading="비교하기 전에 — 햇빛이 전기가 되는 과정" />
 
       <div className={styles.bottom}>
         <section className={styles.curve} aria-label="금일 발전 곡선">
@@ -130,12 +130,12 @@ export function MiddleCompare({ scopeLabel, stats, content }: MiddleCompareProps
           </div>
         </section>
 
-        <section className={styles.facts} aria-label="견줄 때 쓴 값">
+        <section className={styles.facts} aria-label="비교에 사용한 값">
           <header className={styles.panel__head}>
-            <h2 className={styles.panel__title}>견줄 때 쓴 값</h2>
+            <h2 className={styles.panel__title}>비교에 사용한 값</h2>
             {/* 지어 낸 값을 실측인 척 내놓지 않는다 */}
             <p className={styles.facts__disclaimer}>
-              어제·흐린 날·관내 평균은 견주기 위해 어림한 예시값이다
+              어제·흐린 날·관내 평균은 비교를 위해 임의로 만든 예시값이다
             </p>
           </header>
 

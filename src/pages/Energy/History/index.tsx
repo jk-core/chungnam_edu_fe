@@ -114,9 +114,8 @@ function HistoryPage() {
       ) : (
         <Reveal delay={0.1}>
           <Card
-            eyebrow="History"
             title={`${plantLabel} · ${selected.name} · 운전이력`}
-            description="수집주기마다 올라온 계측값을 그대로 폅니다. 결측·이상 줄은 배경으로 갈라 두었습니다."
+            description="수집주기마다 올라온 계측값을 그대로 폅니다. 값이 빠졌거나 이상한 줄은 배경색을 다르게 표시했습니다."
             action={(
               <div className={styles.actions}>
                 <SegmentedControl label="보기 방식" size="sm" options={VIEW_OPTIONS} value={view} onChange={setView} />

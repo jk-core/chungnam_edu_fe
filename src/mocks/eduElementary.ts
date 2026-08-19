@@ -129,7 +129,7 @@ const IMPACT: ElementaryImpact = {
   items: [
     {
       id: 'tree',
-      title: '소나무를 이만큼 심은 셈이에요',
+      title: '소나무를 이만큼 심은 것과 같은 효과예요',
       line: '우리가 만든 만큼 화력발전소가 덜 돌아서, 그만큼 탄소가 덜 나왔어요.',
       at: { x: 52, y: 6, tail: 'bottom', tailAt: 125 },
       readout: (stats) => ({
@@ -222,14 +222,14 @@ export const ELEMENTARY_CONTENT: ElementaryContent = {
   */
   headline: {
     mainLabel: '실시간 출력',
-    mainNote: () => '가장 많이 만들 수 있는 양과 견주면 지금 이만큼 만들고 있어요',
+    mainNote: () => '우리 학교가 한 번에 만들 수 있는 최대치의 이만큼을 지금 만들고 있어요',
     statIds: ['today', 'insolation', 'co2', 'irradiance', 'capacity'],
     copy: {
       today: {
         note: (stats) => `4인 가구 ${formatNumber(kwhToHouseholdDays(stats.todayKwh))}가구가 하루 쓸 양이에요`,
       },
       insolation: {
-        note: () => '해가 가장 좋을 때로만 치면 이만큼 돌린 셈이에요',
+        note: () => '해가 가장 셀 때만 골라서 발전했다면 이만큼 걸렸을 시간이에요',
       },
       co2: {
         note: () => '우리가 만든 만큼 화력발전소가 덜 돌아서 줄어든 양이에요',
