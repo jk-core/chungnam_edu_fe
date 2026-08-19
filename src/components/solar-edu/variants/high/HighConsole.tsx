@@ -53,7 +53,7 @@ export function HighConsole({ scopeLabel, stats, content }: HighConsoleProps) {
   const confidence = Math.min(0.99, Math.max(0.4, achieved));
 
   return (
-    <div className={styles.shell} data-theme="dark">
+    <div className={styles.shell}>
       {/*
         진단 이야기 위에 태양광 원리를 먼저 세운다.
 
