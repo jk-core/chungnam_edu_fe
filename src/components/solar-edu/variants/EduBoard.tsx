@@ -26,7 +26,7 @@ export const EDU_VARIANT_LABEL: Record<EduVariant, Record<EduLevel, string>> = {
   d: {
     elementary: '시안 D · 한 장 그림',
     middle: '시안 D · 비교 실험',
-    high: '시안 D · 진단 타임라인',
+    high: '시안 D · 발전 원리 해설',
   },
 };
 

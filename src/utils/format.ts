@@ -125,3 +125,15 @@ export function formatRelative(from: Date, now: Date = new Date()): string {
 
   return `${Math.floor(diffHours / 24)}일 전`;
 }
+
+/**
+ * 소수 시간(5.5)을 시계 표기(05:30)로 바꾼다.
+ *
+ * 일출·일몰처럼 정각이 아닌 시각을 「5.5시」 로 적으면 시각이 아니라 소요 시간처럼 읽힌다.
+ */
+export function clockOf(hour: number): string {
+  const h = Math.floor(hour);
+  const m = Math.round((hour - h) * 60);
+
+  return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`;
+}

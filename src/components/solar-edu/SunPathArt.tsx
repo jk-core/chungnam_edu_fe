@@ -1,4 +1,5 @@
 import { SUNRISE_HOUR, SUNSET_HOUR } from '@/mocks/generation';
+import { clockOf } from '@/utils/format';
 import styles from './SolarEdu.module.scss';
 import type { SVGProps } from 'react';
 
@@ -17,14 +18,6 @@ function orbitPoint(progress: number) {
     x: ORBIT.cx + ORBIT.r * Math.cos(radian),
     y: ORBIT.cy - ORBIT.r * Math.sin(radian),
   };
-}
-
-/** 소수 시간(5.5)을 시계 표기(05:30)로 바꾼다. */
-export function clockOf(hour: number): string {
-  const h = Math.floor(hour);
-  const m = Math.round((hour - h) * 60);
-
-  return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`;
 }
 
 interface SunPathArtProps extends SVGProps<SVGSVGElement> {
