@@ -3,12 +3,15 @@
 @use "@/styles/utils/media" as media;
 @use "@/styles/utils/mixins" as mx;
 
+/* 소견 두 줄이 들어가는 자리 — 한 줄짜리가 와도 이만큼을 비워 둬 판이 들썩이지 않는다 */
+$finding-body: 2.9em;
+
 .scan {
   display: flex;
   flex-direction: column;
-  gap: s.$space-3;
+  gap: s.$space-2;
 
-  /* 단계마다 색이 달라 게이지와 글자가 함께 물든다 — 어디를 지나는지 숫자를 읽지 않아도 알게 한다 */
+  /* 단계마다 색이 달라 글자와 빛이 함께 물든다 — 어디를 지나는지 읽지 않아도 알게 한다 */
   &__head {
     display: flex;
     align-items: center;
@@ -28,6 +31,7 @@
     @include mx.truncate;
 
     color: var(--stage);
+    transition: color 0.4s ease;
   }
 
   &__note {
@@ -37,38 +41,102 @@
     color: var(--text-faint);
   }
 
-  &__percent {
-    @include t.data-md;
+  /* 지금 돌고 있다는 표시 — 숫자 대신 이 점 하나가 그 말을 한다 */
+  &__live {
+    @include t.caption;
 
+    display: inline-flex;
+    align-items: center;
+    gap: s.$space-1;
     flex-shrink: 0;
-    color: var(--stage);
-    font-variant-numeric: tabular-nums;
+    color: var(--text-muted);
+
+    &::before {
+      content: "";
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background-color: var(--stage);
+      animation: ai-pulse 1.6s ease-in-out infinite;
+
+      @include media.reduced-motion {
+        animation: none;
+      }
+    }
   }
 
   &__track {
-    height: 6px;
+    position: relative;
+    height: 4px;
     border-radius: s.$radius-full;
     background-color: var(--surface-sunken);
     overflow: hidden;
   }
 
-  &__fill {
-    height: 100%;
+  &__sweep {
+    position: absolute;
+    inset-block: 0;
+    inset-inline-start: 0;
+    width: 38%;
     border-radius: s.$radius-full;
-    background-color: var(--stage);
-    transition: width 0.2s linear, background-color 0.4s ease;
+    background: linear-gradient(90deg, transparent, var(--stage), transparent);
+    animation: ai-sweep 1.9s linear infinite;
 
     @include media.reduced-motion {
-      transition: none;
+      width: 100%;
+      background: var(--stage);
+      opacity: 0.32;
+      animation: none;
     }
+  }
+
+  &__target {
+    display: flex;
+    align-items: baseline;
+    gap: s.$space-2;
+  }
+
+  &__targetLabel {
+    @include t.caption;
+
+    flex-shrink: 0;
+    color: var(--text-faint);
+  }
+
+  &__targetName {
+    @include t.label-sm;
+    @include mx.truncate;
+
+    flex: 1;
+    min-width: 0;
+    color: var(--text);
+    font-variant-numeric: tabular-nums;
   }
 }
 
-/* 방금 잡아낸 것 — 분석이 도는 동안 한 건씩 흘려 보낸다 */
+@keyframes ai-sweep {
+  from {
+    transform: translateX(-100%);
+  }
+
+  to {
+    transform: translateX(300%);
+  }
+}
+
+@keyframes ai-pulse {
+  0%,
+  100% {
+    opacity: 0.35;
+  }
+
+  50% {
+    opacity: 1;
+  }
+}
+
+/* 방금 잡아낸 것 — 진단이 도는 동안 한 건씩 넘어간다 */
 .finding {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
   padding-top: s.$space-2;
   border-top: 1px solid var(--border-subtle);
 
@@ -76,6 +144,7 @@
     display: flex;
     align-items: baseline;
     gap: s.$space-2;
+    margin-bottom: 2px;
   }
 
   &__where {
@@ -99,6 +168,7 @@
     @include t.caption;
 
     display: -webkit-box;
+    min-height: $finding-body;
     overflow: hidden;
     color: var(--text-muted);
     -webkit-box-orient: vertical;
