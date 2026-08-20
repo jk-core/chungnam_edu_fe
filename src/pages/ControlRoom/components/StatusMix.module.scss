@@ -1,0 +1,89 @@
+@use "@/styles/tokens/spacing" as s;
+@use "@/styles/tokens/typography" as t;
+
+.mix {
+  display: flex;
+  flex-direction: column;
+  gap: s.$space-2;
+
+  &__bar {
+    display: flex;
+    height: 10px;
+    border-radius: s.$radius-full;
+    background-color: var(--surface-sunken);
+    overflow: hidden;
+  }
+
+  &__seg {
+    display: block;
+    height: 100%;
+    transition: width 0.5s cubic-bezier(0.22, 0.68, 0.32, 1);
+
+    &--ok {
+      background-color: var(--ok);
+    }
+
+    &--brand {
+      background-color: var(--brand);
+    }
+
+    &--caution {
+      background-color: var(--caution);
+    }
+
+    &--critical {
+      background-color: var(--critical);
+    }
+
+    &--offline {
+      background-color: var(--offline);
+    }
+  }
+
+  &__legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 2px s.$space-3;
+  }
+
+  &__item {
+    @include t.caption;
+
+    display: flex;
+    align-items: center;
+    gap: s.$space-1;
+    color: var(--text-muted);
+  }
+
+  &__value {
+    color: var(--text-strong);
+    font-family: var(--font-data);
+  }
+
+  &__dot {
+    display: block;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+
+    &--ok {
+      background-color: var(--ok);
+    }
+
+    &--brand {
+      background-color: var(--brand);
+    }
+
+    &--caution {
+      background-color: var(--caution);
+    }
+
+    &--critical {
+      background-color: var(--critical);
+    }
+
+    &--offline {
+      background-color: var(--offline);
+    }
+  }
+}

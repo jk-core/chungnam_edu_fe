@@ -5,6 +5,15 @@
 /* 칩 한 줄에 든 이름이 길어도 두 줄을 넘지 않게 붙잡는 폭 */
 $chip-max: 132px;
 
+/* 상태 분포 한 줄과 묶음들 — 남는 높이는 묶음 쪽이 가져간다 */
+.wrap {
+  display: flex;
+  flex-direction: column;
+  gap: s.$space-3;
+  flex: 1;
+  min-height: 0;
+}
+
 .groups {
   display: flex;
   flex-direction: column;
