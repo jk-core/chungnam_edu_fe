@@ -11,8 +11,8 @@ import { AXIS_NAME_GAP, LEGEND_GRID_TOP, topLegend } from '@/utils/chart';
 import { formatNumber } from '@/utils/format';
 import { useChartPalette } from '@/hooks/useChartPalette';
 import { useDiagnosisRange } from '@/stores/filterStore';
+import { useDiagnosisScope } from '@/hooks/useDiagnosisScope';
 import type { DiagTrendPoint, TrendMetric } from '@/mocks/diagnosisTrend';
-import type { ScopeNode } from '@/interface/tree';
 import styles from '../../AiDiagnosis.module.scss';
 import type { EChartsOption } from 'echarts';
 
@@ -32,19 +32,19 @@ const DENSITY_OPTIONS: { value: Density; label: string }[] = [
 /** 기대값에서 이만큼 벗어나기 전까지는 정상으로 본다 (±%) */
 const NORMAL_MARGIN = 0.12;
 
-interface InverterTrendChartProps {
-  /** 조회 대상 인버터 */
-  target: ScopeNode;
-}
-
 /**
  * 인버터 전력·전압·전류 추이 (SFR-013-09).
  *
  * 일자별 판정이 "어느 날 처졌다"를 알려 준다면, 이 그림은 기간 전체에서 어느 구간이
  * 기대값을 벗어났는지 한눈에 보여 준다. 정상 범위를 띠로 깔고 그 위에 측정값을 얹되,
  * AI 가 고장으로 분류한 구간만 붉게 끊어 그려 눈이 그리로 먼저 가게 한다.
+ *
+ * 인버터까지 좁혔을 때만 나온다 — 계측 추이는 인버터 단위로 나오는 값이라, 발전소 전체를
+ * 보고 있을 때는 그릴 것이 없다. 낼지 말지를 이 부품이 스스로 정하므로 부르는 쪽은 조회 대상을
+ * 알 필요가 없다.
  */
-export function InverterTrendChart({ target }: InverterTrendChartProps) {
+export function InverterTrendChart() {
+  const { target } = useDiagnosisScope();
   const palette = useChartPalette();
   const [range] = useDiagnosisRange();
   const [metric, setMetric] = useState<TrendMetric>('power');
@@ -213,6 +213,9 @@ export function InverterTrendChart({ target }: InverterTrendChartProps) {
       },
     ],
   };
+
+  // 인버터까지 좁히지 않았으면 그릴 것이 없다.
+  if (!inverterId) return null;
 
   return (
     <Reveal delay={0.04}>
