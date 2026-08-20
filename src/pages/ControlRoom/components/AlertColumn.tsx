@@ -2,9 +2,9 @@ import { formatNumber } from '@/utils/format';
 import type { CollectionStatus } from '@/interface/collection';
 import type { School } from '@/interface/energy';
 import styles from '../ControlRoom.module.scss';
+import { AiScanBoard } from './AiScanBoard';
 import { FaultGroups } from './FaultGroups';
 import { Panel } from './Panel';
-import { RankingStrip } from './RankingStrip';
 import { RegionOutput } from './RegionOutput';
 
 interface AlertColumnProps {
@@ -17,17 +17,17 @@ interface AlertColumnProps {
 /**
  * 오른쪽 열 — 먼저 봐야 할 것.
  *
- * 순위와 시·군별 발전량을 붙여 둔다. 위가 「어느 학교가 잘 냈나」 라면 아래는 「어느 지역이
- * 얼마나 냈나」 다 — 같은 물음을 낱개와 묶음으로 이어 묻는 자리라 눈이 옮겨 가지 않아야 한다.
+ * 맨 위는 AI 진단이다. 지금 관내를 훑고 있다는 사실과 방금 잡아낸 소견을 보여 준다.
+ * 가운데는 시·군별 발전량 — 어느 지역이 얼마나 냈는지를 묶음으로 본다.
  *
  * 맨 아래는 장애 현황이다. 지도가 어디가 아픈지를 답했으면 여기서는 무엇이 몇 곳이나,
- * 왜 아픈지를 상태별로 묶어 답한다.
+ * 왜 아픈지를 상태별로 묶어 답한다. 위에서 AI 가 짚은 것이 아래 묶음으로 쌓이는 셈이다.
  */
 export function AlertColumn({ plants, abnormalCount, collection }: AlertColumnProps) {
   return (
     <div className={styles.col}>
-      <Panel title="금일 실적 순위" note="시·군별 발전시간 상위 3">
-        <RankingStrip schools={plants} />
+      <Panel title="AI 진단" note={`관내 ${formatNumber(plants.length)}개소`}>
+        <AiScanBoard plantCount={plants.length} />
       </Panel>
 
       <Panel title="시·군별 발전량" note="금일 · kWh">

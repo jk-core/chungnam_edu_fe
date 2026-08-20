@@ -1,0 +1,107 @@
+@use "@/styles/tokens/spacing" as s;
+@use "@/styles/tokens/typography" as t;
+@use "@/styles/utils/media" as media;
+@use "@/styles/utils/mixins" as mx;
+
+.scan {
+  display: flex;
+  flex-direction: column;
+  gap: s.$space-3;
+
+  /* 단계마다 색이 달라 게이지와 글자가 함께 물든다 — 어디를 지나는지 숫자를 읽지 않아도 알게 한다 */
+  &__head {
+    display: flex;
+    align-items: center;
+    gap: s.$space-2;
+  }
+
+  &__stage {
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+    flex: 1;
+    min-width: 0;
+  }
+
+  &__label {
+    @include t.label-md;
+    @include mx.truncate;
+
+    color: var(--stage);
+  }
+
+  &__note {
+    @include t.caption;
+    @include mx.truncate;
+
+    color: var(--text-faint);
+  }
+
+  &__percent {
+    @include t.data-md;
+
+    flex-shrink: 0;
+    color: var(--stage);
+    font-variant-numeric: tabular-nums;
+  }
+
+  &__track {
+    height: 6px;
+    border-radius: s.$radius-full;
+    background-color: var(--surface-sunken);
+    overflow: hidden;
+  }
+
+  &__fill {
+    height: 100%;
+    border-radius: s.$radius-full;
+    background-color: var(--stage);
+    transition: width 0.2s linear, background-color 0.4s ease;
+
+    @include media.reduced-motion {
+      transition: none;
+    }
+  }
+}
+
+/* 방금 잡아낸 것 — 분석이 도는 동안 한 건씩 흘려 보낸다 */
+.finding {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding-top: s.$space-2;
+  border-top: 1px solid var(--border-subtle);
+
+  &__head {
+    display: flex;
+    align-items: baseline;
+    gap: s.$space-2;
+  }
+
+  &__where {
+    @include t.label-sm;
+    @include mx.truncate;
+
+    flex: 1;
+    min-width: 0;
+    color: var(--text-strong);
+  }
+
+  &__loss {
+    @include t.caption;
+
+    flex-shrink: 0;
+    color: var(--critical-text);
+    font-family: var(--font-data);
+  }
+
+  &__body {
+    @include t.caption;
+
+    display: -webkit-box;
+    overflow: hidden;
+    color: var(--text-muted);
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+  }
+}
