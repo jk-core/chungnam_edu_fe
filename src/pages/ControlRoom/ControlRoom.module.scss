@@ -93,11 +93,6 @@
 
     color: var(--text-faint);
   }
-
-  &--open {
-    overflow: visible;
-    flex: none;
-  }
 }
 
 @keyframes panel-scan {

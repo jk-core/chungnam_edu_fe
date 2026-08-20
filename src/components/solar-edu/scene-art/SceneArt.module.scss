@@ -232,11 +232,6 @@
   transform-origin: bottom center;
 }
 
-/* 조명이 켜졌다 잦아든다 */
-.glow {
-  animation: icon-glow 2.4s ease-in-out infinite;
-}
-
 /*
   선풍기 날개.
 
@@ -274,17 +269,6 @@
 
   50% {
     transform: rotate(2.4deg);
-  }
-}
-
-@keyframes icon-glow {
-  0%,
-  100% {
-    opacity: 0.32;
-  }
-
-  50% {
-    opacity: 1;
   }
 }
 

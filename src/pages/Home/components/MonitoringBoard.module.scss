@@ -79,17 +79,6 @@
   }
 }
 
-@include media.reduced-motion {
-  .popup__go {
-    transition: none;
-  }
-
-  .popup__go:active {
-    transform: none;
-  }
-
-}
-
 .health {
   display: flex;
   flex-direction: column;
