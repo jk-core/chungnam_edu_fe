@@ -2,7 +2,7 @@ import { formatNumber } from '@/utils/format';
 import type { CollectionStatus } from '@/interface/collection';
 import type { School } from '@/interface/energy';
 import styles from '../ControlRoom.module.scss';
-import { FaultList } from './FaultList';
+import { FaultGroups } from './FaultGroups';
 import { Panel } from './Panel';
 import { RankingStrip } from './RankingStrip';
 import { RegionOutput } from './RegionOutput';
@@ -20,7 +20,8 @@ interface AlertColumnProps {
  * 순위와 시·군별 발전량을 붙여 둔다. 위가 「어느 학교가 잘 냈나」 라면 아래는 「어느 지역이
  * 얼마나 냈나」 다 — 같은 물음을 낱개와 묶음으로 이어 묻는 자리라 눈이 옮겨 가지 않아야 한다.
  *
- * 맨 아래는 장애 목록이다. 지도가 어디가 아픈지를 답했으면 여기서는 무엇이 얼마나 아픈지를 답한다.
+ * 맨 아래는 장애 현황이다. 지도가 어디가 아픈지를 답했으면 여기서는 무엇이 몇 곳이나,
+ * 왜 아픈지를 상태별로 묶어 답한다.
  */
 export function AlertColumn({ plants, abnormalCount, collection }: AlertColumnProps) {
   return (
@@ -34,7 +35,7 @@ export function AlertColumn({ plants, abnormalCount, collection }: AlertColumnPr
       </Panel>
 
       <Panel title="장애 발생 현황" note={`이상 ${formatNumber(abnormalCount)}개소`} grow>
-        <FaultList plants={plants} collection={collection} />
+        <FaultGroups plants={plants} collection={collection} />
       </Panel>
     </div>
   );
