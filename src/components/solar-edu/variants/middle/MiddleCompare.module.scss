@@ -289,6 +289,8 @@
   dd {
     @include t.label-sm;
 
+    // 브라우저 기본값이 40px 을 왼쪽에서 걷어 간다 — 좁은 칸에서 값이 접힌다.
+    margin: 0;
     color: var(--text-strong);
     font-family: var(--font-data);
     font-variant-numeric: tabular-nums;
