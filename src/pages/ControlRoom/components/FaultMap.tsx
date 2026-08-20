@@ -1,3 +1,4 @@
+import { AnimatePresence, motion, useReducedMotion } from 'motion/react';
 import { useEffect, useRef, useState } from 'react';
 import Chungcheongnamdo from '@/assets/geo/provinces/Chungcheongnamdo';
 import { isAbnormal, OPERATION_LABEL, OPERATION_TONE } from '@/mocks/status';
@@ -39,6 +40,7 @@ const TOUR_MS = 7000;
  */
 export function FaultMap({ plants, scope = 'faults', height = MAP_HEIGHT, selectable, tour }: FaultMapProps) {
   const mapStatus = useKakaoMaps();
+  const reduceMotion = useReducedMotion();
   const [openId, setOpenId] = useState<string | null>(null);
   /*
     순회가 멈추는 까닭은 둘인데 서로 다른 것이라 따로 쥔다.
@@ -110,7 +112,23 @@ export function FaultMap({ plants, scope = 'faults', height = MAP_HEIGHT, select
       >
         <CloseIcon width={15} height={15} />
       </button>
-      <PlantDetailPanel plant={openPlant} />
+
+      {/*
+        순회가 다음 학교로 넘어갈 때 내용만 갈아 끼우면 숫자가 제자리에서 바뀌어, 같은 학교의
+        값이 바뀐 것인지 다른 학교로 넘어간 것인지 알 수 없다. 왼쪽으로 밀어내고 오른쪽에서
+        밀어 넣어, 넘어갔다는 사실이 움직임으로 읽히게 한다.
+      */}
+      <AnimatePresence mode="wait" initial={false}>
+        <motion.div
+          key={openPlant.id}
+          initial={reduceMotion ? false : { opacity: 0, x: 26 }}
+          animate={{ opacity: 1, x: 0 }}
+          exit={reduceMotion ? { opacity: 0 } : { opacity: 0, x: -22 }}
+          transition={{ duration: reduceMotion ? 0.15 : 0.26, ease: [0.22, 0.68, 0.32, 1] }}
+        >
+          <PlantDetailPanel plant={openPlant} />
+        </motion.div>
+      </AnimatePresence>
     </aside>
   ) : null;
 

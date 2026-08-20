@@ -78,15 +78,64 @@ export function centerOn(map: kakao.maps.Map, point: { lat: number; lng: number 
   map.panTo(new kakao.maps.LatLng(point.lat, point.lng));
 }
 
+/** 다가서는 데 쓰는 시간(ms) — 처음 한 곳을 고를 때만 쓴다 */
+const ZOOM_IN_MS = 300;
+
+/** 건너가는 시간 — 가까우면 짧게, 멀면 길게. 속도가 눈에 비슷하게 느껴진다 */
+const TRAVEL_MIN_MS = 520;
+const TRAVEL_MAX_MS = 1200;
+
+/** 도 끝에서 끝까지의 거리(도) — 가장 긴 걸음이다 */
+const LONGEST_SPAN = 1.2;
+
+/** 가다 서다 없이 부드럽게 — 처음과 끝을 느리게 둔다 */
+function easeInOut(t: number): number {
+  return t < 0.5 ? 4 * t * t * t : 1 - ((-2 * t + 2) ** 3) / 2;
+}
+
 /**
  * 한 곳을 가운데 두고 그 곳만 남게 당긴다.
  *
- * 배율을 먼저 바꾸고 자리를 옮긴다. 순서를 뒤집으면 넓은 화면에서 옮긴 뒤 당기게 되어,
- * 가운데가 한 번 흔들린 뒤에야 자리를 잡는다.
+ * `panTo` 는 가까운 거리만 미끄러지고 멀면 그냥 건너뛴다 — 순회가 도 반대편으로 넘어갈 때
+ * 화면이 툭 바뀌어, 어디에서 어디로 갔는지 눈이 따라가지 못한다. 그래서 지도를 직접 끈다.
+ * 배율은 건드리지 않고 자리만 옮긴다 — 손으로 지도를 끌어 옮기는 것과 같은 움직임이다.
+ *
+ * 배율을 맞추는 것은 도착한 뒤 한 번뿐이고, 그것도 처음 한 곳을 고를 때(도 전체를 보고 있을 때)
+ * 뿐이다. 도는 동안에는 이미 그 배율이라 다시 건드릴 일이 없다.
+ *
+ * 되돌려 주는 함수를 부르면 가던 길에서 멈춘다 — 순회가 다음 곳으로 넘어갈 때 앞의 움직임을
+ * 거둬야 두 움직임이 서로를 밀지 않는다.
  */
-export function focusOn(map: kakao.maps.Map, point: { lat: number; lng: number }, level = FOCUS_LEVEL): void {
-  map.setLevel(level);
-  map.panTo(new kakao.maps.LatLng(point.lat, point.lng));
+export function focusOn(
+  map: kakao.maps.Map,
+  point: { lat: number; lng: number },
+  level = FOCUS_LEVEL,
+): () => void {
+  const from = map.getCenter();
+  const start = { lat: from.getLat(), lng: from.getLng() };
+  const span = Math.max(Math.abs(start.lat - point.lat), Math.abs(start.lng - point.lng));
+  const travelMs = Math.round(
+    TRAVEL_MIN_MS + Math.min(1, span / LONGEST_SPAN) * (TRAVEL_MAX_MS - TRAVEL_MIN_MS),
+  );
+
+  let frame = 0;
+  const began = performance.now();
+  const step = (now: number) => {
+    const ratio = Math.min(1, (now - began) / travelMs);
+    const eased = easeInOut(ratio);
+
+    map.setCenter(new kakao.maps.LatLng(
+      start.lat + (point.lat - start.lat) * eased,
+      start.lng + (point.lng - start.lng) * eased,
+    ));
+
+    if (ratio < 1) frame = requestAnimationFrame(step);
+    else if (map.getLevel() !== level) map.setLevel(level, { animate: { duration: ZOOM_IN_MS } });
+  };
+
+  frame = requestAnimationFrame(step);
+
+  return () => cancelAnimationFrame(frame);
 }
 
 /** 도 전체가 한눈에 들어오는 처음 자리로 되돌린다 */
