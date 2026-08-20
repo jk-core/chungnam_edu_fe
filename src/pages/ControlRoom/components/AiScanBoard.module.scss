@@ -9,7 +9,7 @@ $finding-body: 2.9em;
 .scan {
   display: flex;
   flex-direction: column;
-  gap: s.$space-2;
+  gap: 6px;
 
   /* 단계마다 색이 달라 글자와 빛이 함께 물든다 — 어디를 지나는지 읽지 않아도 알게 한다 */
   &__head {
@@ -90,28 +90,6 @@ $finding-body: 2.9em;
     }
   }
 
-  &__target {
-    display: flex;
-    align-items: baseline;
-    gap: s.$space-2;
-  }
-
-  &__targetLabel {
-    @include t.caption;
-
-    flex-shrink: 0;
-    color: var(--text-faint);
-  }
-
-  &__targetName {
-    @include t.label-sm;
-    @include mx.truncate;
-
-    flex: 1;
-    min-width: 0;
-    color: var(--text);
-    font-variant-numeric: tabular-nums;
-  }
 }
 
 @keyframes ai-sweep {
@@ -135,20 +113,54 @@ $finding-body: 2.9em;
   }
 }
 
+/* 지금 무엇을 짚어 보는 중인지 — 켜진 것 하나만 물들고 지나간 것은 흐려진다 */
+.checks {
+  display: flex;
+  flex-wrap: wrap;
+  gap: s.$space-1;
+  list-style: none;
+
+  &__item {
+    @include t.caption;
+
+    padding: 1px s.$space-2;
+    border: 1px solid var(--border-subtle);
+    border-radius: s.$radius-full;
+    color: var(--text-faint);
+    transition: border-color 0.3s ease, background-color 0.3s ease, color 0.3s ease;
+
+    &[data-state="done"] {
+      color: var(--text-muted);
+    }
+
+    &[data-state="on"] {
+      border-color: color-mix(in srgb, var(--stage) 52%, transparent);
+      background-color: color-mix(in srgb, var(--stage) 12%, transparent);
+      color: var(--stage);
+    }
+  }
+}
+
 /* 방금 잡아낸 것 — 진단이 도는 동안 한 건씩 넘어간다 */
 .finding {
   padding-top: s.$space-2;
   border-top: 1px solid var(--border-subtle);
 
-  &__head {
+  &__card {
     display: flex;
-    align-items: baseline;
-    gap: s.$space-2;
-    margin-bottom: 2px;
+    flex-direction: column;
+    gap: 2px;
   }
 
-  &__where {
-    @include t.label-sm;
+  &__top {
+    display: flex;
+    align-items: center;
+    gap: s.$space-2;
+  }
+
+  /* AI 가 내린 분류 — 이 판의 결론이라 가장 또렷하게 둔다 */
+  &__category {
+    @include t.label-md;
     @include mx.truncate;
 
     flex: 1;
@@ -156,12 +168,28 @@ $finding-body: 2.9em;
     color: var(--text-strong);
   }
 
-  &__loss {
+  &__at {
     @include t.caption;
 
     flex-shrink: 0;
-    color: var(--critical-text);
+    color: var(--text-faint);
     font-family: var(--font-data);
+  }
+
+  /* 어디서 잡혔는지 · 이레 동안의 흐름 · 추정 손실을 한 줄에 묶는다 */
+  &__where {
+    display: flex;
+    align-items: center;
+    gap: s.$space-2;
+  }
+
+  &__place {
+    @include t.caption;
+    @include mx.truncate;
+
+    flex: 1;
+    min-width: 0;
+    color: var(--text-muted);
   }
 
   &__body {
@@ -170,8 +198,26 @@ $finding-body: 2.9em;
     display: -webkit-box;
     min-height: $finding-body;
     overflow: hidden;
-    color: var(--text-muted);
+    color: var(--text);
     -webkit-box-orient: vertical;
     -webkit-line-clamp: 2;
+  }
+
+  &__loss {
+    @include t.caption;
+
+    display: inline-flex;
+    align-items: baseline;
+    gap: 2px;
+    flex-shrink: 0;
+    color: var(--text-faint);
+
+    strong {
+      @include t.label-md;
+
+      color: var(--critical-text);
+      font-family: var(--font-data);
+      font-variant-numeric: tabular-nums;
+    }
   }
 }
