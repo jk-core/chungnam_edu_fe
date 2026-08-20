@@ -12,7 +12,7 @@ import useEquipmentStore from '@/stores/equipmentStore';
 import type { JunctionBoxMaster } from '@/interface/deviceMaster';
 import styles from '@/pages/Admin/Admin.module.scss';
 import { createdEntry, diffEntries } from '../../utils/deviceChangeLog';
-import { useSelectableInverters } from '../hooks/useJunctionRows';
+import { useSelectableInverters } from '../../hooks/useSelectableInverters';
 import type { JunctionRow } from '../hooks/useJunctionRows';
 
 /** 한 접속반이 받을 수 있는 직렬·병렬 수 */
