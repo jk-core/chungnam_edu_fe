@@ -1,36 +1,11 @@
-import { useMemo, useState } from 'react';
-import { AlertIcon, CheckIcon, ClockIcon, UserIcon, WrenchIcon } from '@/components/common/Icon';
-import { Badge } from '@/components/common/Badge';
-import { Button } from '@/components/common/Button';
-import { ConfirmDialog } from '@/components/common/ConfirmDialog';
+import { useState } from 'react';
 import { EmptyState } from '@/components/common/EmptyState';
-import { FormRow, RadioGroup, TextArea, TextField } from '@/components/common/Form';
-import { getFaultCode } from '@/mocks/equipment';
-import { getFaultTimelines, PHASE_LABEL, timelineDurationMinutes } from '@/mocks/faultTimeline';
-import { Modal } from '@/components/common/Modal';
-import { MSG } from '@/configs/messages';
-import { NOW } from '@/mocks/today';
-import { cn } from '@/utils/cn';
 import { formatDuration, formatNumber } from '@/utils/format';
-import { mergeSteps, useAddAction, useManualActions } from '@/stores/faultActionStore';
-import { toast } from '@/stores/toastStore';
-import { useAuthUser } from '@/stores/authStore';
-import { useDiagnosisScope } from '@/hooks/useDiagnosisScope';
-import type { FaultTimeline, TimelinePhase } from '@/interface/faultTimeline';
 import styles from './FaultTimeline.module.scss';
+import { ActionModal } from './ActionModal';
 import { FaultGantt } from './FaultGantt';
-
-const PHASE_ICON: Record<TimelinePhase, typeof AlertIcon> = {
-  detected: AlertIcon,
-  notified: ClockIcon,
-  inProgress: WrenchIcon,
-  resolved: CheckIcon,
-};
-
-type ResolveChoice = 'resolve' | 'progress';
-
-/** 타임라인이 거슬러 올라가는 기간(년) */
-const TIMELINE_YEARS = 5;
+import { TimelineDetail } from './TimelineDetail';
+import { useFaultTimelines } from './useFaultTimelines';
 
 /**
  * 고장 발생부터 조치 완료까지 단계별 이력 (SFR-015).
@@ -40,92 +15,22 @@ const TIMELINE_YEARS = 5;
  * 언제까지였는지** 를 보는 자리라, 걸린 조건에 맞는 알림이 없어도 제 내용을 그린다.
  */
 export function FaultTimeline() {
-  const { target, label } = useDiagnosisScope();
-  const user = useAuthUser();
-  const addAction = useAddAction();
-  // 사용자가 넣은 조치가 바뀌면 목록을 다시 그린다.
-  const manual = useManualActions();
+  const { label, timelines, axis, openCount, totalLoss, averageMinutes } = useFaultTimelines();
 
+  // 상세 창에서 조치 기록으로 넘어가므로 무엇을 열어 두었는지만 여기서 쥔다.
   const [detailId, setDetailId] = useState<string | null>(null);
-  const [openId, setOpenId] = useState<string | null>(null);
-  const [note, setNote] = useState('');
-  const [actor, setActor] = useState(user?.name ?? '');
-  const [choice, setChoice] = useState<ResolveChoice>('resolve');
-  const [error, setError] = useState<string | undefined>(undefined);
-  const [confirming, setConfirming] = useState(false);
+  const [recordingId, setRecordingId] = useState<string | null>(null);
 
-  const timelines = useMemo(() => {
-    const rows = getFaultTimelines(target);
-
-    return rows.map((row) => {
-      const steps = mergeSteps(row.steps, manual[row.id]);
-      const resolvedStep = steps.findLast((step) => step.phase === 'resolved');
-
-      return {
-        ...row,
-        steps,
-        resolved: Boolean(resolvedStep),
-        endedAt: resolvedStep?.at ?? null,
-      } satisfies FaultTimeline;
-    });
-  }, [target, manual]);
-
-  const open = timelines.filter((item) => !item.resolved);
-  const editing = timelines.find((item) => item.id === openId) ?? null;
   const detail = timelines.find((item) => item.id === detailId) ?? null;
-
-  /**
-   * 축은 오늘부터 5년 전까지 — 과거로 계속 밀어 볼 수 있어야 한다.
-   * 날짜 칸이 1,800개를 넘으므로 눈금은 보이는 구간만 그린다(FaultGantt).
-   */
-  const axis = useMemo(() => ({ from: NOW.subtract(TIMELINE_YEARS, 'year').startOf('day'), to: NOW.endOf('day') }), []);
-
-  const totalLoss = timelines.reduce((sum, item) => sum + item.lossKwh, 0);
-  const avgMinutes = timelines.length > 0
-    ? Math.round(timelines.reduce((sum, item) => sum + timelineDurationMinutes(item), 0) / timelines.length)
-    : 0;
-
-  const submit = () => {
-    if (!editing) return;
-
-    if (!note.trim()) {
-      setError(MSG.requiredField('조치 내용'));
-
-      return;
-    }
-
-    if (!actor.trim()) {
-      setError(MSG.requiredField('조치자'));
-
-      return;
-    }
-
-    setError(undefined);
-    setConfirming(true);
-  };
-
-  const commit = () => {
-    if (!editing) return;
-
-    addAction(editing.id, {
-      at: NOW.format('YYYY-MM-DD HH:mm'),
-      note: note.trim(),
-      actor: actor.trim(),
-      resolves: choice === 'resolve',
-    });
-
-    toast.success(choice === 'resolve' ? '조치 완료로 처리했습니다.' : '조치 진행 이력을 남겼습니다.');
-    setOpenId(null);
-    setNote('');
-  };
+  const recording = timelines.find((item) => item.id === recordingId) ?? null;
 
   return (
     <>
       <div className={styles.panel}>
         {/* 표 대신 이 판을 볼 때도 몇 건인지는 알아야 한다 — 카드 제목이 표 기준이라 여기서 따로 적는다 */}
         <p className={styles.panel__note}>
-          이상 발생 구간 {formatNumber(timelines.length)}건 · 미조치 {formatNumber(open.length)}건 · 평균 경과{' '}
-          {formatDuration(avgMinutes)} · 추정 손실 {formatNumber(totalLoss, 0)}kWh
+          이상 발생 구간 {formatNumber(timelines.length)}건 · 미조치 {formatNumber(openCount)}건 · 평균 경과{' '}
+          {formatDuration(averageMinutes)} · 추정 손실 {formatNumber(totalLoss, 0)}kWh
         </p>
 
         {timelines.length === 0 ? (
@@ -138,136 +43,21 @@ export function FaultTimeline() {
         )}
       </div>
 
-      <Modal
-        isOpen={detail !== null}
-        onClose={() => setDetailId(null)}
-        size="lg"
-        title={detail ? `${detail.plantName} · ${detail.deviceName}` : ''}
-        description={detail
-          ? `발생 ${detail.startedAt} · ${detail.resolved ? `완료 ${detail.endedAt}` : '조치 진행 중'} · 경과 ${formatDuration(timelineDurationMinutes(detail))}`
-          : undefined}
-        footer={detail ? (
-          <Button
-            iconLeft={<WrenchIcon />}
-            onClick={() => {
-              setOpenId(detail.id);
-              setNote('');
-              setActor(user?.name ?? '');
-              setChoice(detail.resolved ? 'progress' : 'resolve');
-              setError(undefined);
-              setDetailId(null);
-            }}
-          >
-            조치 기록
-          </Button>
-        ) : null}
-      >
-        {detail ? (
-          <div className={styles.detail}>
-            <div className={styles.item__badges}>
-              <Badge tone={detail.source === 'ai' ? 'brand' : 'offline'}>
-                {detail.source === 'ai' ? 'AI 판별' : '시스템 감지'}
-              </Badge>
-              {(() => {
-                const fault = getFaultCode(detail.faultCode);
+      {detail ? (
+        <TimelineDetail
+          timeline={detail}
+          onClose={() => setDetailId(null)}
+          onRecord={() => {
+            setDetailId(null);
+            setRecordingId(detail.id);
+          }}
+        />
+      ) : null}
 
-                return fault && fault.code !== 0 ? (
-                  <Badge tone="critical">
-                    {fault.label} · {fault.summary}
-                  </Badge>
-                ) : null;
-              })()}
-              <Badge tone={detail.resolved ? 'ok' : 'caution'} withDot>
-                {detail.resolved ? '조치 완료' : '미조치'}
-              </Badge>
-              <Badge tone="neutral">추정 손실 {formatNumber(detail.lossKwh, 1)}kWh</Badge>
-            </div>
-
-            <ol className={styles.steps}>
-              {detail.steps.map((step, index) => {
-                const Icon = PHASE_ICON[step.phase];
-
-                return (
-                  <li key={`${step.at}-${index}`} className={styles.step}>
-                    <span className={cn(styles.step__marker, styles[`step__marker--${step.phase}`])}>
-                      <Icon width={13} height={13} />
-                    </span>
-                    <div className={styles.step__body}>
-                      <p className={styles.step__top}>
-                        <span className={styles.step__phase}>{PHASE_LABEL[step.phase]}</span>
-                        <span className={styles.step__at}>{step.at}</span>
-                        {step.manual ? (
-                          <span className={styles.step__manual}>
-                            <UserIcon width={11} height={11} />
-                            {step.actor ?? '관리자'} 직접 입력
-                          </span>
-                        ) : null}
-                      </p>
-                      <p className={styles.step__note}>{step.note}</p>
-                    </div>
-                  </li>
-                );
-              })}
-            </ol>
-          </div>
-        ) : null}
-      </Modal>
-
-      <Modal
-        isOpen={editing !== null}
-        onClose={() => setOpenId(null)}
-        title="조치 기록"
-        description={editing ? `${editing.plantName} · ${editing.deviceName}` : undefined}
-        footer={(
-          <>
-            <Button variant="secondary" onClick={() => setOpenId(null)}>
-              취소
-            </Button>
-            <Button onClick={submit}>저장</Button>
-          </>
-        )}
-      >
-        <div className={styles.form}>
-          <RadioGroup
-            legend="처리 구분"
-            value={choice}
-            onChange={setChoice}
-            options={[
-              { value: 'resolve', label: '조치 완료', tone: 'ok' },
-              { value: 'progress', label: '조치 진행', tone: 'brand' },
-            ]}
-            required
-          />
-
-          <FormRow cols={2}>
-            <TextField label="조치자" value={actor} onChange={setActor} required width="md" />
-            <TextField label="조치 일시" value={NOW.format('YYYY-MM-DD HH:mm')} onChange={() => {}} readOnly width="md" />
-          </FormRow>
-
-          <TextArea
-            label="조치 내용"
-            value={note}
-            onChange={setNote}
-            required
-            error={error}
-            placeholder="무엇을 확인하고 어떻게 처리했는지 적어 주세요."
-            maxLength={300}
-          />
-        </div>
-      </Modal>
-
-      <ConfirmDialog
-        isOpen={confirming}
-        title={choice === 'resolve' ? '조치 완료로 처리할까요?' : '조치 이력을 남길까요?'}
-        description={
-          choice === 'resolve'
-            ? '완료로 처리하면 미조치 목록에서 빠집니다. 기록은 타임라인에 남습니다.'
-            : '진행 이력으로 남기고 건은 미조치 상태를 유지합니다.'
-        }
-        confirmLabel="저장"
-        onConfirm={commit}
-        onClose={() => setConfirming(false)}
-      />
+      {/* 고른 건이 바뀌면 기록 창을 새로 세운다 — 앞서 적던 조치 내용이 남지 않게 */}
+      {recording ? (
+        <ActionModal key={recording.id} timeline={recording} onClose={() => setRecordingId(null)} />
+      ) : null}
     </>
   );
 }
