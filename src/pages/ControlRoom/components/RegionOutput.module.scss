@@ -4,7 +4,12 @@
 
 /*
   시·군별 금일 발전량.
-  열다섯 줄이 한 판에 들어가야 하므로 줄 높이를 낮추고 이름·막대·값을 한 줄에 나란히 둔다.
+
+  열다섯 곳을 하나도 빠뜨리지 않고 보여야 해서 두 열로 접는다 — 한 열로 세우면 판이 화면
+  높이를 넘겨 아래쪽 시·군이 잘리고, 잘린 줄은 없는 것과 같다.
+
+  세로로 먼저 채운다(`grid-auto-flow: column`). 가로로 채우면 1·2위가 좌우로 갈라져 앉아
+  순위가 두 줄을 오가며 읽히는데, 세로로 채우면 왼쪽 열이 위에서 아래로 그대로 순위가 된다.
 */
 .region {
   display: flex;
@@ -14,10 +19,13 @@
   min-height: 0;
 
   &__list {
-    display: flex;
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-template-rows: repeat(8, auto);
+    grid-auto-flow: column;
+    align-content: space-between;
+    gap: s.$space-1 s.$space-4;
     flex: 1;
-    flex-direction: column;
-    justify-content: space-between;
     min-height: 0;
     list-style: none;
     overflow: hidden;
@@ -25,7 +33,7 @@
 
   &__row {
     display: grid;
-    grid-template-columns: 54px minmax(0, 1fr) 62px;
+    grid-template-columns: 52px minmax(0, 1fr) 58px;
     align-items: center;
     gap: s.$space-2;
   }

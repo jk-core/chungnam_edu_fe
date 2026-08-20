@@ -11,7 +11,15 @@
   container-type: inline-size;
   display: flex;
   flex-direction: column;
-  gap: s.$space-2;
+
+  /*
+    칸 사이 여백을 한꺼번에 주지 않는다.
+
+    맨 아래 쪽 넘김 줄은 제 위에 선을 그어 목록과 갈라 두는데, 거기에 칸 여백까지 더하면
+    목록과 벌어져 아래가 휑해 보인다. 선 하나면 갈리는 데 충분하므로, 여백은 필요한
+    곳(정렬 줄 아래)에만 준다. 집계표도 같은 방식이라 두 판의 아랫단이 나란히 선다.
+  */
+  gap: 0;
   flex: 1;
   min-width: 0;
   min-height: 0;
@@ -52,7 +60,7 @@
   display: flex;
   align-items: center;
   gap: s.$space-2;
-  padding: s.$space-2 s.$space-3;
+  padding: 6px s.$space-3;
   border: 1px solid var(--border-subtle);
   border-radius: s.$radius-sm;
   background-color: var(--surface-sunken);
@@ -148,6 +156,7 @@
   align-items: center;
   justify-content: space-between;
   gap: s.$space-2;
+  margin-bottom: s.$space-2;
   padding-top: s.$space-2;
   border-top: 1px solid var(--border-subtle);
 

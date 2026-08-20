@@ -2,7 +2,6 @@ import { useState } from 'react';
 import { ControlRoomLayout } from '@/layouts/ControlRoomLayout';
 import { TODAY } from '@/mocks/today';
 import { formatNumber } from '@/utils/format';
-import { CUMULATIVE } from '@/mocks/generation';
 import { PlantSearchModal } from '@/components/plant/PlantSearchModal';
 import { AggregationPanel } from './components/AggregationPanel';
 import { FaultList } from './components/FaultList';
@@ -15,9 +14,6 @@ import { LiveTrendChart } from './components/LiveTrendChart';
 import { CumulativeKpi } from './components/CumulativeKpi';
 import { SCOPE_LABEL, useControlRoomData } from './useControlRoomData';
 import styles from './ControlRoom.module.scss';
-
-/** 가운데 지도 높이(px) — 상황판 한가운데를 차지하는 크기다 */
-const MAIN_MAP_HEIGHT = 430;
 
 /**
  * 통합관제 상황판 · 시안 A — 3단 그리드 (SFR-004).
@@ -46,15 +42,15 @@ function ControlRoomPage() {
             <OutputGauge outputKw={data.totals.outputKw} capacityKw={data.totals.capacityKw} />
           </section>
 
-          <section className={styles.panel} aria-label="발전량">
+          <section className={styles.panel} aria-label="발전실적">
             <div className={styles.panel__head}>
-              <h2 className={styles.panel__title}>발전량</h2>
+              <h2 className={styles.panel__title}>발전실적</h2>
             </div>
             <CumulativeKpi
               todayKwh={data.totals.todayKwh}
               monthKwh={data.totals.monthKwh}
               yearKwh={data.totals.yearKwh}
-              totalKwh={CUMULATIVE.totalKwh}
+              capacityKw={data.totals.capacityKw}
             />
           </section>
 
@@ -71,16 +67,15 @@ function ControlRoomPage() {
           </section>
 
           {/*
-            어디가 얼마나 내는지.
-            미수신 목록과 수집 현황이 있던 자리다 — 둘 다 "숫자를 믿어도 되나" 를 묻는 판이라
-            지켜보는 화면에서는 뒤로 물러나도 된다. 그 자리를 도 안의 분포가 대신한다.
+            하루 곡선은 이 열의 남는 높이를 그대로 받는다.
+            가로로 길고 세로로 낮은 그림이라 좁고 높은 자리에 넣으면 봉우리만 뾰족해지고 시각
+            눈금이 겹친다 — 열 폭을 다 쓰고 높이는 남는 만큼만 쓰는 쪽이 읽힌다.
           */}
-          <section className={`${styles.panel} ${styles.col__grow}`} aria-label="시·군별 발전량">
+          <section className={`${styles.panel} ${styles.col__grow}`} aria-label="시간대별 발전량">
             <div className={styles.panel__head}>
-              <h2 className={styles.panel__title}>시·군별 발전량</h2>
-              <span className={styles.panel__note}>금일 · kWh</span>
+              <h2 className={styles.panel__title}>시간대별 발전량</h2>
             </div>
-            <RegionOutput />
+            <LiveTrendChart date={TODAY.toDate()} />
           </section>
         </div>
 
@@ -90,21 +85,26 @@ function ControlRoomPage() {
           숫자 판들을 양옆으로 둘렀다. 정상까지 함께 찍어 분포가 보이게 한다 (SFR-004-01/14).
         */}
         <div className={styles.col}>
-          <section className={styles.panel} aria-label="관내 발전소 현황 지도">
+          <section className={`${styles.panel} ${styles.col__grow}`} aria-label="관내 발전소 현황 지도">
             <div className={styles.panel__head}>
               <h2 className={styles.panel__title}>관내 발전소 현황</h2>
               <span className={styles.panel__note}>
                 {formatNumber(data.rows.length)}개소 · 이상 {formatNumber(data.abnormalCount)}개소
               </span>
             </div>
-            <FaultMap plants={data.rows} scope="all" height={MAIN_MAP_HEIGHT} selectable tour />
+            <FaultMap plants={data.rows} scope="all" height="100%" selectable tour />
           </section>
 
-          {/* 표는 가운데 넓은 자리에 둔다 — 다섯 칸짜리 표를 좁은 컬럼에 밀어 넣으면 줄이 접힌다 */}
-          <section className={`${styles.panel} ${styles.col__grow}`} aria-label="발전 현황 집계">
+          {/*
+            표는 가운데 넓은 자리에 둔다 — 다섯 칸짜리 표를 좁은 컬럼에 밀어 넣으면 줄이 접힌다.
+
+            높이는 표가 정한다. 남는 높이를 이 판이 받으면 다섯 줄 아래로 빈 자리가 생기는데,
+            그 자리는 지도가 쓰는 편이 낫다 — 상황판에서 가장 먼저 답해야 할 물음이 「어디가
+            어떤가」 이고, 지도는 커질수록 그 답을 잘한다.
+          */}
+          <section className={styles.panel} aria-label="발전 현황 집계">
             <div className={styles.panel__head}>
               <h2 className={styles.panel__title}>발전 현황 집계</h2>
-              <span className={styles.panel__note}>발전소·학교급·권역 기준</span>
             </div>
 
             <AggregationPanel schools={data.rows} />
@@ -116,17 +116,22 @@ function ControlRoomPage() {
           <section className={styles.panel} aria-label="금일 실적 순위">
             <div className={styles.panel__head}>
               <h2 className={styles.panel__title}>금일 실적 순위</h2>
-              <span className={styles.panel__note}>발전시간 기준 · 상위 5개소</span>
+              <span className={styles.panel__note}>시·군별 발전시간 상위 3</span>
             </div>
             <RankingStrip schools={data.rows} />
           </section>
 
-          <section className={styles.panel} aria-label="시간대별 발전량">
+          {/*
+            순위 바로 아래에 둔다.
+            위가 "어느 학교가 잘 냈나" 라면 여기는 "어느 지역이 얼마나 냈나" 다 — 같은 물음을
+            낱개와 묶음으로 이어 묻는 자리라, 둘이 붙어 있어야 눈이 옮겨 가지 않는다.
+          */}
+          <section className={styles.panel} aria-label="시·군별 발전량">
             <div className={styles.panel__head}>
-              <h2 className={styles.panel__title}>시간대별 발전량</h2>
-              <span className={styles.panel__note}>일사량 함께</span>
+              <h2 className={styles.panel__title}>시·군별 발전량</h2>
+              <span className={styles.panel__note}>금일 · kWh</span>
             </div>
-            <LiveTrendChart date={TODAY.toDate()} />
+            <RegionOutput />
           </section>
 
           {/* 지도가 어디가 아픈지를 답했으면, 여기서는 무엇이 얼마나 아픈지를 답한다 */}

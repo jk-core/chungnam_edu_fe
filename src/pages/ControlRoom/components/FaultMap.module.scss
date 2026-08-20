@@ -4,15 +4,37 @@
 @use "@/styles/utils/mixins" as mx;
 
 .map {
-  // 설명 패널이 이 칸을 기준으로 얹힌다
-  position: relative;
   display: flex;
   flex-direction: column;
   gap: s.$space-2;
   flex: 0 0 auto;
   min-height: 0;
+
+  /*
+    칸을 꽉 채우라고 한 경우(`height="100%"`).
+
+    래퍼가 자라지 않으면 안쪽 지도가 「부모의 100%」 를 잴 곳이 없어 0 으로 접힌다 — 칸은
+    550px 인데 지도가 2px 로 뭉개져 흰 판만 남는다. 채우라고 했으면 래퍼부터 채워야 한다.
+  */
+  &[data-fill] {
+    flex: 1;
+  }
   padding-bottom: s.$space-2;
   border-bottom: 1px solid var(--border-subtle);
+
+  /*
+    지도가 서는 자리.
+
+    설명 패널은 이 칸을 기준으로 얹힌다 — 바깥을 기준으로 두면 아래 상태 필터와 순회 단추까지
+    덮어, 순회를 멈추려는 사람이 누를 곳을 찾지 못한다.
+  */
+  &__stage {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    min-height: 0;
+  }
 
   &__svg {
     width: 100%;

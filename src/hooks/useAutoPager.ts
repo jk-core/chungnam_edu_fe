@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
 
 interface AutoPagerOptions {
   /** 전체 항목 수 */
@@ -93,14 +93,42 @@ export function useAutoPager<
 
     measure();
 
+    /*
+      칸만 지켜보면 모자란다.
+
+      항목 하나의 높이는 글꼴이 붙고 줄이 접히면서 첫 측정 뒤에 바뀐다 — 재던 순간 41px 이던
+      줄이 42px 로 굳으면 계산이 한 줄을 더 넣고, 그 한 줄이 칸 밖으로 밀려 잘린다.
+      항목도 함께 지켜보면 높이가 굳는 순간 다시 잰다.
+    */
     const observer = new ResizeObserver(measure);
 
     observer.observe(frame);
+
+    if (itemRef.current) observer.observe(itemRef.current);
 
     return () => observer.disconnect();
   }, [total, fixedPerPage]);
 
   const perPage = Math.max(1, fixedPerPage ?? measured);
+
+  /*
+    재고 나서 한 번 더 확인한다.
+
+    개수는 첫 항목 높이를 자로 삼아 내는데, 줄마다 높이가 같지 않다 — 이름이 길어 접히는 줄이
+    하나 섞이면 그 한 줄이 칸 밖으로 밀려 잘린다. 자를 아무리 정확히 대도 서로 다른 줄을 하나로
+    재는 한 어긋날 수 있으므로, 그린 뒤에 넘쳤는지 보고 넘쳤으면 한 줄을 뺀다.
+
+    줄이 빠지면 내용이 줄어 넘침이 사라지므로 한두 번에 멎는다. 한 줄이 칸보다 커도 1 에서
+    멈춘다 — 그때는 줄이는 것으로 풀 수 없는 문제다.
+  */
+  useLayoutEffect(() => {
+    const frame = frameRef.current;
+
+    if (!frame || fixedPerPage || perPage <= 1) return;
+    if (frame.scrollHeight - frame.clientHeight <= 1) return;
+
+    setMeasured(perPage - 1);
+  }, [fixedPerPage, perPage, page, total]);
   const pageCount = Math.max(1, Math.ceil(total / perPage));
 
   // 목록이 줄어 지금 쪽이 사라졌을 수 있다.

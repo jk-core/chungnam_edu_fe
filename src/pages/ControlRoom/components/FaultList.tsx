@@ -63,9 +63,10 @@ export function FaultList({ plants, collection }: FaultListProps) {
       return byStatus(a, b);
     });
 
+  // 여섯 줄이 이 칸에 들어가는 몫이다 — 줄 높이를 여기에 맞춰 두었으므로 늘리면 잘린다.
   const {
     frameRef, itemRef, from, to, page, pageCount, turnKey, paused, togglePause, goTo, next, prev,
-  } = useAutoPager<HTMLDivElement, HTMLLIElement>({ total: faults.length, intervalMs: PAGE_MS });
+  } = useAutoPager<HTMLDivElement, HTMLLIElement>({ total: faults.length, intervalMs: PAGE_MS, perPage: 6 });
 
   if (faults.length === 0) {
     return <p className={styles.empty}>지금 손봐야 할 설비가 없습니다.</p>;

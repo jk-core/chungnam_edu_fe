@@ -11,7 +11,15 @@
   container-type: inline-size;
   display: flex;
   flex-direction: column;
-  gap: s.$space-3;
+
+  /*
+    칸 사이 여백을 한꺼번에 주지 않는다.
+
+    쪽 넘김 줄은 제 위에 선을 그어 표와 갈라 두는데, 거기에 칸 여백까지 더하면 표와 20px 이
+    벌어져 아래가 휑해 보인다. 선 하나면 갈리는 데 충분하므로, 여백은 필요한 곳(머리 아래)에만
+    준다.
+  */
+  gap: 0;
   min-width: 0;
   min-height: 0;
   height: 100%;
@@ -22,6 +30,7 @@
     justify-content: space-between;
     gap: s.$space-3;
     flex-wrap: wrap;
+    margin-bottom: s.$space-3;
   }
 
   &__total {
@@ -160,9 +169,13 @@
     }
   }
 
+  /*
+    줄 높이가 곧 한 쪽에 담기는 줄 수다.
+    여백 8px 로는 다섯째 줄이 8px 모자라 잘렸다 — 6px 로 조이면 다섯이 여유 있게 들어간다.
+  */
   & tbody th,
-& tbody td {
-    padding: s.$space-2;
+  & tbody td {
+    padding: 6px s.$space-2;
     border-bottom: 1px solid var(--border-subtle);
     vertical-align: middle;
   }

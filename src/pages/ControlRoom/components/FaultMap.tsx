@@ -151,16 +151,25 @@ export function FaultMap({ plants, scope = 'faults', height = MAP_HEIGHT, select
   // 지도 키가 없거나 외부망이 막히면 내장 지도로 간다 — 상황판이 멈추면 안 된다.
   if (mapStatus === 'ready') {
     return (
-      <div className={styles.map}>
-        <KakaoMiniMap
-          plants={marks}
-          height={height}
-          label={label}
-          selectedId={openId ?? undefined}
-          // 순회로 펼친 곳은 지도에서도 그 하나만 보이게 당긴다
-          focusSelected={Boolean(tour)}
-          onPick={selectable ? pick : undefined}
-        />
+      <div className={styles.map} data-fill={height === '100%' ? '' : undefined}>
+        {/*
+          설명 패널은 지도 위에만 얹힌다.
+          바깥 칸을 기준으로 두면 아래 상태 필터와 순회 단추까지 덮어, 순회를 멈추려는 사람이
+          누를 곳을 찾지 못한다.
+        */}
+        <div className={styles.map__stage}>
+          <KakaoMiniMap
+            plants={marks}
+            height={height}
+            label={label}
+            selectedId={openId ?? undefined}
+            // 순회로 펼친 곳은 지도에서도 그 하나만 보이게 당긴다
+            focusSelected={Boolean(tour)}
+            onPick={selectable ? pick : undefined}
+          />
+          {side}
+        </div>
+
         <div className={styles.map__foot}>
           <MapStatusFilter
             counts={status.counts}
@@ -171,49 +180,52 @@ export function FaultMap({ plants, scope = 'faults', height = MAP_HEIGHT, select
           />
           {tourControl}
         </div>
-        {side}
       </div>
     );
   }
 
   return (
-    <div className={styles.map}>
-      <svg
-        className={styles.map__svg}
-        style={{ height }}
-        viewBox={`0 0 ${MAP_VIEW.width} ${MAP_VIEW.height}`}
-        role="img"
-        aria-label={label}
-      >
-        <g transform={`translate(${MAP_FIT.x} ${MAP_FIT.y}) scale(${MAP_FIT.scale})`}>
-          <g className={styles.map__province}>
-            {/* 시·군 경계선은 긋지 않는다 — 상황판에서 읽을 것은 도 모양과 그 위 점이다. */}
-            <Chungcheongnamdo fill="var(--map-scale-1)" stroke="none" />
+    <div className={styles.map} data-fill={height === '100%' ? '' : undefined}>
+      <div className={styles.map__stage}>
+        <svg
+          className={styles.map__svg}
+          style={{ height }}
+          viewBox={`0 0 ${MAP_VIEW.width} ${MAP_VIEW.height}`}
+          role="img"
+          aria-label={label}
+        >
+          <g transform={`translate(${MAP_FIT.x} ${MAP_FIT.y}) scale(${MAP_FIT.scale})`}>
+            <g className={styles.map__province}>
+              {/* 시·군 경계선은 긋지 않는다 — 상황판에서 읽을 것은 도 모양과 그 위 점이다. */}
+              <Chungcheongnamdo fill="var(--map-scale-1)" stroke="none" />
+            </g>
+
+            {marks.map((plant) => {
+              const point = projectPoint(plant.location);
+              // 확대하지 않으므로 점 크기는 지도 축척만 되돌려 맞춘다.
+              const scale = 1 / MAP_FIT.scale;
+
+              return (
+                <g
+                  key={plant.id}
+                  transform={`translate(${point.x} ${point.y}) scale(${scale})`}
+                  className={selectable ? styles.pick : undefined}
+                  role={selectable ? 'button' : undefined}
+                  aria-label={selectable ? `${plant.name} 설명 보기` : undefined}
+                  onClick={selectable ? () => pick(plant.id) : undefined}
+                >
+                  <circle className={`${styles.dot__halo} ${styles[`dot--${OPERATION_TONE[plant.status]}`]}`} r={11} />
+                  <circle className={`${styles.dot} ${styles[`dot--${OPERATION_TONE[plant.status]}`]}`} r={4.5}>
+                    <title>{`${plant.name} · ${OPERATION_LABEL[plant.status]}`}</title>
+                  </circle>
+                </g>
+              );
+            })}
           </g>
+        </svg>
 
-          {marks.map((plant) => {
-            const point = projectPoint(plant.location);
-            // 확대하지 않으므로 점 크기는 지도 축척만 되돌려 맞춘다.
-            const scale = 1 / MAP_FIT.scale;
-
-            return (
-              <g
-                key={plant.id}
-                transform={`translate(${point.x} ${point.y}) scale(${scale})`}
-                className={selectable ? styles.pick : undefined}
-                role={selectable ? 'button' : undefined}
-                aria-label={selectable ? `${plant.name} 설명 보기` : undefined}
-                onClick={selectable ? () => pick(plant.id) : undefined}
-              >
-                <circle className={`${styles.dot__halo} ${styles[`dot--${OPERATION_TONE[plant.status]}`]}`} r={11} />
-                <circle className={`${styles.dot} ${styles[`dot--${OPERATION_TONE[plant.status]}`]}`} r={4.5}>
-                  <title>{`${plant.name} · ${OPERATION_LABEL[plant.status]}`}</title>
-                </circle>
-              </g>
-            );
-          })}
-        </g>
-      </svg>
+        {side}
+      </div>
 
       <div className={styles.map__foot}>
         <MapStatusFilter
@@ -225,8 +237,6 @@ export function FaultMap({ plants, scope = 'faults', height = MAP_HEIGHT, select
         />
         {tourControl}
       </div>
-
-      {side}
     </div>
   );
 }

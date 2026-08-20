@@ -1,5 +1,5 @@
 import { EChart } from '@/components/common/EChart';
-import { AXIS_NAME_GAP, LEGEND_GRID_TOP, topLegend } from '@/utils/chart';
+import { topLegend } from '@/utils/chart';
 import { NOW_HOUR } from '@/mocks/today';
 import { getHourlyTrend } from '@/mocks/generation';
 import { useChartPalette } from '@/hooks/useChartPalette';
@@ -7,6 +7,22 @@ import styles from './LiveTrendChart.module.scss';
 import type { EChartsOption } from 'echarts';
 
 const AXIS_FONT = { fontSize: 11, fontFamily: 'Space Grotesk, sans-serif' };
+
+/*
+  좁고 낮은 칸에 맞춘 여백.
+
+  공통 상수(`LEGEND_GRID_TOP` 58)는 넉넉한 칸을 전제로 한 값이라, 이 판에 쓰면 170px 높이에서
+  범례가 위쪽 3분의 1을 먹고 그림 그릴 자리가 84px 밖에 남지 않는다. 범례와 축 이름이 겹치지
+  않을 만큼만 띄운다.
+*/
+const GRID = { top: 34, right: 40, bottom: 22, left: 44 };
+
+/*
+  가로 눈금을 여섯 시간마다 하나씩만 적는다.
+  스물넉 줄을 230px 폭에 다 적으면 글자끼리 겹쳐 어느 것도 읽히지 않는다 — 하루 곡선에서
+  읽어야 할 것은 몇 시 몇 분이 아니라 아침·한낮·저녁의 높이 차이다.
+*/
+const HOUR_LABEL_STEP = 5;
 
 interface LiveTrendChartProps {
   date: Date;
@@ -27,7 +43,7 @@ export function LiveTrendChart({ date }: LiveTrendChartProps) {
   const nowIndex = Math.min(hourly.length - 1, Math.round(NOW_HOUR));
 
   const option: EChartsOption = {
-    grid: { top: LEGEND_GRID_TOP, right: 24, bottom: 28, left: 56 },
+    grid: GRID,
     tooltip: {
       trigger: 'axis',
       backgroundColor: palette.surface,
@@ -41,22 +57,22 @@ export function LiveTrendChart({ date }: LiveTrendChartProps) {
       data: hourly.map((point) => point.label),
       axisLine: { lineStyle: { color: palette.grid } },
       axisTick: { show: false },
-      axisLabel: { color: palette.axis, ...AXIS_FONT },
+      axisLabel: { color: palette.axis, interval: HOUR_LABEL_STEP, ...AXIS_FONT },
     },
     yAxis: [
       {
         type: 'value',
         name: 'kWh',
-        nameGap: AXIS_NAME_GAP,
-        nameTextStyle: { color: palette.axis, fontSize: 11 },
+        nameGap: 8,
+        nameTextStyle: { color: palette.axis, fontSize: 10 },
         splitLine: { lineStyle: { color: palette.grid, type: 'dashed' } },
         axisLabel: { color: palette.axis, ...AXIS_FONT },
       },
       {
         type: 'value',
         name: 'kWh/m²',
-        nameGap: AXIS_NAME_GAP,
-        nameTextStyle: { color: palette.axis, fontSize: 11 },
+        nameGap: 8,
+        nameTextStyle: { color: palette.axis, fontSize: 10 },
         splitLine: { show: false },
         axisLabel: { color: palette.axis, ...AXIS_FONT },
       },
@@ -88,10 +104,7 @@ export function LiveTrendChart({ date }: LiveTrendChartProps) {
 
   return (
     <div className={styles.chart}>
-      {/*
-        칸 높이는 옆의 권역 표가 정한다. 차트에 픽셀 높이를 박아 두면 그만큼 아래가 비므로
-        칸을 그대로 채우게 두고, 최소 높이만 지켜 준다.
-      */}
+      {/* 칸을 그대로 채운다 — 픽셀 높이를 박아 두면 남는 높이만큼 아래가 빈다 */}
       <EChart
         className={styles.chart__canvas}
         option={option}
