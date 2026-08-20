@@ -1,12 +1,12 @@
 import { AnimatePresence, motion, useReducedMotion } from 'motion/react';
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useState } from 'react';
 import Chungcheongnamdo from '@/assets/geo/provinces/Chungcheongnamdo';
 import { isAbnormal, OPERATION_LABEL, OPERATION_TONE } from '@/mocks/status';
 import { MAP_FIT, MAP_VIEW, projectPoint } from '@/components/common/GeoMap/useMapProjection';
 import { KakaoMiniMap } from '@/components/common/GeoMap/KakaoMiniMap';
 import { useKakaoMaps } from '@/hooks/useKakaoMaps';
 import { MapStatusFilter, useStatusFilter } from '@/components/plant/MapStatusFilter';
-import { CloseIcon, PauseIcon, PlayIcon } from '@/components/common/Icon';
+import { ChevronLeftIcon, ChevronRightIcon, CloseIcon, PauseIcon, PlayIcon } from '@/components/common/Icon';
 import { PlantDetailPanel } from '@/components/plant/PlantDetailPanel';
 import type { School } from '@/interface/energy';
 import styles from './FaultMap.module.scss';
@@ -70,29 +70,58 @@ export function FaultMap({ plants, scope = 'faults', height = MAP_HEIGHT, select
   */
   const abnormalIds = plants.filter((plant) => isAbnormal(plant.status)).map((plant) => plant.id);
   const idsKey = abnormalIds.join(',');
-  const cursor = useRef(0);
+  /** 순회가 지금 서 있는 자리. 이전·다음 단추도 이 값을 옮긴다 */
+  const [cursor, setCursor] = useState(0);
   const isRunning = Boolean(tour) && isPlaying && !isHeld;
+
+  // 순회를 켜 두고 아직 아무것도 펼치지 않았다면(처음 켰거나 설명을 닫았다면) 지금 자리를 편다.
+  if (isRunning && openId === null && abnormalIds.length > 0) {
+    setOpenId(abnormalIds[cursor % abnormalIds.length]);
+  }
 
   useEffect(() => {
     if (!isRunning || abnormalIds.length === 0) return undefined;
 
     const ids = idsKey.split(',');
-    const step = () => {
-      cursor.current = (cursor.current + 1) % ids.length;
-      setOpenId(ids[cursor.current]);
-    };
 
-    setOpenId(ids[cursor.current % ids.length]);
+    /*
+      한 번 재는 시계를 자리마다 새로 건다.
 
-    const timer = window.setInterval(step, TOUR_MS);
+      되풀이 시계 하나로 돌리면 사람이 다음 단추를 눌러 건너뛴 순간에도 시계는 가던 대로 가,
+      방금 넘긴 학교가 1초 만에 또 넘어간다. 자리가 바뀔 때마다 다시 걸면 손으로 넘겼든
+      저절로 넘어갔든 머무는 시간이 똑같다.
+    */
+    const timer = window.setTimeout(() => {
+      const next = (cursor + 1) % ids.length;
+
+      setCursor(next);
+      setOpenId(ids[next]);
+    }, TOUR_MS);
 
     /*
       멈출 때 시계만 끄고 펼쳐 둔 설명은 그대로 둔다 — 정지는 지금 보이는 것을 붙잡는 일이지
       지우는 일이 아니다. 다시 켜면 `cursor` 가 그대로라 섰던 자리에서 이어 간다.
     */
-    return () => window.clearInterval(timer);
+    return () => window.clearTimeout(timer);
     // 목록이 바뀌면 처음부터 다시 돈다. 배열 자체는 매 렌더 새로 만들어지므로 이름만 이어 붙여 견준다.
-  }, [isRunning, idsKey, abnormalIds.length]);
+  }, [isRunning, idsKey, abnormalIds.length, cursor]);
+
+  /**
+   * 사람이 앞뒤로 넘긴다.
+   *
+   * 멈춰 둔 채로도 넘길 수 있어야 하는데 그때는 위 시계가 걸리지 않으므로, 여기서 펼칠 곳을
+   * 직접 정한다. 점을 눌러 붙잡아 둔 상태였다면 함께 푼다 — 넘기겠다는 뜻이 곧 그 하나를
+   * 그만 들여다보겠다는 뜻이다.
+   */
+  const step = (delta: number) => {
+    if (abnormalIds.length === 0) return;
+
+    const next = (((cursor + delta) % abnormalIds.length) + abnormalIds.length) % abnormalIds.length;
+
+    setCursor(next);
+    setOpenId(abnormalIds[next]);
+    setIsHeld(false);
+  };
 
   /*
     고른 발전소 설명은 지도 옆에 편다 (SFR-004-01).
@@ -148,22 +177,42 @@ export function FaultMap({ plants, scope = 'faults', height = MAP_HEIGHT, select
     순회를 막고 있어 화면이 그대로 서 있는다.
   */
   const tourControl = tour && abnormalIds.length > 0 ? (
-    <button
-      type="button"
-      className={styles.tour}
-      aria-pressed={isPlaying}
-      aria-label={isPlaying ? '이상 설비 자동 순회 정지' : '이상 설비 자동 순회 재생'}
-      onClick={() => {
-        setIsPlaying((playing) => !playing);
-        if (!isPlaying) setIsHeld(false);
-      }}
-    >
-      {isPlaying ? <PauseIcon width={13} height={13} /> : <PlayIcon width={13} height={13} />}
-      {isPlaying ? '정지' : '재생'}
-      <span className={styles.tour__count}>
-        {abnormalIds.length}개소 순회
-      </span>
-    </button>
+    <div className={styles.tour}>
+      <button
+        type="button"
+        className={`${styles.tour__button} ${styles.tour__step}`}
+        aria-label="이전 설비"
+        onClick={() => step(-1)}
+      >
+        <ChevronLeftIcon width={13} height={13} />
+      </button>
+
+      <button
+        type="button"
+        className={styles.tour__button}
+        aria-pressed={isPlaying}
+        aria-label={isPlaying ? '이상 설비 자동 순회 정지' : '이상 설비 자동 순회 재생'}
+        onClick={() => {
+          setIsPlaying((playing) => !playing);
+          if (!isPlaying) setIsHeld(false);
+        }}
+      >
+        {isPlaying ? <PauseIcon width={13} height={13} /> : <PlayIcon width={13} height={13} />}
+        {isPlaying ? '정지' : '재생'}
+        <span className={styles.tour__count}>
+          {abnormalIds.length}개소 순회
+        </span>
+      </button>
+
+      <button
+        type="button"
+        className={`${styles.tour__button} ${styles.tour__step}`}
+        aria-label="다음 설비"
+        onClick={() => step(1)}
+      >
+        <ChevronRightIcon width={13} height={13} />
+      </button>
+    </div>
   ) : null;
 
   // 지도 키가 없거나 외부망이 막히면 내장 지도로 간다 — 상황판이 멈추면 안 된다.

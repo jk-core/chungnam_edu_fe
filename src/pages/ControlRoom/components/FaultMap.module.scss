@@ -57,30 +57,44 @@
 }
 
 /*
-  자동 순회 재생·정지.
+  자동 순회 제어 — 이전 · 정지/재생 · 다음.
 
-  글자를 함께 둔다 — 아이콘만으로는 지금이 도는 중인지 멈춘 중인지가 삼각형과 두 막대의
-  뜻을 아는 사람에게만 읽힌다. 뒤에 붙는 개소 수가 무엇을 도는지를 말한다.
+  가운데 단추에는 글자를 함께 둔다 — 아이콘만으로는 지금이 도는 중인지 멈춘 중인지가
+  삼각형과 두 막대의 뜻을 아는 사람에게만 읽힌다. 뒤에 붙는 개소 수가 무엇을 도는지를 말한다.
+  양옆 화살표는 그 가운데 단추가 이미 무엇을 하는 자리인지 말해 주므로 글자를 두지 않는다.
 */
 .tour {
-  @include t.caption;
-
   display: inline-flex;
   align-items: center;
   gap: s.$space-1;
   flex-shrink: 0;
-  padding: 3px s.$space-2;
-  border: 1px solid var(--border-subtle);
-  border-radius: s.$radius-full;
-  background: none;
-  color: var(--text-muted);
-  white-space: nowrap;
-  transition: border-color 0.16s ease, background-color 0.16s ease, color 0.16s ease;
 
-  &:hover {
-    border-color: var(--brand-soft-border);
-    background-color: var(--brand-soft);
-    color: var(--text-strong);
+  &__button {
+    @include t.caption;
+    @include mx.keyboard-focus;
+
+    display: inline-flex;
+    align-items: center;
+    gap: s.$space-1;
+    padding: 3px s.$space-2;
+    border: 1px solid var(--border-subtle);
+    border-radius: s.$radius-full;
+    background: none;
+    color: var(--text-muted);
+    white-space: nowrap;
+    transition: border-color 0.16s ease, background-color 0.16s ease, color 0.16s ease;
+
+    &:hover {
+      border-color: var(--brand-soft-border);
+      background-color: var(--brand-soft);
+      color: var(--text-strong);
+    }
+  }
+
+  /* 앞뒤로 넘기는 단추는 화살표만 둔다 — 가운데 단추가 지금 무엇을 하는지 말한다 */
+  &__step {
+    padding: 3px;
+    border-radius: 50%;
   }
 
   /* 개소 수는 곁들이는 말이라 한 단 물린다 — 단추 이름은 「정지」·「재생」 두 글자다 */
@@ -89,8 +103,6 @@
     font-family: var(--font-data);
     font-feature-settings: "tnum" 1;
   }
-
-  @include mx.keyboard-focus;
 }
 
 .dot {
