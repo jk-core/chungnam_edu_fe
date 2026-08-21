@@ -33,7 +33,7 @@
 
   &__row {
     display: grid;
-    grid-template-columns: 52px minmax(0, 1fr) 58px;
+    grid-template-columns: 52px minmax(0, 1fr);
     align-items: center;
     gap: s.$space-2;
   }
@@ -45,27 +45,34 @@
     color: var(--text-muted);
   }
 
+  /* 막대가 곧 값의 자리다 — 채워진 길이 끝에 숫자가 얹힌다 */
   &__track {
-    display: block;
-    height: 6px;
-    border-radius: s.$radius-full;
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    height: 22px;
+    padding-right: s.$space-2;
+    border-radius: s.$radius-sm;
     background-color: var(--surface-sunken);
     overflow: hidden;
   }
 
   &__bar {
-    display: block;
-    height: 100%;
-    border-radius: s.$radius-full;
-    background: linear-gradient(90deg, var(--brand), var(--solar));
+    position: absolute;
+    inset-block: 0;
+    inset-inline-start: 0;
+    border-radius: s.$radius-sm;
+    background: linear-gradient(90deg, color-mix(in srgb, var(--brand) 34%, transparent), color-mix(in srgb, var(--solar) 40%, transparent));
     transition: width 0.5s cubic-bezier(0.22, 0.68, 0.32, 1);
   }
 
   &__value {
     @include t.data-sm;
 
+    position: relative;
     color: var(--text-strong);
-    text-align: right;
+    font-variant-numeric: tabular-nums;
   }
 
   &__foot {

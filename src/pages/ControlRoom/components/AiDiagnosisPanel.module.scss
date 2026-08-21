@@ -76,6 +76,30 @@
     }
   }
 
+  /* 들어오는 신호. 데크 바닥에 옅게 깔려 지금도 값이 들어오고 있음을 말한다 */
+  &__wave {
+    position: absolute;
+    inset-inline: 0;
+    bottom: -1px;
+    width: 100%;
+    height: 24px;
+    opacity: 0.32;
+  }
+
+  &__waveLine {
+    fill: none;
+    stroke: var(--tone);
+    stroke-width: 1.4;
+    stroke-linejoin: round;
+    stroke-dasharray: 26 14;
+    animation: ai-signal 1.8s linear infinite;
+
+    @include media.reduced-motion {
+      animation: none;
+      stroke-dasharray: none;
+    }
+  }
+
   &__head {
     position: relative;
     display: flex;
@@ -144,6 +168,16 @@
 
   to {
     transform: translateX(320%);
+  }
+}
+
+@keyframes ai-signal {
+  from {
+    stroke-dashoffset: 0;
+  }
+
+  to {
+    stroke-dashoffset: -40;
   }
 }
 
@@ -420,5 +454,33 @@
       background-color: var(--tone);
       transform: scale(1.35);
     }
+  }
+}
+
+/* 고장코드 참고 이미지 — 남는 높이를 채우되, 자리를 못 박아 판이 들썩이지 않게 한다 */
+.shot {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  flex: 1;
+  min-height: 0;
+
+  &__image {
+    width: 100%;
+    flex: 1;
+    min-height: 0;
+    border: 1px solid var(--border-subtle);
+    border-radius: s.$radius-sm;
+    object-fit: cover;
+    object-position: center;
+  }
+
+  &__caption {
+    @include t.caption;
+
+    flex-shrink: 0;
+    color: var(--text-faint);
+    text-align: right;
   }
 }

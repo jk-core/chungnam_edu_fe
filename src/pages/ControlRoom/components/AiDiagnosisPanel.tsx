@@ -26,7 +26,7 @@ const ALERT_LIMIT = 12;
 const SEVERITY_RANK = { critical: 0, caution: 1, info: 2 } as const;
 
 /** 현상·조치는 각각 이만큼만 편다 — 판이 들썩이지 않게 줄 수를 붙박아 둔다 */
-const LINE_LIMIT = 2;
+const LINE_LIMIT = 3;
 
 interface AiDiagnosisPanelProps {
   plants: School[];
@@ -144,6 +144,17 @@ export function AiDiagnosisPanel({ plants, collection }: AiDiagnosisPanelProps) 
       <div className={styles.deck}>
         <span className={styles.deck__sweep} aria-hidden="true" />
 
+        {/*
+          계측 신호를 읽는 중임을 파형으로 말한다.
+          숫자는 얼마나 읽었는지를, 파형은 지금도 들어오고 있다는 것을 보인다.
+        */}
+        <svg className={styles.deck__wave} viewBox="0 0 240 40" preserveAspectRatio="none" aria-hidden="true">
+          <path
+            className={styles.deck__waveLine}
+            d="M0 26 L14 26 L20 12 L26 32 L32 20 L40 20 L48 26 L54 26 L60 8 L66 30 L74 22 L84 22 L92 26 L100 26 L106 14 L112 30 L120 24 L132 24 L140 26 L148 26 L154 10 L160 32 L168 20 L180 20 L188 26 L196 26 L202 16 L208 28 L216 22 L240 22"
+          />
+        </svg>
+
         <div className={styles.deck__head}>
           <AiOrbit size={34} active />
           <span className={styles.deck__title}>
@@ -224,6 +235,19 @@ export function AiDiagnosisPanel({ plants, collection }: AiDiagnosisPanelProps) 
             {fault.plan.slice(0, LINE_LIMIT).map((text) => <li key={text} title={text}>{text}</li>)}
           </ul>
         </motion.div>
+
+        {/* 고장코드 참고 이미지 — 글로 적힌 현상이 실제로 어떤 모습인지 함께 보인다 (SFR-013-06) */}
+        {fault.images[0] ? (
+          <motion.figure
+            className={styles.shot}
+            initial={reduceMotion ? false : { y: 10 }}
+            animate={{ y: 0 }}
+            transition={line(6)}
+          >
+            <img className={styles.shot__image} src={fault.images[0]} alt="" />
+            <figcaption className={styles.shot__caption}>고장코드 {fault.code} 참고 이미지</figcaption>
+          </motion.figure>
+        ) : null}
       </motion.article>
 
       {/* 몇 번째를 보고 있는지 — 순서대로 도는 판이라 자리 표시가 있어야 한다 */}

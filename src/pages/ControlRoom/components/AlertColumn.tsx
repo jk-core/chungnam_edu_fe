@@ -29,7 +29,7 @@ export function AlertColumn({ plants, abnormalCount, collection }: AlertColumnPr
         <AiDiagnosisPanel plants={plants} collection={collection} />
       </Panel>
 
-      <Panel title="장애 발생 현황" note={`이상 ${formatNumber(abnormalCount)}개소`} grow>
+      <Panel title="장애 발생 현황" note={`이상 ${formatNumber(abnormalCount)}개소`}>
         <FaultGroups plants={plants} collection={collection} />
       </Panel>
     </div>

@@ -13,6 +13,14 @@ import type { Axis } from '../utils/aggregate';
 /** 한 쪽이 머무는 시간 — 표를 읽어 내려갈 만큼은 준다 */
 const PAGE_MS = 7000;
 
+/**
+ * 한 쪽에 세우는 줄 수.
+ *
+ * 축을 바꾸면 줄 수가 달라진다 — 권역은 열다섯, 학교급은 셋이다. 담기는 만큼만 그리면
+ * 표 높이가 축마다 달라져 아래 판까지 밀린다. 네 줄로 못 박고 모자라면 빈 줄로 채운다.
+ */
+const PER_PAGE = 4;
+
 /** 1·2·3위에 얹는 금·은·동 */
 const MEDALS = ['gold', 'silver', 'bronze'] as const;
 
@@ -41,11 +49,10 @@ export function AggregationPanel({ schools }: AggregationPanelProps) {
   const totalKwh = rows.reduce((sum, row) => sum + row.todayKwh, 0);
   const total = formatEnergy(totalKwh);
 
-  // 벽면 모니터에는 스크롤을 굴려 줄 사람이 없다. 칸에 담기는 만큼만 두고 나머지는 저절로 넘긴다.
-  // 다섯 줄이 이 칸에 들어가는 몫이다 — 장애 목록과 같은 수로 맞춰 두 판이 같은 박자로 넘어간다.
+  // 벽면 모니터에는 스크롤을 굴려 줄 사람이 없다. 네 줄만 두고 나머지는 저절로 넘긴다.
   const {
     frameRef, itemRef, from, to, page, pageCount, turnKey, paused, togglePause, goTo, next, prev,
-  } = useAutoPager<HTMLDivElement, HTMLTableRowElement>({ total: rows.length, intervalMs: PAGE_MS, perPage: 5 });
+  } = useAutoPager<HTMLDivElement, HTMLTableRowElement>({ total: rows.length, intervalMs: PAGE_MS, perPage: PER_PAGE });
 
   const visibleRows = rows.slice(from, to);
 
@@ -124,6 +131,17 @@ export function AggregationPanel({ schools }: AggregationPanelProps) {
                 </tr>
               );
             })}
+
+            {/* 모자라는 줄은 빈 줄로 채운다 — 축을 바꿔도 표가 차지하는 높이가 같아야 한다 */}
+            {Array.from({ length: Math.max(0, PER_PAGE - visibleRows.length) }, (_, index) => (
+              <tr key={`filler-${index}`} className={styles.table__filler} aria-hidden="true">
+                <th scope="row">&nbsp;</th>
+                <td />
+                <td />
+                <td />
+                <td />
+              </tr>
+            ))}
           </tbody>
         </table>
       </div>

@@ -130,6 +130,11 @@
     font-weight: 700;
   }
 
+  /* 자리만 지키는 빈 줄 — 눈에 띄지 않게 둔다 */
+  &__filler {
+    visibility: hidden;
+  }
+
   &__count {
     @include t.caption;
 
