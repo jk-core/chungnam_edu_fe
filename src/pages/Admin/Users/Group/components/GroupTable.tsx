@@ -1,6 +1,5 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Button } from '@/components/common/Button';
 import { Card } from '@/components/common/Card';
 import { DEFAULT_PAGE_SIZE, Pagination } from '@/components/common/Pagination';
 import { editPath } from '@/pages/Admin/_shared/adminPath';
@@ -12,13 +11,8 @@ import type { Column } from '@/components/common/Table';
 import type { ManagedUser } from '@/interface/account';
 import styles from '@/pages/Admin/Admin.module.scss';
 
-interface GroupTableProps {
-  rows: ManagedUser[];
-  onDelete: (user: ManagedUser) => void;
-}
-
 /** 그룹관리자 목록 (SFR-018). 쪽 나눔은 표가 스스로 쥔다. */
-export function GroupTable({ rows, onDelete }: GroupTableProps) {
+export function GroupTable({ rows }: { rows: ManagedUser[] }) {
   const navigate = useNavigate();
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(DEFAULT_PAGE_SIZE);
@@ -47,7 +41,7 @@ export function GroupTable({ rows, onDelete }: GroupTableProps) {
       render: (row) => (
         <span className={styles.stackCell}>
           <strong>{row.name}</strong>
-          <span className={styles.stackCell__sub}>{row.loginId} · {row.orgName}</span>
+          <span className={styles.stackCell__sub}>{row.loginId}</span>
         </span>
       ),
     },
@@ -58,24 +52,6 @@ export function GroupTable({ rows, onDelete }: GroupTableProps) {
       align: 'right',
       width: '110px',
       render: (row) => `${formatNumber(row.plantIds.length)}곳`,
-    },
-    {
-      key: 'action',
-      header: '관리',
-      width: '160px',
-      align: 'center',
-      render: (row) => (
-        <span className={styles.toolbar__actions}>
-          <Button
-            size="sm"
-            variant="secondary"
-            onClick={() => navigate(editPath('users', 'group', 'userId', row.userId))}
-          >
-            발전소 편집
-          </Button>
-          <Button size="sm" variant="ghost" onClick={() => onDelete(row)}>삭제</Button>
-        </span>
-      ),
     },
   ];
 
@@ -94,6 +70,7 @@ export function GroupTable({ rows, onDelete }: GroupTableProps) {
               columns={columns}
               rows={pageRows}
               getRowKey={(row) => row.id}
+              onRowClick={(row) => navigate(editPath('users', 'group', 'userId', row.userId))}
             />
             <Pagination
               page={currentPage}

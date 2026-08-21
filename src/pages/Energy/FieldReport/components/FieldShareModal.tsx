@@ -82,7 +82,7 @@ export function FieldShareModal({ report, onClose, onShare }: FieldShareModalPro
                 >
                   <span className={styles.share__name}>{user.name}</span>
                   <Badge tone={user.role === 'institution' ? 'neutral' : 'brand'}>{ROLE_LABEL[user.role]}</Badge>
-                  <span className={styles.share__org}>{user.orgName}</span>
+                  <span className={styles.share__org}>{user.loginId}</span>
                 </button>
               );
             })}

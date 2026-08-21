@@ -18,13 +18,8 @@ import type { ManagedUser } from '@/interface/account';
 import styles from '@/pages/Admin/Admin.module.scss';
 import { useUserChangeLog } from '../hooks/useUserChangeLog';
 
-interface UserTableProps {
-  rows: ManagedUser[];
-  onDelete: (user: ManagedUser) => void;
-}
-
 /** 사용자 목록 (SFR-018). 잠금 해제와 비밀번호 초기화는 이 자리에서 바로 한다. */
-export function UserTable({ rows, onDelete }: UserTableProps) {
+export function UserTable({ rows }: { rows: ManagedUser[] }) {
   const navigate = useNavigate();
   const patchUser = useAssetStore((state) => state.patchUser);
   const entryOf = useUserChangeLog();
@@ -67,7 +62,6 @@ export function UserTable({ rows, onDelete }: UserTableProps) {
         </span>
       ),
     },
-    { key: 'org', header: '소속', render: (row) => `${row.orgName} · ${row.department}` },
     {
       key: 'role',
       header: '권한',
@@ -90,20 +84,33 @@ export function UserTable({ rows, onDelete }: UserTableProps) {
     },
     {
       key: 'action',
-      header: '관리',
-      width: '210px',
+      header: '계정',
+      width: '140px',
       align: 'center',
-      render: (row) => (
-        <span className={styles.toolbar__actions}>
-          <Button size="sm" variant="secondary" onClick={() => navigate(editPath('users', 'account', 'userId', row.userId))}>수정</Button>
-          {row.locked ? (
-            <Button size="sm" variant="secondary" onClick={() => unlock(row)}>잠금 해제</Button>
-          ) : (
-            <Button size="sm" variant="ghost" onClick={() => resetPassword(row)}>비번 초기화</Button>
-          )}
-          <Button size="sm" variant="ghost" onClick={() => onDelete(row)}>삭제</Button>
-        </span>
-      ),
+      // 줄을 누르면 수정으로 들어가는 자리다 — 여기 버튼까지 타고 올라가면 둘이 함께 열린다.
+      render: (row) => (row.locked ? (
+        <Button
+          size="sm"
+          variant="secondary"
+          onClick={(event) => {
+            event.stopPropagation();
+            unlock(row);
+          }}
+        >
+          잠금 해제
+        </Button>
+      ) : (
+        <Button
+          size="sm"
+          variant="ghost"
+          onClick={(event) => {
+            event.stopPropagation();
+            resetPassword(row);
+          }}
+        >
+          비번 초기화
+        </Button>
+      )),
     },
   ];
 
@@ -111,11 +118,12 @@ export function UserTable({ rows, onDelete }: UserTableProps) {
     <Reveal>
       <Card title="설비 담당자" description="로그인 실패가 누적돼 잠긴 계정은 여기서 풀어 줍니다.">
         <Table
-          caption="사용자 목록"
+          caption="사용자 목록. 로그인 ID와 이름, 권한, 이메일, 마지막 로그인 순입니다."
           columns={columns}
           rows={pageRows}
           getRowKey={(row) => row.id}
           getRowClassName={(row) => (row.locked ? styles.rowAlert : undefined)}
+          onRowClick={(row) => navigate(editPath('users', 'account', 'userId', row.userId))}
         />
         <Pagination
           page={currentPage}

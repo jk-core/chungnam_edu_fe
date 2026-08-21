@@ -1,18 +1,12 @@
 import { useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/common/Button';
-import { ConfirmDialog } from '@/components/common/ConfirmDialog';
 import { createPath } from '@/pages/Admin/_shared/adminPath';
-import { MSG } from '@/configs/messages';
-import { PlusIcon } from '@/components/common/Icon';
-import { ROLE_LABEL } from '@/mocks/accounts';
-import { TextField } from '@/components/common/Form';
 import { formatNumber } from '@/utils/format';
-import { toast } from '@/stores/toastStore';
+import { PlusIcon } from '@/components/common/Icon';
+import { TextField } from '@/components/common/Form';
 import useAssetStore, { mergeUsers } from '@/stores/assetStore';
-import type { ManagedUser } from '@/interface/account';
 import styles from '@/pages/Admin/Admin.module.scss';
-import { useUserChangeLog } from '../hooks/useUserChangeLog';
 import { UserHistory } from './UserHistory';
 import { UserTable } from './UserTable';
 
@@ -24,12 +18,9 @@ export function UsersBoard() {
   const userCreated = useAssetStore((state) => state.userCreated);
   const userPatched = useAssetStore((state) => state.userPatched);
   const userDeleted = useAssetStore((state) => state.userDeleted);
-  const removeUser = useAssetStore((state) => state.removeUser);
-  const entryOf = useUserChangeLog();
   const navigate = useNavigate();
 
   const [keyword, setKeyword] = useState('');
-  const [deleting, setDeleting] = useState<ManagedUser | null>(null);
 
   const users = useMemo(() => {
     // 그룹관리자는 맡은 발전소가 본체라 옆 탭에서 따로 다룬다.
@@ -39,23 +30,11 @@ export function UsersBoard() {
     return trimmed
       ? all.filter((user) => user.name.includes(trimmed)
         || user.loginId.includes(trimmed)
-        || user.orgName.includes(trimmed)
         || user.email.includes(trimmed))
       : all;
   }, [userCreated, userPatched, userDeleted, keyword]);
 
   const lockedCount = users.filter((user) => user.locked).length;
-
-  const remove = () => {
-    if (!deleting) return;
-
-    removeUser(
-      deleting.id,
-      entryOf(deleting, '계정 삭제', `${ROLE_LABEL[deleting.role]} · ${deleting.orgName}`, '삭제됨'),
-    );
-    toast.success(MSG.deleteSuccess(deleting.name));
-    setDeleting(null);
-  };
 
   return (
     <>
@@ -80,19 +59,9 @@ export function UsersBoard() {
         </div>
       </div>
 
-      <UserTable rows={users} onDelete={setDeleting} />
+      <UserTable rows={users} />
 
       <UserHistory keyword={keyword} />
-
-      <ConfirmDialog
-        isOpen={deleting !== null}
-        title={MSG.deleteConfirm(deleting?.name ?? '사용자')}
-        description="삭제해도 접속 로그에는 과거 기록이 남습니다."
-        confirmLabel="삭제"
-        tone="danger"
-        onConfirm={remove}
-        onClose={() => setDeleting(null)}
-      />
     </>
   );
 }

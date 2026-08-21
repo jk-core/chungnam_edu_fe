@@ -1,6 +1,5 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Button } from '@/components/common/Button';
 import { editPath } from '@/pages/Admin/_shared/adminPath';
 import { Card } from '@/components/common/Card';
 import { DEFAULT_PAGE_SIZE, Pagination } from '@/components/common/Pagination';
@@ -13,13 +12,8 @@ import type { Column } from '@/components/common/Table';
 import styles from '@/pages/Admin/Admin.module.scss';
 import type { EquipmentRow } from '../hooks/useEquipmentRows';
 
-interface EquipmentTableProps {
-  rows: EquipmentRow[];
-  onDelete: (row: EquipmentRow) => void;
-}
-
 /** 설비 목록 (SFR-017-04). 쪽 나눔은 표가 스스로 쥔다. */
-export function EquipmentTable({ rows, onDelete }: EquipmentTableProps) {
+export function EquipmentTable({ rows }: { rows: EquipmentRow[] }) {
   const navigate = useNavigate();
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(DEFAULT_PAGE_SIZE);
@@ -93,24 +87,6 @@ export function EquipmentTable({ rows, onDelete }: EquipmentTableProps) {
       hideOnTablet: true,
       render: (row) => `${row.rtuCommId || '—'} · ${row.rtuPort ?? '—'}번`,
     },
-    {
-      key: 'action',
-      header: '관리',
-      width: '140px',
-      align: 'center',
-      render: (row) => (
-        <span className={styles.toolbar__actions}>
-          <Button
-            size="sm"
-            variant="secondary"
-            onClick={() => navigate(editPath('plants', 'equipment', 'cid', row.cid))}
-          >
-            수정
-          </Button>
-          <Button size="sm" variant="ghost" onClick={() => onDelete(row)}>삭제</Button>
-        </span>
-      ),
-    },
   ];
 
   return (
@@ -125,6 +101,7 @@ export function EquipmentTable({ rows, onDelete }: EquipmentTableProps) {
               columns={columns}
               rows={pageRows}
               getRowKey={(row) => row.inverterId}
+              onRowClick={(row) => navigate(editPath('plants', 'equipment', 'cid', row.cid))}
             />
             <Pagination
               page={currentPage}

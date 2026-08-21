@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/common/Button';
 import { ConfirmDialog } from '@/components/common/ConfirmDialog';
-import { createdEntry, diffEntries } from '@/pages/Admin/_shared/device/deviceChangeLog';
+import { createdEntry, deletedEntry, diffEntries } from '@/pages/Admin/_shared/device/deviceChangeLog';
 import { FormPage } from '@/pages/Admin/_shared/FormPage';
 import { formatNumber } from '@/utils/format';
 import { getSchoolById } from '@/mocks/schools';
@@ -58,6 +58,7 @@ export function StringSheet({ cid }: StringSheetProps) {
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [isPicking, setIsPicking] = useState(false);
   const [isConfirming, setIsConfirming] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   const owner = equipment.find((item) => item.inverterId === inverterId);
   const ownerLabel = owner ? `${getSchoolById(owner.plantId)?.name ?? ''} · ${owner.name}` : '';
@@ -126,6 +127,18 @@ export function StringSheet({ cid }: StringSheetProps) {
     navigate(backTo);
   };
 
+  /** 이 설비의 스트링을 통째로 비운다 — 한 조만 지우려면 편집판에서 그 줄을 뺀다. */
+  const clearAll = () => {
+    const entries = listOf(inverterId).map((row) => deletedEntry(
+      { kind: 'string', id: row.id, name: row.name, actor: actor?.name ?? '관리자' },
+      `${owner?.name ?? ''} · ${summarizeString(row)}`,
+    ));
+
+    saveStrings(inverterId, [], entries);
+    toast.success(MSG.deleteSuccess(`${owner?.name ?? '설비'} 스트링`));
+    navigate(backTo);
+  };
+
   return (
     <>
       <FormPage
@@ -134,6 +147,7 @@ export function StringSheet({ cid }: StringSheetProps) {
           ? '이 설비의 스트링을 한꺼번에 고칩니다. 줄을 빼면 저장할 때 함께 삭제됩니다.'
           : '설비를 고르고 줄을 추가합니다. 이미 등록된 스트링은 그대로 두고 새 줄만 더합니다.'}
         backTo={backTo}
+        danger={isEdit ? <Button variant="danger" onClick={() => setIsDeleting(true)}>전체 삭제</Button> : null}
         footer={(
           <>
             <Button variant="secondary" onClick={() => navigate(backTo)}>취소</Button>
@@ -206,6 +220,16 @@ export function StringSheet({ cid }: StringSheetProps) {
         confirmLabel="저장"
         onConfirm={commit}
         onClose={() => setIsConfirming(false)}
+      />
+
+      <ConfirmDialog
+        isOpen={isDeleting}
+        title={MSG.deleteConfirm(`${owner?.name ?? '설비'} 스트링 ${formatNumber(rows.length)}조`)}
+        description="이 설비에 등록된 스트링을 모두 지웁니다. 한 조만 지우려면 위 편집판에서 그 줄을 빼세요."
+        confirmLabel="삭제"
+        tone="danger"
+        onConfirm={clearAll}
+        onClose={() => setIsDeleting(false)}
       />
     </>
   );

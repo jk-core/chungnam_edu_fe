@@ -1,6 +1,5 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Button } from '@/components/common/Button';
 import { editPath } from '@/pages/Admin/_shared/adminPath';
 import { Card } from '@/components/common/Card';
 import { DEFAULT_PAGE_SIZE, Pagination } from '@/components/common/Pagination';
@@ -12,13 +11,8 @@ import type { Column } from '@/components/common/Table';
 import styles from '@/pages/Admin/Admin.module.scss';
 import type { StringOwner } from '../hooks/useStringData';
 
-interface StringTableProps {
-  rows: StringOwner[];
-  onClear: (row: StringOwner) => void;
-}
-
 /** 설비별 스트링 목록 (SFR-016-01). 쪽 나눔은 표가 스스로 쥔다. */
-export function StringTable({ rows, onClear }: StringTableProps) {
+export function StringTable({ rows }: { rows: StringOwner[] }) {
   const navigate = useNavigate();
   const edit = (row: StringOwner) => navigate(editPath('plants', 'string', 'cid', row.cid));
 
@@ -68,31 +62,6 @@ export function StringTable({ rows, onClear }: StringTableProps) {
       width: '100px',
       hideOnTablet: true,
       render: (row) => `${formatNumber(row.panelCount)}장`,
-    },
-    {
-      key: 'action',
-      header: '관리',
-      width: '160px',
-      align: 'center',
-      render: (row) => (
-        <span className={styles.toolbar__actions}>
-          <Button size="sm" variant="secondary" onClick={() => edit(row)}>
-            {row.stringCount > 0 ? '스트링 편집' : '스트링 등록'}
-          </Button>
-          <Button
-            size="sm"
-            variant="ghost"
-            disabled={row.stringCount === 0}
-            onClick={(event) => {
-              // 줄을 누르면 편집으로 들어가는 자리다 — 삭제까지 타고 올라가면 둘이 함께 열린다.
-              event.stopPropagation();
-              onClear(row);
-            }}
-          >
-            전체 삭제
-          </Button>
-        </span>
-      ),
     },
   ];
 

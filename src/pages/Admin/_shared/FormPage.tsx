@@ -11,6 +11,11 @@ interface FormPageProps {
   backTo: string;
   /** 저장·취소 버튼 자리 */
   footer: ReactNode;
+  /**
+   * 삭제처럼 되돌릴 수 없는 것. 저장 줄 왼쪽 끝에 따로 세운다 —
+   * 목록에서 잘못 눌러 지우는 일이 없게, 그 대상을 열어 놓고서만 지운다.
+   */
+  danger?: ReactNode;
   children: ReactNode;
 }
 
@@ -21,7 +26,7 @@ interface FormPageProps {
  * 어디까지 적었는지 잃기 쉬웠다. 이제 폼마다 주소를 갖는 페이지라 새로고침·뒤로가기가 살고,
  * 그 위에 뜨는 것은 검색기와 확인 대화상자 한 겹뿐이다.
  */
-export function FormPage({ title, description, backTo, footer, children }: FormPageProps) {
+export function FormPage({ title, description, backTo, footer, danger, children }: FormPageProps) {
   return (
     <Reveal>
       <div className={styles.formPage}>
@@ -38,7 +43,10 @@ export function FormPage({ title, description, backTo, footer, children }: FormP
           <div className={styles.form}>{children}</div>
         </div>
 
-        <footer className={styles.formPage__foot}>{footer}</footer>
+        <footer className={styles.formPage__foot}>
+          <div className={styles.formPage__danger}>{danger}</div>
+          <div className={styles.formPage__actions}>{footer}</div>
+        </footer>
       </div>
     </Reveal>
   );

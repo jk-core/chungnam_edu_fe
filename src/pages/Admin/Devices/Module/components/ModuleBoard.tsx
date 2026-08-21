@@ -1,19 +1,13 @@
 import { useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/common/Button';
-import { ConfirmDialog } from '@/components/common/ConfirmDialog';
 import { createPath } from '@/pages/Admin/_shared/adminPath';
-import { MSG } from '@/configs/messages';
+import { DeviceHistory } from '@/pages/Admin/_shared/device/DeviceHistory';
+import { formatNumber } from '@/utils/format';
 import { PlusIcon } from '@/components/common/Icon';
 import { TextField } from '@/components/common/Form';
-import { formatNumber } from '@/utils/format';
-import { toast } from '@/stores/toastStore';
-import { useAuthUser } from '@/stores/authStore';
-import useEquipmentStore, { mergeEquipment, mergeModules } from '@/stores/equipmentStore';
-import type { ModuleProduct } from '@/interface/deviceMaster';
+import { useModuleProducts } from '@/pages/Admin/Plants/Equipment/hooks/useEquipmentRows';
 import styles from '@/pages/Admin/Admin.module.scss';
-import { DeviceHistory } from '@/pages/Admin/_shared/device/DeviceHistory';
-import { deletedEntry } from '@/pages/Admin/_shared/device/deviceChangeLog';
 import { ModuleTable } from './ModuleTable';
 
 /**
@@ -21,54 +15,20 @@ import { ModuleTable } from './ModuleTable';
  * 검색 줄과 표가 같은 목록을 봐야 하므로 거르는 일만 여기서 한 번 한다.
  */
 export function ModuleBoard() {
-  const moduleCreated = useEquipmentStore((state) => state.moduleCreated);
-  const modulePatched = useEquipmentStore((state) => state.modulePatched);
-  const moduleDeleted = useEquipmentStore((state) => state.moduleDeleted);
-  const equipmentCreated = useEquipmentStore((state) => state.equipmentCreated);
-  const equipmentPatched = useEquipmentStore((state) => state.equipmentPatched);
-  const equipmentDeleted = useEquipmentStore((state) => state.equipmentDeleted);
-  const removeModule = useEquipmentStore((state) => state.removeModule);
-  const actor = useAuthUser();
-
+  const products = useModuleProducts();
   const navigate = useNavigate();
 
   const [keyword, setKeyword] = useState('');
-  const [deleting, setDeleting] = useState<ModuleProduct | null>(null);
 
   const rows = useMemo(() => {
-    const all = mergeModules(moduleCreated, modulePatched, moduleDeleted);
     const trimmed = keyword.trim();
 
     return trimmed
-      ? all.filter((item) => item.name.includes(trimmed)
+      ? products.filter((item) => item.name.includes(trimmed)
         || item.maker.includes(trimmed)
         || String(item.moduleId).includes(trimmed))
-      : all;
-  }, [moduleCreated, modulePatched, moduleDeleted, keyword]);
-
-  // 어느 설비가 이 제품을 쓰는지 — 삭제 확인에 몇 대가 걸려 있는지 적어 준다.
-  const usage = useMemo(() => {
-    const counts = new Map<string, number>();
-
-    mergeEquipment(equipmentCreated, equipmentPatched, equipmentDeleted).forEach((item) => {
-      counts.set(item.moduleProductId, (counts.get(item.moduleProductId) ?? 0) + 1);
-    });
-
-    return counts;
-  }, [equipmentCreated, equipmentPatched, equipmentDeleted]);
-
-  const inUse = deleting ? usage.get(deleting.id) ?? 0 : 0;
-
-  const remove = () => {
-    if (!deleting) return;
-
-    removeModule(deleting.id, deletedEntry(
-      { kind: 'module', id: deleting.id, name: deleting.name, actor: actor?.name ?? '관리자' },
-      `${deleting.maker} · ${formatNumber(deleting.wattPerPanel)}W`,
-    ));
-    toast.success(MSG.deleteSuccess(deleting.name));
-    setDeleting(null);
-  };
+      : products;
+  }, [products, keyword]);
 
   return (
     <>
@@ -91,21 +51,9 @@ export function ModuleBoard() {
         </div>
       </div>
 
-      <ModuleTable rows={rows} onDelete={setDeleting} />
+      <ModuleTable rows={rows} />
 
       <DeviceHistory kind="module" keyword={keyword} title="모듈 제품 변경 이력" />
-
-      <ConfirmDialog
-        isOpen={deleting !== null}
-        title={MSG.deleteConfirm(deleting?.name ?? '모듈 제품')}
-        description={inUse > 0
-          ? `이 제품을 쓰는 설비가 ${formatNumber(inUse)}대 있습니다. 삭제하면 해당 설비의 모듈을 다시 골라야 합니다.`
-          : '등록 이력에는 삭제한 사실이 남습니다.'}
-        confirmLabel="삭제"
-        tone="danger"
-        onConfirm={remove}
-        onClose={() => setDeleting(null)}
-      />
     </>
   );
 }

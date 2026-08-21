@@ -30,8 +30,6 @@ export interface ManagedUser {
   loginId: string;
   name: string;
   role: Role;
-  orgName: string;
-  department: string;
   email: string;
   /** 휴대전화번호 (cellPhone) */
   phone: string;

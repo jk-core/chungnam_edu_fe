@@ -94,6 +94,7 @@ function draftOf(asset: PlantAsset | null): Draft {
 export function PlantEditor({ powerPlantId }: { powerPlantId: number | null }) {
   const createPlant = useAssetStore((state) => state.createPlant);
   const saveAsset = useAssetStore((state) => state.saveAsset);
+  const removePlant = useAssetStore((state) => state.removePlant);
   const plantCreated = useAssetStore((state) => state.plantCreated);
   const nextPlantId = useAssetStore((state) => state.nextPlantId);
   const assets = usePlantAssets();
@@ -109,6 +110,7 @@ export function PlantEditor({ powerPlantId }: { powerPlantId: number | null }) {
   const [draft, setDraft] = useState<Draft>(() => draftOf(asset));
   const [isPicking, setIsPicking] = useState(false);
   const [isConfirming, setIsConfirming] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   const change = (next: Partial<Draft>) => setDraft({ ...draft, ...next });
 
@@ -215,6 +217,23 @@ export function PlantEditor({ powerPlantId }: { powerPlantId: number | null }) {
     navigate(backTo);
   };
 
+  const remove = () => {
+    if (!asset) return;
+
+    const capacity = formatCapacity(capacityOf(asset.plantId));
+
+    removePlant(asset.plantId, entryOf(
+      { id: asset.plantId, name: asset.plantName },
+      '발전소 삭제',
+      `${capacity.value}${capacity.unit} · ${regionNameOfCode(asset.regionCode)}`,
+      '—',
+      // 같은 발전소의 등록 이력과 id 가 겹치지 않게 갈래를 붙인다 — 목록 key 로 쓰인다.
+      'del',
+    ));
+    toast.success(MSG.deleteSuccess(asset.plantName));
+    navigate(backTo);
+  };
+
   return (
     <>
       <FormPage
@@ -223,6 +242,9 @@ export function PlantEditor({ powerPlantId }: { powerPlantId: number | null }) {
           ? '설비용량은 설비 탭에서 설비를 등록하면 그 합으로 채워집니다.'
           : `${asset.address} · 설치 ${asset.installedAt}`}
         backTo={backTo}
+        danger={isNew ? null : (
+          <Button variant="danger" onClick={() => setIsDeleting(true)}>발전소 삭제</Button>
+        )}
         footer={(
           <>
             <Button variant="secondary" onClick={() => navigate(backTo)}>취소</Button>
@@ -330,7 +352,7 @@ export function PlantEditor({ powerPlantId }: { powerPlantId: number | null }) {
           <FormRow cols={2}>
             <PickerField
               label="사용자"
-              value={user ? `${user.name} · ${user.orgName}` : ''}
+              value={user ? `${user.name} · ${user.loginId}` : ''}
               placeholder="사용자를 고르세요"
               onOpen={() => setIsPicking(true)}
               required
@@ -412,16 +434,16 @@ export function PlantEditor({ powerPlantId }: { powerPlantId: number | null }) {
           rows={users}
           getRowKey={(row) => String(row.userId)}
           selectedKey={draft.userId}
-          caption="사용자 목록. ID, 사용자, 소속, 이메일 순입니다."
-          placeholder="이름·소속·이메일로 검색"
+          caption="사용자 목록. ID, 사용자, 로그인 ID, 이메일 순입니다."
+          placeholder="이름·로그인 ID·이메일로 검색"
           match={(row, word) => row.name.includes(word)
-            || row.orgName.includes(word)
+            || row.loginId.includes(word)
             || row.email.includes(word)
             || String(row.userId).includes(word)}
           columns={[
             { key: 'userId', header: 'ID', width: '80px', render: (row) => row.userId },
             { key: 'name', header: '사용자', width: '120px', render: (row) => row.name },
-            { key: 'org', header: '소속', render: (row) => row.orgName },
+            { key: 'loginId', header: '로그인 ID', render: (row) => row.loginId },
             { key: 'email', header: '이메일', width: '200px', hideOnTablet: true, render: (row) => row.email },
           ]}
           onPick={(row) => {
@@ -438,6 +460,16 @@ export function PlantEditor({ powerPlantId }: { powerPlantId: number | null }) {
         confirmLabel="저장"
         onConfirm={isNew ? create : update}
         onClose={() => setIsConfirming(false)}
+      />
+
+      <ConfirmDialog
+        isOpen={isDeleting}
+        title={MSG.deleteConfirm(asset?.plantName ?? '발전소')}
+        description="딸린 설비·스트링·일사량계도 함께 감춰집니다."
+        confirmLabel="삭제"
+        tone="danger"
+        onConfirm={remove}
+        onClose={() => setIsDeleting(false)}
       />
     </>
   );

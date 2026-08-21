@@ -1,6 +1,7 @@
 import { useMemo } from 'react';
 import { Badge } from '@/components/common/Badge';
 import { Card } from '@/components/common/Card';
+import { getSchoolById } from '@/mocks/schools';
 import { Reveal } from '@/components/common/Reveal';
 import useAssetStore, { mergeUsers } from '@/stores/assetStore';
 import styles from '../../Admin.module.scss';
@@ -24,10 +25,10 @@ export function AccountTree() {
     [userCreated, userPatched, userDeleted],
   );
 
-  const officeUsers = users.filter((user) => user.role !== 'institution');
   const institutionUsers = users.filter((user) => user.role === 'institution');
-  const adminCount = officeUsers.filter((user) => user.role === 'admin').length;
-  const staffCount = officeUsers.filter((user) => user.role === 'office').length;
+  const adminCount = users.filter((user) => user.role === 'admin').length;
+  const staffCount = users.filter((user) => user.role === 'office').length;
+  const groupCount = users.filter((user) => user.role === 'group').length;
 
   return (
     <Reveal>
@@ -40,16 +41,19 @@ export function AccountTree() {
             <span className={styles.orgNode__name}>충청남도교육청</span>
             <Badge tone="brand">본청</Badge>
             <span className={styles.orgNode__meta}>
-              관리자 {adminCount}명 · 담당자 {staffCount}명
+              관리자 {adminCount}명 · 담당자 {staffCount}명 · 그룹관리자 {groupCount}명
             </span>
           </div>
 
           <div className={styles.orgTree__branch}>
             {institutionUsers.slice(0, BRANCH_LIMIT).map((user) => (
               <div key={user.id} className={styles.orgNode}>
-                <span className={styles.orgNode__name}>{user.orgName}</span>
+                {/* 교육기관 계정은 소속을 따로 적지 않고 담당 학교로 묶인다. */}
+                <span className={styles.orgNode__name}>
+                  {getSchoolById(user.plantIds[0] ?? null)?.name ?? '담당 학교 없음'}
+                </span>
                 <span className={styles.orgNode__meta}>
-                  {user.name} · {user.department}
+                  {user.name} · {user.loginId}
                 </span>
                 {user.locked ? <Badge tone="critical">잠금</Badge> : null}
               </div>

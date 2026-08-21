@@ -1,7 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Badge } from '@/components/common/Badge';
-import { Button } from '@/components/common/Button';
 import { Card } from '@/components/common/Card';
 import { CELL_TYPE_LABEL } from '@/mocks/moduleProducts';
 import { editPath } from '@/pages/Admin/_shared/adminPath';
@@ -14,13 +13,8 @@ import type { Column } from '@/components/common/Table';
 import type { ModuleProduct } from '@/interface/deviceMaster';
 import styles from '@/pages/Admin/Admin.module.scss';
 
-interface ModuleTableProps {
-  rows: ModuleProduct[];
-  onDelete: (product: ModuleProduct) => void;
-}
-
 /** 모듈 제품 목록 (SFR-016-01). 쪽 나눔은 표가 스스로 쥔다. */
-export function ModuleTable({ rows, onDelete }: ModuleTableProps) {
+export function ModuleTable({ rows }: { rows: ModuleProduct[] }) {
   const navigate = useNavigate();
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(DEFAULT_PAGE_SIZE);
@@ -56,45 +50,12 @@ export function ModuleTable({ rows, onDelete }: ModuleTableProps) {
     },
     { key: 'watt', header: '용량', align: 'right', width: '90px', render: (row) => `${formatNumber(row.wattPerPanel)}W` },
     {
-      key: 'power',
-      header: '최대 전압 · 전류',
-      width: '150px',
-      hideOnTablet: true,
-      render: (row) => `${row.maxVoltage}V · ${row.maxCurrent}A`,
-    },
-    {
-      key: 'open',
-      header: '개방 · 단락',
-      width: '150px',
-      hideOnTablet: true,
-      render: (row) => `${row.openVoltage}V · ${row.shortCurrent}A`,
-    },
-    {
-      key: 'coeff',
-      header: '온도계수',
-      width: '150px',
-      hideOnTablet: true,
-      render: (row) => `${row.voltTempCoeff} · ${row.currentTempCoeff} %/℃`,
-    },
-    {
       key: 'cell',
       header: '셀 종류',
       width: '90px',
       align: 'center',
       render: (row) => (
         <Badge tone={row.cellType === 'double' ? 'brand' : 'neutral'}>{CELL_TYPE_LABEL[row.cellType]}</Badge>
-      ),
-    },
-    {
-      key: 'action',
-      header: '관리',
-      width: '140px',
-      align: 'center',
-      render: (row) => (
-        <span className={styles.toolbar__actions}>
-          <Button size="sm" variant="secondary" onClick={() => navigate(editPath('devices', 'module', 'moduleId', row.moduleId))}>수정</Button>
-          <Button size="sm" variant="ghost" onClick={() => onDelete(row)}>삭제</Button>
-        </span>
       ),
     },
   ];
@@ -110,10 +71,11 @@ export function ModuleTable({ rows, onDelete }: ModuleTableProps) {
         ) : (
           <>
             <Table
-              caption="모듈 제품 목록. 모듈명과 업체, 용량, 최대 전압·전류, 개방·단락, 온도계수, 셀 종류 순입니다."
+              caption="모듈 제품 목록. ID, 모듈명과 업체, 용량, 셀 종류 순입니다."
               columns={columns}
               rows={pageRows}
               getRowKey={(row) => row.id}
+              onRowClick={(row) => navigate(editPath('devices', 'module', 'moduleId', row.moduleId))}
             />
             <Pagination
               page={currentPage}

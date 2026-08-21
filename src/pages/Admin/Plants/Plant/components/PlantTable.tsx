@@ -1,29 +1,21 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Badge } from '@/components/common/Badge';
-import { editPath } from '@/pages/Admin/_shared/adminPath';
-import { Button } from '@/components/common/Button';
 import { Card } from '@/components/common/Card';
 import { DEFAULT_PAGE_SIZE, Pagination } from '@/components/common/Pagination';
-import { formatCapacity } from '@/utils/format';
+import { editPath } from '@/pages/Admin/_shared/adminPath';
 import { OPERATION_LABEL, OPERATION_TONE } from '@/mocks/status';
 import { Reveal } from '@/components/common/Reveal';
 import { Table } from '@/components/common/Table';
+import { useManagedUsers } from '@/pages/Admin/Plants/Equipment/hooks/useEquipmentPickers';
 import type { Column } from '@/components/common/Table';
 import type { School } from '@/interface/energy';
 import styles from '@/pages/Admin/Admin.module.scss';
-import { useManagedUsers } from '@/pages/Admin/Plants/Equipment/hooks/useEquipmentPickers';
-import { useAssetOf, usePlantCapacity } from '../hooks/usePlantData';
-
-interface PlantTableProps {
-  rows: School[];
-  onDelete: (plant: School) => void;
-}
+import { useAssetOf } from '../hooks/usePlantData';
 
 /** 발전소 목록 (SFR-016). 쪽 나눔은 표가 스스로 쥔다. */
-export function PlantTable({ rows, onDelete }: PlantTableProps) {
+export function PlantTable({ rows }: { rows: School[] }) {
   const assetOf = useAssetOf();
-  const capacityOf = usePlantCapacity();
   const users = useManagedUsers();
   const navigate = useNavigate();
 
@@ -80,17 +72,6 @@ export function PlantTable({ rows, onDelete }: PlantTableProps) {
       },
     },
     {
-      key: 'capacity',
-      header: '발전용량',
-      align: 'right',
-      width: '110px',
-      render: (row) => {
-        const capacity = formatCapacity(capacityOf(row.id));
-
-        return `${capacity.value} ${capacity.unit}`;
-      },
-    },
-    {
       key: 'status',
       header: '상태',
       width: '110px',
@@ -98,24 +79,6 @@ export function PlantTable({ rows, onDelete }: PlantTableProps) {
         <Badge tone={OPERATION_TONE[row.status]} withDot>
           {OPERATION_LABEL[row.status]}
         </Badge>
-      ),
-    },
-    {
-      key: 'action',
-      header: '관리',
-      width: '140px',
-      align: 'center',
-      render: (row) => (
-        <span className={styles.toolbar__actions}>
-          <Button
-            size="sm"
-            variant="secondary"
-            onClick={() => navigate(editPath('plants', 'plant', 'powerPlantId', assetOf(row.id)?.powerPlantId ?? 0))}
-          >
-            수정
-          </Button>
-          <Button size="sm" variant="ghost" onClick={() => onDelete(row)}>삭제</Button>
-        </span>
       ),
     },
   ];
@@ -127,10 +90,11 @@ export function PlantTable({ rows, onDelete }: PlantTableProps) {
         description="위 등록 버튼으로 발전소를 새로 세우고, 행의 수정 버튼으로 등록 정보를 고칩니다. 변경 내역은 아래 이력에 남습니다."
       >
         <Table
-          caption="발전소 등록 목록. ID, 발전소 이름, 소유자, 주소, 발전용량, 상태 순입니다."
+          caption="발전소 등록 목록. ID, 발전소 이름, 소유자, 주소, 상태 순입니다."
           columns={columns}
           rows={pageRows}
           getRowKey={(row) => row.id}
+          onRowClick={(row) => navigate(editPath('plants', 'plant', 'powerPlantId', assetOf(row.id)?.powerPlantId ?? 0))}
         />
         <Pagination
           page={currentPage}

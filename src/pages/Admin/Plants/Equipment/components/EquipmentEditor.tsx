@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/common/Button';
 import { computeEquipmentCapacity, describeInverterProduct, INVERTER_KIND_LABEL } from '@/mocks/deviceMaster';
 import { ConfirmDialog } from '@/components/common/ConfirmDialog';
-import { createdEntry, diffEntries } from '@/pages/Admin/_shared/device/deviceChangeLog';
+import { createdEntry, deletedEntry, diffEntries } from '@/pages/Admin/_shared/device/deviceChangeLog';
 import { FormPage } from '@/pages/Admin/_shared/FormPage';
 import { FormRow, FormSection, NumberField, TextArea, TextField } from '@/components/common/Form';
 import { formatNumber } from '@/utils/format';
@@ -126,6 +126,7 @@ export function EquipmentEditor({ cid }: EquipmentEditorProps) {
   const rows = useEquipmentRows();
   const navigate = useNavigate();
   const saveEquipment = useEquipmentStore((state) => state.saveEquipment);
+  const removeEquipment = useEquipmentStore((state) => state.removeEquipment);
   const saveStrings = useEquipmentStore((state) => state.saveStrings);
   const nextId = useEquipmentStore((state) => state.nextId);
   const nextSeq = useEquipmentStore((state) => state.nextSeq);
@@ -154,6 +155,7 @@ export function EquipmentEditor({ cid }: EquipmentEditorProps) {
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [picker, setPicker] = useState<Picker | null>(null);
   const [isConfirming, setIsConfirming] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   const module = modules.find((item) => item.id === draft.moduleProductId);
   const inverter = inverters.find((item) => item.id === draft.inverterProductId);
@@ -336,12 +338,24 @@ export function EquipmentEditor({ cid }: EquipmentEditorProps) {
     navigate(backTo);
   };
 
+  const remove = () => {
+    if (!target) return;
+
+    removeEquipment(target.inverterId, deletedEntry(
+      { kind: 'equipment', id: target.inverterId, name: target.name, actor: actor?.name ?? '관리자' },
+      `${target.plantName} · ${formatNumber(target.equipmentCapacity, 1)}kW`,
+    ));
+    toast.success(MSG.deleteSuccess(target.name));
+    navigate(backTo);
+  };
+
   return (
     <>
       <FormPage
         title={isNew ? '설비 등록' : '설비 수정'}
         description="설비용량은 고른 모듈 모델과 직병렬 구성에서 산출합니다."
         backTo={backTo}
+        danger={isNew ? null : <Button variant="danger" onClick={() => setIsDeleting(true)}>설비 삭제</Button>}
         footer={(
           <>
             <Button variant="secondary" onClick={() => navigate(backTo)}>취소</Button>
@@ -353,7 +367,7 @@ export function EquipmentEditor({ cid }: EquipmentEditorProps) {
           <FormRow cols={2}>
             <PickerField
               label="사용자"
-              value={user ? `${user.name} · ${user.orgName}` : ''}
+              value={user ? `${user.name} · ${user.loginId}` : ''}
               placeholder="사용자를 고르세요"
               onOpen={() => setPicker('user')}
               required
@@ -606,16 +620,16 @@ export function EquipmentEditor({ cid }: EquipmentEditorProps) {
           rows={users}
           getRowKey={(row) => String(row.userId)}
           selectedKey={draft.userId}
-          caption="사용자 목록. ID, 사용자, 소속, 이메일 순입니다."
-          placeholder="이름·소속·이메일로 검색"
+          caption="사용자 목록. ID, 사용자, 로그인 ID, 이메일 순입니다."
+          placeholder="이름·로그인 ID·이메일로 검색"
           match={(row, word) => row.name.includes(word)
-              || row.orgName.includes(word)
+              || row.loginId.includes(word)
               || row.email.includes(word)
               || String(row.userId).includes(word)}
           columns={[
             { key: 'userId', header: 'ID', width: '80px', render: (row) => row.userId },
             { key: 'name', header: '사용자', width: '120px', render: (row) => row.name },
-            { key: 'org', header: '소속', render: (row) => row.orgName },
+            { key: 'loginId', header: '로그인 ID', render: (row) => row.loginId },
             { key: 'email', header: '이메일', width: '200px', hideOnTablet: true, render: (row) => row.email },
           ]}
           onPick={(row) => {
@@ -764,6 +778,16 @@ export function EquipmentEditor({ cid }: EquipmentEditorProps) {
         confirmLabel="저장"
         onConfirm={commit}
         onClose={() => setIsConfirming(false)}
+      />
+
+      <ConfirmDialog
+        isOpen={isDeleting}
+        title={MSG.deleteConfirm(target?.name ?? '설비')}
+        description="이 설비에 딸린 스트링 등록 정보는 남습니다. 스트링 탭에서 따로 정리해 주세요."
+        confirmLabel="삭제"
+        tone="danger"
+        onConfirm={remove}
+        onClose={() => setIsDeleting(false)}
       />
     </>
   );

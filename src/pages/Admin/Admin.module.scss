@@ -445,7 +445,8 @@
     position: sticky;
     bottom: 0;
     display: flex;
-    justify-content: flex-end;
+    align-items: center;
+    justify-content: space-between;
     gap: s.$space-2;
     padding: s.$space-4 s.$space-6;
     border-top: 1px solid var(--border-subtle);
@@ -455,6 +456,16 @@
     @include media.mobile {
       padding: s.$space-4;
     }
+  }
+
+  &__actions {
+    display: flex;
+    gap: s.$space-2;
+    margin-left: auto;
+  }
+
+  &__danger {
+    display: flex;
   }
 }
 

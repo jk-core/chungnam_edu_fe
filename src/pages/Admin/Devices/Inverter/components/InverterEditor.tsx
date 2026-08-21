@@ -1,8 +1,8 @@
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/common/Button';
 import { ConfirmDialog } from '@/components/common/ConfirmDialog';
-import { createdEntry, diffEntries } from '@/pages/Admin/_shared/device/deviceChangeLog';
+import { createdEntry, deletedEntry, diffEntries } from '@/pages/Admin/_shared/device/deviceChangeLog';
 import { FormRow, FormSection, NumberField, RadioGroup, TextField } from '@/components/common/Form';
 import { formatNumber } from '@/utils/format';
 import { FormPage } from '@/pages/Admin/_shared/FormPage';
@@ -13,7 +13,7 @@ import { useInverterProducts } from '@/pages/Admin/_shared/device/useSelectableE
 import { Select } from '@/components/common/Select';
 import { toast } from '@/stores/toastStore';
 import { useAuthUser } from '@/stores/authStore';
-import useEquipmentStore from '@/stores/equipmentStore';
+import useEquipmentStore, { mergeEquipment } from '@/stores/equipmentStore';
 import type { InverterKind, InverterProduct } from '@/interface/deviceMaster';
 
 /** 인버터 용량 범위(kW) */
@@ -44,6 +44,10 @@ export function InverterEditor({ inverterId }: InverterEditorProps) {
   const saveInverter = useEquipmentStore((state) => state.saveInverter);
   const nextId = useEquipmentStore((state) => state.nextId);
   const nextSeq = useEquipmentStore((state) => state.nextSeq);
+  const removeInverter = useEquipmentStore((state) => state.removeInverter);
+  const equipmentCreated = useEquipmentStore((state) => state.equipmentCreated);
+  const equipmentPatched = useEquipmentStore((state) => state.equipmentPatched);
+  const equipmentDeleted = useEquipmentStore((state) => state.equipmentDeleted);
   const actor = useAuthUser();
   const products = useInverterProducts();
   const navigate = useNavigate();
@@ -54,8 +58,16 @@ export function InverterEditor({ inverterId }: InverterEditorProps) {
   const [draft, setDraft] = useState<Draft>(() => (target ? { ...target } : EMPTY_DRAFT));
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [isConfirming, setIsConfirming] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   const isNew = target === null;
+
+  // 이 제품을 쓰는 설비가 몇 대인지 — 삭제 확인에 적어 준다.
+  const inUse = useMemo(
+    () => mergeEquipment(equipmentCreated, equipmentPatched, equipmentDeleted)
+      .filter((item) => item.inverterProductId === target?.id).length,
+    [equipmentCreated, equipmentPatched, equipmentDeleted, target],
+  );
 
   const change = (next: Partial<Draft>) => setDraft({ ...draft, ...next });
 
@@ -108,12 +120,24 @@ export function InverterEditor({ inverterId }: InverterEditorProps) {
     navigate(backTo);
   };
 
+  const remove = () => {
+    if (!target) return;
+
+    removeInverter(target.id, deletedEntry(
+      { kind: 'inverter', id: target.id, name: target.name, actor: actor?.name ?? '관리자' },
+      `${target.maker} · ${formatNumber(target.capacityKw, 1)}kW`,
+    ));
+    toast.success(MSG.deleteSuccess(target.name));
+    navigate(backTo);
+  };
+
   return (
     <>
       <FormPage
         title={isNew ? '인버터 제품 등록' : '인버터 제품 수정'}
         description="여기 등록한 제품을 설비 등록에서 골라 씁니다."
         backTo={backTo}
+        danger={isNew ? null : <Button variant="danger" onClick={() => setIsDeleting(true)}>제품 삭제</Button>}
         footer={(
           <>
             <Button variant="secondary" onClick={() => navigate(backTo)}>취소</Button>
@@ -180,6 +204,18 @@ export function InverterEditor({ inverterId }: InverterEditorProps) {
         confirmLabel="저장"
         onConfirm={commit}
         onClose={() => setIsConfirming(false)}
+      />
+
+      <ConfirmDialog
+        isOpen={isDeleting}
+        title={MSG.deleteConfirm(target?.name ?? '인버터 제품')}
+        description={inUse > 0
+          ? `이 제품을 쓰는 설비가 ${formatNumber(inUse)}대 있습니다. 삭제하면 해당 설비의 인버터를 다시 골라야 합니다.`
+          : '등록 이력에는 삭제한 사실이 남습니다.'}
+        confirmLabel="삭제"
+        tone="danger"
+        onConfirm={remove}
+        onClose={() => setIsDeleting(false)}
       />
     </>
   );

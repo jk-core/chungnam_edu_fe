@@ -1,19 +1,12 @@
 import { useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/common/Button';
-import { ConfirmDialog } from '@/components/common/ConfirmDialog';
 import { createPath } from '@/pages/Admin/_shared/adminPath';
-import { MSG } from '@/configs/messages';
+import { DeviceHistory } from '@/pages/Admin/_shared/device/DeviceHistory';
+import { formatNumber } from '@/utils/format';
 import { PlusIcon } from '@/components/common/Icon';
 import { TextField } from '@/components/common/Form';
-import { formatNumber } from '@/utils/format';
-import { toast } from '@/stores/toastStore';
-import { useAuthUser } from '@/stores/authStore';
-import useEquipmentStore from '@/stores/equipmentStore';
-import type { Pyranometer } from '@/interface/deviceMaster';
 import styles from '@/pages/Admin/Admin.module.scss';
-import { DeviceHistory } from '@/pages/Admin/_shared/device/DeviceHistory';
-import { deletedEntry } from '@/pages/Admin/_shared/device/deviceChangeLog';
 import { usePyranometerRows } from '../hooks/usePyranometerRows';
 import { PyranometerTable } from './PyranometerTable';
 
@@ -22,13 +15,10 @@ import { PyranometerTable } from './PyranometerTable';
  * 검색 줄과 표가 같은 목록을 봐야 하므로 거르는 일만 여기서 한 번 한다.
  */
 export function PyranometerBoard() {
-  const removePyranometer = useEquipmentStore((state) => state.removePyranometer);
-  const actor = useAuthUser();
   const allRows = usePyranometerRows();
   const navigate = useNavigate();
 
   const [keyword, setKeyword] = useState('');
-  const [deleting, setDeleting] = useState<Pyranometer | null>(null);
 
   const rows = useMemo(() => {
     const trimmed = keyword.trim();
@@ -39,17 +29,6 @@ export function PyranometerBoard() {
         || row.rtuCommId.includes(trimmed))
       : allRows;
   }, [allRows, keyword]);
-
-  const remove = () => {
-    if (!deleting) return;
-
-    removePyranometer(deleting.id, deletedEntry(
-      { kind: 'pyranometer', id: deleting.id, name: deleting.name, actor: actor?.name ?? '관리자' },
-      `${deleting.plantName} · ${deleting.rtuCommId}`,
-    ));
-    toast.success(MSG.deleteSuccess(deleting.name));
-    setDeleting(null);
-  };
 
   return (
     <>
@@ -72,19 +51,9 @@ export function PyranometerBoard() {
         </div>
       </div>
 
-      <PyranometerTable rows={rows} onDelete={setDeleting} />
+      <PyranometerTable rows={rows} />
 
       <DeviceHistory kind="pyranometer" keyword={keyword} title="일사량계 변경 이력" />
-
-      <ConfirmDialog
-        isOpen={deleting !== null}
-        title={MSG.deleteConfirm(deleting?.name ?? '일사량계')}
-        description="일사량 값이 없으면 그 발전소의 AI 진단은 기대 발전량을 계산하지 못합니다."
-        confirmLabel="삭제"
-        tone="danger"
-        onConfirm={remove}
-        onClose={() => setDeleting(null)}
-      />
     </>
   );
 }

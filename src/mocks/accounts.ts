@@ -66,18 +66,21 @@ export function getAccountById(id: string): AuthUser | null {
 // ── 사용자 관리 시드 (SFR-018) ──────────────────────────────
 const USER_SURNAME = ['김', '이', '박', '최', '정', '강', '조', '윤', '장', '임'];
 const USER_GIVEN = ['서준', '하윤', '지호', '수아', '은우', '지민', '예준', '다은', '시우', '채원'];
-const DEPARTMENTS = ['행정실', '행정실', '시설관리팀', '교무행정팀'];
 
 function buildManagedUsers(): ManagedUser[] {
   const next = createRandom(hashSeed('cne-users-2026'));
 
   // 교육청 계정 두 자리 + 학교 담당자. 데모 로그인 계정과 같은 인물은 그대로 싣는다.
   const office: ManagedUser[] = ACCOUNTS.map((account, index) => ({
-    ...account,
+    id: account.id,
     // 서버는 사용자 번호와 로그인 계정을 따로 갖는다 (userId · loginId).
     userId: index + 1,
     loginId: account.id.replace('cne-', ''),
+    name: account.name,
+    role: account.role,
+    email: account.email,
     phone: account.role === 'admin' ? '010-2841-0114' : '010-3517-0132',
+    plantIds: account.plantIds,
     lastLoginAt: stampAgo(account.role === 'institution' ? 1 : 0, `09:0${Math.round(pickNumber(next, 0, 9))}`),
     locked: false,
   }));
@@ -92,8 +95,6 @@ function buildManagedUsers(): ManagedUser[] {
       loginId: `mgr${String(index + 11)}`,
       name,
       role: 'institution',
-      orgName: school.name,
-      department: pickOne(next, DEPARTMENTS),
       email: `mgr${String(index + 11)}@school.cne.go.kr`,
       phone: `010-${String(3000 + Math.round(pickNumber(next, 0, 6999)))}-${String(1000 + Math.round(pickNumber(next, 0, 8999)))}`,
       plantIds: [school.id],
@@ -116,8 +117,6 @@ function buildManagedUsers(): ManagedUser[] {
     loginId: `grp${String(index + 1).padStart(2, '0')}`,
     name: `${pickOne(next, USER_SURNAME)}${pickOne(next, USER_GIVEN)}`,
     role: 'group',
-    orgName: ['천안권역', '아산권역', '서산권역', '홍성권역', '충남 전역'][index],
-    department: '시설관리팀',
     email: `grp${String(index + 1).padStart(2, '0')}@cne.go.kr`,
     phone: `010-${String(4000 + index * 111)}-${String(2000 + index * 137)}`,
     plantIds: SCHOOLS.slice(index * 7, index * 7 + span).map((school) => school.id),
@@ -140,14 +139,13 @@ export const SEED_USER_CHANGES: UserChange[] = (() => {
   const rows: (Omit<UserChange, 'id' | 'userId' | 'userName'> & { index: number })[] = [
     { index: 0, at: stampAgo(4, '14:20'), actor: '김도현', field: '연락처', before: '041-000-0000', after: targets[0]?.phone ?? '-' },
     { index: 1, at: stampAgo(9, '11:05'), actor: '김도현', field: '담당자', before: '전임 담당자', after: targets[1]?.name ?? '-' },
-    // 시드 부서가 무엇이든 전/후가 같아 보이지 않도록 어긋나는 값을 고른다.
     {
       index: 2,
       at: stampAgo(17, '16:42'),
       actor: '박세연',
-      field: '부서',
-      before: targets[2]?.department === '행정실' ? '교무행정팀' : '행정실',
-      after: targets[2]?.department ?? '-',
+      field: '연락처',
+      before: '010-0000-0000',
+      after: targets[2]?.phone ?? '-',
     },
     { index: 3, at: stampAgo(23, '09:31'), actor: '김도현', field: '권한', before: ROLE_LABEL.office, after: ROLE_LABEL.institution },
   ];

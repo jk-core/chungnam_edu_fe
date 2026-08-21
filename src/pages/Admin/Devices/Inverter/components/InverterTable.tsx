@@ -1,6 +1,5 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Button } from '@/components/common/Button';
 import { editPath } from '@/pages/Admin/_shared/adminPath';
 import { Card } from '@/components/common/Card';
 import { DEFAULT_PAGE_SIZE, Pagination } from '@/components/common/Pagination';
@@ -13,14 +12,8 @@ import type { Column } from '@/components/common/Table';
 import type { InverterProduct } from '@/interface/deviceMaster';
 import styles from '@/pages/Admin/Admin.module.scss';
 
-interface InverterTableProps {
-  rows: InverterProduct[];
-  usage: Map<string, number>;
-  onDelete: (row: InverterProduct) => void;
-}
-
 /** 인버터 제품 목록 (SFR-017-04). 쪽 나눔은 표가 스스로 쥔다. */
-export function InverterTable({ rows, usage, onDelete }: InverterTableProps) {
+export function InverterTable({ rows }: { rows: InverterProduct[] }) {
   const navigate = useNavigate();
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(DEFAULT_PAGE_SIZE);
@@ -63,26 +56,6 @@ export function InverterTable({ rows, usage, onDelete }: InverterTableProps) {
       width: '110px',
       render: (row) => `${formatNumber(row.capacityKw, 1)} kW`,
     },
-    {
-      key: 'usage',
-      header: '쓰는 설비',
-      align: 'right',
-      width: '100px',
-      hideOnTablet: true,
-      render: (row) => `${formatNumber(usage.get(row.id) ?? 0)}대`,
-    },
-    {
-      key: 'action',
-      header: '관리',
-      width: '140px',
-      align: 'center',
-      render: (row) => (
-        <span className={styles.toolbar__actions}>
-          <Button size="sm" variant="secondary" onClick={() => navigate(editPath('devices', 'inverter', 'inverterId', row.inverterId))}>수정</Button>
-          <Button size="sm" variant="ghost" onClick={() => onDelete(row)}>삭제</Button>
-        </span>
-      ),
-    },
   ];
 
   return (
@@ -93,10 +66,11 @@ export function InverterTable({ rows, usage, onDelete }: InverterTableProps) {
         ) : (
           <>
             <Table
-              caption="인버터 제품 목록. ID, 모델 이름, 업체 이름, 용량, 쓰는 설비 수 순입니다."
+              caption="인버터 제품 목록. ID, 모델 이름, 업체 이름, 용량 순입니다."
               columns={columns}
               rows={pageRows}
               getRowKey={(row) => row.id}
+              onRowClick={(row) => navigate(editPath('devices', 'inverter', 'inverterId', row.inverterId))}
             />
             <Pagination
               page={currentPage}

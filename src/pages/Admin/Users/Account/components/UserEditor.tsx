@@ -26,6 +26,7 @@ export function UserEditor({ userId }: UserEditorProps) {
   const saveUser = useAssetStore((state) => state.saveUser);
   const nextUserId = useAssetStore((state) => state.nextUserId);
   const nextUserSeq = useAssetStore((state) => state.nextUserSeq);
+  const removeUser = useAssetStore((state) => state.removeUser);
   const entryOf = useUserChangeLog();
   const users = useManagedUsers();
   const navigate = useNavigate();
@@ -36,13 +37,14 @@ export function UserEditor({ userId }: UserEditorProps) {
   const [draft, setDraft] = useState<UserDraft>(() => draftOf(target));
   const [error, setError] = useState<string | undefined>(undefined);
   const [isConfirming, setIsConfirming] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   const isNew = target === null;
 
   const change = (next: Partial<UserDraft>) => setDraft({ ...draft, ...next });
 
   const submit = () => {
-    if (!draft.name.trim() || !draft.orgName.trim() || !draft.loginId.trim()) {
+    if (!draft.name.trim() || !draft.loginId.trim()) {
       setError(MSG.requiredMissing);
 
       return;
@@ -85,8 +87,6 @@ export function UserEditor({ userId }: UserEditorProps) {
       loginId: draft.loginId.trim(),
       name: draft.name.trim(),
       role: draft.role,
-      orgName: draft.orgName.trim(),
-      department: draft.department.trim(),
       email: draft.email.trim(),
       phone: draft.phone.trim(),
       plantIds: target?.plantIds ?? [],
@@ -96,7 +96,7 @@ export function UserEditor({ userId }: UserEditorProps) {
 
     // 신규는 한 줄로, 수정은 실제로 달라진 항목만 남긴다 (SFR-018-04).
     const entries: UserChange[] = isNew
-      ? [entryOf(saved, '신규 등록', '—', `${ROLE_LABEL[saved.role]} · ${saved.orgName}`)]
+      ? [entryOf(saved, '신규 등록', '—', `${ROLE_LABEL[saved.role]} · ${saved.loginId}`)]
       : TRACKED.flatMap(({ key, label }, index) => {
         const before = String(target?.[key] ?? '');
         const after = String(saved[key] ?? '');
@@ -114,6 +114,14 @@ export function UserEditor({ userId }: UserEditorProps) {
     navigate(backTo);
   };
 
+  const remove = () => {
+    if (!target) return;
+
+    removeUser(target.id, entryOf(target, '계정 삭제', `${ROLE_LABEL[target.role]} · ${target.loginId}`, '삭제됨'));
+    toast.success(MSG.deleteSuccess(target.name));
+    navigate(backTo);
+  };
+
   /** 보낸 뒤에야 어느 칸이 비었는지 표시한다 — 적는 동안 붉은 칸이 따라다니지 않게 */
   const missing = (value: string, label: string) => (error && !value.trim() ? MSG.requiredField(label) : undefined);
 
@@ -123,6 +131,7 @@ export function UserEditor({ userId }: UserEditorProps) {
         title={isNew ? '사용자 등록' : '사용자 수정'}
         description="교육기관 담당자는 소속 학교의 설비만 조회할 수 있습니다."
         backTo={backTo}
+        danger={isNew ? null : <Button variant="danger" onClick={() => setIsDeleting(true)}>계정 삭제</Button>}
         footer={(
           <>
             <Button variant="secondary" onClick={() => navigate(backTo)}>취소</Button>
@@ -139,20 +148,6 @@ export function UserEditor({ userId }: UserEditorProps) {
               maxLength={NAME_MAX}
               required
               error={missing(draft.name, '이름')}
-            />
-            <TextField
-              label="소속 기관"
-              value={draft.orgName}
-              onChange={(value) => change({ orgName: value })}
-              required
-              error={missing(draft.orgName, '소속 기관')}
-            />
-          </FormRow>
-          <FormRow cols={2}>
-            <TextField
-              label="부서"
-              value={draft.department}
-              onChange={(value) => change({ department: value })}
             />
             <TextField
               label="이메일"
@@ -242,6 +237,16 @@ export function UserEditor({ userId }: UserEditorProps) {
         confirmLabel="저장"
         onConfirm={commit}
         onClose={() => setIsConfirming(false)}
+      />
+
+      <ConfirmDialog
+        isOpen={isDeleting}
+        title={MSG.deleteConfirm(target?.name ?? '사용자')}
+        description="삭제해도 접속 로그에는 과거 기록이 남습니다."
+        confirmLabel="삭제"
+        tone="danger"
+        onConfirm={remove}
+        onClose={() => setIsDeleting(false)}
       />
     </>
   );

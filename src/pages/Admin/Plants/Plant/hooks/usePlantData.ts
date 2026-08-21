@@ -103,7 +103,7 @@ export function useCustomerAccounts() {
   return {
     options: [
       { value: NONE, label: '지정 안 함' },
-      ...users.map((item) => ({ value: String(item.userId), label: `${item.name} · ${item.orgName}` })),
+      ...users.map((item) => ({ value: String(item.userId), label: `${item.name} · ${item.loginId}` })),
     ],
     nameOf: (userId: number | null) =>
       (userId === null ? null : users.find((item) => item.userId === userId)?.name) ?? '—',

@@ -23,8 +23,6 @@ export interface UserDraft {
   passwordConfirm: string;
   name: string;
   role: Role;
-  orgName: string;
-  department: string;
   email: string;
   phone: string;
 }
@@ -33,8 +31,6 @@ export interface UserDraft {
 export const TRACKED: { key: keyof UserDraft & keyof ManagedUser; label: string }[] = [
   { key: 'loginId', label: '로그인 ID' },
   { key: 'name', label: '이름' },
-  { key: 'orgName', label: '소속 기관' },
-  { key: 'department', label: '부서' },
   { key: 'email', label: '이메일' },
   { key: 'phone', label: '연락처' },
   { key: 'role', label: '권한' },
@@ -46,8 +42,6 @@ export const EMPTY_DRAFT: UserDraft = {
   passwordConfirm: '',
   name: '',
   role: 'institution',
-  orgName: '',
-  department: '행정실',
   email: '',
   phone: '',
 };
@@ -61,8 +55,6 @@ export function draftOf(target: ManagedUser | null): UserDraft {
       passwordConfirm: '',
       name: target.name,
       role: target.role,
-      orgName: target.orgName,
-      department: target.department,
       email: target.email,
       phone: target.phone,
     }

@@ -35,6 +35,7 @@ interface GroupEditorProps {
  */
 export function GroupEditor({ userId }: GroupEditorProps) {
   const saveUser = useAssetStore((state) => state.saveUser);
+  const removeUser = useAssetStore((state) => state.removeUser);
   const users = useManagedUsers();
   const plants = usePlantAssets();
   const capacityOf = usePlantCapacity();
@@ -50,6 +51,7 @@ export function GroupEditor({ userId }: GroupEditorProps) {
   const [error, setError] = useState<string | undefined>(undefined);
   const [picker, setPicker] = useState<Picker | null>(null);
   const [isConfirming, setIsConfirming] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   const user = users.find((row) => String(row.userId) === pickedId) ?? null;
   const picked = plantIds
@@ -92,12 +94,24 @@ export function GroupEditor({ userId }: GroupEditorProps) {
     navigate(backTo);
   };
 
+  const remove = () => {
+    if (!target) return;
+
+    removeUser(
+      target.id,
+      entryOf(target, '계정 삭제', `${ROLE_LABEL.group} · 발전소 ${target.plantIds.length}곳`, '삭제됨'),
+    );
+    toast.success(MSG.deleteSuccess(target.name));
+    navigate(backTo);
+  };
+
   return (
     <>
       <FormPage
         title={isNew ? '그룹관리자 등록' : `${target.name} 담당 발전소`}
         description="여기서 고른 발전소만 그 사람의 화면에 보입니다."
         backTo={backTo}
+        danger={isNew ? null : <Button variant="danger" onClick={() => setIsDeleting(true)}>계정 삭제</Button>}
         footer={(
           <>
             <Button variant="secondary" onClick={() => navigate(backTo)}>취소</Button>
@@ -108,7 +122,7 @@ export function GroupEditor({ userId }: GroupEditorProps) {
         <FormSection legend="그룹관리자" hint="이미 등록된 계정 중에서 고릅니다. 고르면 권한이 그룹관리자로 올라갑니다.">
           <PickerField
             label="사용자"
-            value={user ? `${user.name} · ${user.orgName} (${ROLE_LABEL[user.role]})` : ''}
+            value={user ? `${user.name} · ${user.loginId} (${ROLE_LABEL[user.role]})` : ''}
             placeholder="사용자를 고르세요"
             onOpen={() => setPicker('user')}
             disabled={!isNew}
@@ -167,16 +181,16 @@ export function GroupEditor({ userId }: GroupEditorProps) {
           rows={users}
           getRowKey={(row) => String(row.userId)}
           selectedKey={pickedId}
-          caption="사용자 목록. ID, 사용자, 소속, 권한 순입니다."
-          placeholder="이름·소속·이메일로 검색"
+          caption="사용자 목록. ID, 사용자, 로그인 ID, 권한 순입니다."
+          placeholder="이름·로그인 ID·이메일로 검색"
           match={(row, word) => row.name.includes(word)
-            || row.orgName.includes(word)
+            || row.loginId.includes(word)
             || row.email.includes(word)
             || String(row.userId).includes(word)}
           columns={[
             { key: 'userId', header: 'ID', width: '80px', render: (row) => row.userId },
             { key: 'name', header: '사용자', width: '120px', render: (row) => row.name },
-            { key: 'org', header: '소속', render: (row) => row.orgName },
+            { key: 'loginId', header: '로그인 ID', render: (row) => row.loginId },
             { key: 'role', header: '권한', width: '130px', render: (row) => ROLE_LABEL[row.role] },
           ]}
           onPick={(row) => {
@@ -223,6 +237,16 @@ export function GroupEditor({ userId }: GroupEditorProps) {
         confirmLabel="저장"
         onConfirm={commit}
         onClose={() => setIsConfirming(false)}
+      />
+
+      <ConfirmDialog
+        isOpen={isDeleting}
+        title={MSG.deleteConfirm(target?.name ?? '그룹관리자')}
+        description="맡고 있던 발전소는 남습니다 — 계정만 지웁니다."
+        confirmLabel="삭제"
+        tone="danger"
+        onConfirm={remove}
+        onClose={() => setIsDeleting(false)}
       />
     </>
   );

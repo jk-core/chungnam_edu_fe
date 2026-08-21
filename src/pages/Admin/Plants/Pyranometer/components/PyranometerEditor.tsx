@@ -14,7 +14,7 @@ import { useAuthUser } from '@/stores/authStore';
 import { useDeletedPlants } from '@/stores/assetStore';
 import useEquipmentStore from '@/stores/equipmentStore';
 import type { Pyranometer } from '@/interface/deviceMaster';
-import { createdEntry, diffEntries } from '@/pages/Admin/_shared/device/deviceChangeLog';
+import { createdEntry, deletedEntry, diffEntries } from '@/pages/Admin/_shared/device/deviceChangeLog';
 import { usePyranometerRows } from '../hooks/usePyranometerRows';
 
 /** 설비 이름 길이 제한 */
@@ -69,6 +69,7 @@ function draftOf(target: Pyranometer | null): Draft {
 /** 일사량계 등록·수정 (SFR-016-01) */
 export function PyranometerEditor({ irradId }: PyranometerEditorProps) {
   const savePyranometer = useEquipmentStore((state) => state.savePyranometer);
+  const removePyranometer = useEquipmentStore((state) => state.removePyranometer);
   const nextId = useEquipmentStore((state) => state.nextId);
   const nextSeq = useEquipmentStore((state) => state.nextSeq);
   const deletedPlants = useDeletedPlants();
@@ -82,6 +83,7 @@ export function PyranometerEditor({ irradId }: PyranometerEditorProps) {
   const [draft, setDraft] = useState<Draft>(() => draftOf(target));
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [isConfirming, setIsConfirming] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   const isNew = target === null;
   const plantOptions = useMemo(
@@ -160,12 +162,24 @@ export function PyranometerEditor({ irradId }: PyranometerEditorProps) {
     navigate(backTo);
   };
 
+  const remove = () => {
+    if (!target) return;
+
+    removePyranometer(target.id, deletedEntry(
+      { kind: 'pyranometer', id: target.id, name: target.name, actor: actor?.name ?? '관리자' },
+      `${target.plantName} · ${target.rtuCommId}`,
+    ));
+    toast.success(MSG.deleteSuccess(target.name));
+    navigate(backTo);
+  };
+
   return (
     <>
       <FormPage
         title={isNew ? '일사량계 등록' : '일사량계 수정'}
         description={`RTU ${PYRANOMETER_PORT}번 포트는 일사량계 몫이라 바꿀 수 없습니다.`}
         backTo={backTo}
+        danger={isNew ? null : <Button variant="danger" onClick={() => setIsDeleting(true)}>일사량계 삭제</Button>}
         footer={(
           <>
             <Button variant="secondary" onClick={() => navigate(backTo)}>취소</Button>
@@ -247,6 +261,16 @@ export function PyranometerEditor({ irradId }: PyranometerEditorProps) {
         confirmLabel="저장"
         onConfirm={commit}
         onClose={() => setIsConfirming(false)}
+      />
+
+      <ConfirmDialog
+        isOpen={isDeleting}
+        title={MSG.deleteConfirm(target?.name ?? '일사량계')}
+        description="일사량 값이 없으면 그 발전소의 AI 진단은 기대 발전량을 계산하지 못합니다."
+        confirmLabel="삭제"
+        tone="danger"
+        onConfirm={remove}
+        onClose={() => setIsDeleting(false)}
       />
     </>
   );
