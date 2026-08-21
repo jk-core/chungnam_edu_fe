@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 import { createJSONStorage, persist } from 'zustand/middleware';
+import { useMemo } from 'react';
 import type { FieldReport, ReportTemplate, TemplateRevision } from '@/interface/fieldReport';
 import { CHECKLIST_TEMPLATES, SEED_FIELD_REPORTS, SEED_TEMPLATE_REVISIONS } from '@/mocks/fieldReport';
 
@@ -104,6 +105,13 @@ export function getFieldReport(id: string): FieldReport | null {
 /** 시드 + 관리자 수정분이 합쳐진 점검 양식 (SFR-021-14) */
 export function mergeTemplates(patched: Record<string, ReportTemplate>): ReportTemplate[] {
   return CHECKLIST_TEMPLATES.map((template) => patched[template.id] ?? template);
+}
+
+/** 최신 양식 목록. 표와 편집기가 같은 목록을 봐야 해서 한 곳에서 꺼낸다 */
+export function useTemplates(): ReportTemplate[] {
+  const templatePatched = useFieldReportStore((state) => state.templatePatched);
+
+  return useMemo(() => mergeTemplates(templatePatched), [templatePatched]);
 }
 
 /** 시드 + 사용자 저장분이 합쳐진 양식 개정 이력 */

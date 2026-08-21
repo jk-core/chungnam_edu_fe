@@ -1,5 +1,6 @@
-import { useState } from 'react';
-import type { ReportTemplate } from '@/interface/fieldReport';
+import { useSearchParams } from 'react-router-dom';
+import { useTemplates } from '@/stores/fieldReportStore';
+import type { AdminDepth } from '@/pages/Admin/_shared/adminPath';
 import { RevisionHistory } from './components/RevisionHistory';
 import { TemplateEditor } from './components/TemplateEditor';
 import { TemplateTable } from './components/TemplateTable';
@@ -7,24 +8,20 @@ import { TemplateTable } from './components/TemplateTable';
 /**
  * 점검 양식 편집과 판 관리 (SFR-021-14).
  *
- * 어느 양식을 편집 중인지만 여기서 쥔다 — 표가 고르고 편집기가 여닫히는 관계라 둘 중 한쪽에
- * 두면 다른 쪽이 그 사정을 알아야 한다. 초안(분류·문항·개정 사유)은 편집기가 통째로 가진다.
+ * 초안(분류·문항·개정 사유)은 편집기가 통째로 가진다 — 어느 양식을 고쳤는지는 주소가 쥔다.
  */
-function TemplatesDepth() {
-  const [editing, setEditing] = useState<ReportTemplate | null>(null);
+function TemplatesDepth({ depth }: { depth: AdminDepth }) {
+  const [params] = useSearchParams();
+  const templates = useTemplates();
+  const template = templates.find((item) => item.id === params.get('templateId'));
+
+  // 양식은 새로 만들지 않고 있는 것을 고쳐 새 판으로 낸다 — 없는 주소면 목록을 보여 준다.
+  if (depth === 'form') return template ? <TemplateEditor template={template} /> : <TemplateTable />;
 
   return (
     <>
-      <TemplateTable onEdit={setEditing} />
+      <TemplateTable />
       <RevisionHistory />
-
-      {/*
-        고른 양식이 바뀌면 편집기를 새로 세운다.
-        같은 편집기를 계속 쓰면 앞서 열었던 양식의 문항과 개정 사유가 그대로 남는다.
-      */}
-      {editing ? (
-        <TemplateEditor key={editing.id} template={editing} onClose={() => setEditing(null)} />
-      ) : null}
     </>
   );
 }

@@ -23,6 +23,15 @@ interface ModalProps {
 
 const FOCUSABLE = 'a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), [tabindex]:not([tabindex="-1"])';
 
+/*
+  열려 있는 창을 연 순서대로 쌓아 둔다.
+
+  Esc 와 Tab 은 document 에서 받는데, 창이 겹치면 두 리스너가 같은 노드에 나란히 서서
+  `stopPropagation()` 으로는 서로를 막지 못한다 — 편집 창 위에 확인 창을 띄우고 Esc 를 누르면
+  뒤의 편집 창까지 함께 닫혀 적던 값이 통째로 날아갔다. 맨 위 한 겹만 키를 먹게 한다.
+*/
+const OPENED: object[] = [];
+
 /**
  * 접근성 모달. 열려 있는 동안 배경 스크롤을 막고 포커스를 안에 가둔다.
  * 600px 이하에서는 아래에서 올라오는 바텀시트로 형태를 바꾼다.
@@ -40,6 +49,7 @@ export function Modal({ isOpen, onClose, title, description, size = 'md', childr
     부르는 쪽을 고치는 대신 최신 함수를 상자에 담아 두어, 효과는 열고 닫을 때만 돌게 한다.
   */
   const closeRef = useRef(onClose);
+  const tokenRef = useRef({});
 
   useEffect(() => {
     closeRef.current = onClose;
@@ -47,6 +57,10 @@ export function Modal({ isOpen, onClose, title, description, size = 'md', childr
 
   useEffect(() => {
     if (!isOpen) return;
+
+    const token = tokenRef.current;
+
+    OPENED.push(token);
 
     returnFocusRef.current = document.activeElement as HTMLElement;
 
@@ -62,6 +76,8 @@ export function Modal({ isOpen, onClose, title, description, size = 'md', childr
     }, 40);
 
     const handleKeyDown = (event: KeyboardEvent) => {
+      if (OPENED[OPENED.length - 1] !== token) return;
+
       if (event.key === 'Escape') {
         event.stopPropagation();
         closeRef.current();
@@ -92,6 +108,7 @@ export function Modal({ isOpen, onClose, title, description, size = 'md', childr
     document.addEventListener('keydown', handleKeyDown);
 
     return () => {
+      OPENED.splice(OPENED.indexOf(token), 1);
       window.clearTimeout(focusTimer);
       document.body.style.overflow = previousOverflow;
       document.removeEventListener('keydown', handleKeyDown);

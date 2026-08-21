@@ -13,7 +13,7 @@ const ROLES: Role[] = ['admin', 'office', 'institution'];
 /** 관리자 콘솔은 내비게이션 규칙 바깥에 있어 손으로 한 줄 세운다 */
 const ADMIN_CONSOLE_ROW = {
   section: '관리자 콘솔',
-  allowed: { admin: true, office: false, institution: false },
+  allowed: { admin: true, office: false, group: false, institution: false },
 } as const;
 
 interface MatrixRow {
@@ -32,7 +32,7 @@ export function AccessMatrix() {
     const bySection = new Map<string, MatrixRow>(
       NAVIGATION.map((section) => [
         section.label,
-        { section: section.label, allowed: { admin: false, office: false, institution: false } },
+        { section: section.label, allowed: { admin: false, office: false, group: false, institution: false } },
       ]),
     );
 

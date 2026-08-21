@@ -45,6 +45,7 @@ export const ACCOUNTS: AuthUser[] = [
 export const ROLE_LABEL: Record<Role, string> = {
   admin: '교육청 관리자',
   office: '교육청 담당자',
+  group: '그룹관리자',
   institution: '교육기관 담당자',
 };
 
@@ -52,6 +53,7 @@ export const ROLE_LABEL: Record<Role, string> = {
 export const ROLE_SCOPE_NOTE: Record<Role, string> = {
   admin: '전체 발전소 조회와 관리자 콘솔을 씁니다.',
   office: '전체 발전소를 조회만 합니다.',
+  group: '맡은 발전소 여러 곳을 함께 조회합니다.',
   institution: '담당 학교의 설비만 조회합니다.',
 };
 
@@ -102,7 +104,28 @@ function buildManagedUsers(): ManagedUser[] {
     };
   });
 
-  return [...office, ...schools];
+  /*
+    그룹관리자 — 여러 발전소를 한 사람이 함께 맡는다 (SFR-018, 화면정의 「발전소 그룹」).
+    맡은 곳이 하나도 없는 사람과 아주 많은 사람을 섞어 둔다 — 목록과 편집 화면이 그 양 끝에서
+    어떻게 보이는지가 확인해야 할 지점이다.
+  */
+  const GROUP_SPANS = [6, 12, 1, 0, 23];
+  const groups: ManagedUser[] = GROUP_SPANS.map((span, index) => ({
+    id: `grp-${index + 1}`,
+    userId: ACCOUNTS.length + schools.length + index + 1,
+    loginId: `grp${String(index + 1).padStart(2, '0')}`,
+    name: `${pickOne(next, USER_SURNAME)}${pickOne(next, USER_GIVEN)}`,
+    role: 'group',
+    orgName: ['천안권역', '아산권역', '서산권역', '홍성권역', '충남 전역'][index],
+    department: '시설관리팀',
+    email: `grp${String(index + 1).padStart(2, '0')}@cne.go.kr`,
+    phone: `010-${String(4000 + index * 111)}-${String(2000 + index * 137)}`,
+    plantIds: SCHOOLS.slice(index * 7, index * 7 + span).map((school) => school.id),
+    lastLoginAt: stampAgo(index + 1, `10:${10 + index * 7}`),
+    locked: false,
+  }));
+
+  return [...office, ...groups, ...schools];
 }
 
 export const SEED_USERS: ManagedUser[] = buildManagedUsers();

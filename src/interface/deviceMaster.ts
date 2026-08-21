@@ -81,47 +81,76 @@ export interface StringMaster {
   parallelCount: number;
 }
 
-/** 인버터 타입 (SFR-017-04) */
-export type InverterKind = 'general' | 'string' | 'central' | 'micro';
+/** 인버터 타입 (SFR-017-04) — 스트링 31001 / 센트럴 31002 / 마이크로 31003 */
+export type InverterKind = 'string' | 'central' | 'micro';
 
 /**
- * 인버터 등록 정보 (SFR-017-04).
- * 설비용량은 필드로 두지 않는다 — 모듈 스펙에서 산출한다 (SFR-016-03).
+ * 인버터 제품 마스터 — 설비 등록에서 이 목록을 고른다 (SFR-017-04).
+ * 모듈 제품(`ModuleProduct`)과 짝을 이루는 카탈로그다. 설비마다 업체·모델을 손으로 적으면
+ * 같은 제품이 표기만 달리한 채 흩어져, 어느 모델이 몇 대 깔렸는지 셀 수 없다.
  */
-export interface InverterMaster {
+export interface InverterProduct {
+  id: string;
+  /** 서버가 매기는 인버터 제품 번호 (inverterId) */
+  inverterId: number;
+  /** 인버터 업체명 (inverterEntName) */
+  maker: string;
+  /** 인버터 모델명 (inverterTerm) */
+  name: string;
+  /** 인버터 용량(kW) (inverterCapa) */
+  capacityKw: number;
+  kind: InverterKind;
+  /** 위상 종류 (phaseType) — 코드가 아니라 한글 문자열로 저장한다 */
+  phase: '단상' | '삼상';
+}
+
+/**
+ * 설비 등록 정보 (SFR-016-01, SFR-017-04). 서버 규격은 `Meain` 이다.
+ * 발전소에 실제로 설치된 한 대를 가리킨다 — 어떤 인버터·모듈 제품을 썼는지는 참조로 든다.
+ */
+export interface EquipmentMaster {
+  /** 화면이 쓰는 키 */
   inverterId: string;
   /** 설비를 가리키는 서버 식별자 (cid) — 화면에서도 검색 조건으로 쓴다 */
   cid: number;
   plantId: string;
+  /** 이 설비를 맡은 사용자 (userId). 발전소를 고르기 전에 먼저 고른다 */
+  userId: number | null;
+  /** 설비 이름 (meainName) */
   name: string;
-  /** 인버터 업체명 */
-  maker: string;
-  /** 인버터 모델명 */
-  productName: string;
+  /** RTU 통신 ID (rtuCommuId) */
   rtuCommId: string;
-  /** RTU 포트. 3번은 일사량계 몫이라 인버터가 쓸 수 없다 */
+  /** RTU 포트. 3번은 일사량계 몫이라 설비가 쓸 수 없다 */
   rtuPort: number | null;
-  kind: InverterKind;
-  phase: 'single' | 'three';
+  /** 고른 인버터 제품 (inverterId) */
+  inverterProductId: string;
+  /** 모듈 제품 (solaModuleId) */
+  moduleProductId: string;
+  /** 방위각(도). 정남이 180 이다 */
+  azimuth: number;
+  /** 경사각(도) */
+  inclineAngle: number;
   /**
-   * 설비용량(kW) — 서버는 값을 그대로 받는다 (equipmentCapacity).
+   * 설비용량(kW) — 서버는 값을 그대로 받는다 (instCapa).
    * 화면은 모듈 구성에서 산출한 값을 채워 주되(SFR-016-03) 손으로 고칠 수 있게 둔다.
    */
   equipmentCapacity: number;
-  moduleProductId: string;
   /** MPPT 1번 직렬·병렬 */
   series1: number;
   parallel1: number;
   /** MPPT 2번. 안 쓰면 0 */
   series2: number;
   parallel2: number;
+  /** AS 만료일 */
+  asExpiresAt: string;
   note: string;
+  /** 운전시작일 (meainInstDtm) */
   installedAt: string;
   operatedAt: string;
 }
 
-/** 장비 등록 정보 변경 이력 한 건 (SFR-016-06) — 6종이 함께 쓴다 */
-export type DeviceKind = 'rtu' | 'inverter' | 'junction' | 'module' | 'string' | 'pyranometer';
+/** 장비 등록 정보 변경 이력 한 건 (SFR-016-06) — 일곱 갈래가 함께 쓴다 */
+export type DeviceKind = 'rtu' | 'equipment' | 'inverter' | 'junction' | 'module' | 'string' | 'pyranometer';
 
 export interface DeviceChange {
   id: string;

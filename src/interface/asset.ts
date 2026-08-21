@@ -1,17 +1,12 @@
 import type { RtuStatus } from './status';
-
-/** 모듈 스펙 — 입력하면 총 설비용량이 자동 산출된다 (SFR-016-03) */
-export interface ModuleSpec {
-  model: string;
-  /** 모듈 1장 출력(W) */
-  wattPerPanel: number;
-  panelCount: number;
-  seriesCount: number;
-}
+import type { SchoolLevel } from './energy';
 
 /**
  * 발전소 등록 정보 (SFR-016).
  * 서버 규격은 `PowerPlant` 로, 필드 이름을 주석에 함께 적어 둔다.
+ *
+ * 모듈 구성과 인버터 모델은 여기 없다 — 그것은 발전소가 아니라 그 아래 선 설비마다 다르므로
+ * `EquipmentMaster` 가 갖는다. 발전소 설비용량도 딸린 설비들의 합으로 읽는다.
  */
 export interface PlantAsset {
   plantId: string;
@@ -24,7 +19,9 @@ export interface PlantAsset {
   /** 상세 주소 (addressDetail) */
   addressDetail: string;
   installedAt: string;
-  /** 시공 업체 (constructEnterpriseName·Phone) */
+  /** RTU 업체 (rtuEntName) */
+  rtuEntName: string;
+  /** 시공 업체 (constructEnterpriseName·Phone / installerName) */
   builder: { name: string; phone: string };
   /** 유지관리 업체 (manageEnterpriseName·Phone) */
   monitoring: { name: string; phone: string };
@@ -34,8 +31,8 @@ export interface PlantAsset {
   userId: number | null;
   /** 연결한 일사량계 번호 (irradId) */
   irradId: number | null;
-  inverterModel: string;
-  module: ModuleSpec;
+  /** 학교급 (schoolType) */
+  level: SchoolLevel;
   /** 비고 (etc) */
   etc: string;
 }

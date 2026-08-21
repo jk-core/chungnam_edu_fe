@@ -1,8 +1,10 @@
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Badge } from '@/components/common/Badge';
 import { Button } from '@/components/common/Button';
 import { Card } from '@/components/common/Card';
 import { CELL_TYPE_LABEL } from '@/mocks/moduleProducts';
+import { editPath } from '@/pages/Admin/_shared/adminPath';
 import { DEFAULT_PAGE_SIZE, Pagination } from '@/components/common/Pagination';
 import { EmptyState } from '@/components/common/EmptyState';
 import { Reveal } from '@/components/common/Reveal';
@@ -14,12 +16,12 @@ import styles from '@/pages/Admin/Admin.module.scss';
 
 interface ModuleTableProps {
   rows: ModuleProduct[];
-  onEdit: (product: ModuleProduct) => void;
   onDelete: (product: ModuleProduct) => void;
 }
 
 /** 모듈 제품 목록 (SFR-016-01). 쪽 나눔은 표가 스스로 쥔다. */
-export function ModuleTable({ rows, onEdit, onDelete }: ModuleTableProps) {
+export function ModuleTable({ rows, onDelete }: ModuleTableProps) {
+  const navigate = useNavigate();
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(DEFAULT_PAGE_SIZE);
   const [shown, setShown] = useState(rows);
@@ -90,7 +92,7 @@ export function ModuleTable({ rows, onEdit, onDelete }: ModuleTableProps) {
       align: 'center',
       render: (row) => (
         <span className={styles.toolbar__actions}>
-          <Button size="sm" variant="secondary" onClick={() => onEdit(row)}>수정</Button>
+          <Button size="sm" variant="secondary" onClick={() => navigate(editPath('devices', 'module', 'moduleId', row.moduleId))}>수정</Button>
           <Button size="sm" variant="ghost" onClick={() => onDelete(row)}>삭제</Button>
         </span>
       ),

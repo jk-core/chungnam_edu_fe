@@ -1,4 +1,4 @@
-import type { AssetChange, ModuleSpec, PlantAsset } from '@/interface/asset';
+import type { AssetChange, PlantAsset } from '@/interface/asset';
 import { SCHOOLS } from './schools';
 import { SEED_USERS } from './accounts';
 import { createRandom, hashSeed, pickOne } from './random';
@@ -21,46 +21,16 @@ const MONITORS = [
 const CUSTOMER_SURNAME = ['김', '이', '박', '최', '정', '한', '오', '서'];
 const CUSTOMER_GIVEN = ['민준', '서연', '지후', '현우', '수빈', '예린', '도윤', '하은'];
 
-const INVERTER_MODELS = ['HSI-50KTL', 'SG-33CX', 'DAS-50TL', 'OSI-60KP'];
+const RTU_MAKERS = ['에이치에너지', '나눔에너지', '해줌', '솔라커넥트'];
 const ADDRESS_DETAILS = ['본관 옥상', '체육관 옥상', '급식동 옥상', '별관 옥상', '주차장 캐노피'];
 
 /** 담당자로 등록된 계정을 발전소에 이어 준다 — 서버의 `userId` 자리다. */
 const OWNER_BY_PLANT = new Map(
   SEED_USERS.flatMap((user) => user.plantIds.map((plantId) => [plantId, user.userId] as const)),
 );
-const MODULE_MODELS = ['HN-455JD', 'QP-460MB', 'LS-450NW'];
-const MODULE_WATT: Record<string, number> = { 'HN-455JD': 455, 'QP-460MB': 460, 'LS-450NW': 450 };
-
-/** 모듈 스펙으로 총 설비용량(kW)을 계산한다 (SFR-016-03). */
-export function computeCapacity(spec: ModuleSpec): number {
-  return Math.round(spec.wattPerPanel * spec.panelCount) / 1000;
-}
-
-/**
- * 모듈은 직렬 묶음(스트링) 단위로 붙는다 — 장수가 직렬수로 나누어떨어져야
- * 어레이 구성이 성립한다 (SFR-017-06). 현장에서 흔한 15~24직렬 안에서 고르고,
- * 딱 떨어지지 않으면 장수를 몇 장 보태 맞춘다.
- */
-const SERIES_CANDIDATES = [20, 19, 21, 18, 22, 17, 23, 16, 24, 15];
-
-function fitSeries(panelCount: number): { panelCount: number; seriesCount: number } {
-  for (let extra = 0; extra <= 19; extra += 1) {
-    const total = panelCount + extra;
-    const series = SERIES_CANDIDATES.find((value) => total % value === 0);
-
-    if (series) return { panelCount: total, seriesCount: series };
-  }
-
-  return { panelCount, seriesCount: 1 };
-}
-
 function buildAsset(schoolIndex: number): PlantAsset {
   const school = SCHOOLS[schoolIndex];
   const next = createRandom(hashSeed(`${school.id}-asset`));
-  const moduleModel = pickOne(next, MODULE_MODELS);
-  const wattPerPanel = MODULE_WATT[moduleModel];
-  // 등록 용량과 스펙 산출값이 맞아떨어지게 장수를 역산한 뒤, 스트링 단위로 맞춘다.
-  const fitted = fitSeries(Math.max(1, Math.round((school.capacityKw * 1000) / wattPerPanel)));
 
   return {
     plantId: school.id,
@@ -71,6 +41,7 @@ function buildAsset(schoolIndex: number): PlantAsset {
     address: school.address,
     addressDetail: pickOne(next, ADDRESS_DETAILS),
     installedAt: school.installedAt,
+    rtuEntName: pickOne(next, RTU_MAKERS),
     builder: pickOne(next, BUILDERS),
     monitoring: pickOne(next, MONITORS),
     customer: {
@@ -80,13 +51,7 @@ function buildAsset(schoolIndex: number): PlantAsset {
     userId: OWNER_BY_PLANT.get(school.id) ?? null,
     // 일사량계는 학교마다 한 대씩 서 있고, 번호가 학교 순서를 따른다.
     irradId: schoolIndex + 1,
-    inverterModel: pickOne(next, INVERTER_MODELS),
-    module: {
-      model: moduleModel,
-      wattPerPanel,
-      panelCount: fitted.panelCount,
-      seriesCount: fitted.seriesCount,
-    },
+    level: school.level,
     etc: '',
   };
 }

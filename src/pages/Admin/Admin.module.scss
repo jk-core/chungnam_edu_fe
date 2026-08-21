@@ -381,3 +381,167 @@
   gap: s.$space-3;
   margin-top: s.$space-4;
 }
+
+// ── 등록·수정 폼 한 장 ──────────────────────────────────────
+.formPage {
+  display: flex;
+  flex-direction: column;
+  border: 1px solid var(--border-subtle);
+  border-radius: s.$radius-lg;
+  background-color: var(--surface);
+
+  /*
+    모서리를 `overflow: hidden` 으로 자르지 않는다 — 그러면 아래 붙는 저장 줄의
+    `position: sticky` 가 죽어 긴 폼에서 저장 버튼이 화면 밖으로 나간다.
+    자를 것은 맨 아래 줄뿐이라 그 줄이 제 모서리를 갖는다.
+  */
+
+  /* 여백은 칸마다 제 몫으로 갖는다 — 아래 붙는 줄이 부모 패딩을 되돌리지 않게 */
+  &__head,
+  &__body {
+    padding: s.$space-6;
+
+    @include media.mobile {
+      padding: s.$space-5 s.$space-4;
+    }
+  }
+
+  &__head {
+    display: flex;
+    flex-direction: column;
+    gap: s.$space-2;
+    padding-bottom: s.$space-4;
+    border-bottom: 1px solid var(--border-subtle);
+  }
+
+  &__back {
+    @include t.label-sm;
+
+    display: inline-flex;
+    align-items: center;
+    gap: s.$space-1;
+    align-self: flex-start;
+    color: var(--text-muted);
+
+    &:hover {
+      color: var(--text-strong);
+    }
+  }
+
+  &__title {
+    @include t.title-lg;
+
+    color: var(--text-strong);
+  }
+
+  &__description {
+    @include t.body-sm;
+
+    color: var(--text-muted);
+  }
+
+  /* 폼이 길어 저장 버튼이 화면 밖으로 나가지 않게 아래에 붙여 둔다. */
+  &__foot {
+    position: sticky;
+    bottom: 0;
+    display: flex;
+    justify-content: flex-end;
+    gap: s.$space-2;
+    padding: s.$space-4 s.$space-6;
+    border-top: 1px solid var(--border-subtle);
+    border-radius: 0 0 s.$radius-lg s.$radius-lg;
+    background-color: var(--surface-sunken);
+
+    @include media.mobile {
+      padding: s.$space-4;
+    }
+  }
+}
+
+// ── 골라 담은 것들 (담당 발전소 등) ─────────────────────────
+.chipList {
+  display: flex;
+  flex-wrap: wrap;
+  gap: s.$space-2;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: s.$space-2;
+  padding: s.$space-2 s.$space-2 s.$space-2 s.$space-3;
+  border: 1px solid var(--border);
+  border-radius: s.$radius-full;
+  background-color: var(--surface);
+
+  &__label {
+    @include t.body-sm;
+
+    display: inline-flex;
+    align-items: baseline;
+    gap: s.$space-2;
+    color: var(--text-strong);
+  }
+
+  &__sub {
+    @include t.caption;
+
+    color: var(--text-faint);
+    font-family: var(--font-data);
+  }
+
+  &__remove {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 20px;
+    height: 20px;
+    border: 0;
+    border-radius: s.$radius-full;
+    background: none;
+    color: var(--text-muted);
+    line-height: 1;
+
+    &:hover {
+      background-color: var(--surface-hover);
+      color: var(--critical-text);
+    }
+  }
+}
+
+// ── 폼 아래 접어 두는 참고 정보 ─────────────────────────────
+.more {
+  border: 1px solid var(--border-subtle);
+  border-radius: s.$radius-md;
+  background-color: var(--surface-sunken);
+
+  &__summary {
+    @include t.label-md;
+
+    padding: s.$space-3 s.$space-4;
+    color: var(--text-strong);
+    cursor: pointer;
+    list-style: none;
+
+    &::-webkit-details-marker {
+      display: none;
+    }
+
+    &::after {
+      content: "펼치기";
+      float: right;
+      color: var(--text-faint);
+    }
+  }
+
+  &[open] &__summary::after {
+    content: "접기";
+  }
+
+  &__body {
+    padding: 0 s.$space-4 s.$space-4;
+  }
+}

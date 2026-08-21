@@ -1,8 +1,10 @@
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/common/Button';
 import { ConfirmDialog } from '@/components/common/ConfirmDialog';
+import { FormPage } from '@/pages/Admin/_shared/FormPage';
 import { FormSection, TextArea, TextField } from '@/components/common/Form';
-import { Modal } from '@/components/common/Modal';
+import { listPath } from '@/pages/Admin/_shared/adminPath';
 import { NOW, TODAY } from '@/mocks/today';
 import { PlusIcon } from '@/components/common/Icon';
 import { toast } from '@/stores/toastStore';
@@ -14,7 +16,6 @@ import styles from '@/pages/Admin/Admin.module.scss';
 interface TemplateEditorProps {
   /** 편집할 양식. 새 판은 이 판 번호에서 하나 올려 낸다 */
   template: ReportTemplate;
-  onClose: () => void;
 }
 
 /** 빈 줄은 문항으로 세지 않는다 — 붙여 넣다 남은 줄이 문항이 되면 점검자가 헛클릭한다 */
@@ -28,9 +29,12 @@ const liveItems = (items: string[]) => items.map((item) => item.trim()).filter(B
  *
  * 문항은 대분류마다 한 줄에 하나씩 적는다. 표 형태 편집기보다 옮겨 붙이기 쉽다.
  */
-export function TemplateEditor({ template, onClose }: TemplateEditorProps) {
+export function TemplateEditor({ template }: TemplateEditorProps) {
   const saveTemplate = useFieldReportStore((state) => state.saveTemplate);
   const actor = useAuthUser();
+  const navigate = useNavigate();
+
+  const backTo = listPath('field-reports', 'templates');
 
   const [sections, setSections] = useState<TemplateSection[]>(
     () => template.sections.map((section) => ({ ...section })),
@@ -69,79 +73,75 @@ export function TemplateEditor({ template, onClose }: TemplateEditorProps) {
     });
     toast.success(`${next.label} v${nextVersion} 판을 냈습니다.`);
     setIsConfirming(false);
-    onClose();
+    navigate(backTo);
   };
 
   return (
     <>
-      <Modal
-        isOpen
-        onClose={onClose}
-        size="lg"
+      <FormPage
         title={`${template.label} 문항 편집`}
         description={`현재 v${template.version} · 저장하면 v${nextVersion} 로 나갑니다.`}
+        backTo={backTo}
         footer={(
           <>
-            <Button variant="secondary" onClick={onClose}>취소</Button>
+            <Button variant="secondary" onClick={() => navigate(backTo)}>취소</Button>
             <Button onClick={() => setIsConfirming(true)} disabled={!canSave}>새 판으로 저장</Button>
           </>
         )}
       >
-        <div className={styles.form}>
-          {sections.map((section, index) => (
-            <FormSection
-              key={`section-${index}`}
-              legend={`${index + 1}번 분류`}
-              hint="문항은 한 줄에 하나씩 적습니다. 빈 줄은 무시합니다."
-            >
-              <TextField
-                label="분류 이름"
-                value={section.title}
-                onChange={(value) => setSection(index, { title: value })}
-                required
-              />
-              <TextArea
-                label="문항"
-                value={section.items.join('\n')}
-                onChange={(value) => setSection(index, { items: value.split('\n') })}
-                hint={`${liveItems(section.items).length}문항`}
-              />
-              <div className={styles.toolbar__actions}>
-                <Button
-                  size="sm"
-                  variant="ghost"
-                  onClick={() => setSections(sections.filter((_, order) => order !== index))}
-                >
-                  이 분류 삭제
-                </Button>
-              </div>
-            </FormSection>
-          ))}
-
-          <div className={styles.toolbar__actions}>
-            <Button
-              size="sm"
-              variant="secondary"
-              iconLeft={<PlusIcon />}
-              onClick={() => setSections([...sections, { title: '', items: [''] }])}
-            >
-              분류 추가
-            </Button>
-          </div>
-
-          <FormSection legend="개정 사유" hint="이력에 그대로 남습니다. 무엇을 왜 고쳤는지 적어 주세요.">
-            <TextArea
-              label="개정 사유"
-              hideLabel
-              value={note}
-              onChange={setNote}
+        {sections.map((section, index) => (
+          <FormSection
+            key={`section-${index}`}
+            legend={`${index + 1}번 분류`}
+            hint="문항은 한 줄에 하나씩 적습니다. 빈 줄은 무시합니다."
+          >
+            <TextField
+              label="분류 이름"
+              value={section.title}
+              onChange={(value) => setSection(index, { title: value })}
               required
-              placeholder="예: 태양전지 분류에 적외선 열화상 항목을 더했습니다."
-              maxLength={200}
             />
+            <TextArea
+              label="문항"
+              value={section.items.join('\n')}
+              onChange={(value) => setSection(index, { items: value.split('\n') })}
+              hint={`${liveItems(section.items).length}문항`}
+            />
+            <div className={styles.toolbar__actions}>
+              <Button
+                size="sm"
+                variant="ghost"
+                onClick={() => setSections(sections.filter((_, order) => order !== index))}
+              >
+                이 분류 삭제
+              </Button>
+            </div>
           </FormSection>
+        ))}
+
+        <div className={styles.toolbar__actions}>
+          <Button
+            size="sm"
+            variant="secondary"
+            iconLeft={<PlusIcon />}
+            onClick={() => setSections([...sections, { title: '', items: [''] }])}
+          >
+            분류 추가
+          </Button>
         </div>
-      </Modal>
+
+        <FormSection legend="개정 사유" hint="이력에 그대로 남습니다. 무엇을 왜 고쳤는지 적어 주세요.">
+          <TextArea
+            label="개정 사유"
+            hideLabel
+            value={note}
+            onChange={setNote}
+            required
+            placeholder="예: 태양전지 분류에 적외선 열화상 항목을 더했습니다."
+            maxLength={200}
+          />
+        </FormSection>
+      </FormPage>
 
       <ConfirmDialog
         isOpen={isConfirming}

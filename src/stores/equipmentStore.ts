@@ -2,7 +2,8 @@ import { create } from 'zustand';
 import { createJSONStorage, persist } from 'zustand/middleware';
 import type {
   DeviceChange,
-  InverterMaster,
+  EquipmentMaster,
+  InverterProduct,
   JunctionBoxMaster,
   ModuleProduct,
   Pyranometer,
@@ -11,7 +12,8 @@ import type {
 import type { Rtu } from '@/interface/asset';
 import {
   SEED_DEVICE_CHANGES,
-  SEED_INVERTER_MASTERS,
+  SEED_EQUIPMENT,
+  SEED_INVERTER_PRODUCTS,
   SEED_JUNCTION_BOXES,
   SEED_STRINGS,
 } from '@/mocks/deviceMaster';
@@ -23,7 +25,7 @@ import { RTUS } from '@/mocks/rtu';
  * 시스템장비 관리의 쓰기 상태 (SFR-016-01/05, SFR-017).
  *
  * 발전소·사용자를 다루는 `assetStore` 와 같은 방식이다 — 시드는 mocks 가 갖고 여기는 변경분만
- * 얹는다. 여섯 엔티티가 저마다 등록·수정·삭제 세 갈래를 갖는데, 한 스토어에 몰아 두면
+ * 얹는다. 일곱 갈래가 저마다 등록·수정·삭제 세 갈래를 갖는데, 한 스토어에 몰아 두면
  * `assetStore` 처럼 넓어지므로 장비 몫만 따로 세운다.
  */
 interface EquipmentState {
@@ -31,8 +33,14 @@ interface EquipmentState {
   rtuPatched: Record<string, Partial<Rtu>>;
   rtuDeleted: string[];
 
-  inverterCreated: InverterMaster[];
-  inverterPatched: Record<string, Partial<InverterMaster>>;
+  /** 발전소에 실제로 선 설비 (meain) */
+  equipmentCreated: EquipmentMaster[];
+  equipmentPatched: Record<string, Partial<EquipmentMaster>>;
+  equipmentDeleted: string[];
+
+  /** 인버터 제품 카탈로그 — 설비가 이 중 하나를 가리킨다 */
+  inverterCreated: InverterProduct[];
+  inverterPatched: Record<string, Partial<InverterProduct>>;
   inverterDeleted: string[];
 
   junctionCreated: JunctionBoxMaster[];
@@ -51,13 +59,16 @@ interface EquipmentState {
   pyranometerPatched: Record<string, Partial<Pyranometer>>;
   pyranometerDeleted: string[];
 
-  /** 여섯 엔티티가 함께 쓰는 변경 이력 (SFR-016-06) */
+  /** 일곱 갈래가 함께 쓰는 변경 이력 (SFR-016-06) */
   deviceChanges: DeviceChange[];
 
   saveRtu: (item: Rtu, entries: DeviceChange[], isNew: boolean) => void;
   removeRtu: (id: string, entry: DeviceChange) => void;
 
-  saveInverter: (item: InverterMaster, entries: DeviceChange[], isNew: boolean) => void;
+  saveEquipment: (item: EquipmentMaster, entries: DeviceChange[], isNew: boolean) => void;
+  removeEquipment: (id: string, entry: DeviceChange) => void;
+
+  saveInverter: (item: InverterProduct, entries: DeviceChange[], isNew: boolean) => void;
   removeInverter: (id: string, entry: DeviceChange) => void;
 
   saveJunction: (item: JunctionBoxMaster, entries: DeviceChange[], isNew: boolean) => void;
@@ -102,6 +113,9 @@ const useEquipmentStore = create<EquipmentState>()(
       rtuCreated: [],
       rtuPatched: {},
       rtuDeleted: [],
+      equipmentCreated: [],
+      equipmentPatched: {},
+      equipmentDeleted: [],
       inverterCreated: [],
       inverterPatched: {},
       inverterDeleted: [],
@@ -135,9 +149,25 @@ const useEquipmentStore = create<EquipmentState>()(
           deviceChanges: [entry, ...state.deviceChanges],
         })),
 
+      saveEquipment: (item, entries, isNew) =>
+        set((state) => {
+          const next = upsert(state.equipmentCreated, state.equipmentPatched, item, (row) => row.inverterId, isNew);
+
+          return {
+            equipmentCreated: next.created,
+            equipmentPatched: next.patched,
+            deviceChanges: [...entries, ...state.deviceChanges],
+          };
+        }),
+      removeEquipment: (id, entry) =>
+        set((state) => ({
+          equipmentDeleted: [...state.equipmentDeleted, id],
+          deviceChanges: [entry, ...state.deviceChanges],
+        })),
+
       saveInverter: (item, entries, isNew) =>
         set((state) => {
-          const next = upsert(state.inverterCreated, state.inverterPatched, item, (row) => row.inverterId, isNew);
+          const next = upsert(state.inverterCreated, state.inverterPatched, item, (row) => row.id, isNew);
 
           return {
             inverterCreated: next.created,
@@ -234,7 +264,22 @@ const useEquipmentStore = create<EquipmentState>()(
       // 시드가 쓰는 번호대(1~수백)를 피해 9000 위에서 센다.
       nextSeq: () => 9000 + get().deviceChanges.length + 1,
     }),
-    { name: 'cne-equipment', storage: createJSONStorage(() => localStorage) },
+    {
+      name: 'cne-equipment',
+      storage: createJSONStorage(() => localStorage),
+      /*
+        1 판에서 `inverter*` 는 설비를 담았고 2 판에서는 인버터 제품을 담는다.
+        같은 이름에 다른 것이 들어 있으므로 옛 값을 그대로 읽으면 제품 목록에 설비가 섞인다 —
+        판이 다르면 그 세 칸만 비우고 나머지 저장분은 살린다.
+      */
+      version: 2,
+      migrate: (persisted) => ({
+        ...(persisted as EquipmentState),
+        inverterCreated: [],
+        inverterPatched: {},
+        inverterDeleted: [],
+      }),
+    },
   ),
 );
 
@@ -255,12 +300,20 @@ export function mergeRtus(created: Rtu[], patched: Record<string, Partial<Rtu>>,
   return merge(RTUS, created, patched, deleted, (item) => item.id);
 }
 
-export function mergeInverterMasters(
-  created: InverterMaster[],
-  patched: Record<string, Partial<InverterMaster>>,
+export function mergeEquipment(
+  created: EquipmentMaster[],
+  patched: Record<string, Partial<EquipmentMaster>>,
   deleted: string[],
-): InverterMaster[] {
-  return merge(SEED_INVERTER_MASTERS, created, patched, deleted, (item) => item.inverterId);
+): EquipmentMaster[] {
+  return merge(SEED_EQUIPMENT, created, patched, deleted, (item) => item.inverterId);
+}
+
+export function mergeInverterProducts(
+  created: InverterProduct[],
+  patched: Record<string, Partial<InverterProduct>>,
+  deleted: string[],
+): InverterProduct[] {
+  return merge(SEED_INVERTER_PRODUCTS, created, patched, deleted, (item) => item.id);
 }
 
 export function mergeJunctions(

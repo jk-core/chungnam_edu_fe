@@ -131,13 +131,13 @@ export const ADMIN_NAVIGATION: NavSection = {
     {
       label: '발전소·설비 관리',
       path: PATH.ADMIN_PLANTS,
-      description: '발전소·인버터·스트링·환경센서를 등록하고 수정 이력을 남깁니다.',
+      description: '발전소와 그 아래 선 설비·스트링·일사량계를 등록하고 수정 이력을 남깁니다.',
       requirements: ['SFR-016-01', 'SFR-016-02', 'SFR-016-03', 'SFR-016-04', 'SFR-016-05', 'SFR-016-06'],
     },
     {
       label: '시스템장비 관리',
       path: PATH.ADMIN_DEVICES,
-      description: 'RTU·인버터·접속반·모듈·스트링·일사량계를 등록·수정·삭제하고 교체·이설 이력을 봅니다.',
+      description: '인버터·모듈 제품 카탈로그와 RTU·접속반을 등록·수정·삭제하고 교체·이설 이력을 봅니다.',
       requirements: [
         'SFR-016-01', 'SFR-016-05', 'SFR-016-06',
         'SFR-017-01', 'SFR-017-02', 'SFR-017-03', 'SFR-017-04', 'SFR-017-05', 'SFR-017-06', 'SFR-017-07',

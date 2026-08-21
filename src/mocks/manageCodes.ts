@@ -15,12 +15,14 @@ import { REGIONS } from './regions';
 export const USER_TYPE_CODE = {
   admin: 2001,
   office: 2003,
+  group: 2006,
   institution: 2002,
 } as const satisfies Record<Role, number>;
 
 export const USER_TYPE_NAME: Record<number, string> = {
   2001: '교육청 관리자',
   2003: '교육청 담당자',
+  2006: '그룹관리자',
   2002: '교육기관 담당자',
 };
 

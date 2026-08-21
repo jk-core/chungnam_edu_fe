@@ -3,7 +3,7 @@
  * SFR-023-02 는 교육청 계정에 전체 조회를, SFR-023-03 은 교육기관 계정에 본인 설비만 허용한다.
  * 여기에 SFR-018-05(사용자 관리는 관리자만)를 더해 세 갈래로 나눈다.
  */
-export type Role = 'admin' | 'office' | 'institution';
+export type Role = 'admin' | 'office' | 'group' | 'institution';
 
 /** 로그인한 사용자 */
 export interface AuthUser {

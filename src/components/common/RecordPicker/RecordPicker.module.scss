@@ -1,0 +1,75 @@
+@use "@/styles/tokens/spacing" as s;
+@use "@/styles/tokens/typography" as t;
+
+/* 폼 한 줄에 입력들과 나란히 서므로 테두리·높이를 그쪽에 맞춘다. */
+.pickerField {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: s.$space-2;
+  width: 100%;
+  min-height: 40px;
+  padding: s.$space-2 s.$space-3;
+  border: 1px solid var(--border);
+  border-radius: s.$radius-sm;
+  background-color: var(--surface);
+  color: var(--text-strong);
+  text-align: left;
+  transition: border-color 0.16s ease, box-shadow 0.16s ease;
+
+  @include t.body-md;
+
+  &:hover:not(:disabled) {
+    border-color: var(--border-strong);
+  }
+
+  &:focus-visible {
+    border-color: var(--brand);
+  }
+
+  &:disabled {
+    background-color: var(--surface-sunken);
+    color: var(--text-muted);
+  }
+
+  &--empty {
+    color: var(--text-faint);
+  }
+
+  &--invalid {
+    border-color: var(--critical);
+  }
+
+  &__value {
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+  }
+
+  &__icon {
+    flex-shrink: 0;
+    color: var(--text-muted);
+  }
+}
+
+.picker {
+  display: flex;
+  flex-direction: column;
+  gap: s.$space-4;
+
+  /* 폼과 자리를 바꿔 쓰는 자리라 표가 짧아도 창 높이가 움찔거리지 않게 미리 재 둔다. */
+  min-height: 420px;
+
+  &__search {
+    display: flex;
+    align-items: flex-end;
+    gap: s.$space-2;
+  }
+
+  &__row {
+    /* 칸에 칠한다 — 줄에 칠하면 표가 가진 hover 배경에 덮여 지금 고른 줄이 사라진다. */
+    &--current > td {
+      background-color: var(--brand-soft);
+    }
+  }
+}
