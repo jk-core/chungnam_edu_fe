@@ -15,8 +15,9 @@ export function useManagedUsers(): ManagedUser[] {
   const userPatched = useAssetStore((state) => state.userPatched);
   const userDeleted = useAssetStore((state) => state.userDeleted);
 
+  // 개발자 등급은 화면 어디에도 세우지 않는다 — 서버도 목록에서 빼고 내려준다.
   return useMemo(
-    () => mergeUsers(userCreated, userPatched, userDeleted),
+    () => mergeUsers(userCreated, userPatched, userDeleted).filter((user) => user.role !== 'developer'),
     [userCreated, userPatched, userDeleted],
   );
 }

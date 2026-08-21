@@ -2,24 +2,27 @@ import { useMemo } from 'react';
 import { Card } from '@/components/common/Card';
 import { NAVIGATION, visibleNavigation } from '@/configs/navigation';
 import { Reveal } from '@/components/common/Reveal';
-import { ROLE_LABEL, ROLE_SCOPE_NOTE } from '@/mocks/accounts';
+import { ROLE_LABEL, ROLE_SCOPE_NOTE, SELECTABLE_ROLES } from '@/mocks/accounts';
 import { Table } from '@/components/common/Table';
 import type { Column } from '@/components/common/Table';
 import type { Role } from '@/interface/account';
 import styles from '../../Admin.module.scss';
 
-const ROLES: Role[] = ['admin', 'office', 'institution'];
-
-/** 관리자 콘솔은 내비게이션 규칙 바깥에 있어 손으로 한 줄 세운다 */
-const ADMIN_CONSOLE_ROW = {
-  section: '관리자 콘솔',
-  allowed: { admin: true, office: false, group: false, institution: false },
-} as const;
+const ROLES: Role[] = SELECTABLE_ROLES;
 
 interface MatrixRow {
   section: string;
   allowed: Record<Role, boolean>;
 }
+
+/** 어느 등급도 못 보는 상태에서 시작해 실제 규칙으로 켜 나간다 */
+const NONE_ALLOWED = (): Record<Role, boolean> => ({
+  guest: false,
+  customer: false,
+  group: false,
+  admin: false,
+  developer: false,
+});
 
 /**
  * 계정 종류별 접근 화면 (SFR-023).
@@ -30,13 +33,11 @@ interface MatrixRow {
 export function AccessMatrix() {
   const rows: MatrixRow[] = useMemo(() => {
     const bySection = new Map<string, MatrixRow>(
-      NAVIGATION.map((section) => [
-        section.label,
-        { section: section.label, allowed: { admin: false, office: false, group: false, institution: false } },
-      ]),
+      NAVIGATION.map((section) => [section.label, { section: section.label, allowed: NONE_ALLOWED() }]),
     );
 
-    bySection.set(ADMIN_CONSOLE_ROW.section, { ...ADMIN_CONSOLE_ROW, allowed: { ...ADMIN_CONSOLE_ROW.allowed } });
+    // 관리자 콘솔은 내비게이션 규칙 바깥에 있어 손으로 한 줄 세운다.
+    bySection.set('관리자 콘솔', { section: '관리자 콘솔', allowed: { ...NONE_ALLOWED(), admin: true } });
 
     ROLES.forEach((role) => {
       visibleNavigation(role).forEach((section) => {

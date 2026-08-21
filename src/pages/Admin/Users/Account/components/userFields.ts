@@ -1,7 +1,10 @@
 import type { ManagedUser, Role } from '@/interface/account';
 
-/** 비밀번호 규칙 — 서버 정규식을 그대로 쓴다 (영문·숫자·특수문자 포함 8~20자). */
-export const PASSWORD_RULE = /^(?=.*[0-9])(?=.*[a-zA-Z])(?=.*\W)(?=\S+$).{8,20}$/;
+/** 비밀번호 규칙 — 영대문자·영소문자·숫자·특수문자를 각 하나 이상, 공백 없이 8~20자. */
+export const PASSWORD_RULE = /^(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.*[^A-Za-z0-9\s])(?=\S+$).{8,20}$/;
+
+/** 폼 힌트와 오류 문구가 갈리지 않게 규칙을 한 문장으로 적어 둔다 */
+export const PASSWORD_HINT = '영대문자·소문자·숫자·특수문자 각 1개 이상, 8~20자';
 
 /** 로그인 계정에 쓸 수 있는 글자 */
 export const LOGIN_ID = /^[A-Za-z0-9_]{4,20}$/;
@@ -33,7 +36,7 @@ export const TRACKED: { key: keyof UserDraft & keyof ManagedUser; label: string 
   { key: 'name', label: '이름' },
   { key: 'email', label: '이메일' },
   { key: 'phone', label: '연락처' },
-  { key: 'role', label: '권한' },
+  { key: 'role', label: '등급' },
 ];
 
 export const EMPTY_DRAFT: UserDraft = {
@@ -41,7 +44,7 @@ export const EMPTY_DRAFT: UserDraft = {
   password: '',
   passwordConfirm: '',
   name: '',
-  role: 'institution',
+  role: 'customer',
   email: '',
   phone: '',
 };

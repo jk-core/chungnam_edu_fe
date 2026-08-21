@@ -101,7 +101,7 @@ export function AccountMenu({ onOpenHelp }: AccountMenuProps) {
           >
             <div className={styles.panel__head}>
               <p className={styles.panel__name}>
-                {user.name} <Badge tone={user.role === 'institution' ? 'neutral' : 'brand'}>{ROLE_LABEL[user.role]}</Badge>
+                {user.name} <Badge tone={user.role === 'admin' ? 'brand' : 'neutral'}>{ROLE_LABEL[user.role]}</Badge>
               </p>
               <p className={styles.panel__org}>
                 {user.orgName} · {user.department}

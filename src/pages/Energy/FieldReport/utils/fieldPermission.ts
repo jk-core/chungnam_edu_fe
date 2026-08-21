@@ -31,14 +31,14 @@ const FIELD_LAST_STATE: ReportState = 'submitted';
 const REJECTABLE: ReportState[] = ['submitted', 'reviewing'];
 
 export function getFieldPermission(user: AuthUser | null): FieldPermission {
-  const role = user?.role ?? 'institution';
+  const role = user?.role ?? 'customer';
   const ownPlants = user?.plantIds ?? [];
 
   const canRead = (report: FieldReport) => (
-    role === 'institution' && ownPlants.length > 0 ? ownPlants.includes(report.schoolId) : true
+    role === 'customer' && ownPlants.length > 0 ? ownPlants.includes(report.schoolId) : true
   );
 
-  if (role === 'office') {
+  if (role === 'guest') {
     return {
       canWrite: false,
       writeBlockedReason: '작성은 학교 담당자 권한입니다. 제출된 보고서를 검토·확인하거나 반려할 수 있습니다.',
@@ -51,7 +51,7 @@ export function getFieldPermission(user: AuthUser | null): FieldPermission {
     };
   }
 
-  if (role === 'institution') {
+  if (role === 'customer') {
     return {
       canWrite: true,
       canShare: true,

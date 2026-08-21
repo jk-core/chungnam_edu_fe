@@ -111,7 +111,7 @@ export function GroupEditor({ userId }: GroupEditorProps) {
         title={isNew ? '그룹관리자 등록' : `${target.name} 담당 발전소`}
         description="여기서 고른 발전소만 그 사람의 화면에 보입니다."
         backTo={backTo}
-        danger={isNew ? null : <Button variant="danger" onClick={() => setIsDeleting(true)}>계정 삭제</Button>}
+        danger={isNew ? null : <Button variant="solar" onClick={() => setIsDeleting(true)}>계정 삭제</Button>}
         footer={(
           <>
             <Button variant="secondary" onClick={() => navigate(backTo)}>취소</Button>

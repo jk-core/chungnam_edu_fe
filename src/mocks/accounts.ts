@@ -25,7 +25,7 @@ export const ACCOUNTS: AuthUser[] = [
   {
     id: 'cne-office',
     name: '박세연',
-    role: 'office',
+    role: 'guest',
     orgName: '충청남도교육청',
     department: '시설과',
     email: 'office@cne.go.kr',
@@ -34,7 +34,7 @@ export const ACCOUNTS: AuthUser[] = [
   {
     id: 'school-cheonan',
     name: '이준서',
-    role: 'institution',
+    role: 'customer',
     orgName: institutionSchool?.name ?? '천안 소재 학교',
     department: '행정실',
     email: 'school@cne.go.kr',
@@ -43,18 +43,26 @@ export const ACCOUNTS: AuthUser[] = [
 ];
 
 export const ROLE_LABEL: Record<Role, string> = {
-  admin: '교육청 관리자',
-  office: '교육청 담당자',
+  guest: '게스트',
+  customer: '수용가',
   group: '그룹관리자',
-  institution: '교육기관 담당자',
+  admin: '관리자',
+  developer: '개발자',
 };
 
-/** 역할별로 무엇까지 볼 수 있는지 — 로그인 화면과 계정 메뉴에서 그대로 쓴다. */
+/**
+ * 화면에서 고를 수 있는 등급.
+ * 개발자는 뺀다 — 등급 선택지에도 사용자 목록에도 세우지 않는다.
+ */
+export const SELECTABLE_ROLES: Role[] = ['guest', 'customer', 'group', 'admin'];
+
+/** 등급별로 무엇까지 볼 수 있는지 — 로그인 화면과 계정 메뉴에서 그대로 쓴다. */
 export const ROLE_SCOPE_NOTE: Record<Role, string> = {
-  admin: '전체 발전소 조회와 관리자 콘솔을 씁니다.',
-  office: '전체 발전소를 조회만 합니다.',
+  guest: '전체 발전소를 조회만 합니다.',
+  customer: '자기 발전소의 설비만 조회합니다.',
   group: '맡은 발전소 여러 곳을 함께 조회합니다.',
-  institution: '담당 학교의 설비만 조회합니다.',
+  admin: '전체 발전소 조회와 관리자 콘솔을 씁니다.',
+  developer: '전체를 보고 관리자 콘솔을 씁니다. 화면에는 세우지 않습니다.',
 };
 
 const ACCOUNT_BY_ID = new Map(ACCOUNTS.map((account) => [account.id, account]));
@@ -81,7 +89,7 @@ function buildManagedUsers(): ManagedUser[] {
     email: account.email,
     phone: account.role === 'admin' ? '010-2841-0114' : '010-3517-0132',
     plantIds: account.plantIds,
-    lastLoginAt: stampAgo(account.role === 'institution' ? 1 : 0, `09:0${Math.round(pickNumber(next, 0, 9))}`),
+    lastLoginAt: stampAgo(account.role === 'customer' ? 1 : 0, `09:0${Math.round(pickNumber(next, 0, 9))}`),
     locked: false,
   }));
 
@@ -94,14 +102,15 @@ function buildManagedUsers(): ManagedUser[] {
       userId: ACCOUNTS.length + index + 1,
       loginId: `mgr${String(index + 11)}`,
       name,
-      role: 'institution',
+      role: 'customer',
       email: `mgr${String(index + 11)}@school.cne.go.kr`,
       phone: `010-${String(3000 + Math.round(pickNumber(next, 0, 6999)))}-${String(1000 + Math.round(pickNumber(next, 0, 8999)))}`,
       plantIds: [school.id],
       lastLoginAt: neverLoggedIn
         ? null
         : stampAgo(Math.round(pickNumber(next, 0, 20)), `1${Math.round(pickNumber(next, 0, 7))}:${10 + Math.round(pickNumber(next, 0, 49))}`),
-      locked: next() > 0.94,
+      // 잠긴 계정은 확률에 맡기지 않는다 — 한 건도 안 나오면 해제 화면을 볼 길이 없다.
+      locked: index % 9 === 4,
     };
   });
 
@@ -134,7 +143,7 @@ export const SEED_USERS: ManagedUser[] = buildManagedUsers();
  * 학교는 인사이동으로 담당자가 자주 바뀌므로, 최근 몇 건을 미리 깔아 둔다.
  */
 export const SEED_USER_CHANGES: UserChange[] = (() => {
-  const targets = SEED_USERS.filter((user) => user.role === 'institution').slice(1, 5);
+  const targets = SEED_USERS.filter((user) => user.role === 'customer').slice(1, 5);
 
   const rows: (Omit<UserChange, 'id' | 'userId' | 'userName'> & { index: number })[] = [
     { index: 0, at: stampAgo(4, '14:20'), actor: '김도현', field: '연락처', before: '041-000-0000', after: targets[0]?.phone ?? '-' },
@@ -147,7 +156,7 @@ export const SEED_USER_CHANGES: UserChange[] = (() => {
       before: '010-0000-0000',
       after: targets[2]?.phone ?? '-',
     },
-    { index: 3, at: stampAgo(23, '09:31'), actor: '김도현', field: '권한', before: ROLE_LABEL.office, after: ROLE_LABEL.institution },
+    { index: 3, at: stampAgo(23, '09:31'), actor: '김도현', field: '등급', before: ROLE_LABEL.guest, after: ROLE_LABEL.customer },
   ];
 
   return rows

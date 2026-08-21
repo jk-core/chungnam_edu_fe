@@ -25,9 +25,9 @@ export function AccountTree() {
     [userCreated, userPatched, userDeleted],
   );
 
-  const institutionUsers = users.filter((user) => user.role === 'institution');
+  const customerUsers = users.filter((user) => user.role === 'customer');
   const adminCount = users.filter((user) => user.role === 'admin').length;
-  const staffCount = users.filter((user) => user.role === 'office').length;
+  const guestCount = users.filter((user) => user.role === 'guest').length;
   const groupCount = users.filter((user) => user.role === 'group').length;
 
   return (
@@ -41,12 +41,12 @@ export function AccountTree() {
             <span className={styles.orgNode__name}>충청남도교육청</span>
             <Badge tone="brand">본청</Badge>
             <span className={styles.orgNode__meta}>
-              관리자 {adminCount}명 · 담당자 {staffCount}명 · 그룹관리자 {groupCount}명
+              관리자 {adminCount}명 · 게스트 {guestCount}명 · 그룹관리자 {groupCount}명
             </span>
           </div>
 
           <div className={styles.orgTree__branch}>
-            {institutionUsers.slice(0, BRANCH_LIMIT).map((user) => (
+            {customerUsers.slice(0, BRANCH_LIMIT).map((user) => (
               <div key={user.id} className={styles.orgNode}>
                 {/* 교육기관 계정은 소속을 따로 적지 않고 담당 학교로 묶인다. */}
                 <span className={styles.orgNode__name}>
@@ -59,7 +59,7 @@ export function AccountTree() {
               </div>
             ))}
             <p className={styles.toolbar__note}>
-              … 외 교육기관 계정 {Math.max(0, institutionUsers.length - BRANCH_LIMIT)}개
+              … 외 교육기관 계정 {Math.max(0, customerUsers.length - BRANCH_LIMIT)}개
             </p>
           </div>
         </div>

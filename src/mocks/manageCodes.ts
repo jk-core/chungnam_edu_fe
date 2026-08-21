@@ -13,22 +13,24 @@ import { REGIONS } from './regions';
 // ── 사용자 권한 (userTypeCode) ─────────────────────────────
 
 export const USER_TYPE_CODE = {
-  admin: 2001,
-  office: 2003,
+  guest: 2001,
+  customer: 2002,
   group: 2006,
-  institution: 2002,
+  admin: 2998,
+  developer: 2999,
 } as const satisfies Record<Role, number>;
 
 export const USER_TYPE_NAME: Record<number, string> = {
-  2001: '교육청 관리자',
-  2003: '교육청 담당자',
+  2001: '게스트',
+  2002: '수용가',
   2006: '그룹관리자',
-  2002: '교육기관 담당자',
+  2998: '관리자',
+  2999: '개발자',
 };
 
-/** 코드에서 역할로 되돌린다 — 목록 응답이 코드만 줄 때 쓴다. */
+/** 코드에서 등급으로 되돌린다 — 목록 응답이 코드만 줄 때 쓴다. */
 export function roleOfUserType(code: number): Role {
-  return (Object.keys(USER_TYPE_CODE) as Role[]).find((role) => USER_TYPE_CODE[role] === code) ?? 'institution';
+  return (Object.keys(USER_TYPE_CODE) as Role[]).find((role) => USER_TYPE_CODE[role] === code) ?? 'guest';
 }
 
 // ── 인버터 타입 (inverterTypeCode) ─────────────────────────

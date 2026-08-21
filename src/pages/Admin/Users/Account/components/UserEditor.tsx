@@ -7,13 +7,14 @@ import { FormRow, FormSection, PasswordField, RadioGroup, TextField } from '@/co
 import { listPath } from '@/pages/Admin/_shared/adminPath';
 import { MSG } from '@/configs/messages';
 import { useManagedUsers } from '@/pages/Admin/Plants/Equipment/hooks/useEquipmentPickers';
-import { ROLE_LABEL } from '@/mocks/accounts';
+import { ROLE_LABEL, ROLE_SCOPE_NOTE, SELECTABLE_ROLES } from '@/mocks/accounts';
 import { toast } from '@/stores/toastStore';
 import useAssetStore from '@/stores/assetStore';
 import type { ManagedUser, Role, UserChange } from '@/interface/account';
 import { formatPhone } from '@/utils/format';
+import styles from '@/pages/Admin/Admin.module.scss';
 import { useUserChangeLog } from '../hooks/useUserChangeLog';
-import { draftOf, EMAIL, EMAIL_MAX, LOGIN_ID, NAME_MAX, PASSWORD_RULE, TRACKED } from './userFields';
+import { draftOf, EMAIL, EMAIL_MAX, LOGIN_ID, NAME_MAX, PASSWORD_HINT, PASSWORD_RULE, TRACKED } from './userFields';
 import type { UserDraft } from './userFields';
 
 interface UserEditorProps {
@@ -24,6 +25,7 @@ interface UserEditorProps {
 /** 사용자 등록·수정 (SFR-018) */
 export function UserEditor({ userId }: UserEditorProps) {
   const saveUser = useAssetStore((state) => state.saveUser);
+  const patchUser = useAssetStore((state) => state.patchUser);
   const nextUserId = useAssetStore((state) => state.nextUserId);
   const nextUserSeq = useAssetStore((state) => state.nextUserSeq);
   const removeUser = useAssetStore((state) => state.removeUser);
@@ -114,6 +116,13 @@ export function UserEditor({ userId }: UserEditorProps) {
     navigate(backTo);
   };
 
+  const unlock = () => {
+    if (!target) return;
+
+    patchUser(target.id, { locked: false }, [entryOf(target, '계정 잠금', '잠김', '해제')]);
+    toast.success(`${target.name} 계정 잠금을 풀었습니다.`);
+  };
+
   const remove = () => {
     if (!target) return;
 
@@ -131,7 +140,7 @@ export function UserEditor({ userId }: UserEditorProps) {
         title={isNew ? '사용자 등록' : '사용자 수정'}
         description="교육기관 담당자는 소속 학교의 설비만 조회할 수 있습니다."
         backTo={backTo}
-        danger={isNew ? null : <Button variant="danger" onClick={() => setIsDeleting(true)}>계정 삭제</Button>}
+        danger={isNew ? null : <Button variant="solar" onClick={() => setIsDeleting(true)}>계정 삭제</Button>}
         footer={(
           <>
             <Button variant="secondary" onClick={() => navigate(backTo)}>취소</Button>
@@ -196,10 +205,10 @@ export function UserEditor({ userId }: UserEditorProps) {
               value={draft.password}
               onChange={(value) => change({ password: value })}
               width="full"
-              hint={isNew ? '영문·숫자·특수문자 8~20자' : '바꿀 때만 입력'}
+              hint={isNew ? PASSWORD_HINT : `바꿀 때만 입력 · ${PASSWORD_HINT}`}
               required={isNew}
               error={error && (isNew || Boolean(draft.password)) && !PASSWORD_RULE.test(draft.password)
-                ? '영문·숫자·특수문자를 섞어 8~20자로 넣어 주세요.'
+                ? `${PASSWORD_HINT}로 넣어 주세요.`
                 : undefined}
             />
           </FormRow>
@@ -216,16 +225,22 @@ export function UserEditor({ userId }: UserEditorProps) {
           </FormRow>
         </FormSection>
 
-        <FormSection legend="권한">
+        {target?.locked ? (
+          <FormSection legend="계정 잠금" hint="로그인 실패가 누적돼 잠긴 계정입니다. 풀어 주면 바로 다시 접속합니다.">
+            <Button variant="secondary" className={styles.sectionAction} onClick={unlock}>잠금 해제</Button>
+          </FormSection>
+        ) : null}
+
+        <FormSection legend="등급" hint={ROLE_SCOPE_NOTE[draft.role]}>
           <RadioGroup
-            legend="역할"
+            legend="사용자 등급"
             value={draft.role}
             onChange={(value) => change({ role: value })}
-            options={[
-              { value: 'institution', label: ROLE_LABEL.institution },
-              { value: 'office', label: ROLE_LABEL.office },
-              { value: 'admin', label: ROLE_LABEL.admin, tone: 'brand' },
-            ]}
+            options={SELECTABLE_ROLES.map((role) => ({
+              value: role,
+              label: ROLE_LABEL[role],
+              tone: role === 'admin' ? ('brand' as const) : undefined,
+            }))}
             required
           />
         </FormSection>

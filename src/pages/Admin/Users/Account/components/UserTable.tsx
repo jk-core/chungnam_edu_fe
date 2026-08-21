@@ -2,27 +2,20 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { editPath } from '@/pages/Admin/_shared/adminPath';
 import { Badge } from '@/components/common/Badge';
-import { Button } from '@/components/common/Button';
 import { Card } from '@/components/common/Card';
 import { DEFAULT_PAGE_SIZE, Pagination } from '@/components/common/Pagination';
 import { MaskedText } from '@/components/common/MaskedText';
 import { maskEmail } from '@/utils/mask';
-import { NOW } from '@/mocks/today';
 import { Reveal } from '@/components/common/Reveal';
 import { ROLE_LABEL } from '@/mocks/accounts';
 import { Table } from '@/components/common/Table';
-import { toast } from '@/stores/toastStore';
-import useAssetStore from '@/stores/assetStore';
 import type { Column } from '@/components/common/Table';
 import type { ManagedUser } from '@/interface/account';
 import styles from '@/pages/Admin/Admin.module.scss';
-import { useUserChangeLog } from '../hooks/useUserChangeLog';
 
-/** 사용자 목록 (SFR-018). 잠금 해제와 비밀번호 초기화는 이 자리에서 바로 한다. */
+/** 사용자 목록 (SFR-018). 잠긴 계정은 줄을 눌러 수정 화면에서 풀어 준다. */
 export function UserTable({ rows }: { rows: ManagedUser[] }) {
   const navigate = useNavigate();
-  const patchUser = useAssetStore((state) => state.patchUser);
-  const entryOf = useUserChangeLog();
 
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(DEFAULT_PAGE_SIZE);
@@ -37,15 +30,6 @@ export function UserTable({ rows }: { rows: ManagedUser[] }) {
   const pageCount = Math.max(1, Math.ceil(rows.length / pageSize));
   const currentPage = Math.min(page, pageCount);
   const pageRows = rows.slice((currentPage - 1) * pageSize, currentPage * pageSize);
-
-  const unlock = (target: ManagedUser) => {
-    patchUser(target.id, { locked: false }, [entryOf(target, '계정 잠금', '잠김', '해제')]);
-    toast.success(`${target.name} 계정 잠금을 풀었습니다.`);
-  };
-
-  const resetPassword = (target: ManagedUser) => {
-    toast.success(`${target.name} 계정에 임시 비밀번호를 보냈습니다. (${NOW.format('HH:mm')} 기준)`);
-  };
 
   const columns: Column<ManagedUser>[] = [
     {
@@ -64,7 +48,7 @@ export function UserTable({ rows }: { rows: ManagedUser[] }) {
     },
     {
       key: 'role',
-      header: '권한',
+      header: '등급',
       width: '120px',
       render: (row) => <Badge tone={row.role === 'admin' ? 'brand' : 'neutral'}>{ROLE_LABEL[row.role]}</Badge>,
     },
@@ -82,43 +66,13 @@ export function UserTable({ rows }: { rows: ManagedUser[] }) {
       hideOnTablet: true,
       render: (row) => row.lastLoginAt ?? '이력 없음',
     },
-    {
-      key: 'action',
-      header: '계정',
-      width: '140px',
-      align: 'center',
-      // 줄을 누르면 수정으로 들어가는 자리다 — 여기 버튼까지 타고 올라가면 둘이 함께 열린다.
-      render: (row) => (row.locked ? (
-        <Button
-          size="sm"
-          variant="secondary"
-          onClick={(event) => {
-            event.stopPropagation();
-            unlock(row);
-          }}
-        >
-          잠금 해제
-        </Button>
-      ) : (
-        <Button
-          size="sm"
-          variant="ghost"
-          onClick={(event) => {
-            event.stopPropagation();
-            resetPassword(row);
-          }}
-        >
-          비번 초기화
-        </Button>
-      )),
-    },
   ];
 
   return (
     <Reveal>
-      <Card title="설비 담당자" description="로그인 실패가 누적돼 잠긴 계정은 여기서 풀어 줍니다.">
+      <Card title="사용자" description="줄을 누르면 계정 정보를 고칩니다. 잠긴 계정도 그 화면에서 풀어 줍니다.">
         <Table
-          caption="사용자 목록. 로그인 ID와 이름, 권한, 이메일, 마지막 로그인 순입니다."
+          caption="사용자 목록. 로그인 ID와 이름, 등급, 이메일, 마지막 로그인 순입니다."
           columns={columns}
           rows={pageRows}
           getRowKey={(row) => row.id}

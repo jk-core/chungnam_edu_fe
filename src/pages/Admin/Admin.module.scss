@@ -160,6 +160,11 @@
   gap: s.$space-6;
 }
 
+/* 폼 한가운데 서는 단발 액션. 버튼이 칸처럼 늘어나지 않게 제 너비로 세운다. */
+.sectionAction {
+  align-self: flex-start;
+}
+
 .rate {
   display: flex;
   align-items: center;

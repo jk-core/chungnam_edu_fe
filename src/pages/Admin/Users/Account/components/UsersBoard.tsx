@@ -23,8 +23,12 @@ export function UsersBoard() {
   const [keyword, setKeyword] = useState('');
 
   const users = useMemo(() => {
-    // 그룹관리자는 맡은 발전소가 본체라 옆 탭에서 따로 다룬다.
-    const all = mergeUsers(userCreated, userPatched, userDeleted).filter((user) => user.role !== 'group');
+    /*
+      그룹관리자는 맡은 발전소가 본체라 옆 탭에서 따로 다룬다.
+      개발자는 화면에 세우지 않는다 — 서버도 목록에서 빼고 내려준다.
+    */
+    const all = mergeUsers(userCreated, userPatched, userDeleted)
+      .filter((user) => user.role !== 'group' && user.role !== 'developer');
     const trimmed = keyword.trim();
 
     return trimmed

@@ -28,7 +28,11 @@ export function MaskedText({ masked, original, label }: MaskedTextProps) {
           className={styles.masked__toggle}
           aria-label={isRevealed ? `${label} 다시 가리기` : `${label} 원문 보기`}
           aria-pressed={isRevealed}
-          onClick={() => setIsRevealed((prev) => !prev)}
+          onClick={(event) => {
+            // 누르는 줄 자체가 다른 곳으로 들어가는 자리일 수 있다 — 가림만 풀고 거기서 멈춘다.
+            event.stopPropagation();
+            setIsRevealed((prev) => !prev);
+          }}
         >
           {isRevealed ? <EyeOffIcon width={15} height={15} /> : <EyeIcon width={15} height={15} />}
         </button>
