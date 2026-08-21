@@ -290,13 +290,18 @@
   지역 위치 지도.
 
   도를 지역별로 나눠 두고 지금 읽는 지역만 물들인다 — 요약 글만으로는 그 지역이 도 안에서
-  어디쯤인지 알 수 없다. 나뉜 경계는 중심점 사이의 등거리선으로 근사한 것이라 실제
-  행정경계와 똑같지는 않지만, 자리를 잡아 주기에는 충분하다.
+  어디쯤인지 알 수 없다.
+
+  충남 바깥은 판 바탕색 하나로 둔다. 이웃 시·도 면은 그리지 않는다 — 그림의 네 변에 맞춰
+  잘려 있어 테두리를 두르면 판이 끝나는 자리에 곧은 선이 남고, 한 지역을 당겨 보면 그 선이
+  화면 한복판을 가로지른다. 바탕 한 장 위에 충남만 떠 있게 두면 그런 자국이 생기지 않는다.
 */
 .map {
   width: 100%;
   height: 190px;
   flex-shrink: 0;
+  border-radius: 5px;
+  background-color: color-mix(in srgb, var(--surface-sunken) 60%, var(--surface));
   overflow: hidden;
 
   /* 당길 때 미끄러지듯 따라간다 — 뷰박스는 부드럽게 바뀌지 않아 안쪽 묶음을 옮긴다 */
@@ -313,18 +318,12 @@
 
     도 하나가 통째로 보이면 어느 칸이 어느 지역인지 알 수 없다. 선은 또렷하게 긋되 굵기는
     당겨도 그대로 두어(non-scaling-stroke), 확대했을 때 선만 두꺼워지지 않게 한다.
-    이웃 시·도는 한 단 낮춰 깔아 충남이 도드라지게 한다.
   */
   &__cell {
     fill: var(--surface-sunken);
     stroke: var(--border-strong);
     stroke-width: 0.9;
     transition: fill 0.4s ease, stroke 0.4s ease;
-
-    &[data-kind="neighbor"] {
-      fill: color-mix(in srgb, var(--surface-sunken) 60%, transparent);
-      stroke: var(--border-subtle);
-    }
 
     &[data-on] {
       fill: color-mix(in srgb, var(--tone) 26%, transparent);

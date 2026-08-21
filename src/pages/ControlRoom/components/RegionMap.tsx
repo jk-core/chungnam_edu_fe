@@ -1,57 +1,54 @@
 import { OPERATION_LABEL, OPERATION_TONE } from '@/mocks/status';
-import { REGION_BOX, REGION_SHAPES, REGION_VIEW } from '@/assets/geo/chungnamRegions';
+import { REGION_BOUNDS, REGION_BOX, REGION_SHAPE_BOX, REGION_SHAPES, REGION_VIEW } from '@/assets/geo/chungnamRegions';
+import { PLANT_MAP_POINTS } from '@/assets/geo/plantMapPoints';
 import type { School } from '@/interface/energy';
-import { CHUNGNAM_BOUNDS } from '@/components/common/GeoMap/useMapProjection';
 import styles from './AiDiagnosisPanel.module.scss';
 
 /**
  * 한 지역을 볼 때 당기는 정도.
  *
- * 칸을 화면에 꽉 채우면 그 지역만 남아 도 어디쯤인지를 잃는다. 여백을 넉넉히 두고 최대
- * 배율도 묶어, 당겨도 이웃 지역의 윤곽이 함께 보이게 한다.
+ * 그 시·군의 면이 판 안에 다 들어오도록 맞추되, 꽉 채우지는 않는다 — 가장자리에 여백을 두어야
+ * 이웃 지역의 윤곽이 함께 보이고 도 어디쯤인지를 잃지 않는다. 계룡시처럼 좁은 곳은 배율이
+ * 끝없이 올라가므로 상한을 둔다.
  */
-const ZOOM_FILL = 0.8;
-const ZOOM_MAX = 3;
+const ZOOM_FILL = 0.78;
+const ZOOM_MAX = 6;
 
-/** 점과 선의 굵기는 판(600 x 516) 기준이다 */
-const DOT_R = 6;
-const DOT_STROKE = 2;
+/** 점과 선의 굵기는 판(600 x 516) 기준이다 — 당긴 배율로 나눠 화면에서는 늘 같은 크기로 보인다 */
+const DOT_R = 11;
+const DOT_STROKE = 2.6;
+
+/** 판 가장자리에서 점이 잘리지 않게 두는 여백 */
+const EDGE_PAD = 6;
+
+function clamp(value: number, min: number, max: number) {
+  return Math.min(max, Math.max(min, value));
+}
 
 /**
  * 위경도를 지도 판 좌표로 옮긴다.
  * 시·군 면이 차지하는 상자에 충남의 위경도 범위를 맞춰 선형으로 대응시킨다.
+ * 도형에 섬이 없는 도서 분교는 판 밖으로 나가므로 가장자리에 붙여 둔다 — 지워 버리면
+ * 「N개소」 를 세는 요약 글과 지도 위 점 수가 어긋난다.
  */
 function project(point: { lng: number; lat: number }) {
-  const lngRatio = (point.lng - CHUNGNAM_BOUNDS.minLng) / (CHUNGNAM_BOUNDS.maxLng - CHUNGNAM_BOUNDS.minLng);
-  const latRatio = (CHUNGNAM_BOUNDS.maxLat - point.lat) / (CHUNGNAM_BOUNDS.maxLat - CHUNGNAM_BOUNDS.minLat);
+  const lngRatio = (point.lng - REGION_BOUNDS.minLng) / (REGION_BOUNDS.maxLng - REGION_BOUNDS.minLng);
+  const latRatio = (REGION_BOUNDS.maxLat - point.lat) / (REGION_BOUNDS.maxLat - REGION_BOUNDS.minLat);
 
   return {
-    x: REGION_BOX.x + lngRatio * REGION_BOX.width,
-    y: REGION_BOX.y + latRatio * REGION_BOX.height,
+    x: clamp(REGION_BOX.x + lngRatio * REGION_BOX.width, EDGE_PAD, REGION_VIEW.width - EDGE_PAD),
+    y: clamp(REGION_BOX.y + latRatio * REGION_BOX.height, EDGE_PAD, REGION_VIEW.height - EDGE_PAD),
   };
 }
 
 /**
- * 그 지역 발전소가 퍼져 있는 상자.
- * 시·군 면의 경로를 재려면 그리기 전에는 알 수 없으므로, 그 안의 발전소 자리로 대신 잡는다.
+ * 발전소 한 곳이 판에서 앉는 자리.
+ * 미리 재 둔 값이 있으면 그것을 쓴다 — 경계에 붙은 학교를 자기 시·군 면 안으로 밀어 넣은 값이다.
  */
-function spreadOf(plants: School[]) {
-  const points = plants.map((plant) => project(plant.location));
-  const xs = points.map((point) => point.x);
-  const ys = points.map((point) => point.y);
+function pointOf(plant: School) {
+  const fixed = PLANT_MAP_POINTS[plant.id];
 
-  if (points.length === 0) return null;
-
-  const minX = Math.min(...xs);
-  const minY = Math.min(...ys);
-
-  return {
-    x: minX,
-    y: minY,
-    // 한 곳뿐이면 넓이가 0 이라 당길 배율을 낼 수 없다 — 최소 크기를 준다.
-    width: Math.max(Math.max(...xs) - minX, 60),
-    height: Math.max(Math.max(...ys) - minY, 60),
-  };
+  return fixed ? { x: fixed[0], y: fixed[1] } : project(plant.location);
 }
 
 interface RegionMapProps {
@@ -69,12 +66,12 @@ interface RegionMapProps {
  * 발전소는 상태 색 점으로 찍어 요약 글의 「N개소 정상·이상」 이 지도 위에서 그대로 세어진다.
  */
 export function RegionMap({ name, plants }: RegionMapProps) {
-  const spread = spreadOf(plants);
-  const zoom = spread
-    ? Math.min(ZOOM_MAX, Math.max(1, Math.min(REGION_VIEW.width / spread.width, REGION_VIEW.height / spread.height) * ZOOM_FILL))
+  const box = REGION_SHAPE_BOX[name] ?? null;
+  const zoom = box
+    ? clamp(Math.min(REGION_VIEW.width / box.width, REGION_VIEW.height / box.height) * ZOOM_FILL, 1, ZOOM_MAX)
     : 1;
-  const centerX = spread ? spread.x + spread.width / 2 : REGION_VIEW.width / 2;
-  const centerY = spread ? spread.y + spread.height / 2 : REGION_VIEW.height / 2;
+  const centerX = box ? box.x + box.width / 2 : REGION_VIEW.width / 2;
+  const centerY = box ? box.y + box.height / 2 : REGION_VIEW.height / 2;
   const shiftX = REGION_VIEW.width / 2 - centerX * zoom;
   const shiftY = REGION_VIEW.height / 2 - centerY * zoom;
 
@@ -94,7 +91,6 @@ export function RegionMap({ name, plants }: RegionMapProps) {
           <path
             key={shape.id}
             className={styles.map__cell}
-            data-kind={shape.kind}
             data-on={shape.region === name ? '' : undefined}
             d={shape.d}
             transform={shape.transform}
@@ -103,7 +99,7 @@ export function RegionMap({ name, plants }: RegionMapProps) {
         ))}
 
         {plants.map((plant) => {
-          const point = project(plant.location);
+          const point = pointOf(plant);
 
           return (
             <circle
