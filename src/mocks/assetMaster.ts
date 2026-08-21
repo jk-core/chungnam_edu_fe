@@ -12,15 +12,6 @@ const BUILDERS = [
   { name: '서해태양광', phone: '041-664-4400' },
 ];
 
-const MONITORS = [
-  { name: '에너지아이티', phone: '02-6205-1000' },
-  { name: '솔라뷰시스템', phone: '031-702-2000' },
-  { name: '그린와트', phone: '042-825-3000' },
-];
-
-const CUSTOMER_SURNAME = ['김', '이', '박', '최', '정', '한', '오', '서'];
-const CUSTOMER_GIVEN = ['민준', '서연', '지후', '현우', '수빈', '예린', '도윤', '하은'];
-
 const RTU_MAKERS = ['에이치에너지', '나눔에너지', '해줌', '솔라커넥트'];
 const ADDRESS_DETAILS = ['본관 옥상', '체육관 옥상', '급식동 옥상', '별관 옥상', '주차장 캐노피'];
 
@@ -43,15 +34,11 @@ function buildAsset(schoolIndex: number): PlantAsset {
     installedAt: school.installedAt,
     rtuEntName: pickOne(next, RTU_MAKERS),
     builder: pickOne(next, BUILDERS),
-    monitoring: pickOne(next, MONITORS),
-    customer: {
-      name: `${pickOne(next, CUSTOMER_SURNAME)}${pickOne(next, CUSTOMER_GIVEN)}`,
-      phone: `010-${String(1000 + Math.floor(next() * 9000))}-${String(1000 + Math.floor(next() * 9000))}`,
-    },
     userId: OWNER_BY_PLANT.get(school.id) ?? null,
     // 일사량계는 학교마다 한 대씩 서 있고, 번호가 학교 순서를 따른다.
     irradId: schoolIndex + 1,
-    level: school.level,
+    // 시드는 모두 학교다 — 기관은 화면에서 새로 등록하며 들어온다.
+    plantType: school.level,
     etc: '',
   };
 }
@@ -72,10 +59,10 @@ export const SEED_ASSET_CHANGES: AssetChange[] = [
     plantName: SEED_ASSETS[3].plantName,
     at: stampAgo(6, '15:12'),
     actor: '김도현',
-    field: '유지관리 업체',
+    field: 'RTU 업체',
     // 지금 값과 겹치지 않는 업체를 이전 값으로 둔다 — 같으면 이력이 바뀐 게 없어 보인다.
-    before: MONITORS.find((item) => item.name !== SEED_ASSETS[3].monitoring.name)?.name ?? MONITORS[0].name,
-    after: SEED_ASSETS[3].monitoring.name,
+    before: RTU_MAKERS.find((name) => name !== SEED_ASSETS[3].rtuEntName) ?? RTU_MAKERS[0],
+    after: SEED_ASSETS[3].rtuEntName,
   },
   {
     id: 'AC-2603',

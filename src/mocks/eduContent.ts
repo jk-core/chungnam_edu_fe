@@ -2,7 +2,7 @@ import { CO2_PER_KWH, CO2_PER_TREE_YEAR, kwhToHouseholdDays } from '@/utils/eco'
 import { formatNumber, formatPercent } from '@/utils/format';
 import type { AnalysisStage } from '@/interface/diagnosis';
 import type { EduLevel } from '@/interface/edu';
-import type { School, SchoolLevel } from '@/interface/energy';
+import type { PlantType, School } from '@/interface/energy';
 import { ELEMENTARY_CONTENT } from './eduElementary';
 import { FULL_SUN_WM2 } from './solarEdu';
 import { MIDDLE_CONTENT } from './eduMiddle';
@@ -35,11 +35,12 @@ export const EDU_LEVEL_LABEL: Record<EduLevel, string> = {
 };
 
 /** 학교급이 곧 눈높이다. 특수학교는 학령이 넓어 가장 쉽게 읽히는 초등 판을 기본으로 둔다. */
-const BY_SCHOOL_LEVEL: Record<SchoolLevel, EduLevel> = {
+const BY_SCHOOL_LEVEL: Record<PlantType, EduLevel> = {
   초등학교: 'elementary',
   중학교: 'middle',
   고등학교: 'high',
   특수학교: 'elementary',
+  기관: 'high',
 };
 
 /**

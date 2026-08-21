@@ -1,5 +1,5 @@
 import type { OperationStatus, RtuStatus } from '@/interface/status';
-import type { School, SchoolLevel } from '@/interface/energy';
+import type { PlantType, School, SchoolLevel } from '@/interface/energy';
 import { REGIONS } from './regions';
 import { countOperation, isProducing } from './status';
 import { createRandom, pickNumber, pickOne } from './random';
@@ -147,6 +147,9 @@ function buildSchools(): School[] {
 export const SCHOOLS: School[] = buildSchools();
 
 export const SCHOOL_LEVELS = LEVELS;
+
+/** 발전소 구분 (plantType) — 학교급 넷에 기관을 더한다 */
+export const PLANT_TYPES: PlantType[] = [...LEVELS, '기관'];
 
 export const STATUS_COUNT = countOperation(SCHOOLS);
 

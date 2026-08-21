@@ -1,5 +1,5 @@
+import type { PlantType } from './energy';
 import type { RtuStatus } from './status';
-import type { SchoolLevel } from './energy';
 
 /**
  * 발전소 등록 정보 (SFR-016).
@@ -13,7 +13,10 @@ export interface PlantAsset {
   /** 서버가 매기는 발전소 번호 (powerPlantId) */
   powerPlantId: number;
   plantName: string;
-  /** 시·군 코드 (regionCode) — 5자리 숫자 문자열 */
+  /**
+   * 시·군 코드 (regionCode) — 5자리 숫자 문자열.
+   * 주소 검색이 함께 돌려주는 값이라 폼에 세우지 않는다.
+   */
   regionCode: string;
   address: string;
   /** 상세 주소 (addressDetail) */
@@ -21,18 +24,14 @@ export interface PlantAsset {
   installedAt: string;
   /** RTU 업체 (rtuEntName) */
   rtuEntName: string;
-  /** 시공 업체 (constructEnterpriseName·Phone / installerName) */
+  /** 시공 업체 (installerName) */
   builder: { name: string; phone: string };
-  /** 유지관리 업체 (manageEnterpriseName·Phone) */
-  monitoring: { name: string; phone: string };
-  /** 수용가(계약) 정보 — 화면에서는 마스킹 대상 (SFR-016-04) */
-  customer: { name: string; phone: string };
-  /** 수용가 계정 번호 (userId) — 사용자 관리의 계정과 잇는다 */
+  /** 이 발전소를 맡은 사용자 (userId) — 사용자 관리의 계정과 잇는다 */
   userId: number | null;
   /** 연결한 일사량계 번호 (irradId) */
   irradId: number | null;
-  /** 학교급 (schoolType) */
-  level: SchoolLevel;
+  /** 구분 (plantType) */
+  plantType: PlantType;
   /** 비고 (etc) */
   etc: string;
 }

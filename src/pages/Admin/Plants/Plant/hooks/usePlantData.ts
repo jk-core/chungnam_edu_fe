@@ -1,16 +1,14 @@
 import { useCallback, useMemo } from 'react';
-import { REGION_CODES, regionNameOfCode } from '@/mocks/manageCodes';
+import { regionNameOfCode } from '@/mocks/manageCodes';
 import { REGIONS } from '@/mocks/regions';
 import { SCHOOLS } from '@/mocks/schools';
-import useAssetStore, { mergeAsset, mergeUsers } from '@/stores/assetStore';
+import useAssetStore, { mergeAsset } from '@/stores/assetStore';
 import useEquipmentStore, { mergeEquipment } from '@/stores/equipmentStore';
 import type { PlantAsset } from '@/interface/asset';
 import type { School } from '@/interface/energy';
 
 /** Select 에서 '지정 안 함'을 나타내는 값 */
 export const NONE = '';
-
-export const REGION_OPTIONS = REGION_CODES.map((item) => ({ value: item.regionCode, label: item.name }));
 
 /** 빈 값을 서버가 쓰는 null 로 되돌린다. */
 export function toId(value: string): number | null {
@@ -30,7 +28,7 @@ function toSchoolRow(asset: PlantAsset): School {
     name: asset.plantName,
     regionCode: region.code,
     regionName: region.name,
-    level: asset.level,
+    level: asset.plantType,
     address: asset.address,
     capacityKw: 0,
     inverterCount: 0,
@@ -87,25 +85,4 @@ export function usePlantRows(): School[] {
     () => [...plantCreated.map(toSchoolRow), ...SCHOOLS].filter((school) => !plantDeleted.includes(school.id)),
     [plantCreated, plantDeleted],
   );
-}
-
-/** 수용가로 이을 계정. 서버는 발전소마다 userId 하나를 들고 있다. */
-export function useCustomerAccounts() {
-  const userCreated = useAssetStore((state) => state.userCreated);
-  const userPatched = useAssetStore((state) => state.userPatched);
-  const userDeleted = useAssetStore((state) => state.userDeleted);
-
-  const users = useMemo(
-    () => mergeUsers(userCreated, userPatched, userDeleted),
-    [userCreated, userPatched, userDeleted],
-  );
-
-  return {
-    options: [
-      { value: NONE, label: '지정 안 함' },
-      ...users.map((item) => ({ value: String(item.userId), label: `${item.name} · ${item.loginId}` })),
-    ],
-    nameOf: (userId: number | null) =>
-      (userId === null ? null : users.find((item) => item.userId === userId)?.name) ?? '—',
-  };
 }

@@ -52,7 +52,7 @@ export function PlantTable({ rows }: { rows: School[] }) {
     },
     {
       key: 'owner',
-      header: '소유자',
+      header: '사용자',
       width: '110px',
       hideOnTablet: true,
       render: (row) => {
@@ -87,10 +87,10 @@ export function PlantTable({ rows }: { rows: School[] }) {
     <Reveal>
       <Card
         title="발전소 목록"
-        description="위 등록 버튼으로 발전소를 새로 세우고, 행의 수정 버튼으로 등록 정보를 고칩니다. 변경 내역은 아래 이력에 남습니다."
+        description="위 등록 버튼으로 발전소를 새로 세우고, 행을 누르면 등록 정보를 고칩니다. 변경 내역은 아래 이력에 남습니다."
       >
         <Table
-          caption="발전소 등록 목록. ID, 발전소 이름, 소유자, 주소, 상태 순입니다."
+          caption="발전소 등록 목록. ID, 발전소 이름, 사용자, 주소, 상태 순입니다."
           columns={columns}
           rows={pageRows}
           getRowKey={(row) => row.id}

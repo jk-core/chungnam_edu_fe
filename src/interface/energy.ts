@@ -5,6 +5,13 @@ export type { Severity };
 /** 학교급 */
 export type SchoolLevel = '초등학교' | '중학교' | '고등학교' | '특수학교';
 
+/**
+ * 발전소 구분 (plantType).
+ *
+ * 학교만 있는 것이 아니라 기관도 들어오므로 `schoolType` 이라 부르지 않는다.
+ */
+export type PlantType = SchoolLevel | '기관';
+
 /** 위경도 한 점 */
 export interface GeoPoint {
   lng: number;
@@ -29,7 +36,7 @@ export interface School {
   name: string;
   regionCode: string;
   regionName: string;
-  level: SchoolLevel;
+  level: PlantType;
   address: string;
   capacityKw: number;
   /** 설치된 인버터 수 */
