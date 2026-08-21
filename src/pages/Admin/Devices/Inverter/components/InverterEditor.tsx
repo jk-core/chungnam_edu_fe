@@ -137,7 +137,7 @@ export function InverterEditor({ inverterId }: InverterEditorProps) {
         title={isNew ? '인버터 제품 등록' : '인버터 제품 수정'}
         description="여기 등록한 제품을 설비 등록에서 골라 씁니다."
         backTo={backTo}
-        danger={isNew ? null : <Button variant="danger" onClick={() => setIsDeleting(true)}>제품 삭제</Button>}
+        danger={isNew ? null : <Button variant="solar" onClick={() => setIsDeleting(true)}>제품 삭제</Button>}
         footer={(
           <>
             <Button variant="secondary" onClick={() => navigate(backTo)}>취소</Button>

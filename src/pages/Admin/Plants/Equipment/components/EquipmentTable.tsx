@@ -69,18 +69,6 @@ export function EquipmentTable({ rows }: { rows: EquipmentRow[] }) {
       render: (row) => `${formatNumber(row.equipmentCapacity, 1)}kW`,
     },
     {
-      key: 'units',
-      header: '모듈 구성',
-      width: '170px',
-      hideOnTablet: true,
-      render: (row) => (
-        <span className={styles.stackCell}>
-          <span>{row.series1}직렬 × {row.parallel1}병렬</span>
-          <span className={styles.stackCell__sub}>{row.moduleName}</span>
-        </span>
-      ),
-    },
-    {
       key: 'rtu',
       header: 'RTU 통신 ID · 포트',
       width: '160px',
@@ -97,7 +85,7 @@ export function EquipmentTable({ rows }: { rows: EquipmentRow[] }) {
         ) : (
           <>
             <Table
-              caption="설비 목록. CID, 발전소와 설비, 인버터 모델, 산출 용량, 모듈 구성, RTU 통신 설정 순입니다."
+              caption="설비 목록. CID, 발전소와 설비, 인버터 모델, 산출 용량, RTU 통신 설정 순입니다."
               columns={columns}
               rows={pageRows}
               getRowKey={(row) => row.inverterId}

@@ -99,17 +99,6 @@
     }
   }
 
-  /* 되돌릴 수 없는 것을 지우는 자리. 테두리만 붉게 두어 저장 버튼과 무게를 다투지 않는다. */
-  &--danger {
-    background-color: var(--surface);
-    border-color: var(--critical);
-    color: var(--critical-text);
-
-    &:hover:not(:disabled) {
-      background-color: var(--critical-soft);
-    }
-  }
-
   &--sm {
     height: 32px;
     padding-inline: s.$space-3;

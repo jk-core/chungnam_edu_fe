@@ -146,7 +146,7 @@ export function ModuleEditor({ moduleId }: ModuleEditorProps) {
         title={isNew ? '모듈 제품 등록' : '모듈 제품 수정'}
         description="제조사 데이터시트의 STC 기준 값을 넣습니다."
         backTo={backTo}
-        danger={isNew ? null : <Button variant="danger" onClick={() => setIsDeleting(true)}>제품 삭제</Button>}
+        danger={isNew ? null : <Button variant="solar" onClick={() => setIsDeleting(true)}>제품 삭제</Button>}
         footer={(
           <>
             <Button variant="secondary" onClick={() => navigate(backTo)}>취소</Button>

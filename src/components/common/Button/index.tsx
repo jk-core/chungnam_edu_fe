@@ -2,7 +2,7 @@ import { cn } from '@/utils/cn';
 import styles from './Button.module.scss';
 import type { ButtonHTMLAttributes, ReactNode } from 'react';
 
-type Variant = 'primary' | 'secondary' | 'ghost' | 'solar' | 'danger';
+type Variant = 'primary' | 'secondary' | 'ghost' | 'solar';
 type Size = 'sm' | 'md' | 'lg';
 
 interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {

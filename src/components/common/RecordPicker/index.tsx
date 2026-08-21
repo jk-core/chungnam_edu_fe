@@ -129,28 +129,7 @@ export function RecordPicker<T>({
         <>
           <Table
             caption={caption}
-            columns={[
-              ...columns,
-              {
-                key: 'pick',
-                header: '선택',
-                width: '90px',
-                align: 'center',
-                render: (row: T) => (
-                  <Button
-                    size="sm"
-                    variant="secondary"
-                    onClick={(event) => {
-                      // 줄 자체도 고르는 자리라, 버튼까지 타고 올라가면 같은 값을 두 번 집는다.
-                      event.stopPropagation();
-                      onPick(row);
-                    }}
-                  >
-                    선택
-                  </Button>
-                ),
-              },
-            ]}
+            columns={columns}
             rows={pageRows}
             getRowKey={getRowKey}
             getRowClassName={(row) => (getRowKey(row) === selectedKey ? styles['picker__row--current'] : undefined)}

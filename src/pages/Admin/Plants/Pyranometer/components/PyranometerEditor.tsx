@@ -179,7 +179,7 @@ export function PyranometerEditor({ irradId }: PyranometerEditorProps) {
         title={isNew ? '일사량계 등록' : '일사량계 수정'}
         description={`RTU ${PYRANOMETER_PORT}번 포트는 일사량계 몫이라 바꿀 수 없습니다.`}
         backTo={backTo}
-        danger={isNew ? null : <Button variant="danger" onClick={() => setIsDeleting(true)}>일사량계 삭제</Button>}
+        danger={isNew ? null : <Button variant="solar" onClick={() => setIsDeleting(true)}>일사량계 삭제</Button>}
         footer={(
           <>
             <Button variant="secondary" onClick={() => navigate(backTo)}>취소</Button>
