@@ -2,15 +2,16 @@ import { motion, useReducedMotion } from 'motion/react';
 import { useEffect, useMemo, useState } from 'react';
 import { AiOrbit } from '@/components/common/AiOrbit';
 import { ChevronLeftIcon, ChevronRightIcon, PauseIcon, PlayIcon } from '@/components/common/Icon';
-import { countOperation, isAbnormal, OPERATION_LABEL } from '@/mocks/status';
+import { countOperation, isAbnormal, OPERATION_LABEL, OPERATION_TONE } from '@/mocks/status';
 import { formatNumber, formatPercent } from '@/utils/format';
 import { withParticle } from '@/utils/korean';
 import { currentOutputOf } from '@/mocks/schoolOutput';
+import type { BadgeTone } from '@/components/common/Badge';
 import type { School } from '@/interface/energy';
 import styles from './AiDiagnosisPanel.module.scss';
 import { RegionBriefing } from './RegionBriefing';
 import { RegionMap } from './RegionMap';
-import type { BriefLine } from './RegionBriefing';
+import type { BriefLine, BriefToken } from './RegionBriefing';
 
 /** 화면이 한 박자 나아가는 간격(ms) */
 const TICK_MS = 700;
@@ -92,14 +93,33 @@ function summarize(plants: School[]): RegionSummary[] {
  * 한 문단으로 이어 쓰면 값이 글 속에 묻히므로 줄마다 무엇을 말하는지 이름표를 세운다.
  * 눈에 걸려야 하는 조각(이름·숫자)은 굵게 남겨 줄 안에서도 값이 먼저 읽히게 한다.
  */
+/** 관내 평균과 견준 발전시간의 색 — 눈에 띄게 낮으면 살펴볼 거리로, 높으면 잘 도는 것으로 읽는다 */
+function hoursTone(gap: number): BadgeTone | undefined {
+  if (gap < -0.3) return 'caution';
+  if (gap > 0.3) return 'ok';
+
+  return undefined;
+}
+
 function briefingOf(region: RegionSummary, averageHours: number): BriefLine[] {
   const load = region.capacityKw > 0 ? region.outputKw / region.capacityKw : 0;
   const gap = region.hours - averageHours;
   const normal = region.count - region.abnormal;
-  const faults = (['fault', 'degraded', 'commLost'] as const)
+  /*
+    이상 항목은 상태마다 조각을 나눠 둔다.
+    「경고 5건 · 주의 6건」 을 한 덩이로 적으면 둘이 같은 색으로 물들어, 어느 쪽이 급한지
+    글을 끝까지 읽어야 안다. 상태별로 갈라 두면 색만 보고 가려진다.
+  */
+  const faults: BriefToken[] = (['fault', 'degraded', 'commLost'] as const)
     .filter((status) => region.status[status] > 0)
-    .map((status) => `${OPERATION_LABEL[status]} ${formatNumber(region.status[status])}건`)
-    .join(' · ');
+    .flatMap((status, index) => [
+      ...(index > 0 ? [{ text: ' · ' }] : []),
+      {
+        text: `${OPERATION_LABEL[status]} ${formatNumber(region.status[status])}건`,
+        strong: true,
+        tone: OPERATION_TONE[status],
+      },
+    ]);
   // 이름이 데이터에서 오므로 받침을 보고 조사를 고른다 — 「보령시은」 이 되지 않게.
   const subject = withParticle(region.name, '은').slice(region.name.length);
 
@@ -129,7 +149,8 @@ function briefingOf(region: RegionSummary, averageHours: number): BriefLine[] {
         { text: '금일 ' },
         { text: `${formatNumber(region.todayKwh)}kWh`, strong: true },
         { text: ', 발전시간 ' },
-        { text: `${formatNumber(region.hours, 1)}시간`, strong: true },
+        // 관내 평균보다 낮은 발전시간은 그 자체가 살펴볼 거리다 — 값에 그렇게 적어 둔다.
+        { text: `${formatNumber(region.hours, 1)}시간`, strong: true, tone: hoursTone(gap) },
         {
           text: Math.abs(gap) < 0.05
             ? '으로 관내 평균과 같은 수준입니다.'
@@ -141,15 +162,19 @@ function briefingOf(region: RegionSummary, averageHours: number): BriefLine[] {
       label: '상태',
       tokens: region.abnormal === 0
         ? [
-          { text: `${formatNumber(region.count)}개소`, strong: true },
+          { text: `${formatNumber(region.count)}개소`, strong: true, tone: 'ok' },
           { text: ' 모두 정상 가동 중이며 조치가 필요한 곳은 없습니다.' },
         ]
         : [
-          { text: `${formatNumber(normal)}개소`, strong: true },
+          { text: `${formatNumber(normal)}개소`, strong: true, tone: 'ok' },
           { text: '가 정상 가동 중이고, ' },
-          { text: region.worst?.name ?? '', strong: true },
+          {
+            text: region.worst?.name ?? '',
+            strong: true,
+            tone: region.worst ? OPERATION_TONE[region.worst.status] : undefined,
+          },
           { text: region.abnormal > 1 ? ` 외 ${formatNumber(region.abnormal - 1)}개소에서 ` : '에서 ' },
-          { text: faults, strong: true },
+          ...faults,
           { text: '이 확인됩니다.' },
         ],
     },

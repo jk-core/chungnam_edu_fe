@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import type { BadgeTone } from '@/components/common/Badge';
 import styles from './AiDiagnosisPanel.module.scss';
 
 /** 한 글자가 찍히는 간격(ms) — 읽는 속도를 앞지르지 않을 만큼만 빠르게 */
@@ -11,6 +12,12 @@ export interface BriefToken {
   text: string;
   /** 숫자·이름처럼 눈에 걸려야 하는 조각 */
   strong?: boolean;
+  /**
+   * 그 값이 말하는 상태의 색.
+   * 「경고 5건」 이 「통신단절 2건」 과 같은 색으로 적혀 있으면 어느 쪽이 급한지 글을 읽어야 안다.
+   * 상태를 말하지 않는 값은 비워 두면 강조색으로 적힌다.
+   */
+  tone?: BadgeTone;
 }
 
 export interface BriefLine {
@@ -29,7 +36,7 @@ function cut(tokens: BriefToken[], shown: number): BriefToken[] {
 
     at += token.text.length;
 
-    if (text) out.push({ text, strong: token.strong });
+    if (text) out.push({ text, strong: token.strong, tone: token.tone });
     if (at >= shown) break;
   }
 
@@ -102,7 +109,7 @@ export function RegionBriefing({ lines, instant }: { lines: BriefLine[]; instant
             <span className={styles.brief__label}>{line.label}</span>
             <span className={styles.brief__text}>
               {pieces.map((piece, at) => (piece.strong
-                ? <strong key={at} className={styles.brief__key}>{piece.text}</strong>
+                ? <strong key={at} className={styles.brief__key} data-tone={piece.tone}>{piece.text}</strong>
                 : <span key={at}>{piece.text}</span>))}
               {done ? null : <span className={styles.brief__caret} aria-hidden="true" />}
             </span>

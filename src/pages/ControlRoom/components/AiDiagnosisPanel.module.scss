@@ -407,15 +407,37 @@
   }
 
   /*
-    수치는 글 안에서 먼저 읽히되 경보처럼 보이지는 않아야 한다.
-    상태 색(붉은색)을 그대로 쓰면 설비용량·발전량까지 급한 값으로 읽힌다 — 급한 정도는
-    머리줄의 상태 배지가 말한다.
+    값에 색을 준다.
+
+    굵기만으로는 한 문장 안의 값 서너 개가 모두 같은 무게로 읽혀, 어느 것이 살펴볼 값인지
+    글을 끝까지 읽어야 안다. 상태를 말하는 값만 그 상태색으로 물들여 「경고」 와 「통신단절」 이
+    읽기 전에 갈리게 하고, 설비용량·발전량처럼 급한 정도가 없는 값은 강조색 하나로 묶는다 —
+    그런 값까지 붉게 적으면 온 문장이 경보처럼 보인다.
+
+    바탕이 밝은 카드이므로 배지에 쓰는 면색이 아니라 글자용 색을 쓴다. 면색 그대로는
+    주황·연두가 흰 바탕에서 흐려진다.
   */
   &__key {
-    color: var(--text-strong);
+    color: var(--brand);
     font-family: var(--font-data);
     font-weight: 700;
     font-variant-numeric: tabular-nums;
+
+    &[data-tone="ok"] {
+      color: var(--ok-text);
+    }
+
+    &[data-tone="caution"] {
+      color: var(--caution-text);
+    }
+
+    &[data-tone="critical"] {
+      color: var(--critical-text);
+    }
+
+    &[data-tone="offline"] {
+      color: var(--offline-text);
+    }
   }
 
   /* 아직 찍는 중임을 알리는 커서 — 그 줄이 끝나면 다음 줄로 옮겨 간다 */
