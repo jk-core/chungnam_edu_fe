@@ -67,7 +67,7 @@ export function UserEditor({ userId }: UserEditorProps) {
 
     // 새 계정은 비밀번호가 있어야 하고, 수정은 비워 두면 기존 것을 그대로 쓴다.
     if ((isNew || draft.password) && !PASSWORD_RULE.test(draft.password)) {
-      setError('비밀번호는 영문·숫자·특수문자를 섞어 8~20자로 넣어 주세요.');
+      setError(`비밀번호는 ${PASSWORD_HINT}로 넣어 주세요.`);
 
       return;
     }
@@ -126,7 +126,7 @@ export function UserEditor({ userId }: UserEditorProps) {
   const remove = () => {
     if (!target) return;
 
-    removeUser(target.id, entryOf(target, '계정 삭제', `${ROLE_LABEL[target.role]} · ${target.loginId}`, '삭제됨'));
+    removeUser(target.id, entryOf(target, '삭제', `${ROLE_LABEL[target.role]} · ${target.loginId}`, '—'));
     toast.success(MSG.deleteSuccess(target.name));
     navigate(backTo);
   };
@@ -140,7 +140,7 @@ export function UserEditor({ userId }: UserEditorProps) {
         title={isNew ? '사용자 등록' : '사용자 수정'}
         description="교육기관 담당자는 소속 학교의 설비만 조회할 수 있습니다."
         backTo={backTo}
-        danger={isNew ? null : <Button variant="solar" onClick={() => setIsDeleting(true)}>계정 삭제</Button>}
+        danger={isNew ? null : <Button variant="solar" onClick={() => setIsDeleting(true)}>삭제</Button>}
         footer={(
           <>
             <Button variant="secondary" onClick={() => navigate(backTo)}>취소</Button>

@@ -355,7 +355,7 @@ export function EquipmentEditor({ cid }: EquipmentEditorProps) {
         title={isNew ? '설비 등록' : '설비 수정'}
         description="설비용량은 고른 모듈 모델과 직병렬 구성에서 산출합니다."
         backTo={backTo}
-        danger={isNew ? null : <Button variant="solar" onClick={() => setIsDeleting(true)}>설비 삭제</Button>}
+        danger={isNew ? null : <Button variant="solar" onClick={() => setIsDeleting(true)}>삭제</Button>}
         footer={(
           <>
             <Button variant="secondary" onClick={() => navigate(backTo)}>취소</Button>

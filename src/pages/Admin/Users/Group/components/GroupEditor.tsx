@@ -35,7 +35,6 @@ interface GroupEditorProps {
  */
 export function GroupEditor({ userId }: GroupEditorProps) {
   const saveUser = useAssetStore((state) => state.saveUser);
-  const removeUser = useAssetStore((state) => state.removeUser);
   const users = useManagedUsers();
   const plants = usePlantAssets();
   const capacityOf = usePlantCapacity();
@@ -51,7 +50,6 @@ export function GroupEditor({ userId }: GroupEditorProps) {
   const [error, setError] = useState<string | undefined>(undefined);
   const [picker, setPicker] = useState<Picker | null>(null);
   const [isConfirming, setIsConfirming] = useState(false);
-  const [isDeleting, setIsDeleting] = useState(false);
 
   const user = users.find((row) => String(row.userId) === pickedId) ?? null;
   const picked = plantIds
@@ -94,24 +92,12 @@ export function GroupEditor({ userId }: GroupEditorProps) {
     navigate(backTo);
   };
 
-  const remove = () => {
-    if (!target) return;
-
-    removeUser(
-      target.id,
-      entryOf(target, '계정 삭제', `${ROLE_LABEL.group} · 발전소 ${target.plantIds.length}곳`, '삭제됨'),
-    );
-    toast.success(MSG.deleteSuccess(target.name));
-    navigate(backTo);
-  };
-
   return (
     <>
       <FormPage
         title={isNew ? '그룹관리자 등록' : `${target.name} 담당 발전소`}
         description="여기서 고른 발전소만 그 사람의 화면에 보입니다."
         backTo={backTo}
-        danger={isNew ? null : <Button variant="solar" onClick={() => setIsDeleting(true)}>계정 삭제</Button>}
         footer={(
           <>
             <Button variant="secondary" onClick={() => navigate(backTo)}>취소</Button>
@@ -239,15 +225,6 @@ export function GroupEditor({ userId }: GroupEditorProps) {
         onClose={() => setIsConfirming(false)}
       />
 
-      <ConfirmDialog
-        isOpen={isDeleting}
-        title={MSG.deleteConfirm(target?.name ?? '그룹관리자')}
-        description="맡고 있던 발전소는 남습니다 — 계정만 지웁니다."
-        confirmLabel="삭제"
-        tone="danger"
-        onConfirm={remove}
-        onClose={() => setIsDeleting(false)}
-      />
     </>
   );
 }

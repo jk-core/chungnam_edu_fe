@@ -147,7 +147,7 @@ export function StringSheet({ cid }: StringSheetProps) {
           ? '이 설비의 스트링을 한꺼번에 고칩니다. 줄을 빼면 저장할 때 함께 삭제됩니다.'
           : '설비를 고르고 줄을 추가합니다. 이미 등록된 스트링은 그대로 두고 새 줄만 더합니다.'}
         backTo={backTo}
-        danger={isEdit ? <Button variant="solar" onClick={() => setIsDeleting(true)}>전체 삭제</Button> : null}
+        danger={isEdit ? <Button variant="solar" onClick={() => setIsDeleting(true)}>삭제</Button> : null}
         footer={(
           <>
             <Button variant="secondary" onClick={() => navigate(backTo)}>취소</Button>
