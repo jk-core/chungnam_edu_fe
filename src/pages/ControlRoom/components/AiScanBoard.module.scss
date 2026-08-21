@@ -4,35 +4,49 @@
 @use "@/styles/utils/mixins" as mx;
 
 /* 소견 두 줄이 들어가는 자리 — 한 줄짜리가 와도 이만큼을 비워 둬 판이 들썩이지 않는다 */
-$finding-body: 2.9em;
+$hit-body: 2.9em;
 
 .scan {
   display: flex;
   flex-direction: column;
   gap: s.$space-2;
+
+  /* 방금 잡아낸 것의 심각도가 판 전체의 색을 정한다 — 급한 것이 걸리면 판이 함께 물든다 */
+  &[data-tone="critical"] {
+    --tone: var(--critical);
+    --tone-text: var(--critical-text);
+  }
+
+  &[data-tone="caution"] {
+    --tone: var(--caution);
+    --tone-text: var(--caution-text);
+  }
+
+  &[data-tone="brand"] {
+    --tone: var(--brand);
+    --tone-text: var(--brand);
+  }
 }
 
 /*
-  훑는 자리.
+  지켜보는 자리.
 
-  단계 색으로 옅게 물든 판 위에 빛이 지나간다 — 숫자 하나 없이도 지금 무언가 돌고 있다는
-  것이 읽혀야 한다. 색은 단계가 넘어갈 때마다 함께 바뀌므로 배경도 같이 물든다.
+  진행률이나 단계는 두지 않는다 — 진단은 차례로 끝나는 일이 아니라 값이 들어오는 대로
+  계속 지켜보는 일이다. 빛이 쉬지 않고 가로지르고, 훑은 계측값 수가 계속 오른다.
 */
 .deck {
   position: relative;
   display: flex;
   flex-direction: column;
-  gap: s.$space-2;
   padding: s.$space-3;
-  border: 1px solid color-mix(in srgb, var(--stage) 22%, transparent);
+  border: 1px solid color-mix(in srgb, var(--tone) 22%, transparent);
   border-radius: s.$radius-md;
   background:
-    radial-gradient(120% 140% at 0% 0%, color-mix(in srgb, var(--stage) 12%, transparent), transparent 62%),
+    radial-gradient(120% 140% at 0% 0%, color-mix(in srgb, var(--tone) 12%, transparent), transparent 62%),
     var(--surface-sunken);
   overflow: hidden;
-  transition: border-color 0.5s ease, background-color 0.5s ease;
+  transition: border-color 0.5s ease;
 
-  /* 판을 가로지르는 빛. 끝나는 자리가 없어 계속 훑는 중임을 말한다 */
   &__sweep {
     position: absolute;
     inset-block: 0;
@@ -41,7 +55,7 @@ $finding-body: 2.9em;
     background: linear-gradient(
       90deg,
       transparent,
-      color-mix(in srgb, var(--stage) 14%, transparent),
+      color-mix(in srgb, var(--tone) 14%, transparent),
       transparent
     );
     animation: ai-sweep 2.6s linear infinite;
@@ -59,7 +73,7 @@ $finding-body: 2.9em;
     gap: s.$space-2;
   }
 
-  &__stage {
+  &__title {
     display: flex;
     flex-direction: column;
     gap: 1px;
@@ -67,22 +81,28 @@ $finding-body: 2.9em;
     min-width: 0;
   }
 
-  &__label {
+  &__name {
     @include t.label-md;
     @include mx.truncate;
 
-    color: var(--stage);
-    transition: color 0.4s ease;
+    color: var(--text-strong);
   }
 
+  /* 훑은 양 — 이 숫자가 쉬지 않고 오르는 것이 곧 지금 돌고 있다는 말이다 */
   &__note {
     @include t.caption;
     @include mx.truncate;
 
     color: var(--text-faint);
+
+    strong {
+      color: var(--tone-text);
+      font-family: var(--font-data);
+      font-variant-numeric: tabular-nums;
+      font-weight: 700;
+    }
   }
 
-  /* 지금 돌고 있다는 표시 — 숫자 대신 이 점 하나가 그 말을 한다 */
   &__live {
     @include t.caption;
 
@@ -97,121 +117,12 @@ $finding-body: 2.9em;
       width: 6px;
       height: 6px;
       border-radius: 50%;
-      background-color: var(--stage);
+      background-color: var(--tone);
       animation: ai-pulse 1.6s ease-in-out infinite;
 
       @include media.reduced-motion {
         animation: none;
       }
-    }
-  }
-}
-
-/* 세 단계를 한 줄에 세운 레일 — 지금이 어디쯤인지 자리로 읽힌다 */
-.rail {
-  position: relative;
-  display: flex;
-  align-items: center;
-  gap: s.$space-1;
-  list-style: none;
-
-  &__step {
-    display: flex;
-    align-items: center;
-    gap: s.$space-1;
-    flex: 1;
-    min-width: 0;
-
-    /* 단계 사이를 잇는 실. 마지막 칸 뒤에는 잇지 않는다 */
-    &:not(:last-child)::after {
-      content: "";
-      height: 1px;
-      flex: 1;
-      background-color: var(--border-subtle);
-    }
-
-    &[data-state="done"] {
-      .rail__mark {
-        border-color: color-mix(in srgb, var(--step) 46%, transparent);
-        background-color: color-mix(in srgb, var(--step) 18%, transparent);
-        color: var(--step);
-      }
-
-      .rail__name {
-        color: var(--text-muted);
-      }
-
-      &::after {
-        background-color: color-mix(in srgb, var(--step) 40%, transparent);
-      }
-    }
-
-    &[data-state="on"] {
-      .rail__mark {
-        border-color: var(--step);
-        background-color: var(--step);
-        color: var(--surface);
-        box-shadow: 0 0 0 3px color-mix(in srgb, var(--step) 18%, transparent);
-      }
-
-      .rail__name {
-        color: var(--step);
-        font-weight: 700;
-      }
-    }
-  }
-
-  &__mark {
-    @include t.caption;
-
-    display: grid;
-    width: 16px;
-    height: 16px;
-    flex-shrink: 0;
-    place-items: center;
-    border: 1px solid var(--border-subtle);
-    border-radius: 50%;
-    color: var(--text-faint);
-    font-family: var(--font-data);
-    line-height: 1;
-    transition: border-color 0.3s ease, background-color 0.3s ease, color 0.3s ease, box-shadow 0.3s ease;
-  }
-
-  &__name {
-    @include t.caption;
-
-    flex-shrink: 0;
-    color: var(--text-faint);
-    transition: color 0.3s ease;
-  }
-}
-
-/* 지금 무엇을 짚어 보는 중인지 — 켜진 것 하나만 물들고 지나간 것은 흐려진다 */
-.checks {
-  position: relative;
-  display: flex;
-  flex-wrap: wrap;
-  gap: s.$space-1;
-  list-style: none;
-
-  &__item {
-    @include t.caption;
-
-    padding: 1px s.$space-2;
-    border: 1px solid var(--border-subtle);
-    border-radius: s.$radius-full;
-    background-color: var(--surface);
-    color: var(--text-faint);
-    transition: border-color 0.3s ease, background-color 0.3s ease, color 0.3s ease;
-
-    &[data-state="done"] {
-      color: var(--text-muted);
-    }
-
-    &[data-state="on"] {
-      border-color: color-mix(in srgb, var(--stage) 52%, transparent);
-      background-color: color-mix(in srgb, var(--stage) 12%, transparent);
-      color: var(--stage);
     }
   }
 }
@@ -237,15 +148,14 @@ $finding-body: 2.9em;
   }
 }
 
-/* 아래 소견 묶음의 머리말 — 몇 건이 잡혔는지를 곁들인다 */
+/* 잡아낸 것 묶음의 머리말 */
 .caption {
+  @include t.caption;
+
   display: flex;
   align-items: baseline;
   justify-content: space-between;
   gap: s.$space-2;
-
-  @include t.caption;
-
   color: var(--text-faint);
 
   &__count {
@@ -254,22 +164,10 @@ $finding-body: 2.9em;
   }
 }
 
-/* 방금 잡아낸 것 — 진단이 도는 동안 한 건씩 넘어간다 */
-.finding {
+/* 방금 걸린 한 건. 위에서 밀려 들어온다 */
+.hit {
   padding-left: s.$space-3;
   border-left: 3px solid var(--tone);
-
-  &[data-tone="critical"] {
-    --tone: var(--critical);
-  }
-
-  &[data-tone="caution"] {
-    --tone: var(--caution);
-  }
-
-  &[data-tone="brand"] {
-    --tone: var(--brand);
-  }
 
   &__card {
     display: flex;
@@ -339,7 +237,7 @@ $finding-body: 2.9em;
     @include t.caption;
 
     display: -webkit-box;
-    min-height: $finding-body;
+    min-height: $hit-body;
     overflow: hidden;
     color: var(--text);
     -webkit-box-orient: vertical;
@@ -355,5 +253,82 @@ $finding-body: 2.9em;
     padding-top: s.$space-1;
     border-top: 1px dashed var(--border-subtle);
     color: var(--text-muted);
+  }
+}
+
+/* 앞서 잡은 것들 — 새 건이 들어오면 한 칸씩 내려간다 */
+.trail {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  list-style: none;
+
+  /*
+    두 줄 자리만 내준다.
+
+    줄이 갈릴 때는 나가는 줄과 들어오는 줄이 잠깐 함께 있는데, 그때 자리를 내주면 판이
+    그만큼 늘었다 줄어 옆 판까지 밀린다. 자리를 붙박아 두고 넘치는 것은 가린다.
+  */
+  height: 44px;
+  overflow: hidden;
+
+  &__row {
+    @include t.caption;
+
+    display: flex;
+    align-items: baseline;
+    gap: s.$space-2;
+    padding: 2px s.$space-2;
+    border-radius: s.$radius-xs;
+    background-color: var(--surface-sunken);
+    color: var(--text-faint);
+
+    &[data-tone="critical"] {
+      --row-tone: var(--critical);
+    }
+
+    &[data-tone="caution"] {
+      --row-tone: var(--caution);
+    }
+
+    &[data-tone="brand"] {
+      --row-tone: var(--brand);
+    }
+
+    &::before {
+      content: "";
+      width: 5px;
+      height: 5px;
+      flex-shrink: 0;
+      border-radius: 50%;
+      background-color: var(--row-tone);
+    }
+  }
+
+  &__at {
+    flex-shrink: 0;
+    font-family: var(--font-data);
+  }
+
+  &__place {
+    @include mx.truncate;
+
+    flex: 1;
+    min-width: 0;
+    color: var(--text-muted);
+  }
+
+  &__category {
+    @include mx.truncate;
+
+    flex-shrink: 0;
+    max-width: 40%;
+  }
+
+  &__loss {
+    flex-shrink: 0;
+    color: var(--text-muted);
+    font-family: var(--font-data);
+    font-variant-numeric: tabular-nums;
   }
 }
