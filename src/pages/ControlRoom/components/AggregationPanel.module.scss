@@ -145,6 +145,37 @@
     visibility: hidden;
   }
 
+  /* 맨 앞 순위 — 세 자리 안쪽이라 폭을 못 박고 가운데 세운다 */
+  &__rank {
+    width: 34px;
+    color: var(--text-faint);
+    text-align: center;
+    font-family: var(--font-data);
+    font-variant-numeric: tabular-nums;
+
+    &[data-lead] {
+      color: var(--solar-text);
+      font-weight: 700;
+    }
+  }
+
+  /* 총계 — 줄을 다 읽고 난 자리에서 관내 전체를 받는다 */
+  &__foot {
+    th,
+    td {
+      padding-top: s.$space-2;
+      border-top: 1px solid var(--border);
+      color: var(--text-strong);
+      font-weight: 700;
+    }
+
+    .table__share {
+      font-family: var(--font-data);
+      font-variant-numeric: tabular-nums;
+      text-align: right;
+    }
+  }
+
   /* 머리글에 붙는 단위 — 값 칸마다 되풀이하지 않고 한 번만 적는다 */
   &__unit {
     margin-left: 2px;

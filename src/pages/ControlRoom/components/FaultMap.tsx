@@ -262,8 +262,18 @@ export function FaultMap({ plants, scope = 'faults', height = MAP_HEIGHT, select
           aria-label={label}
         >
           <g transform={`translate(${MAP_FIT.x} ${MAP_FIT.y}) scale(${MAP_FIT.scale})`}>
+            {/*
+              도 모양을 두 겹으로 깐다.
+
+              아래 겹을 조금 내려 어둡게 두면 지도가 판 위에 떠 있는 것처럼 보인다 — 카카오
+              지도를 못 불러왔을 때만 나오는 화면이라, 밋밋한 실루엣 하나로는 「지도가 있어야 할
+              자리」 로 읽히지 않는다 (2026-08-21 회의).
+            */}
+            <g className={styles.map__shadow} aria-hidden="true">
+              <Chungcheongnamdo fill="currentColor" stroke="none" />
+            </g>
             <g className={styles.map__province}>
-              {/* 시·군 경계선은 긋지 않는다 — 상황판에서 읽을 것은 도 모양과 그 위 점이다. */}
+              {/* 지역 경계선은 긋지 않는다 — 상황판에서 읽을 것은 도 모양과 그 위 점이다. */}
               <Chungcheongnamdo fill="var(--map-scale-1)" stroke="none" />
             </g>
 
@@ -281,10 +291,18 @@ export function FaultMap({ plants, scope = 'faults', height = MAP_HEIGHT, select
                   aria-label={selectable ? `${plant.name} 상세 보기` : undefined}
                   onClick={selectable ? () => pick(plant.id) : undefined}
                 >
-                  <circle className={`${styles.dot__halo} ${styles[`dot--${OPERATION_TONE[plant.status]}`]}`} r={11} />
-                  <circle className={`${styles.dot} ${styles[`dot--${OPERATION_TONE[plant.status]}`]}`} r={4.5}>
+                  {/*
+                    뾰족핀. 뾰족한 끝이 발전소 자리를 정확히 짚는다 — 동그라미는 중심이 어디인지
+                    눈으로 가늠해야 한다 (2026-08-21 회의). 그래서 핀 전체를 끝점 위로 올려 그린다.
+                  */}
+                  <circle className={`${styles.dot__halo} ${styles[`dot--${OPERATION_TONE[plant.status]}`]}`} r={10} />
+                  <path
+                    className={`${styles.pin} ${styles[`dot--${OPERATION_TONE[plant.status]}`]}`}
+                    d="M0 0 L-5.4 -8.4 A6.2 6.2 0 1 1 5.4 -8.4 Z"
+                  >
                     <title>{`${plant.name} · ${OPERATION_LABEL[plant.status]}`}</title>
-                  </circle>
+                  </path>
+                  <circle className={styles.pin__eye} cy={-13.4} r={2.1} />
                 </g>
               );
             })}

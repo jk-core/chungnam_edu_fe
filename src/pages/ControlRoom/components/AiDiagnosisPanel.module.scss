@@ -23,10 +23,10 @@
     --tone-text: var(--caution-text);
   }
 
-  &[data-tone="brand"] {
-    --tone: var(--brand);
-    --tone-soft: var(--brand-soft);
-    --tone-text: var(--brand);
+  &[data-tone="ok"] {
+    --tone: var(--ok);
+    --tone-soft: var(--ok-soft);
+    --tone-text: var(--ok-text);
   }
 
   &__empty {
@@ -254,66 +254,33 @@
   }
 }
 
-/* 알림 한 건 — 코드·자리·근거·현상·조치가 한 장에 담긴다 */
-.alert {
-  position: relative;
+/*
+  지역 한 곳.
+
+  고장코드 낱건 대신 가지고 있는 값으로 요약을 적는다. 심각도 색 띠는 두지 않는다 —
+  지역 요약은 한 설비의 판정이 아니라 그 지역의 상태 분포이고, 색은 아래 분포 막대가 말한다.
+*/
+.card {
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: s.$space-3;
   flex: 1;
   min-height: 0;
-  padding: s.$space-2 s.$space-3;
-  border: 1px solid color-mix(in srgb, var(--tone) 26%, transparent);
-  border-left: 3px solid var(--tone);
+  padding: s.$space-3;
+  border: 1px solid color-mix(in srgb, var(--tone) 24%, transparent);
   border-radius: var(--room-radius);
-
-  /* 회색 판이 아니라 흰 종이 위에 심각도 색이 옅게 번진 모양으로 둔다 */
   background:
-    linear-gradient(180deg, color-mix(in srgb, var(--tone) 7%, transparent), transparent 42%),
+    linear-gradient(180deg, color-mix(in srgb, var(--tone) 7%, transparent), transparent 46%),
     var(--surface);
   box-shadow: var(--shadow-sm);
-  overflow: hidden;
-
-  /* 카드를 위에서 아래로 훑고 지나가는 가느다란 빛 */
-  &__scan {
-    position: absolute;
-    inset-inline: 0;
-    top: 0;
-    height: 18%;
-    background: linear-gradient(
-      180deg,
-      transparent,
-      color-mix(in srgb, var(--tone) 10%, transparent),
-      transparent
-    );
-    animation: ai-scanline 3.2s ease-in-out infinite;
-
-    @include media.reduced-motion {
-      display: none;
-    }
-  }
 
   &__top {
-    position: relative;
     display: flex;
-    align-items: center;
+    align-items: baseline;
     gap: s.$space-2;
   }
 
-  /* 코드 자체가 이 판의 제목이다 — 숫자를 크게 세운다 */
-  &__code {
-    @include t.label-md;
-
-    flex-shrink: 0;
-    padding: 2px s.$space-2;
-    border-radius: var(--room-radius);
-    background-color: var(--tone);
-    color: var(--surface);
-    font-family: var(--font-data);
-    font-weight: 700;
-  }
-
-  &__summary {
+  &__name {
     @include t.title-sm;
     @include mx.truncate;
 
@@ -322,160 +289,167 @@
     color: var(--text-strong);
   }
 
-  &__where {
-    position: relative;
-    display: flex;
-    align-items: baseline;
-    gap: s.$space-2;
-  }
-
-  &__plant {
-    @include t.label-md;
-    @include mx.truncate;
-
-    color: var(--text-strong);
-  }
-
-  &__device {
-    @include t.caption;
-    @include mx.truncate;
-
-    flex: 1;
-    min-width: 0;
-    color: var(--text-muted);
-  }
-
-  &__region {
-    @include t.caption;
+  &__count {
+    @include t.label-sm;
 
     flex-shrink: 0;
-    color: var(--text-faint);
+    color: var(--text-muted);
+    font-family: var(--font-data);
+  }
+
+  /* 요약 문장 — 이 판이 하는 말이라 가장 넓은 자리를 준다 */
+  &__body {
+    @include t.body-sm;
+
+    color: var(--text);
+  }
+
+  &__ai {
+    @include t.caption;
+
+    display: inline-block;
+    margin-right: s.$space-2;
+    padding: 0 5px;
+    border-radius: s.$radius-xs;
+    background-color: var(--brand-soft);
+    color: var(--brand);
+    font-style: normal;
+    font-weight: 700;
+    vertical-align: 2px;
   }
 }
 
-/* 코드를 그렇게 붙인 계측값 — 현장에서 확인할 수 있는 값만 적는다 */
-.evidence {
-  position: relative;
-  display: flex;
-  flex-direction: column;
+/* 지역 지표 넷 — 요약 문장이 든 근거를 숫자로 되짚는다 */
+.metrics {
+  display: grid;
   gap: s.$space-2;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   padding: s.$space-2 s.$space-3;
   border-radius: var(--room-radius);
-  background-color: color-mix(in srgb, var(--tone) 7%, transparent);
-
-  /* 제목과 추세선을 한 줄에 둔다 — 근거를 읽는 눈이 위아래로 오가지 않는다 */
-  &__head {
-    display: flex;
-    align-items: center;
-    gap: s.$space-2;
-  }
-
-  &__title {
-    @include t.caption;
-
-    flex: 1;
-    min-width: 0;
-    color: var(--tone-text);
-    font-weight: 700;
-  }
-
-  /* 계측값 넷을 나란히 눕힌다 — 이름·값·견줄 값이 한 칸에 쌓인다 */
-  &__grid {
-    display: grid;
-    gap: s.$space-2;
-    grid-template-columns: repeat(4, minmax(0, 1fr));
-  }
+  background-color: var(--surface-sunken);
 
   &__item {
     display: flex;
-    flex-direction: column;
-    gap: 1px;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: s.$space-2;
     min-width: 0;
-  }
 
-  &__label {
-    @include t.caption;
-    @include mx.truncate;
-
-    color: var(--text-faint);
-  }
-
-  &__value {
-    @include t.label-sm;
-
-    margin: 0;
-    color: var(--text-strong);
-    font-family: var(--font-data);
-    font-variant-numeric: tabular-nums;
-  }
-
-  &__note {
-    @include t.caption;
-    @include mx.truncate;
-
-    margin: 0;
-    color: var(--text-faint);
-  }
-
-  &__trendLabel {
-    @include t.caption;
-
-    flex-shrink: 0;
-    color: var(--text-faint);
-  }
-}
-
-/* 현상과 권고 조치 — 코드표에 적힌 내용을 그대로 편다 */
-.detail {
-  position: relative;
-
-  /* 이름을 왼쪽에 세우고 내용을 오른쪽에 쌓는다 — 제목 줄을 따로 두지 않아 자리를 아낀다 */
-  display: grid;
-  gap: s.$space-2;
-  grid-template-columns: 44px minmax(0, 1fr);
-
-  &__title {
-    @include t.caption;
-
-    color: var(--text-muted);
-    font-weight: 700;
-  }
-
-  &__list {
-    display: flex;
-    flex-direction: column;
-    gap: 2px;
-    list-style: none;
-
-    /*
-      한 줄로 붙박는다.
-
-      줄바꿈을 허용하면 문장 길이에 따라 카드 높이가 달라져, 긴 조치가 걸린 알림에서
-      아래가 잘린다. 자세한 문장은 고장코드 상세 화면이 맡는다.
-    */
-    li {
+    dt {
       @include t.caption;
-      @include mx.truncate;
 
-      position: relative;
-      padding-left: s.$space-3;
-      color: var(--text);
+      color: var(--text-faint);
+    }
 
-      &::before {
-        content: "";
-        position: absolute;
-        left: 0;
-        top: 0.55em;
-        width: 4px;
-        height: 4px;
-        border-radius: 50%;
-        background-color: color-mix(in srgb, var(--tone) 62%, transparent);
+    dd {
+      @include t.label-md;
+
+      margin: 0;
+      color: var(--text-strong);
+      font-family: var(--font-data);
+      font-variant-numeric: tabular-nums;
+
+      span {
+        @include t.caption;
+
+        margin-left: 1px;
+        color: var(--text-faint);
+        font-family: var(--font-sans);
       }
     }
   }
 }
 
-/* 몇 번째 알림을 보고 있는지 */
+/* 이 지역 안의 상태 분포 */
+.mix {
+  display: flex;
+  flex-direction: column;
+  gap: s.$space-2;
+  margin-top: auto;
+
+  &__bar {
+    display: flex;
+    height: 8px;
+    border-radius: s.$radius-full;
+    background-color: var(--surface-sunken);
+    overflow: hidden;
+  }
+
+  &__seg {
+    display: block;
+    height: 100%;
+
+    &--ok {
+      background-color: var(--ok);
+    }
+
+    &--brand {
+      background-color: var(--brand);
+    }
+
+    &--caution {
+      background-color: var(--caution);
+    }
+
+    &--critical {
+      background-color: var(--critical);
+    }
+
+    &--offline {
+      background-color: var(--offline);
+    }
+  }
+
+  &__legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 2px s.$space-3;
+    list-style: none;
+  }
+
+  &__item {
+    @include t.caption;
+
+    display: flex;
+    align-items: center;
+    gap: s.$space-1;
+    color: var(--text-muted);
+  }
+
+  &__value {
+    color: var(--text-strong);
+    font-family: var(--font-data);
+  }
+
+  &__dot {
+    display: block;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+
+    &--ok {
+      background-color: var(--ok);
+    }
+
+    &--brand {
+      background-color: var(--brand);
+    }
+
+    &--caution {
+      background-color: var(--caution);
+    }
+
+    &--critical {
+      background-color: var(--critical);
+    }
+
+    &--offline {
+      background-color: var(--offline);
+    }
+  }
+}
+
+/* 몇 번째 지역을 보고 있는지 */
 .dots {
   display: flex;
   gap: 4px;
@@ -495,80 +469,4 @@
       transform: scale(1.35);
     }
   }
-}
-
-/*
-  고장코드 참고 이미지.
-
-  비율을 못 박는다 — 남는 높이에 맞춰 늘리면 코드마다 사진이 다른 모양으로 눌려, 같은 설비를
-  찍은 사진인데도 매번 달라 보인다. 한 장이면 넓게 한 칸, 두 장이면 반씩 나눠 걸되 비율은 같다.
-*/
-.shot {
-  position: relative;
-  display: flex;
-  flex-direction: column;
-  gap: 3px;
-
-  /* 남는 높이는 위쪽 글에 주고 사진은 카드 바닥에 붙인다 */
-  margin-top: auto;
-  flex-shrink: 0;
-
-  &__frames {
-    display: grid;
-    gap: s.$space-2;
-    grid-template-columns: minmax(0, 1fr);
-  }
-
-  &[data-count="2"] &__frames {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-
-  &__frame {
-    display: block;
-    width: 100%;
-    padding: 0;
-    border: 1px solid var(--border-subtle);
-    border-radius: var(--room-radius);
-    background: none;
-    aspect-ratio: 18 / 5;
-    overflow: hidden;
-    cursor: pointer;
-    transition: border-color 0.16s ease, transform 0.16s ease;
-
-    &:hover {
-      border-color: var(--tone);
-      transform: translateY(-1px);
-    }
-
-    @include mx.keyboard-focus;
-  }
-
-  /* 두 장일 때는 칸이 반으로 좁아지므로 비율을 세워, 두 경우의 높이가 엇비슷하게 맞는다 */
-  &[data-count="2"] &__frame {
-    aspect-ratio: 16 / 9;
-  }
-
-  &__image {
-    display: block;
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    object-position: center;
-  }
-
-  &__caption {
-    @include t.caption;
-
-    color: var(--text-faint);
-    text-align: right;
-  }
-}
-
-/* 크게 본 사진 — 모달 폭에 맞추되 세로로 넘치지 않게 */
-.zoom {
-  display: block;
-  width: 100%;
-  max-height: 62vh;
-  border-radius: var(--room-radius);
-  object-fit: contain;
 }

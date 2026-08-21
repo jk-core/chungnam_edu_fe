@@ -58,10 +58,6 @@ export function FaultGroups({ plants, collection }: FaultGroupsProps) {
                     <em className={styles.group__ai}>AI</em>
                     {group.reason}
                   </span>
-                  <span className={styles.group__loss}>
-                    −{formatNumber(group.lossKwh, 0)}
-                    <span>kWh</span>
-                  </span>
                 </p>
 
                 <ul className={styles.chips}>

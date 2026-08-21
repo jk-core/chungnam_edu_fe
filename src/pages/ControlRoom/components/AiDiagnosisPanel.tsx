@@ -2,63 +2,103 @@ import { motion, useReducedMotion } from 'motion/react';
 import { useEffect, useMemo, useState } from 'react';
 import { AiOrbit } from '@/components/common/AiOrbit';
 import { ChevronLeftIcon, ChevronRightIcon, PauseIcon, PlayIcon } from '@/components/common/Icon';
-import { Badge, SEVERITY_LABEL, SEVERITY_TONE } from '@/components/common/Badge';
-import { formatDuration, formatNumber, formatPercent } from '@/utils/format';
-import { getFaultCode, INVERTERS } from '@/mocks/equipment';
-import { Modal } from '@/components/common/Modal';
-import { Sparkline } from '@/components/common/Sparkline';
-import type { CollectionStatus } from '@/interface/collection';
-import type { DiagnosisFaultCode } from '@/interface/equipment';
+import { countOperation, isAbnormal, OPERATION_LABEL, OPERATION_ORDER, OPERATION_TONE } from '@/mocks/status';
+import { formatNumber } from '@/utils/format';
 import type { School } from '@/interface/energy';
 import styles from './AiDiagnosisPanel.module.scss';
 
 /** 화면이 한 박자 나아가는 간격(ms) */
 const TICK_MS = 700;
 
-/** 알림 한 건을 읽어 볼 시간(ms) — 현상과 조치까지 눈으로 따라갈 만큼 준다 */
-const ALERT_MS = 8400;
+/** 지역 한 곳을 읽어 볼 시간(ms) */
+const REGION_MS = 8400;
 
 /** 지금까지 분석한 계측값 — 박자마다 이만큼씩 늘어난다 */
 const ANALYZED_BASE = 1_284_000;
 const ANALYZED_STEP = 137;
 
-/** 한 바퀴에 도는 알림 수. 이보다 많으면 한 건도 제대로 못 읽고 지나간다 */
-const ALERT_LIMIT = 12;
-
-/** 급한 순서 */
-const SEVERITY_RANK = { critical: 0, caution: 1, info: 2 } as const;
-
-/** 현상·조치는 각각 이만큼만 편다 — 판이 들썩이지 않게 줄 수를 붙박아 둔다 */
-const LINE_LIMIT = 3;
-
-/** 카드에 거는 참고 이미지 수 */
-const SHOT_LIMIT = 2;
-
-interface AiDiagnosisPanelProps {
-  plants: School[];
-  /** 발전소별 수집 현황 — 마지막 수신 시각이 판정의 근거가 된다 */
-  collection: Map<string, CollectionStatus>;
+interface RegionSummary {
+  name: string;
+  count: number;
+  capacityKw: number;
+  todayKwh: number;
+  hours: number;
+  abnormal: number;
+  status: Record<string, number>;
+  /** 이상이 걸린 곳 가운데 설비가 가장 큰 학교 — 문구에 이름을 하나만 세운다 */
+  worst: School | null;
 }
 
 /**
- * AI 진단 — 검출된 고장코드 알림을 한 건씩 풀어 준다 (SFR-011-05 / SFR-013-06 / SFR-014-04).
+ * 지역별 진단 요약.
  *
- * 상황판의 다른 판은 「몇 개소가 이상인가」 를 센다. 이 판만은 낱건을 붙잡고 **무엇이,
- * 어떤 계측값 때문에, 왜 그렇게 판정됐고, 무엇을 해야 하는지** 를 끝까지 적는다.
- * 벽에 걸어 두는 화면이라 아무도 누르지 않으므로 알림을 스스로 넘기며 순서대로 보여 준다.
- *
- * 진단이 쉬지 않고 돌고 있다는 것은 분석한 계측값 수와 흐르는 빛으로 말한다 —
- * 진행률처럼 끝나는 자리가 있는 표시는 두지 않는다.
+ * 발전소 낱개의 고장코드는 상황판에 적지 않는다 — 센서와 거리가 먼 설비가 많아 판정 오차를
+ * 피할 수 없는데, 코드를 그대로 띄우면 곧바로 조치 요구로 이어진다 (2026-08-21 회의).
+ * 대신 가지고 있는 값(개소·설비용량·발전량·상태)만으로 지역 단위 요약을 만든다.
  */
-export function AiDiagnosisPanel({ plants, collection }: AiDiagnosisPanelProps) {
+function summarize(plants: School[]): RegionSummary[] {
+  const buckets = new Map<string, School[]>();
+
+  plants.forEach((plant) => {
+    const bucket = buckets.get(plant.regionName) ?? [];
+
+    bucket.push(plant);
+    buckets.set(plant.regionName, bucket);
+  });
+
+  return [...buckets.entries()]
+    .map(([name, rows]) => {
+      const capacityKw = rows.reduce((sum, row) => sum + row.capacityKw, 0);
+      const todayKwh = rows.reduce((sum, row) => sum + row.todayKwh, 0);
+      const abnormalRows = rows.filter((row) => isAbnormal(row.status));
+
+      return {
+        name,
+        count: rows.length,
+        capacityKw,
+        todayKwh,
+        hours: capacityKw > 0 ? todayKwh / capacityKw : 0,
+        abnormal: abnormalRows.length,
+        status: countOperation(rows),
+        worst: [...abnormalRows].sort((a, b) => b.capacityKw - a.capacityKw)[0] ?? null,
+      };
+    })
+    // 이상이 많은 지역부터. 같으면 큰 지역이 먼저다.
+    .sort((a, b) => b.abnormal - a.abnormal || b.capacityKw - a.capacityKw);
+}
+
+/** 지역 하나를 사람이 읽는 문장으로 (SFR-011-05) */
+function sentenceOf(region: RegionSummary, averageHours: number): string {
+  const gap = region.hours - averageHours;
+  const compare = Math.abs(gap) < 0.05
+    ? '관내 평균과 같은 수준입니다'
+    : `관내 평균보다 ${formatNumber(Math.abs(gap), 1)}시간 ${gap > 0 ? '높습니다' : '낮습니다'}`;
+
+  if (region.abnormal === 0) {
+    return `${region.name} 설비 ${formatNumber(region.count)}개소가 모두 정상 가동 중입니다. 금일 발전시간은 ${formatNumber(region.hours, 1)}시간으로 ${compare}.`;
+  }
+
+  const parts = (['fault', 'degraded', 'commLost'] as const)
+    .filter((status) => region.status[status] > 0)
+    .map((status) => `${OPERATION_LABEL[status]} ${formatNumber(region.status[status])}건`)
+    .join(' · ');
+
+  return `${region.name} ${formatNumber(region.count)}개소 가운데 ${region.worst?.name ?? ''} 외 ${formatNumber(region.abnormal - 1)}개소에서 ${parts}이 확인됩니다. 금일 발전시간은 ${formatNumber(region.hours, 1)}시간으로 ${compare}.`;
+}
+
+/**
+ * AI 진단 — 지역 단위 요약 (SFR-011-05 / SFR-014-04).
+ *
+ * 상황판은 훑어보는 화면이라 진단이 돌고 있다는 사실 자체가 읽혀야 한다. 위쪽은 계측값을
+ * 쉬지 않고 읽고 있음을, 아래쪽은 그 값으로 지역 한 곳씩을 풀어 말한다.
+ * 벽에 걸어 두는 화면이라 스스로 넘기되, 한 지역을 붙잡고 읽을 수 있게 앞뒤 단추를 둔다.
+ */
+export function AiDiagnosisPanel({ plants }: { plants: School[] }) {
   const reduceMotion = useReducedMotion();
   const [tick, setTick] = useState(0);
-  /** 지금 보고 있는 알림 자리와, 어느 쪽으로 넘어왔는지 */
   const [cursor, setCursor] = useState(0);
   const [step, setStep] = useState(1);
   const [isPlaying, setIsPlaying] = useState(true);
-  /** 눌러서 크게 본 참고 이미지 — 판은 계속 돌아도 열어 둔 사진은 그대로 둔다 */
-  const [zoom, setZoom] = useState<{ src: string; code: DiagnosisFaultCode; summary: string } | null>(null);
 
   useEffect(() => {
     const timer = window.setInterval(() => setTick((at) => at + 1), TICK_MS);
@@ -66,117 +106,46 @@ export function AiDiagnosisPanel({ plants, collection }: AiDiagnosisPanelProps) 
     return () => window.clearInterval(timer);
   }, []);
 
-  /*
-    고장코드가 붙은 인버터가 곧 알림 한 건이다.
-    상태(경고·주의)만으로는 무엇이 잘못됐는지 말할 수 없고, 코드가 있어야 현상과 조치가 붙는다.
-  */
-  const alerts = useMemo(() => {
-    const byId = new Map(plants.map((plant) => [plant.id, plant]));
-    const found = INVERTERS
-      .filter((inverter) => inverter.faultCode !== null && inverter.faultCode !== 0)
-      .flatMap((inverter) => {
-        const plant = byId.get(inverter.schoolId);
-        const fault = getFaultCode(inverter.faultCode);
+  const regions = useMemo(() => summarize(plants), [plants]);
+  const averageHours = useMemo(() => {
+    const capacityKw = plants.reduce((sum, plant) => sum + plant.capacityKw, 0);
 
-        return plant && fault ? [{ inverter, plant, fault }] : [];
-      })
-      .sort((a, b) => SEVERITY_RANK[a.fault.severity] - SEVERITY_RANK[b.fault.severity]
-        || b.inverter.capacityKw - a.inverter.capacityKw);
-
-    /*
-      코드를 번갈아 세운다.
-
-      급한 순서대로만 늘어놓으면 코드 7(인버터 정지)이 관내에 가장 많아 한 바퀴가 다 돌도록
-      같은 화면만 지나간다. 코드별로 한 건씩 돌려 내면 관내에 어떤 고장이 있는지가 보인다.
-      코드 안에서는 여전히 급하고 큰 설비가 먼저다.
-    */
-    const byCode = new Map<number, typeof found>();
-
-    found.forEach((item) => {
-      const bucket = byCode.get(item.fault.code) ?? [];
-
-      bucket.push(item);
-      byCode.set(item.fault.code, bucket);
-    });
-
-    const buckets = [...byCode.values()];
-    const ordered: typeof found = [];
-
-    for (let round = 0; ordered.length < ALERT_LIMIT; round += 1) {
-      const picked = buckets.flatMap((bucket) => (bucket[round] ? [bucket[round]] : []));
-
-      if (picked.length === 0) break;
-
-      ordered.push(...picked.slice(0, ALERT_LIMIT - ordered.length));
-    }
-
-    return ordered;
+    return capacityKw > 0 ? plants.reduce((sum, plant) => sum + plant.todayKwh, 0) / capacityKw : 0;
   }, [plants]);
 
   /*
-    자리마다 시계를 새로 건다.
-
-    되풀이 시계 하나로 돌리면 손으로 넘긴 직후에도 가던 시계가 그대로 울려, 방금 넘긴 알림이
-    한 박자 만에 또 넘어간다.
+    자리마다 시계를 새로 건다 — 되풀이 시계 하나로 돌리면 손으로 넘긴 직후에도 가던 시계가
+    그대로 울려, 방금 넘긴 지역이 한 박자 만에 또 넘어간다.
   */
   useEffect(() => {
-    if (!isPlaying) return undefined;
+    if (!isPlaying || regions.length === 0) return undefined;
 
     const timer = window.setTimeout(() => {
       setStep(1);
       setCursor((from) => from + 1);
-    }, ALERT_MS);
+    }, REGION_MS);
 
     return () => window.clearTimeout(timer);
-  }, [isPlaying, cursor]);
+  }, [isPlaying, cursor, regions.length]);
 
   const analyzed = ANALYZED_BASE + tick * ANALYZED_STEP;
 
-  /** 앞뒤로 넘긴다. 손으로 넘기면 그 자리에서 머무는 시간을 다시 잰다 */
-  const go = (delta: number) => {
-    setStep(delta);
-    setCursor((from) => from + delta);
-  };
-
-  if (alerts.length === 0) {
+  if (regions.length === 0) {
     return (
       <div className={styles.diag}>
-        <p className={styles.diag__empty}>검출된 고장코드 알림이 없습니다.</p>
+        <p className={styles.diag__empty}>조회 조건에 맞는 발전소가 없습니다.</p>
       </div>
     );
   }
 
-  const at = ((cursor % alerts.length) + alerts.length) % alerts.length;
-  const { inverter, plant, fault } = alerts[at];
-  const seen = collection.get(plant.id);
-  const tone = SEVERITY_TONE[fault.severity];
-  // 두 장까지만 건다 — 셋을 걸면 한 장이 우표만 해져 무엇을 찍은 사진인지 알아볼 수 없다.
-  const shots = fault.images.slice(0, SHOT_LIMIT);
+  const at = ((cursor % regions.length) + regions.length) % regions.length;
+  const region = regions[at];
+  const tone = region.abnormal > 0 ? 'critical' : 'ok';
 
-  /*
-    판정 근거 — 코드를 그렇게 붙인 계측값을 그대로 적는다.
-    「AI 가 그렇게 봤다」 로 끝나면 현장에서 확인할 것이 없다.
-  */
-  const evidence = [
-    { label: '금일 발전량', value: `${formatNumber(inverter.todayKwh, 1)}kWh`, note: `설비 ${formatNumber(inverter.capacityKw, 1)}kW` },
-    { label: '이용률', value: formatPercent(inverter.cf, 1), note: `관내 평균 ${formatPercent(plant.utilization, 1)}` },
-    { label: '인버터 온도', value: `${formatNumber(inverter.temperature, 1)}℃`, note: fault.code === 7 ? '정상 범위 초과' : '정상 범위' },
-    { label: '마지막 수신', value: seen ? `${formatDuration(seen.delayMinutes)} 전` : '수신 없음', note: `수집률 ${seen ? formatPercent(seen.rate, 1) : '—'}` },
-  ];
-
-  /*
-    넘어온 방향으로 카드가 밀려 들어온다.
-
-    위아래로 흔들지 않는다 — 줄마다 따로 내려앉으면 카드 전체가 꿀렁여 읽는 자리가 흔들린다.
-    카드 한 장이 통째로 옆에서 들어오는 편이 「다음 건으로 넘어갔다」 를 더 분명히 말한다.
-
-    투명도로 드러내지 않는 것은 벽 화면이 다른 탭에 가려지면 브라우저가 화면 갱신을 멈춰
-    등장 애니메이션이 그대로 얼어 버리기 때문이다. 그때 투명도가 0 이면 판이 통째로 비어
-    보인다. 자리만 움직이면 얼어도 내용은 그대로 읽힌다.
-  */
-  const swipe = reduceMotion
-    ? { duration: 0 }
-    : { duration: 0.36, ease: [0.22, 0.68, 0.32, 1] as const };
+  const go = (delta: number) => {
+    setStep(delta);
+    setCursor((from) => from + delta);
+  };
 
   return (
     <div className={styles.diag} data-tone={tone}>
@@ -184,10 +153,6 @@ export function AiDiagnosisPanel({ plants, collection }: AiDiagnosisPanelProps) 
       <div className={styles.deck}>
         <span className={styles.deck__sweep} aria-hidden="true" />
 
-        {/*
-          계측 신호를 읽는 중임을 파형으로 말한다.
-          숫자는 얼마나 읽었는지를, 파형은 지금도 들어오고 있다는 것을 보인다.
-        */}
         <svg className={styles.deck__wave} viewBox="0 0 240 40" preserveAspectRatio="none" aria-hidden="true">
           <path
             className={styles.deck__waveLine}
@@ -208,139 +173,91 @@ export function AiDiagnosisPanel({ plants, collection }: AiDiagnosisPanelProps) 
       </div>
 
       <div className={styles.caption}>
-        <span className={styles.caption__label}>고장코드 알림</span>
-        <span className={styles.caption__count}>{at + 1} / {formatNumber(alerts.length)}건</span>
+        <span className={styles.caption__label}>지역 요약</span>
+        <span className={styles.caption__count}>{at + 1} / {formatNumber(regions.length)}개 지역</span>
 
-        {/* 벽에 걸어 두는 화면이라 스스로 넘기되, 한 건을 붙잡고 읽을 수 있어야 한다 */}
         <span className={styles.caption__controls}>
-          <button type="button" className={styles.caption__step} aria-label="이전 알림" onClick={() => go(-1)}>
+          <button type="button" className={styles.caption__step} aria-label="이전 지역" onClick={() => go(-1)}>
             <ChevronLeftIcon width={13} height={13} />
           </button>
           <button
             type="button"
             className={styles.caption__step}
             aria-pressed={isPlaying}
-            aria-label={isPlaying ? '알림 자동 전환 정지' : '알림 자동 전환 재생'}
+            aria-label={isPlaying ? '지역 자동 전환 정지' : '지역 자동 전환 재생'}
             onClick={() => setIsPlaying((playing) => !playing)}
           >
             {isPlaying ? <PauseIcon width={12} height={12} /> : <PlayIcon width={12} height={12} />}
           </button>
-          <button type="button" className={styles.caption__step} aria-label="다음 알림" onClick={() => go(1)}>
+          <button type="button" className={styles.caption__step} aria-label="다음 지역" onClick={() => go(1)}>
             <ChevronRightIcon width={13} height={13} />
           </button>
         </span>
       </div>
 
-      {/* 알림 한 건. 키가 바뀌면 새 카드를 세우고 줄마다 차례로 드러난다 */}
+      {/* 지역 한 곳. 키가 바뀌면 넘어온 방향에서 밀려 들어온다 */}
       <motion.article
-        key={`${inverter.id}-${fault.code}`}
-        className={styles.alert}
+        key={region.name}
+        className={styles.card}
         initial={reduceMotion ? false : { x: step * 46 }}
         animate={{ x: 0 }}
-        transition={swipe}
+        transition={reduceMotion ? { duration: 0 } : { duration: 0.36, ease: [0.22, 0.68, 0.32, 1] }}
       >
-        <span className={styles.alert__scan} aria-hidden="true" />
-
-        <p className={styles.alert__top}>
-          <span className={styles.alert__code}>코드 {fault.code}</span>
-          <span className={styles.alert__summary}>{fault.summary}</span>
-          <Badge tone={tone} withDot>{SEVERITY_LABEL[fault.severity]}</Badge>
+        <p className={styles.card__top}>
+          <span className={styles.card__name}>{region.name}</span>
+          <span className={styles.card__count}>{formatNumber(region.count)}개소</span>
         </p>
 
-        <p className={styles.alert__where}>
-          <span className={styles.alert__plant}>{plant.name}</span>
-          <span className={styles.alert__device}>{inverter.name} · {formatNumber(inverter.capacityKw, 1)}kW</span>
-          <span className={styles.alert__region}>{plant.regionName}</span>
+        <p className={styles.card__body}>
+          <em className={styles.card__ai}>AI</em>
+          {sentenceOf(region, averageHours)}
         </p>
 
-        <div className={styles.evidence}>
-          <p className={styles.evidence__head}>
-            <span className={styles.evidence__title}>판정 근거</span>
-            <span className={styles.evidence__trendLabel}>최근 7일 발전시간</span>
-            <Sparkline
-              values={inverter.hoursTrend}
-              width={96}
-              height={18}
-              tone={fault.severity === 'critical' ? 'critical' : 'caution'}
-              animate={false}
-            />
-          </p>
+        <dl className={styles.metrics}>
+          <div className={styles.metrics__item}>
+            <dt>설비용량</dt>
+            <dd>{formatNumber(region.capacityKw)}<span>kW</span></dd>
+          </div>
+          <div className={styles.metrics__item}>
+            <dt>금일 발전량</dt>
+            <dd>{formatNumber(region.todayKwh)}<span>kWh</span></dd>
+          </div>
+          <div className={styles.metrics__item}>
+            <dt>발전시간</dt>
+            <dd>{formatNumber(region.hours, 1)}<span>h</span></dd>
+          </div>
+          <div className={styles.metrics__item}>
+            <dt>이상 설비</dt>
+            <dd>{formatNumber(region.abnormal)}<span>개소</span></dd>
+          </div>
+        </dl>
 
-          <dl className={styles.evidence__grid}>
-            {evidence.map((item) => (
-              <div key={item.label} className={styles.evidence__item}>
-                <dt className={styles.evidence__label}>{item.label}</dt>
-                <dd className={styles.evidence__value}>{item.value}</dd>
-                <dd className={styles.evidence__note}>{item.note}</dd>
-              </div>
+        {/* 상태 분포 — 이 지역 안에서 무엇이 몇 곳인지 */}
+        <div className={styles.mix}>
+          <div className={styles.mix__bar} role="img" aria-label={`${region.name} 설비 상태 분포`}>
+            {OPERATION_ORDER.filter((status) => region.status[status] > 0).map((status) => (
+              <span
+                key={status}
+                className={`${styles.mix__seg} ${styles[`mix__seg--${OPERATION_TONE[status]}`]}`}
+                style={{ width: `${(region.status[status] / region.count) * 100}%` }}
+              />
             ))}
-          </dl>
-        </div>
-
-        <div className={styles.detail}>
-          <p className={styles.detail__title}>현상</p>
-          <ul className={styles.detail__list}>
-            {/* 첫 줄이 코드 요약과 같은 말이면 빼고 그다음 줄을 편다 — 같은 말을 두 번 적지 않는다 */}
-            {fault.description
-              .filter((text) => text !== fault.summary)
-              .slice(0, LINE_LIMIT)
-              .map((text) => <li key={text} title={text}>{text}</li>)}
+          </div>
+          <ul className={styles.mix__legend}>
+            {OPERATION_ORDER.filter((status) => region.status[status] > 0).map((status) => (
+              <li key={status} className={styles.mix__item}>
+                <span className={`${styles.mix__dot} ${styles[`mix__dot--${OPERATION_TONE[status]}`]}`} aria-hidden="true" />
+                {OPERATION_LABEL[status]}
+                <span className={styles.mix__value}>{formatNumber(region.status[status])}</span>
+              </li>
+            ))}
           </ul>
         </div>
-
-        <div className={styles.detail}>
-          <p className={styles.detail__title}>권고 조치</p>
-          <ul className={styles.detail__list}>
-            {fault.plan.slice(0, LINE_LIMIT).map((text) => <li key={text} title={text}>{text}</li>)}
-          </ul>
-        </div>
-
-        {/*
-          고장코드 참고 이미지 — 글로 적힌 현상이 실제로 어떤 모습인지 함께 보인다 (SFR-013-06).
-          한 장이면 넓게, 두 장이면 나란히 건다. 비율은 두 경우 모두 같아 판이 들썩이지 않는다.
-        */}
-        {shots.length > 0 ? (
-          <figure className={styles.shot} data-count={shots.length}>
-            <span className={styles.shot__frames}>
-              {shots.map((src) => (
-                <button
-                  key={src}
-                  type="button"
-                  className={styles.shot__frame}
-                  onClick={() => setZoom({ src, code: fault.code, summary: fault.summary })}
-                  aria-label={`고장코드 ${fault.code} 참고 이미지 크게 보기`}
-                >
-                  <img className={styles.shot__image} src={src} alt="" />
-                </button>
-              ))}
-            </span>
-            <figcaption className={styles.shot__caption}>
-              고장코드 {fault.code} 참고 이미지 {shots.length}장 · 눌러서 크게 보기
-            </figcaption>
-          </figure>
-        ) : null}
       </motion.article>
 
-      {zoom ? (
-        <Modal
-          isOpen
-          onClose={() => setZoom(null)}
-          size="lg"
-          title={`고장코드 ${zoom.code} 참고 이미지`}
-          description={zoom.summary}
-        >
-          <img className={styles.zoom} src={zoom.src} alt={`고장코드 ${zoom.code} 참고 이미지`} />
-        </Modal>
-      ) : null}
-
-      {/* 몇 번째를 보고 있는지 — 순서대로 도는 판이라 자리 표시가 있어야 한다 */}
       <ol className={styles.dots} aria-hidden="true">
-        {alerts.map((item, index) => (
-          <li
-            key={item.inverter.id}
-            className={styles.dots__dot}
-            data-state={index === at ? 'on' : undefined}
-          />
+        {regions.map((item, index) => (
+          <li key={item.name} className={styles.dots__dot} data-state={index === at ? 'on' : undefined} />
         ))}
       </ol>
     </div>

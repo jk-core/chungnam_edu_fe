@@ -31,7 +31,7 @@ export function SummaryColumn({ totals }: SummaryColumnProps) {
         />
       </Panel>
 
-      <Panel title="지역별 발전량" note="금일 · kWh" grow>
+      <Panel title="지역별 발전시간" note="금일 · h" grow>
         <RegionOutput />
       </Panel>
     </div>

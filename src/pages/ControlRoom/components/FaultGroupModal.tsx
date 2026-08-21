@@ -9,7 +9,6 @@ import type { Column } from '@/components/common/Table';
 import type { CollectionStatus } from '@/interface/collection';
 import type { OperationStatus } from '@/interface/status';
 import type { School } from '@/interface/energy';
-import { createLossEstimate } from '../utils/faultGroups';
 import styles from './FaultGroupModal.module.scss';
 
 /*
@@ -49,7 +48,6 @@ export function FaultGroupModal({ plants, collection, status, onClose }: FaultGr
   const [only, setOnly] = useState<string>(status);
   const [sort, setSort] = useState<SortKey>('status');
 
-  const lossOf = useMemo(() => createLossEstimate(plants), [plants]);
   const faults = useMemo(() => plants.filter((plant) => isAbnormal(plant.status)), [plants]);
 
   const statusOptions = useMemo(() => {
@@ -96,18 +94,6 @@ export function FaultGroupModal({ plants, collection, status, onClose }: FaultGr
       render: (row) => `${formatNumber(row.capacityKw, 1)}kW`,
     },
     {
-      key: 'loss',
-      header: '추정 손실',
-      width: '110px',
-      align: 'right',
-      // 기대치만큼 낸 곳은 뺄 것이 없다 — 「−0kWh」 라고 적으면 조금 잃은 것처럼 읽힌다.
-      render: (row) => {
-        const loss = lossOf(row);
-
-        return loss < 0.5 ? '—' : `−${formatNumber(loss, 0)}kWh`;
-      },
-    },
-    {
       key: 'seen',
       header: '마지막 수신',
       width: '130px',
@@ -136,7 +122,7 @@ export function FaultGroupModal({ plants, collection, status, onClose }: FaultGr
       onClose={onClose}
       size="lg"
       title="장애 발생 현황"
-      description="추정 손실은 금일 정상 가동 발전소의 설비용량 1kW 당 발전량을 기준으로 산정한 값입니다."
+      description="상태별로 묶은 장애 발생 발전소입니다. 상태·미수신 시간·설비용량으로 다시 세울 수 있습니다."
     >
       <div className={styles.filters}>
         <SegmentedControl label="상태" size="sm" options={statusOptions} value={only} onChange={setOnly} />

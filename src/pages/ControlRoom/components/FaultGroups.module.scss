@@ -96,21 +96,6 @@ $chip-max: 96px;
     font-weight: 700;
   }
 
-  &__loss {
-    @include t.label-sm;
-
-    flex-shrink: 0;
-    color: var(--tone-text);
-    font-family: var(--font-data);
-    font-variant-numeric: tabular-nums;
-
-    span {
-      @include t.caption;
-
-      margin-left: 1px;
-      color: var(--text-faint);
-    }
-  }
 }
 
 /*

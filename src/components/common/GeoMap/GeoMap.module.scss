@@ -555,12 +555,20 @@
   }
 }
 
+/*
+  뾰족핀.
+
+  아래로 뻗은 꼭짓점이 발전소 자리를 정확히 짚는다 — 알약만 있으면 중심이 어디인지 눈으로
+  가늠해야 하고, 촘촘한 자리에서는 어느 점이 어느 학교인지 헷갈린다 (2026-08-21 회의).
+  꼭짓점만큼 아래 여백을 두고, 겹치는 그림은 그 여백 위에 그린다.
+*/
 .pin {
   position: relative;
   display: inline-flex;
   align-items: center;
   gap: 5px;
   height: 24px;
+  margin-bottom: 7px;
   padding: 0 9px 0 7px;
   border: 1px solid var(--border-subtle);
   border-radius: 999px;
@@ -569,6 +577,21 @@
   cursor: pointer;
   white-space: nowrap;
   transition: transform 0.16s ease, border-color 0.16s ease;
+
+  /* 꼭짓점 — 알약과 같은 면·테두리 색을 쓰도록 마름모를 돌려 깔고 위를 알약으로 덮는다 */
+  &::after {
+    content: "";
+    position: absolute;
+    bottom: -4px;
+    left: 50%;
+    width: 9px;
+    height: 9px;
+    border: 1px solid var(--border-subtle);
+    border-radius: 1px;
+    background-color: inherit;
+    transform: translateX(-50%) rotate(45deg);
+    clip-path: polygon(100% 0, 100% 100%, 0 100%);
+  }
 
   &:hover {
     z-index: 30;

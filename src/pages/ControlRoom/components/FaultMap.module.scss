@@ -36,9 +36,23 @@
     min-height: 0;
   }
 
+  /*
+    대체 지도는 살짝 왼쪽에 세운다.
+
+    가운데 그대로 두면 오른쪽에 펼치는 발전소 상세와 겹쳐 도 모양의 오른쪽 절반이 가린다
+    (2026-08-21 회의).
+  */
   &__svg {
     width: 100%;
     min-height: 0;
+    padding-right: 22%;
+  }
+
+  /* 도 모양 아래 겹 — 조금 내려 깔아 두께를 만든다 */
+  &__shadow {
+    color: color-mix(in srgb, var(--brand) 26%, transparent);
+    transform: translate(0, 7px);
+    filter: blur(2px);
   }
 
   /*
@@ -102,6 +116,18 @@
     color: var(--text-faint);
     font-family: var(--font-data);
     font-feature-settings: "tnum" 1;
+  }
+}
+
+/* 뾰족핀 — 아래 끝이 발전소 자리를 짚는다 */
+.pin {
+  fill: var(--pin-tone, var(--text-faint));
+  stroke: var(--surface);
+  stroke-width: 1.4;
+  filter: drop-shadow(0 2px 2px rgb(0 0 0 / 22%));
+
+  &__eye {
+    fill: var(--surface);
   }
 }
 

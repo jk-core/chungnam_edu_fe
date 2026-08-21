@@ -26,7 +26,7 @@ export function AlertColumn({ plants, abnormalCount, collection }: AlertColumnPr
   return (
     <div className={styles.col}>
       <Panel title="AI 진단" note={`관내 ${formatNumber(plants.length)}개소`} grow accent>
-        <AiDiagnosisPanel plants={plants} collection={collection} />
+        <AiDiagnosisPanel plants={plants} />
       </Panel>
 
       <Panel title="장애 발생 현황" note={`이상 ${formatNumber(abnormalCount)}개소`}>

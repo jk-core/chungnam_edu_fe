@@ -123,8 +123,17 @@
     @include t.data-sm;
 
     position: relative;
+    display: inline-flex;
+    align-items: baseline;
+    gap: 1px;
     color: var(--text-strong);
     font-variant-numeric: tabular-nums;
+  }
+
+  &__unit {
+    @include t.caption;
+
+    color: var(--text-faint);
   }
 
   &__foot {
