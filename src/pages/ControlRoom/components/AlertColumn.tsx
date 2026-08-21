@@ -25,7 +25,7 @@ interface AlertColumnProps {
 export function AlertColumn({ plants, abnormalCount, collection }: AlertColumnProps) {
   return (
     <div className={styles.col}>
-      <Panel title="AI 진단" note={`관내 ${formatNumber(plants.length)}개소`} grow>
+      <Panel title="AI 진단" note={`관내 ${formatNumber(plants.length)}개소`} grow accent>
         <AiDiagnosisPanel plants={plants} collection={collection} />
       </Panel>
 

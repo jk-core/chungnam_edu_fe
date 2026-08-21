@@ -206,16 +206,51 @@
   @include t.caption;
 
   display: flex;
-  align-items: baseline;
-  justify-content: space-between;
+  align-items: center;
   gap: s.$space-2;
   flex-shrink: 0;
   color: var(--text-faint);
 
+  &__label {
+    flex-shrink: 0;
+  }
+
   &__count {
+    flex: 1;
     color: var(--text-muted);
     font-family: var(--font-data);
     font-variant-numeric: tabular-nums;
+  }
+
+  /* 앞뒤로 넘기고 세워 두는 단추 — 지도 순회 제어와 같은 생김새로 둔다 */
+  &__controls {
+    display: inline-flex;
+    align-items: center;
+    gap: 2px;
+    flex-shrink: 0;
+  }
+
+  &__step {
+    @include mx.keyboard-focus;
+
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 20px;
+    height: 20px;
+    padding: 0;
+    border: 1px solid var(--border-subtle);
+    border-radius: 50%;
+    background: none;
+    color: var(--text-muted);
+    cursor: pointer;
+    transition: border-color 0.16s ease, background-color 0.16s ease, color 0.16s ease;
+
+    &:hover {
+      border-color: color-mix(in srgb, var(--tone) 52%, transparent);
+      background-color: var(--tone-soft);
+      color: var(--tone-text);
+    }
   }
 }
 
@@ -231,7 +266,12 @@
   border: 1px solid color-mix(in srgb, var(--tone) 26%, transparent);
   border-left: 3px solid var(--tone);
   border-radius: s.$radius-md;
-  background-color: var(--surface-sunken);
+
+  /* 회색 판이 아니라 흰 종이 위에 심각도 색이 옅게 번진 모양으로 둔다 */
+  background:
+    linear-gradient(180deg, color-mix(in srgb, var(--tone) 7%, transparent), transparent 42%),
+    var(--surface);
+  box-shadow: var(--shadow-sm);
   overflow: hidden;
 
   /* 카드를 위에서 아래로 훑고 지나가는 가느다란 빛 */

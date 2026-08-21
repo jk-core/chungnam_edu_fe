@@ -83,10 +83,18 @@ export function AggregationPanel({ schools }: AggregationPanelProps) {
           <thead>
             <tr>
               <th scope="col">{axis === 'plant' ? '발전소' : '구분'}</th>
-              <th scope="col" className={styles.table__num}>설비용량</th>
-              <th scope="col" className={styles.table__num}>현재 출력</th>
-              <th scope="col" className={styles.table__num}>금일 발전량</th>
-              <th scope="col" className={styles.table__share}>발전시간</th>
+              <th scope="col" className={styles.table__num}>
+                설비용량<span className={styles.table__unit}>kW</span>
+              </th>
+              <th scope="col" className={styles.table__num}>
+                현재 출력<span className={styles.table__unit}>kW</span>
+              </th>
+              <th scope="col" className={styles.table__num}>
+                금일 발전량<span className={styles.table__unit}>kWh</span>
+              </th>
+              <th scope="col" className={styles.table__share}>
+                발전시간<span className={styles.table__unit}>h</span>
+              </th>
             </tr>
           </thead>
           {/* 쪽이 갈릴 때마다 새로 만들어야 옆에서 밀려 들어오는 움직임이 다시 돈다 */}
@@ -117,15 +125,13 @@ export function AggregationPanel({ schools }: AggregationPanelProps) {
                   <td className={styles.table__num}>{formatNumber(row.outputKw, 1)}</td>
                   <td className={styles.table__num}>{formatNumber(row.todayKwh)}</td>
                   <td className={styles.table__share}>
+                    {/* 막대와 수치를 한 덩이로 둔다 — 따로 세우면 좁은 칸에서 둘 다 뭉개진다 */}
                     <span className={styles.bar}>
                       <span
                         className={styles.bar__fill}
-                        style={{ width: `${Math.max(3, (hoursOf(row) / Math.max(best, 0.01)) * 100)}%` }}
+                        style={{ width: `${Math.max(4, (hoursOf(row) / Math.max(best, 0.01)) * 100)}%` }}
                       />
-                    </span>
-                    <span className={styles.bar__value}>
-                      {formatNumber(hoursOf(row), 1)}
-                      <span className={styles.bar__unit}>h</span>
+                      <span className={styles.bar__value}>{formatNumber(hoursOf(row), 1)}</span>
                     </span>
                   </td>
                 </tr>

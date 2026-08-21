@@ -1,6 +1,7 @@
 import { motion, useReducedMotion } from 'motion/react';
 import { useEffect, useMemo, useState } from 'react';
 import { AiOrbit } from '@/components/common/AiOrbit';
+import { ChevronLeftIcon, ChevronRightIcon, PauseIcon, PlayIcon } from '@/components/common/Icon';
 import { Badge, SEVERITY_LABEL, SEVERITY_TONE } from '@/components/common/Badge';
 import { formatDuration, formatNumber, formatPercent } from '@/utils/format';
 import { getFaultCode, INVERTERS } from '@/mocks/equipment';
@@ -14,8 +15,8 @@ import styles from './AiDiagnosisPanel.module.scss';
 /** 화면이 한 박자 나아가는 간격(ms) */
 const TICK_MS = 700;
 
-/** 알림 한 건을 읽어 볼 시간 — 현상과 조치까지 눈으로 따라갈 만큼 준다 */
-const ALERT_TICKS = 12;
+/** 알림 한 건을 읽어 볼 시간(ms) — 현상과 조치까지 눈으로 따라갈 만큼 준다 */
+const ALERT_MS = 8400;
 
 /** 지금까지 분석한 계측값 — 박자마다 이만큼씩 늘어난다 */
 const ANALYZED_BASE = 1_284_000;
@@ -52,6 +53,10 @@ interface AiDiagnosisPanelProps {
 export function AiDiagnosisPanel({ plants, collection }: AiDiagnosisPanelProps) {
   const reduceMotion = useReducedMotion();
   const [tick, setTick] = useState(0);
+  /** 지금 보고 있는 알림 자리와, 어느 쪽으로 넘어왔는지 */
+  const [cursor, setCursor] = useState(0);
+  const [step, setStep] = useState(1);
+  const [isPlaying, setIsPlaying] = useState(true);
   /** 눌러서 크게 본 참고 이미지 — 판은 계속 돌아도 열어 둔 사진은 그대로 둔다 */
   const [zoom, setZoom] = useState<{ src: string; code: DiagnosisFaultCode; summary: string } | null>(null);
 
@@ -108,7 +113,30 @@ export function AiDiagnosisPanel({ plants, collection }: AiDiagnosisPanelProps) 
     return ordered;
   }, [plants]);
 
+  /*
+    자리마다 시계를 새로 건다.
+
+    되풀이 시계 하나로 돌리면 손으로 넘긴 직후에도 가던 시계가 그대로 울려, 방금 넘긴 알림이
+    한 박자 만에 또 넘어간다.
+  */
+  useEffect(() => {
+    if (!isPlaying) return undefined;
+
+    const timer = window.setTimeout(() => {
+      setStep(1);
+      setCursor((from) => from + 1);
+    }, ALERT_MS);
+
+    return () => window.clearTimeout(timer);
+  }, [isPlaying, cursor]);
+
   const analyzed = ANALYZED_BASE + tick * ANALYZED_STEP;
+
+  /** 앞뒤로 넘긴다. 손으로 넘기면 그 자리에서 머무는 시간을 다시 잰다 */
+  const go = (delta: number) => {
+    setStep(delta);
+    setCursor((from) => from + delta);
+  };
 
   if (alerts.length === 0) {
     return (
@@ -118,7 +146,7 @@ export function AiDiagnosisPanel({ plants, collection }: AiDiagnosisPanelProps) 
     );
   }
 
-  const at = Math.floor(tick / ALERT_TICKS) % alerts.length;
+  const at = ((cursor % alerts.length) + alerts.length) % alerts.length;
   const { inverter, plant, fault } = alerts[at];
   const seen = collection.get(plant.id);
   const tone = SEVERITY_TONE[fault.severity];
@@ -137,15 +165,18 @@ export function AiDiagnosisPanel({ plants, collection }: AiDiagnosisPanelProps) 
   ];
 
   /*
-    줄마다 조금씩 늦게 제자리를 찾아, 판정이 한 줄씩 적히는 것처럼 보이게 한다.
+    넘어온 방향으로 카드가 밀려 들어온다.
+
+    위아래로 흔들지 않는다 — 줄마다 따로 내려앉으면 카드 전체가 꿀렁여 읽는 자리가 흔들린다.
+    카드 한 장이 통째로 옆에서 들어오는 편이 「다음 건으로 넘어갔다」 를 더 분명히 말한다.
 
     투명도로 드러내지 않는 것은 벽 화면이 다른 탭에 가려지면 브라우저가 화면 갱신을 멈춰
     등장 애니메이션이 그대로 얼어 버리기 때문이다. 그때 투명도가 0 이면 판이 통째로 비어
     보인다. 자리만 움직이면 얼어도 내용은 그대로 읽힌다.
   */
-  const line = (index: number) => (reduceMotion
+  const swipe = reduceMotion
     ? { duration: 0 }
-    : { duration: 0.34, delay: 0.06 * index, ease: [0.22, 0.68, 0.32, 1] as const });
+    : { duration: 0.36, ease: [0.22, 0.68, 0.32, 1] as const };
 
   return (
     <div className={styles.diag} data-tone={tone}>
@@ -176,34 +207,53 @@ export function AiDiagnosisPanel({ plants, collection }: AiDiagnosisPanelProps) 
         </div>
       </div>
 
-      <p className={styles.caption}>
-        고장코드 알림
+      <div className={styles.caption}>
+        <span className={styles.caption__label}>고장코드 알림</span>
         <span className={styles.caption__count}>{at + 1} / {formatNumber(alerts.length)}건</span>
-      </p>
+
+        {/* 벽에 걸어 두는 화면이라 스스로 넘기되, 한 건을 붙잡고 읽을 수 있어야 한다 */}
+        <span className={styles.caption__controls}>
+          <button type="button" className={styles.caption__step} aria-label="이전 알림" onClick={() => go(-1)}>
+            <ChevronLeftIcon width={13} height={13} />
+          </button>
+          <button
+            type="button"
+            className={styles.caption__step}
+            aria-pressed={isPlaying}
+            aria-label={isPlaying ? '알림 자동 전환 정지' : '알림 자동 전환 재생'}
+            onClick={() => setIsPlaying((playing) => !playing)}
+          >
+            {isPlaying ? <PauseIcon width={12} height={12} /> : <PlayIcon width={12} height={12} />}
+          </button>
+          <button type="button" className={styles.caption__step} aria-label="다음 알림" onClick={() => go(1)}>
+            <ChevronRightIcon width={13} height={13} />
+          </button>
+        </span>
+      </div>
 
       {/* 알림 한 건. 키가 바뀌면 새 카드를 세우고 줄마다 차례로 드러난다 */}
       <motion.article
         key={`${inverter.id}-${fault.code}`}
         className={styles.alert}
-        initial={reduceMotion ? false : { y: -10 }}
-        animate={{ y: 0 }}
-        transition={line(0)}
+        initial={reduceMotion ? false : { x: step * 46 }}
+        animate={{ x: 0 }}
+        transition={swipe}
       >
         <span className={styles.alert__scan} aria-hidden="true" />
 
-        <motion.p className={styles.alert__top} initial={reduceMotion ? false : { y: 8 }} animate={{ y: 0 }} transition={line(1)}>
+        <p className={styles.alert__top}>
           <span className={styles.alert__code}>코드 {fault.code}</span>
           <span className={styles.alert__summary}>{fault.summary}</span>
           <Badge tone={tone} withDot>{SEVERITY_LABEL[fault.severity]}</Badge>
-        </motion.p>
+        </p>
 
-        <motion.p className={styles.alert__where} initial={reduceMotion ? false : { y: 8 }} animate={{ y: 0 }} transition={line(2)}>
+        <p className={styles.alert__where}>
           <span className={styles.alert__plant}>{plant.name}</span>
           <span className={styles.alert__device}>{inverter.name} · {formatNumber(inverter.capacityKw, 1)}kW</span>
           <span className={styles.alert__region}>{plant.regionName}</span>
-        </motion.p>
+        </p>
 
-        <motion.div className={styles.evidence} initial={reduceMotion ? false : { y: 10 }} animate={{ y: 0 }} transition={line(3)}>
+        <div className={styles.evidence}>
           <p className={styles.evidence__head}>
             <span className={styles.evidence__title}>판정 근거</span>
             <span className={styles.evidence__trendLabel}>최근 7일 발전시간</span>
@@ -225,9 +275,9 @@ export function AiDiagnosisPanel({ plants, collection }: AiDiagnosisPanelProps) 
               </div>
             ))}
           </dl>
-        </motion.div>
+        </div>
 
-        <motion.div className={styles.detail} initial={reduceMotion ? false : { y: 10 }} animate={{ y: 0 }} transition={line(4)}>
+        <div className={styles.detail}>
           <p className={styles.detail__title}>현상</p>
           <ul className={styles.detail__list}>
             {/* 첫 줄이 코드 요약과 같은 말이면 빼고 그다음 줄을 편다 — 같은 말을 두 번 적지 않는다 */}
@@ -236,27 +286,21 @@ export function AiDiagnosisPanel({ plants, collection }: AiDiagnosisPanelProps) 
               .slice(0, LINE_LIMIT)
               .map((text) => <li key={text} title={text}>{text}</li>)}
           </ul>
-        </motion.div>
+        </div>
 
-        <motion.div className={styles.detail} initial={reduceMotion ? false : { y: 10 }} animate={{ y: 0 }} transition={line(5)}>
+        <div className={styles.detail}>
           <p className={styles.detail__title}>권고 조치</p>
           <ul className={styles.detail__list}>
             {fault.plan.slice(0, LINE_LIMIT).map((text) => <li key={text} title={text}>{text}</li>)}
           </ul>
-        </motion.div>
+        </div>
 
         {/*
           고장코드 참고 이미지 — 글로 적힌 현상이 실제로 어떤 모습인지 함께 보인다 (SFR-013-06).
           한 장이면 넓게, 두 장이면 나란히 건다. 비율은 두 경우 모두 같아 판이 들썩이지 않는다.
         */}
         {shots.length > 0 ? (
-          <motion.figure
-            className={styles.shot}
-            data-count={shots.length}
-            initial={reduceMotion ? false : { y: 10 }}
-            animate={{ y: 0 }}
-            transition={line(6)}
-          >
+          <figure className={styles.shot} data-count={shots.length}>
             <span className={styles.shot__frames}>
               {shots.map((src) => (
                 <button
@@ -273,7 +317,7 @@ export function AiDiagnosisPanel({ plants, collection }: AiDiagnosisPanelProps) 
             <figcaption className={styles.shot__caption}>
               고장코드 {fault.code} 참고 이미지 {shots.length}장 · 눌러서 크게 보기
             </figcaption>
-          </motion.figure>
+          </figure>
         ) : null}
       </motion.article>
 

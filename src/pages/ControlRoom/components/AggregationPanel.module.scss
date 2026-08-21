@@ -89,6 +89,16 @@
     @include media.reduced-motion {
       animation: none;
     }
+
+    /*
+      줄 높이를 못 박는다.
+
+      배지가 붙은 줄과 붙지 않은 줄이 1~2px 씩 달라, 쪽이 넘어가거나 축을 바꿀 때마다
+      표 높이가 흔들렸다. 줄마다 같은 높이를 주면 어떤 조합이 와도 표는 같은 자리를 차지한다.
+    */
+    tr {
+      height: 38px;
+    }
   }
 
   /*
@@ -133,6 +143,13 @@
   /* 자리만 지키는 빈 줄 — 눈에 띄지 않게 둔다 */
   &__filler {
     visibility: hidden;
+  }
+
+  /* 머리글에 붙는 단위 — 값 칸마다 되풀이하지 않고 한 번만 적는다 */
+  &__unit {
+    margin-left: 2px;
+    color: var(--text-faint);
+    font-weight: 400;
   }
 
   &__count {
@@ -209,35 +226,38 @@
   }
 }
 
+/* 막대가 곧 값의 자리다 — 채워진 길이 끝에 숫자가 얹힌다 */
 .bar {
-  display: block;
-  height: 6px;
-  border-radius: s.$radius-full;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  height: 20px;
+  padding-right: s.$space-2;
+  border-radius: s.$radius-sm;
   background-color: var(--surface-sunken);
   overflow: hidden;
 
   &__fill {
-    display: block;
-    height: 100%;
-    border-radius: s.$radius-full;
-    background: linear-gradient(90deg, var(--brand), var(--solar));
+    position: absolute;
+    inset-block: 0;
+    inset-inline-start: 0;
+    border-radius: s.$radius-sm;
+    background: linear-gradient(
+      90deg,
+      color-mix(in srgb, var(--brand) 26%, transparent),
+      color-mix(in srgb, var(--solar) 34%, transparent)
+    );
     transition: width 0.5s cubic-bezier(0.22, 0.68, 0.32, 1);
   }
 
   &__value {
-    @include t.caption;
+    @include t.label-sm;
 
-    display: block;
-    margin-top: 2px;
-    color: var(--text-muted);
-    text-align: right;
+    position: relative;
+    color: var(--text-strong);
     font-family: var(--font-data);
     font-variant-numeric: tabular-nums;
-  }
-
-  &__unit {
-    margin-left: 1px;
-    color: var(--text-faint);
   }
 }
 
