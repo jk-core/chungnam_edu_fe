@@ -150,7 +150,7 @@
   max-width: calc(100% - #{s.$space-4});
   padding: s.$space-3;
   border: 1px solid var(--border);
-  border-radius: s.$radius-md;
+  border-radius: var(--room-radius);
   background-color: var(--surface-raised);
   box-shadow: var(--shadow-lg);
   overflow-y: auto;

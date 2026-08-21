@@ -50,7 +50,7 @@
   flex-shrink: 0;
   padding: s.$space-3;
   border: 1px solid color-mix(in srgb, var(--tone) 22%, transparent);
-  border-radius: s.$radius-md;
+  border-radius: var(--room-radius);
   background:
     radial-gradient(120% 140% at 0% 0%, color-mix(in srgb, var(--tone) 12%, transparent), transparent 62%),
     var(--surface-sunken);
@@ -265,7 +265,7 @@
   padding: s.$space-2 s.$space-3;
   border: 1px solid color-mix(in srgb, var(--tone) 26%, transparent);
   border-left: 3px solid var(--tone);
-  border-radius: s.$radius-md;
+  border-radius: var(--room-radius);
 
   /* 회색 판이 아니라 흰 종이 위에 심각도 색이 옅게 번진 모양으로 둔다 */
   background:
@@ -306,7 +306,7 @@
 
     flex-shrink: 0;
     padding: 2px s.$space-2;
-    border-radius: s.$radius-xs;
+    border-radius: var(--room-radius);
     background-color: var(--tone);
     color: var(--surface);
     font-family: var(--font-data);
@@ -360,7 +360,7 @@
   flex-direction: column;
   gap: s.$space-2;
   padding: s.$space-2 s.$space-3;
-  border-radius: s.$radius-sm;
+  border-radius: var(--room-radius);
   background-color: color-mix(in srgb, var(--tone) 7%, transparent);
 
   /* 제목과 추세선을 한 줄에 둔다 — 근거를 읽는 눈이 위아래로 오가지 않는다 */
@@ -528,7 +528,7 @@
     width: 100%;
     padding: 0;
     border: 1px solid var(--border-subtle);
-    border-radius: s.$radius-sm;
+    border-radius: var(--room-radius);
     background: none;
     aspect-ratio: 18 / 5;
     overflow: hidden;
@@ -569,6 +569,6 @@
   display: block;
   width: 100%;
   max-height: 62vh;
-  border-radius: s.$radius-sm;
+  border-radius: var(--room-radius);
   object-fit: contain;
 }

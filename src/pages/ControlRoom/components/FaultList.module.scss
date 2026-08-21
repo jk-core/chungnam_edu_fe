@@ -62,7 +62,7 @@
   gap: s.$space-2;
   padding: 6px s.$space-3;
   border: 1px solid var(--border-subtle);
-  border-radius: s.$radius-sm;
+  border-radius: var(--room-radius);
   background-color: var(--surface-sunken);
 
   &--critical {

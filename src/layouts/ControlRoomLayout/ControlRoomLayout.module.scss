@@ -4,6 +4,15 @@
 @use "@/styles/utils/mixins" as mx;
 
 .room {
+  /*
+    상황판 안의 상자는 모두 이 반지름을 쓴다.
+
+    판·카드·막대·사진 칸이 저마다 다른 곡률로 놓이면 도면 위에 부품이 흩어진 것처럼 보인다.
+    한 값으로 묶어 두면 어느 칸이든 같은 자로 잘라 낸 것으로 읽힌다. 알약과 동그라미는
+    이 규칙 밖이다 — 그것들은 상자가 아니라 표시다.
+  */
+  --room-radius: 5px;
+
   position: relative;
   display: flex;
   flex-direction: column;

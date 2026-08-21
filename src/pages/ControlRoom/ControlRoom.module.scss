@@ -64,7 +64,7 @@
   border: 1px solid var(--border-subtle);
 
   /* 도면 위에 놓인 판이라 모서리를 조금 조인다 — 둥글수록 계측 화면보다 안내 카드로 읽힌다 */
-  border-radius: s.$radius-md;
+  border-radius: var(--room-radius);
 
   /* 오른쪽 위에서 옅게 번지는 광 — 판마다 같은 자리에서 빛이 들어 도면 위에 놓인 결이 생긴다 */
   background:

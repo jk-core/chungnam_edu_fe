@@ -89,7 +89,7 @@ $chip-max: 96px;
 
     flex-shrink: 0;
     padding: 0 5px;
-    border-radius: s.$radius-xs;
+    border-radius: var(--room-radius);
     background-color: var(--brand-soft);
     color: var(--brand);
     font-style: normal;

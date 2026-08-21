@@ -63,6 +63,8 @@
 .cell {
   width: 10px;
   height: 10px;
+
+  /* 한 칸이 10px 이라 상황판 상자 반지름(5px)을 주면 동그라미가 된다 — 칸은 상자가 아니다 */
   border-radius: 3px;
   background-color: color-mix(in srgb, var(--tone) calc(var(--tint, 1) * 100%), var(--surface-sunken));
 
