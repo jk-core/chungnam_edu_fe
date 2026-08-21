@@ -46,6 +46,11 @@
     align-items: center;
     gap: s.$space-1 + 2px;
     color: var(--critical-text);
+
+    /* 문구가 두 줄로 접히면 아이콘이 눌려 찌그러진다 — 제 크기를 지킨다. */
+    svg {
+      flex-shrink: 0;
+    }
   }
 }
 

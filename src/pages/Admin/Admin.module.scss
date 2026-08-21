@@ -364,7 +364,9 @@
 .stringRow {
   display: grid;
   grid-template-columns: 90px minmax(0, 1fr) 110px 110px auto;
-  align-items: end;
+
+  /* 오류 문구가 붙은 칸만 길어진다 — 끝을 맞추면 그 칸의 입력창이 혼자 위로 솟는다. */
+  align-items: start;
   gap: s.$space-3;
   padding: s.$space-3 0;
   border-bottom: 1px solid var(--border-subtle);
@@ -375,6 +377,21 @@
 
   @include media.tablet {
     grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  /* 라벨이 없는 칸이라, 라벨 한 줄만큼 비워 두어야 옆 칸 입력창과 같은 선에서 시작한다. */
+  &__actions {
+    display: flex;
+    align-items: center;
+    gap: s.$space-2;
+
+    &::before {
+      @include t.label-sm;
+
+      content: "\00a0";
+      display: block;
+      margin-bottom: s.$space-2;
+    }
   }
 }
 

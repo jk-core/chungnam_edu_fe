@@ -7,14 +7,6 @@ import useEquipmentStore, { mergeEquipment } from '@/stores/equipmentStore';
 import type { PlantAsset } from '@/interface/asset';
 import type { School } from '@/interface/energy';
 
-/** Select 에서 '지정 안 함'을 나타내는 값 */
-export const NONE = '';
-
-/** 빈 값을 서버가 쓰는 null 로 되돌린다. */
-export function toId(value: string): number | null {
-  return value === NONE ? null : Number(value);
-}
-
 /**
  * 등록 정보를 목록 행으로 옮긴다.
  * 새로 세운 발전소는 아직 계측값도 설비도 없으므로 0 으로 두고 상태는 준비중이다 (SFR-003-10).
