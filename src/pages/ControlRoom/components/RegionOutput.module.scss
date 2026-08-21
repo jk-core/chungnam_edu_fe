@@ -3,48 +3,28 @@
 @use "@/styles/utils/mixins" as mx;
 
 /*
-  시·군별 금일 발전량.
+  지역별 발전시간.
 
-  열다섯 곳을 하나도 빠뜨리지 않고 보여야 해서 두 열로 접는다 — 한 열로 세우면 판이 화면
-  높이를 넘겨 아래쪽 시·군이 잘리고, 잘린 줄은 없는 것과 같다.
-
-  세로로 먼저 채운다(`grid-auto-flow: column`). 가로로 채우면 1·2위가 좌우로 갈라져 앉아
-  순위가 두 줄을 오가며 읽히는데, 세로로 채우면 왼쪽 열이 위에서 아래로 그대로 순위가 된다.
+  두 열로 접고 한 줄을 두 단으로 나눈다 — 이름과 값이 위, 막대가 아래 칸 폭 전체다.
+  셋을 한 줄에 나란히 두면 막대에 55px 밖에 남지 않아 길이를 견줄 수 없었고, 한 열로 펴면
+  열다섯 줄이 판 높이에 아슬아슬하게 걸려 화면이 조금만 낮아도 아래가 잘렸다.
 */
 .region {
-  display: flex;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-rows: repeat(8, minmax(0, 1fr));
+  grid-auto-flow: column;
+  gap: s.$space-2 s.$space-4;
   flex: 1;
-  flex-direction: column;
-  gap: s.$space-2;
   min-height: 0;
-
-  /*
-    한 열로 편다.
-
-    두 열로 접으면 한 줄이 쓸 폭이 절반으로 줄어 막대가 55px 밖에 남지 않는다 — 그 안에
-    숫자까지 넣으면 막대는 사실상 사라진다. 열다섯 줄을 한 열로 세우면 판 높이에 딱 맞고,
-    막대도 값을 견줄 만한 길이를 얻는다 (2026-08-21 회의).
-  */
-  &__list {
-    display: flex;
-    flex-direction: column;
-
-    /*
-      남는 높이는 줄 사이로 고르게 나눈다 — 열다섯 줄이 촘촘히 붙으면 어느 줄을 읽는지 놓친다.
-      최소 간격을 따로 못 박지 않는다. 판 높이가 조금만 달라져도 합이 넘쳐 마지막 줄이 잘린다.
-    */
-    justify-content: space-between;
-    flex: 1;
-    min-height: 0;
-    list-style: none;
-    overflow: hidden;
-  }
+  list-style: none;
 
   &__row {
-    display: grid;
-    grid-template-columns: 16px 58px minmax(0, 1fr);
-    align-items: center;
-    gap: s.$space-2;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 3px;
+    min-width: 0;
 
     /* 1위 한 줄만 도드라지게 둔다 — 어디가 제일 많이 냈는지가 먼저 읽힌다 */
     &[data-lead] {
@@ -54,9 +34,17 @@
       }
 
       .region__value {
+        color: var(--solar-text);
         font-weight: 700;
       }
     }
+  }
+
+  &__head {
+    display: flex;
+    align-items: baseline;
+    gap: s.$space-1;
+    min-width: 0;
   }
 
   &__rank {
@@ -65,8 +53,9 @@
     display: grid;
     width: 15px;
     height: 15px;
+    flex-shrink: 0;
     place-items: center;
-    border-radius: var(--room-radius);
+    border-radius: s.$radius-xs;
     background-color: var(--surface-sunken);
     color: var(--text-faint);
     font-family: var(--font-data);
@@ -78,64 +67,41 @@
     @include t.caption;
     @include mx.truncate;
 
+    flex: 1;
+    min-width: 0;
     color: var(--text-muted);
   }
 
-  /*
-    막대가 곧 값의 자리다 — 채워진 길이 끝에 숫자가 얹힌다.
-    줄 높이는 붙박아 둔다. 열다섯 줄이 판에 다 들어가야 하고, 한 줄이라도 잘리면 지역이 사라진다.
-  */
-  &__track {
-    position: relative;
-    display: flex;
-    align-items: center;
-    justify-content: flex-end;
-    height: 19px;
-    padding-right: s.$space-2;
-    border-radius: var(--room-radius);
-    background-color: var(--surface-sunken);
-    overflow: hidden;
-  }
-
-  /*
-    채움은 진하게 둔다 — 옅게 깔면 어디까지 찼는지 멀리서 읽히지 않는다.
-    대신 숫자는 채움이 제 자리까지 닿았는지에 따라 색을 뒤집는다.
-  */
-  &__bar {
-    position: absolute;
-    inset-block: 0;
-    inset-inline-start: 0;
-    border-radius: var(--room-radius);
-    background: linear-gradient(90deg, var(--brand) 12%, var(--solar));
-    box-shadow: inset 0 1px 0 rgb(255 255 255 / 22%);
-    transition: width 0.5s cubic-bezier(0.22, 0.68, 0.32, 1);
-  }
-
   &__value {
-    @include t.data-sm;
+    @include t.label-sm;
 
-    position: relative;
-    display: inline-flex;
-    align-items: baseline;
-    gap: 1px;
+    flex-shrink: 0;
     color: var(--text-strong);
+    font-family: var(--font-data);
     font-variant-numeric: tabular-nums;
-    transition: color 0.3s ease;
   }
 
   &__unit {
     @include t.caption;
 
+    margin-left: 1px;
     color: var(--text-faint);
   }
 
-  /* 채움이 숫자 자리까지 닿았다 — 면 위 글자로 뒤집는다 */
-  &__track[data-over] {
-    .region__value,
-    .region__unit {
-      color: var(--text-on-brand);
-      text-shadow: 0 1px 1px rgb(0 0 0 / 22%);
-    }
+  /* 막대는 칸 폭을 다 쓴다 — 값은 위에 적혀 있으므로 안에 글자를 얹지 않는다 */
+  &__track {
+    display: block;
+    height: 7px;
+    border-radius: s.$radius-full;
+    background-color: var(--surface-sunken);
+    overflow: hidden;
   }
 
+  &__bar {
+    display: block;
+    height: 100%;
+    border-radius: s.$radius-full;
+    background: linear-gradient(90deg, var(--brand) 12%, var(--solar));
+    transition: width 0.5s cubic-bezier(0.22, 0.68, 0.32, 1);
+  }
 }

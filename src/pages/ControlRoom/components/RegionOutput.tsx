@@ -1,9 +1,6 @@
-import { REGIONS } from '@/mocks/regions';
 import { formatNumber } from '@/utils/format';
+import { REGIONS } from '@/mocks/regions';
 import styles from './RegionOutput.module.scss';
-
-/** 채움이 이만큼 넘으면 숫자가 면 위에 올라선다 — 그때부터 글자색을 뒤집는다 */
-const COVER_RATIO = 0.72;
 
 /**
  * 가장 낮은 지역이 남기는 길이.
@@ -21,8 +18,9 @@ const FLOOR = 0.18;
  * 천안시(68개소)는 늘 맨 위다. 설비용량으로 나눈 발전시간이라야 큰 지역과 작은 지역이 같은
  * 눈금에 서서 「오늘 어디가 잘 냈나」 를 답한다 (2026-08-21 회의).
  *
- * 수치는 막대 안에 얹는다. 이름·막대·수치를 각각 한 칸씩 나눠 주면 두 열로 접었을 때
- * 셋 다 좁아져 막대는 뭉개지고 숫자는 자리를 다툰다.
+ * 한 줄을 두 단으로 나눈다. 이름·값을 위에 두고 막대를 그 아래 칸 폭 전체로 깔면, 두 열로
+ * 접어도 막대가 제 길이를 얻는다 — 한 줄에 셋을 나란히 두었을 때는 막대에 55px 밖에 남지
+ * 않아 사실상 보이지 않았다.
  */
 export function RegionOutput() {
   const ordered = [...REGIONS]
@@ -33,31 +31,27 @@ export function RegionOutput() {
   const spread = Math.max(best - worst, 0.01);
 
   return (
-    <div className={styles.region}>
-      <ol className={styles.region__list}>
-        {ordered.map((item, index) => {
-          const ratio = FLOOR + (1 - FLOOR) * ((item.hours - worst) / spread);
+    <ol className={styles.region}>
+      {ordered.map((item, index) => {
+        const ratio = FLOOR + (1 - FLOOR) * ((item.hours - worst) / spread);
 
-          return (
-            <li key={item.code} className={styles.region__row} data-lead={index === 0 ? '' : undefined}>
+        return (
+          <li key={item.code} className={styles.region__row} data-lead={index === 0 ? '' : undefined}>
+            <p className={styles.region__head}>
               <span className={styles.region__rank}>{index + 1}</span>
               <span className={styles.region__name}>{item.name}</span>
-              {/*
-                막대와 수치를 한 덩이로 둔다. 채움이 숫자 자리까지 닿으면 글자색을 뒤집어,
-                짧은 막대에서도 긴 막대에서도 숫자가 묻히지 않는다.
-              */}
-              <span className={styles.region__track} data-over={ratio >= COVER_RATIO ? '' : undefined}>
-                <span className={styles.region__bar} style={{ width: `${ratio * 100}%` }} />
-                <span className={styles.region__value}>
-                  {formatNumber(item.hours, 1)}
-                  <span className={styles.region__unit}>h</span>
-                </span>
+              <span className={styles.region__value}>
+                {formatNumber(item.hours, 1)}
+                <span className={styles.region__unit}>h</span>
               </span>
-            </li>
-          );
-        })}
-      </ol>
+            </p>
 
-    </div>
+            <span className={styles.region__track}>
+              <span className={styles.region__bar} style={{ width: `${ratio * 100}%` }} />
+            </span>
+          </li>
+        );
+      })}
+    </ol>
   );
 }
