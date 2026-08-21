@@ -18,9 +18,19 @@
   [data-theme="dark"] & {
     filter: invert(1) hue-rotate(180deg);
 
-    // 우리가 얹은 마커·묶음과, 지도가 얹는 축척·로고를 되돌린다
-    :is(.pin, .cluster),
-    > div:not(:first-child) {
+    // 우리가 얹은 마커·묶음은 되돌린다
+    :is(.pin, .cluster) {
+      filter: invert(1) hue-rotate(180deg);
+    }
+
+    /*
+      축척 막대는 뒤집힌 채로 둔다.
+
+      카카오가 검정 글씨로 못 박아 두어 되돌리면 어두운 지도 위에서 글씨가 사라진다.
+      뒤집힌 채면 흰 글씨가 되어 그대로 읽힌다. 대신 그 옆 카카오 로고는 색이 있는 그림이라
+      되돌려 원래 색을 지킨다 — 지도 출처 표기는 제 모습이어야 한다.
+    */
+    > div:not(:first-child) img {
       filter: invert(1) hue-rotate(180deg);
     }
   }
