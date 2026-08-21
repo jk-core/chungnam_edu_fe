@@ -19,6 +19,9 @@ const PAGE_MS = 7000;
  */
 const PER_PAGE = 6;
 
+/** 1·2·3 위에 얹는 금·은·동 */
+const MEDALS = ['gold', 'silver', 'bronze'] as const;
+
 /** 채움이 이만큼 넘으면 숫자가 면 위에 올라선다 — 그때부터 글자색을 뒤집는다 */
 const COVER_RATIO = 0.72;
 
@@ -104,7 +107,12 @@ export function AggregationPanel({ schools, axis }: AggregationPanelProps) {
 
               return (
                 <tr key={row.key} ref={index === 0 ? itemRef : undefined}>
-                  <td className={styles.table__rank} data-lead={rank <= 3 ? '' : undefined}>{rank}</td>
+                  <td className={styles.table__rank}>
+                    {/* 세 자리까지만 메달을 얹는다 — 나머지는 숫자만으로 순서가 읽힌다 */}
+                    {MEDALS[rank - 1] ? (
+                      <span className={`${styles.table__medal} ${styles[`medal--${MEDALS[rank - 1]}`]}`}>{rank}</span>
+                    ) : rank}
+                  </td>
                   <th scope="row" className={styles.table__name}>
                     <span>{row.name}</span>
                     {row.count > 1 ? <span className={styles.table__count}>{row.count}개소</span> : null}

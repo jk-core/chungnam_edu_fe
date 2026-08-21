@@ -58,8 +58,8 @@
     @include t.caption;
 
     display: grid;
-    width: 16px;
-    height: 16px;
+    width: 15px;
+    height: 15px;
     place-items: center;
     border-radius: var(--room-radius);
     background-color: var(--surface-sunken);
@@ -76,13 +76,16 @@
     color: var(--text-muted);
   }
 
-  /* 막대가 곧 값의 자리다 — 채워진 길이 끝에 숫자가 얹힌다 */
+  /*
+    막대가 곧 값의 자리다 — 채워진 길이 끝에 숫자가 얹힌다.
+    줄 높이는 붙박아 둔다. 열다섯 줄이 판에 다 들어가야 하고, 한 줄이라도 잘리면 지역이 사라진다.
+  */
   &__track {
     position: relative;
     display: flex;
     align-items: center;
     justify-content: flex-end;
-    height: 22px;
+    height: 17px;
     padding-right: s.$space-2;
     border-radius: var(--room-radius);
     background-color: var(--surface-sunken);

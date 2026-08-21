@@ -82,6 +82,16 @@
     font-weight: 500;
   }
 
+  /* 머리글은 제 칸 값과 같은 쪽에 선다 — 숫자 위에 왼쪽 글씨가 앉으면 열이 어긋나 보인다 */
+  & thead th.table__num,
+  & thead th.table__share {
+    text-align: right;
+  }
+
+  & thead th.table__rank {
+    text-align: center;
+  }
+
   &__caption {
     @include mx.sr-only;
   }
@@ -150,16 +160,27 @@
 
   /* 맨 앞 순위 — 세 자리 안쪽이라 폭을 못 박고 가운데 세운다 */
   &__rank {
-    width: 34px;
+    @include t.label-sm;
+
+    width: 42px;
     color: var(--text-faint);
     text-align: center;
     font-family: var(--font-data);
     font-variant-numeric: tabular-nums;
+    font-weight: 500;
+  }
 
-    &[data-lead] {
-      color: var(--solar-text);
-      font-weight: 700;
-    }
+  /* 1·2·3 위만 금·은·동을 얹는다 */
+  &__medal {
+    @include t.caption;
+
+    display: inline-grid;
+    width: 22px;
+    height: 22px;
+    place-items: center;
+    border-radius: 50%;
+    font-family: var(--font-data);
+    font-weight: 700;
   }
 
   /* 총계 — 줄을 다 읽고 난 자리에서 관내 전체를 받는다 */
