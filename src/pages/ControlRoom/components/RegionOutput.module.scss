@@ -18,47 +18,34 @@
   gap: s.$space-2;
   min-height: 0;
 
+  /*
+    한 열로 편다.
+
+    두 열로 접으면 한 줄이 쓸 폭이 절반으로 줄어 막대가 55px 밖에 남지 않는다 — 그 안에
+    숫자까지 넣으면 막대는 사실상 사라진다. 열다섯 줄을 한 열로 세우면 판 높이에 딱 맞고,
+    막대도 값을 견줄 만한 길이를 얻는다 (2026-08-21 회의).
+  */
   &__list {
-    position: relative;
-    display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    grid-template-rows: repeat(8, auto);
-    grid-auto-flow: column;
-    align-content: space-between;
-    gap: s.$space-1 s.$space-5;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
     flex: 1;
     min-height: 0;
     list-style: none;
     overflow: hidden;
-
-    /* 두 열을 가르는 실선 — 왼쪽 여덟과 오른쪽 일곱이 한 덩이로 뭉쳐 보이지 않게 한다 */
-    &::before {
-      content: "";
-      position: absolute;
-      top: 0;
-      bottom: 0;
-      left: 50%;
-      width: 1px;
-      background-color: var(--border-subtle);
-    }
   }
 
   &__row {
     display: grid;
-    grid-template-columns: 14px 46px minmax(0, 1fr);
+    grid-template-columns: 16px 58px minmax(0, 1fr);
     align-items: center;
-    gap: s.$space-1;
+    gap: s.$space-2;
 
     /* 1위 한 줄만 도드라지게 둔다 — 어디가 제일 많이 냈는지가 먼저 읽힌다 */
     &[data-lead] {
       .region__rank {
         background-color: var(--solar);
         color: var(--text-on-brand);
-      }
-
-      .region__bar {
-        background-color: color-mix(in srgb, var(--solar) 34%, transparent);
-        border-right-color: var(--solar);
       }
 
       .region__value {
@@ -71,8 +58,8 @@
     @include t.caption;
 
     display: grid;
-    width: 14px;
-    height: 14px;
+    width: 16px;
+    height: 16px;
     place-items: center;
     border-radius: var(--room-radius);
     background-color: var(--surface-sunken);
@@ -103,19 +90,16 @@
   }
 
   /*
-    채운 면은 옅게, 끝선은 진하게.
-
-    면을 진하게 채우면 그 위에 얹은 숫자가 묻힌다 — 긴 막대일수록 숫자가 통째로 면 안에
-    들어가기 때문이다. 면은 글씨가 읽힐 만큼만 물들이고 길이는 끝선이 짚어 주면, 어느
-    길이에서도 숫자와 막대가 함께 읽힌다.
+    채움은 진하게 둔다 — 옅게 깔면 어디까지 찼는지 멀리서 읽히지 않는다.
+    대신 숫자는 채움이 제 자리까지 닿았는지에 따라 색을 뒤집는다.
   */
   &__bar {
     position: absolute;
     inset-block: 0;
     inset-inline-start: 0;
-    border-right: 2px solid var(--brand);
-    border-radius: var(--room-radius) 0 0 var(--room-radius);
-    background-color: color-mix(in srgb, var(--brand) 26%, transparent);
+    border-radius: var(--room-radius);
+    background: linear-gradient(90deg, var(--brand) 12%, var(--solar));
+    box-shadow: inset 0 1px 0 rgb(255 255 255 / 22%);
     transition: width 0.5s cubic-bezier(0.22, 0.68, 0.32, 1);
   }
 
@@ -128,12 +112,22 @@
     gap: 1px;
     color: var(--text-strong);
     font-variant-numeric: tabular-nums;
+    transition: color 0.3s ease;
   }
 
   &__unit {
     @include t.caption;
 
     color: var(--text-faint);
+  }
+
+  /* 채움이 숫자 자리까지 닿았다 — 면 위 글자로 뒤집는다 */
+  &__track[data-over] {
+    .region__value,
+    .region__unit {
+      color: var(--text-on-brand);
+      text-shadow: 0 1px 1px rgb(0 0 0 / 22%);
+    }
   }
 
   &__foot {

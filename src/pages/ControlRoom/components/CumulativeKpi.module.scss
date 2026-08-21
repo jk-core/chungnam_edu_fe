@@ -72,37 +72,57 @@
   }
 }
 
-/* 가동 이후 쌓인 값 — 기간 셋과 자릿수가 달라 굵은 선으로 끊는다 */
-.total {
+/* 하나 전 같은 기간과의 증감 — 세 기간을 한 줄에 나란히 둔다 */
+.delta {
   display: flex;
-  align-items: baseline;
-  justify-content: space-between;
-  gap: s.$space-2;
+  flex-wrap: wrap;
+  gap: s.$space-1 s.$space-4;
   padding-top: s.$space-2;
-  border-top: 2px solid var(--border);
+  border-top: 1px solid var(--border-subtle);
 
-  &__label {
-    @include t.label-sm;
+  &__item {
+    @include t.caption;
 
-    color: var(--text-muted);
+    color: var(--text-faint);
+    font-variant-numeric: tabular-nums;
+
+    &[data-way="up"] {
+      color: var(--ok-text);
+    }
+
+    &[data-way="down"] {
+      color: var(--critical-text);
+    }
   }
+}
 
-  &__value {
-    display: flex;
-    align-items: baseline;
-    gap: 3px;
+/*
+  소나무 환산.
+
+  줄인 탄소를 톤으로 적으면 크기를 가늠할 수 없다 — 그루 수로 바꾸면 「이만큼 심은 것과 같다」
+  로 읽힌다 (2026-08-21 회의).
+*/
+.tree {
+  @include t.caption;
+
+  display: flex;
+  align-items: center;
+  gap: s.$space-2;
+  padding: s.$space-2 s.$space-3;
+  border-radius: var(--room-radius);
+  background-color: var(--ok-soft);
+  color: var(--text-muted);
+
+  strong {
     color: var(--ok-text);
     font-family: var(--font-data);
-    font-size: 22px;
-    font-weight: 700;
+    font-size: 13px;
     font-variant-numeric: tabular-nums;
   }
 
-  &__unit {
-    color: var(--ok-text);
-    font-family: var(--font-sans);
-    font-size: 12px;
-    font-weight: 600;
-    opacity: 0.8;
+  &__mark {
+    display: inline-flex;
+    flex-shrink: 0;
+    color: var(--ok);
   }
 }

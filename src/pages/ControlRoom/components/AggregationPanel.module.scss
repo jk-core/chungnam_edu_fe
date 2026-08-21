@@ -60,9 +60,12 @@
   table-layout: fixed;
   border-collapse: collapse;
 
-  /* 이름 칸이 가장 넓어야 한다 — 숫자는 폭이 정해져 있지만 이름은 길이가 제각각이다 */
-  & thead th:first-child {
-    width: 40%;
+  /*
+    이름 칸이 가장 넓어야 한다 — 숫자는 폭이 정해져 있지만 이름은 길이가 제각각이다.
+    맨 앞 순위가 생긴 뒤로는 두 번째 칸이 이름 자리다.
+  */
+  & thead th:nth-child(2) {
+    width: 34%;
   }
 
   & thead th {
@@ -257,7 +260,12 @@
   }
 }
 
-/* 막대가 곧 값의 자리다 — 채워진 길이 끝에 숫자가 얹힌다 */
+/*
+  막대가 곧 값의 자리다.
+
+  채움은 진하게 둔다 — 옅게 깔면 예쁘긴 해도 어디까지 찼는지 멀리서 읽히지 않는다. 대신
+  숫자는 채움이 제 자리까지 닿았는지에 따라 색을 뒤집어, 면 위에서도 바탕 위에서도 읽힌다.
+*/
 .bar {
   position: relative;
   display: flex;
@@ -274,11 +282,8 @@
     inset-block: 0;
     inset-inline-start: 0;
     border-radius: var(--room-radius);
-    background: linear-gradient(
-      90deg,
-      color-mix(in srgb, var(--brand) 26%, transparent),
-      color-mix(in srgb, var(--solar) 34%, transparent)
-    );
+    background: linear-gradient(90deg, var(--brand) 12%, var(--solar));
+    box-shadow: inset 0 1px 0 rgb(255 255 255 / 22%);
     transition: width 0.5s cubic-bezier(0.22, 0.68, 0.32, 1);
   }
 
@@ -289,6 +294,13 @@
     color: var(--text-strong);
     font-family: var(--font-data);
     font-variant-numeric: tabular-nums;
+    transition: color 0.3s ease;
+  }
+
+  /* 채움이 숫자 자리까지 닿았다 — 면 위 글자로 뒤집는다 */
+  &[data-over] &__value {
+    color: var(--text-on-brand);
+    text-shadow: 0 1px 1px rgb(0 0 0 / 22%);
   }
 }
 

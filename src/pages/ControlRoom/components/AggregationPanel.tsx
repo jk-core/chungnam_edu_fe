@@ -19,6 +19,18 @@ const PAGE_MS = 7000;
  */
 const PER_PAGE = 6;
 
+/** 채움이 이만큼 넘으면 숫자가 면 위에 올라선다 — 그때부터 글자색을 뒤집는다 */
+const COVER_RATIO = 0.72;
+
+/**
+ * 가장 낮은 줄이 남기는 길이.
+ *
+ * 발전시간은 같은 날 같은 하늘 아래 잰 값이라 크게 벌어지지 않는다 — 0 부터 그리면 여섯 줄이
+ * 모두 끝까지 차서 순서가 막대로는 보이지 않는다. 가장 낮은 줄을 이만큼으로 두고 그 위
+ * 차이를 편다. 값 자체는 막대 안 숫자가 그대로 말한다.
+ */
+const FLOOR = 0.18;
+
 /** 금일 발전시간(h) = 금일 발전량 ÷ 설비용량 */
 function hoursOf(row: { todayKwh: number; capacityKw: number }): number {
   return row.capacityKw > 0 ? row.todayKwh / row.capacityKw : 0;
@@ -40,6 +52,8 @@ interface AggregationPanelProps {
 export function AggregationPanel({ schools, axis }: AggregationPanelProps) {
   const rows = aggregate(schools, axis).sort((a, b) => hoursOf(b) - hoursOf(a));
   const best = hoursOf(rows[0] ?? { todayKwh: 0, capacityKw: 1 });
+  const worst = hoursOf(rows[rows.length - 1] ?? { todayKwh: 0, capacityKw: 1 });
+  const spread = Math.max(best - worst, 0.01);
 
   const totals = rows.reduce(
     (sum, row) => ({
@@ -86,6 +100,7 @@ export function AggregationPanel({ schools, axis }: AggregationPanelProps) {
             {visibleRows.map((row, index) => {
               // 순위는 쪽을 넘겨도 이어져야 한다 — 지금 쪽의 자리가 아니라 전체에서의 자리로 센다.
               const rank = from + index + 1;
+              const ratio = FLOOR + (1 - FLOOR) * ((hoursOf(row) - worst) / spread);
 
               return (
                 <tr key={row.key} ref={index === 0 ? itemRef : undefined}>
@@ -105,12 +120,13 @@ export function AggregationPanel({ schools, axis }: AggregationPanelProps) {
                   <td className={styles.table__num}>{formatNumber(row.outputKw, 1)}</td>
                   <td className={styles.table__num}>{formatNumber(row.todayKwh)}</td>
                   <td className={styles.table__share}>
-                    {/* 채운 면은 옅게, 끝선은 진하게 — 면을 진하게 채우면 그 위 숫자가 묻힌다 */}
-                    <span className={styles.bar}>
-                      <span
-                        className={styles.bar__fill}
-                        style={{ width: `${Math.max(4, (hoursOf(row) / Math.max(best, 0.01)) * 100)}%` }}
-                      />
+                    {/*
+                      숫자는 늘 오른쪽에 서고, 채움이 그 자리까지 닿으면 글자색을 뒤집는다 —
+                      한쪽으로 못 박아 두면 짧은 막대에서는 면 위 글자가, 긴 막대에서는 바탕 위
+                      글자가 묻힌다.
+                    */}
+                    <span className={styles.bar} data-over={ratio >= COVER_RATIO ? '' : undefined}>
+                      <span className={styles.bar__fill} style={{ width: `${ratio * 100}%` }} />
                       <span className={styles.bar__value}>{formatNumber(hoursOf(row), 1)}</span>
                     </span>
                   </td>
