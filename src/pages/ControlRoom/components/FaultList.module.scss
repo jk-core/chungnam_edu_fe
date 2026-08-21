@@ -44,10 +44,17 @@
   }
 }
 
+/*
+  새 쪽이 옆에서 밀려 들어온다.
+
+  옮기는 거리를 짧게 둔다 — 화면이 다른 탭에 가리면 브라우저가 애니메이션을 시작 지점에
+  세워 두는데, 그때 표 본문만 옮겨진 자리에 멈춰 머리글·총계와 어긋나 보인다. 8px 이면
+  움직임은 남고 멈춰 서도 어긋난 티가 나지 않는다.
+*/
 @keyframes rows-slide {
   from {
     opacity: 0;
-    transform: translateX(28px);
+    transform: translateX(8px);
   }
 
   to {

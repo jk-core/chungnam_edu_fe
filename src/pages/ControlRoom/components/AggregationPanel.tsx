@@ -168,8 +168,9 @@ export function AggregationPanel({ schools, axis }: AggregationPanelProps) {
           {/* 총계는 맨 아래 — 줄을 다 읽고 난 자리에서 관내 전체를 받는다 */}
           <tfoot className={styles.table__foot}>
             <tr>
-              <td className={styles.table__rank} />
-              <th scope="row" className={styles.table__name}>총계</th>
+              {/* 「총계」 는 순위 자리에 세운다 — 구분 칸은 이름이 서는 자리라 비워 둔다 */}
+              <th scope="row" className={styles.table__rank}>총계</th>
+              <td className={styles.table__name} />
               <td className={styles.table__num}>
                 {formatNumber(totals.capacityKw, 1)}<span className={styles.table__unit}>kW</span>
               </td>
