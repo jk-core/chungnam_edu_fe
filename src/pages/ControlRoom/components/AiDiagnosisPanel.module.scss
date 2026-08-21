@@ -336,18 +336,45 @@
 /*
   진단이 쓴 글.
 
-  숫자를 칸에 나눠 담지 않고 문단으로 잇는다 — 값만 늘어놓으면 「그래서 어떻다는 것인가」 를
-  읽는 사람이 이어 붙여야 한다. 대신 이름과 수치는 굵게 남겨 문단 안에서도 먼저 읽히게 한다.
-  줄 간격을 넉넉히 두어 벽에서도 한 줄씩 따라갈 수 있다.
+  규모·출력·실적·상태를 줄로 가른다 — 한 문단으로 이어 쓰면 값이 글 속에 묻히고, 무엇을
+  말하는 줄인지 알려면 문장을 처음부터 읽어야 한다. 왼쪽에 이름표를 세우면 그 줄만 떼어
+  봐도 뜻이 서고, 세로로 훑을 때 네 가지가 같은 자리에서 시작한다.
 */
 .brief {
-  @include t.body-md;
+  display: flex;
+  flex-direction: column;
 
+  /* 네 줄이 카드 높이를 고르게 나눠 갖는다 — 위로 몰아 두면 아래가 휑하다 */
+  justify-content: space-between;
+  gap: s.$space-3;
   flex: 1;
   min-height: 0;
-  color: var(--text);
-  line-height: 1.8;
-  word-break: keep-all;
+
+  &__line {
+    display: grid;
+    gap: s.$space-3;
+    grid-template-columns: 40px minmax(0, 1fr);
+    align-items: baseline;
+  }
+
+  &__label {
+    @include t.caption;
+
+    padding: 1px 0;
+    border-radius: s.$radius-xs;
+    background-color: var(--surface-sunken);
+    color: var(--text-faint);
+    text-align: center;
+    font-weight: 700;
+  }
+
+  &__text {
+    @include t.body-sm;
+
+    color: var(--text);
+    line-height: 1.65;
+    word-break: keep-all;
+  }
 
   /*
     수치는 글 안에서 먼저 읽히되 경보처럼 보이지는 않아야 한다.
@@ -361,7 +388,7 @@
     font-variant-numeric: tabular-nums;
   }
 
-  /* 아직 찍는 중임을 알리는 커서 — 다 찍히면 사라진다 */
+  /* 아직 찍는 중임을 알리는 커서 — 그 줄이 끝나면 다음 줄로 옮겨 간다 */
   &__caret {
     display: inline-block;
     width: 2px;
