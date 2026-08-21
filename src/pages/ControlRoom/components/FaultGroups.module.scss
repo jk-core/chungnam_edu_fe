@@ -1,0 +1,144 @@
+@use "@/styles/tokens/spacing" as s;
+@use "@/styles/tokens/typography" as t;
+@use "@/styles/utils/mixins" as mx;
+
+/* 이름 셋과 더보기가 한 줄에 나란히 서게 붙잡는 폭 */
+$chip-max: 96px;
+
+/*
+  상태 분포 한 줄과 묶음들.
+
+  이름이 한 줄로 줄어든 뒤로는 판이 늘어날 까닭이 없다 — 남는 높이는 위 AI 진단이 가져간다.
+*/
+.wrap {
+  display: flex;
+  flex-direction: column;
+  gap: s.$space-3;
+  flex: 1;
+  min-height: 0;
+}
+
+.groups {
+  display: flex;
+  flex-direction: column;
+  gap: s.$space-3;
+  flex: 1;
+  min-height: 0;
+}
+
+.group {
+  display: flex;
+  flex-direction: column;
+  gap: s.$space-2;
+  padding-left: s.$space-3;
+  border-left: 3px solid var(--tone);
+
+  &[data-tone="critical"] {
+    --tone: var(--critical);
+    --tone-soft: var(--critical-soft);
+    --tone-text: var(--critical-text);
+  }
+
+  &[data-tone="caution"] {
+    --tone: var(--caution);
+    --tone-soft: var(--caution-soft);
+    --tone-text: var(--caution-text);
+  }
+
+  &[data-tone="offline"] {
+    --tone: var(--offline);
+    --tone-soft: var(--offline-soft);
+    --tone-text: var(--offline-text);
+  }
+
+  &__head {
+    display: flex;
+    align-items: baseline;
+    gap: s.$space-2;
+  }
+
+  &__label {
+    @include t.label-md;
+
+    flex-shrink: 0;
+    color: var(--text-strong);
+  }
+
+  &__count {
+    @include t.data-md;
+
+    flex-shrink: 0;
+    color: var(--tone-text);
+  }
+
+  /* 원인은 자리가 좁아지면 가장 먼저 접히는 곁가지다 */
+  &__reason {
+    @include t.caption;
+    @include mx.truncate;
+
+    display: flex;
+    align-items: center;
+    gap: s.$space-1;
+    flex: 1;
+    min-width: 0;
+    color: var(--text-faint);
+  }
+
+  &__ai {
+    @include t.caption;
+
+    flex-shrink: 0;
+    padding: 0 5px;
+    border-radius: var(--room-radius);
+    background-color: var(--brand-soft);
+    color: var(--brand);
+    font-style: normal;
+    font-weight: 700;
+  }
+
+}
+
+/*
+  이름 칩.
+  한 줄만 둔다 — 넘치는 것은 「더보기」가 모달로 마저 보여 준다.
+*/
+.chips {
+  display: flex;
+  gap: s.$space-1;
+  list-style: none;
+}
+
+.chip {
+  @include t.caption;
+  @include mx.truncate;
+
+  max-width: $chip-max;
+  padding: 3px s.$space-2;
+  border: 1px solid var(--border-subtle);
+  border-radius: s.$radius-full;
+  background-color: var(--surface-sunken);
+  color: var(--text);
+}
+
+.more {
+  @include t.caption;
+
+  padding: 3px s.$space-2;
+  border: 1px dashed color-mix(in srgb, var(--tone) 46%, transparent);
+  border-radius: s.$radius-full;
+  background-color: var(--tone-soft);
+  color: var(--tone-text);
+  cursor: pointer;
+
+  &:hover {
+    background-color: color-mix(in srgb, var(--tone) 16%, transparent);
+  }
+}
+
+.empty {
+  @include t.body-sm;
+
+  margin: auto;
+  color: var(--text-faint);
+  text-align: center;
+}

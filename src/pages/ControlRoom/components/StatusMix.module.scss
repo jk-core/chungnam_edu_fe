@@ -1,59 +1,10 @@
 @use "@/styles/tokens/spacing" as s;
 @use "@/styles/tokens/typography" as t;
 
-.ops {
+.mix {
   display: flex;
   flex-direction: column;
   gap: s.$space-2;
-
-  /*
-    2열 × 3줄.
-
-    아래에 있던 미수신 목록과 수집 현황을 걷어냈으므로 이 판이 남는 높이를 다 쓴다.
-    3열로 촘촘히 늘어놓으면 아래가 휑해 보이던 것이, 2열로 넓히면 값이 커지고 줄 사이가
-    벌어져 같은 자리를 채우면서도 읽기 쉬워진다.
-  */
-  &__top {
-    display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 6px s.$space-4;
-  }
-
-  &__stat {
-    display: flex;
-    flex-direction: column;
-    gap: 2px;
-  }
-
-  &__label {
-    @include t.caption;
-
-    color: var(--text-faint);
-  }
-
-  &__value {
-    @include t.data-md;
-
-    display: flex;
-    align-items: baseline;
-    gap: 2px;
-    color: var(--text-strong);
-  }
-
-  &__valueAlert {
-    @include t.data-md;
-
-    display: flex;
-    align-items: baseline;
-    gap: 2px;
-    color: var(--critical-text);
-  }
-
-  &__unit {
-    @include t.caption;
-
-    color: var(--text-muted);
-  }
 
   &__bar {
     display: flex;
@@ -95,7 +46,7 @@
     gap: 2px s.$space-3;
   }
 
-  &__legendItem {
+  &__item {
     @include t.caption;
 
     display: flex;
@@ -104,7 +55,7 @@
     color: var(--text-muted);
   }
 
-  &__legendValue {
+  &__value {
     color: var(--text-strong);
     font-family: var(--font-data);
   }

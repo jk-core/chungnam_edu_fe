@@ -4,6 +4,52 @@
 @use "@/styles/utils/mixins" as mx;
 
 /*
+  어두운 화면의 지도.
+
+  카카오는 밝은 타일 한 벌만 준다 — 어두운 상황판에서 지도만 하얗게 떠 눈이 부시고, 그
+  판만 다른 화면처럼 보인다. 타일을 뒤집어 어둡게 만든 다음, 그 위에 얹힌 것들은 같은 값을
+  한 번 더 걸어 원래 색으로 되돌린다. 되돌리지 않으면 상태 색이 보색으로 바뀌어 경고가
+  초록으로, 정상이 붉게 보인다.
+
+  invert 와 hue-rotate(180deg) 는 각각 두 번 걸면 제자리로 오는 값이라, 되돌리는 데
+  같은 식을 그대로 쓴다. 축척 막대와 카카오 로고도 지도 위에 얹힌 것이라 함께 되돌린다.
+*/
+@mixin map-dark {
+  [data-theme="dark"] & {
+    filter: invert(1) hue-rotate(180deg);
+
+    // 우리가 얹은 마커·묶음은 되돌린다
+    :is(.pin, .cluster) {
+      filter: invert(1) hue-rotate(180deg);
+    }
+
+    /*
+      축척 막대는 뒤집힌 채로 둔다.
+
+      카카오가 검정 글씨로 못 박아 두어 되돌리면 어두운 지도 위에서 글씨가 사라진다.
+      뒤집힌 채면 흰 글씨가 되어 그대로 읽힌다. 대신 그 옆 카카오 로고는 색이 있는 그림이라
+      되돌려 원래 색을 지킨다 — 지도 출처 표기는 제 모습이어야 한다.
+    */
+    > div:not(:first-child) img {
+      filter: invert(1) hue-rotate(180deg);
+    }
+  }
+}
+
+/*
+  뒤집은 타일의 색을 고른다.
+
+  뒤집기만 하면 밝은 땅 색이 누런 갈색으로 앉아 어두운 화면의 푸른 결과 따로 논다.
+  뒤집기는 정확히 되돌려야 하므로 건드리지 않고, 톤은 바깥 칸에 한 겹 얹어 낮춘다 —
+  마커까지 함께 옅어지지만 그 정도는 눈에 띄지 않는다.
+*/
+@mixin map-dark-grade {
+  [data-theme="dark"] & {
+    filter: saturate(0.62) brightness(0.92);
+  }
+}
+
+/*
   지도 껍데기.
   옆에 나란히 선 판(도넛 등)이 더 크면 이 칸도 그만큼 늘어나는데, 안쪽 지도가 고정 높이면
   아래가 빈 채로 남아 둘의 키가 안 맞아 보인다. 넘겨받은 높이는 최소치로만 쓰고
@@ -24,6 +70,8 @@
     radial-gradient(80% 70% at 50% 0%, var(--brand-soft) 0%, transparent 64%),
     var(--map-surface);
   overflow: hidden;
+
+  @include map-dark-grade;
 
   &__viewport {
     position: relative;
@@ -184,6 +232,20 @@
 
   &:hover .cluster__bubble {
     stroke-width: 2.2;
+  }
+
+  /* 묶음도 같은 까닭으로 밝게 뒤집는다 — 숫자는 어둡게 앉힌다 */
+  [data-theme="dark"] & {
+    background-color: rgb(236 243 252 / 96%);
+    color: var(--paper);
+
+    .cluster__bubble {
+      fill: rgb(236 243 252 / 96%);
+    }
+
+    .cluster__count {
+      color: var(--paper);
+    }
   }
 
   &__bubble {
@@ -468,10 +530,13 @@
   box-shadow: inset 0 0 0 1px var(--brand);
 }
 
-// ── 네이버 지도 (SFR-007-05) ───────────────────────────────
+// ── 카카오 지도 (SFR-007-05) ───────────────────────────────
+
 .kakao {
   width: 100%;
   height: 100%;
+
+  @include map-dark;
 }
 
 .mini {
@@ -480,18 +545,30 @@
   border-radius: s.$radius-sm;
   overflow: hidden;
 
+  @include map-dark-grade;
+
   &__canvas {
     width: 100%;
     height: 100%;
+
+    @include map-dark;
   }
 }
 
+/*
+  뾰족핀.
+
+  아래로 뻗은 꼭짓점이 발전소 자리를 정확히 짚는다 — 알약만 있으면 중심이 어디인지 눈으로
+  가늠해야 하고, 촘촘한 자리에서는 어느 점이 어느 학교인지 헷갈린다 (2026-08-21 회의).
+  꼭짓점만큼 아래 여백을 두고, 겹치는 그림은 그 여백 위에 그린다.
+*/
 .pin {
   position: relative;
   display: inline-flex;
   align-items: center;
   gap: 5px;
   height: 24px;
+  margin-bottom: 7px;
   padding: 0 9px 0 7px;
   border: 1px solid var(--border-subtle);
   border-radius: 999px;
@@ -500,6 +577,27 @@
   cursor: pointer;
   white-space: nowrap;
   transition: transform 0.16s ease, border-color 0.16s ease;
+
+  /*
+    꼭짓점 — 알약과 같은 면·테두리 색을 쓰도록 마름모를 돌려 깔고 위를 알약으로 덮는다.
+
+    색을 물려받게(inherit) 둔다. 값을 따로 적어 두면 알약이 가리키거나 골라지거나 이상 상태로
+    물들 때 꼭짓점만 원래 색으로 남아, 마커 아래쪽이 떨어져 나온 것처럼 보인다.
+  */
+  &::after {
+    content: "";
+    position: absolute;
+    bottom: -4px;
+    left: 50%;
+    width: 9px;
+    height: 9px;
+    border: 1px solid;
+    border-color: inherit;
+    border-radius: 1px;
+    background-color: inherit;
+    transform: translateX(-50%) rotate(45deg);
+    clip-path: polygon(100% 0, 100% 100%, 0 100%);
+  }
 
   &:hover {
     z-index: 30;
@@ -523,6 +621,22 @@
   // 브랜드 면 위에서는 상태점이 묻힌다 — 테를 둘러 살려 준다.
   &--selected .pin__dot {
     box-shadow: 0 0 0 1.5px var(--text-on-brand);
+  }
+
+  /*
+    어두운 화면에서는 마커를 밝게 뒤집는다.
+
+    다크 테마의 마커는 어두운 알약에 밝은 글씨다 — 그런데 지도까지 어두워지면 알약이 바탕에
+    묻혀 어디에 무엇이 있는지 보이지 않는다. 지도 위에 얹는 표시는 지도와 반대로 가야 한다.
+    상태를 말하는 점과 테두리 색은 그대로 두어, 어느 학교가 어떤 상태인지는 같은 색으로 읽는다.
+  */
+  [data-theme="dark"] &:not(.pin--selected) {
+    border-color: rgb(255 255 255 / 24%);
+    background-color: rgb(236 243 252 / 96%);
+
+    .pin__name {
+      color: var(--paper);
+    }
   }
 
   &__name {

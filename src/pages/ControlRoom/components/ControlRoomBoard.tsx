@@ -30,12 +30,7 @@ export function ControlRoomBoard() {
       searchSummary={data.searchSummary}
     >
       <div className={styles.grid}>
-        <SummaryColumn
-          plants={data.rows}
-          totals={data.totals}
-          hours={data.stat.hours}
-          staleCount={data.collection.stale.length}
-        />
+        <SummaryColumn plants={data.rows} totals={data.totals} />
         <MapColumn plants={data.rows} abnormalCount={data.abnormalCount} />
         <AlertColumn
           plants={data.rows}

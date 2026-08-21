@@ -65,7 +65,7 @@ export function PlantMapModal({ isOpen, onClose, plants, selectedId, onSelect }:
       <div className={styles.picker}>
         <div className={styles.picker__bar}>
           <Select
-            label="시·군"
+            label="지역"
             value={regionCode}
             options={[
               { value: ALL, label: `전체 (${formatNumber(plants.length)}개소)` },

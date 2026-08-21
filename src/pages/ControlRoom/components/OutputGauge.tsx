@@ -9,7 +9,7 @@ const RADIUS = 78;
 const ARC_LENGTH = Math.PI * RADIUS * (240 / 180);
 
 interface OutputGaugeProps {
-  /** 지금 총출력(kW) */
+  /** 현재 총출력(kW) */
   outputKw: number;
   /** 조회 대상 설비용량(kW) */
   capacityKw: number;
@@ -54,7 +54,7 @@ export function OutputGauge({ outputKw, capacityKw }: OutputGaugeProps) {
       </svg>
 
       <div className={styles.gauge__center}>
-        <p className={styles.gauge__label}>지금 총출력</p>
+        <p className={styles.gauge__label}>현재 총출력</p>
         <p className={styles.gauge__number}>
           <CountUp value={output.amount} fractionDigits={output.fractionDigits} startOnView={false} />
           <span className={styles.gauge__unit}>{output.unit}</span>

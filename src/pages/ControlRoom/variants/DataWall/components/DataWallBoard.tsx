@@ -84,7 +84,7 @@ export function DataWallBoard() {
         </Cell>
 
         <Cell title="발전 현황 집계" note="발전소·학교급·권역">
-          <AggregationPanel schools={data.rows} />
+          <AggregationPanel axis="region" schools={data.rows} />
         </Cell>
 
         {/* 수집 판이 "몇 대가 안 들어오나" 를 답했으면, 여기서는 "어느 인버터인가" 를 답한다 */}

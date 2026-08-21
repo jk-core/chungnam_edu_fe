@@ -2,8 +2,11 @@ import type { OperationStatus, RtuStatus, Severity } from './status';
 
 export type { Severity };
 
-/** 학교급 */
-export type SchoolLevel = '초등학교' | '중학교' | '고등학교' | '특수학교';
+/**
+ * 학교급. 마스터 표의 구분을 그대로 따른다 — 유치원과 교육기관(지원청·교육원·수련원)도
+ * 발전설비를 가진 한 자리 차지한다.
+ */
+export type SchoolLevel = '유치원' | '초등학교' | '중학교' | '고등학교' | '특수학교' | '교육기관';
 
 /** 위경도 한 점 */
 export interface GeoPoint {
@@ -43,7 +46,7 @@ export interface School {
   utilization: number;
   status: OperationStatus;
   installedAt: string;
-  /** 지도 마커 좌표 — 시·군 중심에서 흩뿌린 값 */
+  /** 지도 마커 좌표 — 주소를 지오코딩한 실제 위치 */
   location: GeoPoint;
 }
 

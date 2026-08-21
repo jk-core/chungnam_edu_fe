@@ -74,12 +74,18 @@ export function KakaoMiniMap({ plants, height, label, onPick, selectedId, focusS
     묶음을 가르는 기준은 저절로 맞춰진다.
   */
   useEffect(() => {
-    if (!map || !focusSelected) return;
+    if (!map || !focusSelected) return undefined;
 
     const target = plants.find((plant) => plant.id === selectedId);
 
-    if (target) focusOn(map, target.location);
-    else resetView(map);
+    if (!target) {
+      resetView(map);
+
+      return undefined;
+    }
+
+    // 다음 곳으로 넘어가면 가던 움직임을 거둔다 — 두 움직임이 겹치면 지도가 떨린다.
+    return focusOn(map, target.location);
   }, [map, focusSelected, selectedId, plants]);
 
   return (
@@ -105,7 +111,11 @@ export function KakaoMiniMap({ plants, height, label, onPick, selectedId, focusS
           level={level}
           selectedId={selectedId}
           onSelect={onPick ? (plant) => {
-            if (map) centerOn(map, plant.location);
+            /*
+              당겨서 보는 지도는 고른 곳으로 스스로 미끄러져 간다 (focusOn).
+              여기서 또 옮기면 두 움직임이 겹쳐 지도가 한 번 튀므로, 당기지 않는 지도에서만 옮긴다.
+            */
+            if (map && !focusSelected) centerOn(map, plant.location);
 
             onPick(plant.id);
           } : undefined}

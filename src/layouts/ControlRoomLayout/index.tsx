@@ -44,7 +44,10 @@ export function ControlRoomLayout({
     /* 결을 화면 전체가 물려받는다 — 바탕과 가장자리가 같은 색으로 함께 점등한다 */
     <div className={styles.room} data-alert={alertTone ?? undefined}>
       {/* 멀리서도 "지금 뭔가 잘못됐다" 가 읽히도록 화면 가장자리가 맥동한다 */}
-      {alertTone ? <span className={styles.edge} aria-hidden="true" /> : null}
+      {/*
+        가장자리 경보 등 — 상시 점멸이 되어 걷어냈다(2026-08-21 회의). 되살릴 때는 이 줄만 풀면 된다.
+        {alertTone ? <span className={styles.edge} aria-hidden="true" /> : null}
+      */}
 
       <header className={styles.bar}>
         <div className={styles.bar__left}>

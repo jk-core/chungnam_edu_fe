@@ -10,9 +10,9 @@ import type { School } from '@/interface/energy';
 export type Axis = 'plant' | 'level' | 'region';
 
 export const AXIS_OPTIONS: { value: Axis; label: string }[] = [
-  { value: 'plant', label: '발전소별' },
-  { value: 'level', label: '학교급별' },
-  { value: 'region', label: '권역별' },
+  { value: 'plant', label: '학교별' },
+  { value: 'level', label: '기관별' },
+  { value: 'region', label: '지역별' },
 ];
 
 export interface AggregationRow {

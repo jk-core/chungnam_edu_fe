@@ -1,0 +1,10 @@
+@use "@/styles/tokens/spacing" as s;
+
+/* 무엇을 볼지 고르는 줄 — 상태와 정렬을 나란히 두되 좁아지면 접어 내린다 */
+.filters {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: s.$space-3;
+  margin-bottom: s.$space-3;
+}

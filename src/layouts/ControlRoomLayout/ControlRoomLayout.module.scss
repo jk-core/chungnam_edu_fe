@@ -4,6 +4,15 @@
 @use "@/styles/utils/mixins" as mx;
 
 .room {
+  /*
+    상황판 안의 상자는 모두 이 반지름을 쓴다.
+
+    판·카드·막대·사진 칸이 저마다 다른 곡률로 놓이면 도면 위에 부품이 흩어진 것처럼 보인다.
+    한 값으로 묶어 두면 어느 칸이든 같은 자로 잘라 낸 것으로 읽힌다. 값은 프로젝트 전체가
+    쓰는 12px 과 같다. 알약과 동그라미는 이 규칙 밖이다 — 그것들은 상자가 아니라 표시다.
+  */
+  --room-radius: 12px;
+
   position: relative;
   display: flex;
   flex-direction: column;
@@ -13,29 +22,92 @@
   overflow: hidden;
 
   /*
-    맨 위 칸이 경보로 물드는 자리다.
+    도면 위에 판을 얹은 바탕.
 
-    두 마디가 같은 색인 그러데이션은 곧 한 겹의 단색 판이다 — 바탕 그림을 다시 적지 않고
-    그 위에 색만 한 겹 얹을 수 있다. 경보가 없으면 투명이라 없는 것과 같다.
+    관제 화면은 지도·표·게이지가 각자 떠 있어 판 사이 틈이 허전하다. 설계 도면처럼 눈금을
+    깔아 두면 그 틈이 「아직 그리지 않은 자리」 가 아니라 좌표를 가진 판 위로 읽힌다.
+    눈금은 판에 거의 다 가려지고 틈과 가장자리로만 비치므로 아주 옅게 둔다.
+
+    맨 위 칸은 경보로 물드는 자리다. 두 마디가 같은 색인 그러데이션은 곧 한 겹의 단색 판이라,
+    바탕 그림을 다시 적지 않고 그 위에 색만 한 겹 얹을 수 있다. 경보가 없으면 투명이다.
   */
+  --grid-line: rgb(from var(--brand) r g b / 7%);
+  --grid-line-strong: rgb(from var(--brand) r g b / 12%);
+  --grid-mark: rgb(from var(--brand) r g b / 22%);
+
   background:
-    linear-gradient(var(--room-wash, transparent), var(--room-wash, transparent)),
+    /* 경보 물듦 — 상시 점멸이 되어 걷어냈다(2026-08-21 회의). 되살릴 때는 이 줄만 풀면 된다.
+       linear-gradient(var(--room-wash, transparent), var(--room-wash, transparent)), */
+
+    /* 큰 눈금이 만나는 자리의 점 — 도면의 기준점처럼 좌표를 짚어 준다 */
+    radial-gradient(circle at 0 0, var(--grid-mark) 0 1.5px, transparent 1.6px),
+
+    /* 큰 눈금 */
+    repeating-linear-gradient(90deg, var(--grid-line-strong) 0 1px, transparent 1px 120px),
+    repeating-linear-gradient(0deg, var(--grid-line-strong) 0 1px, transparent 1px 120px),
+
+    /* 잔 눈금 */
+    repeating-linear-gradient(90deg, var(--grid-line) 0 1px, transparent 1px 24px),
+    repeating-linear-gradient(0deg, var(--grid-line) 0 1px, transparent 1px 24px),
+
+    /* 오른쪽 위에서 퍼지는 동심원 — 계측 장비의 눈금판처럼 결을 준다 */
+    repeating-radial-gradient(circle at 88% 6%, var(--grid-line) 0 1px, transparent 1px 96px),
+
     radial-gradient(60% 40% at 12% 0%, var(--sky-glow) 0%, transparent 62%),
     linear-gradient(180deg, var(--sky-top) 0%, var(--paper) 46%);
+  background-size:
+    auto,
+    120px 120px,
+    auto,
+    auto,
+    auto,
+    auto,
+    auto,
+    auto,
+    auto;
+
+  /*
+    도면 테두리의 네 모서리 꺾쇠.
+
+    눈금만으로는 화면 가장자리가 어디까지인지 흐릿하다. 모서리만 꺾어 두면 도면을 펼쳐 놓은
+    자리처럼 판이 잡히고, 선을 네 변에 다 두르는 것보다 조용하다. 모서리마다 가로·세로
+    한 획씩 여덟 겹을 깐다 — 한 겹으로 그리려 하면 변까지 이어져 액자가 된다.
+  */
+  &::before {
+    --corner: 26px;
+
+    content: "";
+    position: absolute;
+    inset: s.$space-3;
+    background:
+      linear-gradient(var(--grid-mark), var(--grid-mark)) 0 0 / var(--corner) 1px no-repeat,
+      linear-gradient(var(--grid-mark), var(--grid-mark)) 0 0 / 1px var(--corner) no-repeat,
+      linear-gradient(var(--grid-mark), var(--grid-mark)) 100% 0 / var(--corner) 1px no-repeat,
+      linear-gradient(var(--grid-mark), var(--grid-mark)) 100% 0 / 1px var(--corner) no-repeat,
+      linear-gradient(var(--grid-mark), var(--grid-mark)) 0 100% / var(--corner) 1px no-repeat,
+      linear-gradient(var(--grid-mark), var(--grid-mark)) 0 100% / 1px var(--corner) no-repeat,
+      linear-gradient(var(--grid-mark), var(--grid-mark)) 100% 100% / var(--corner) 1px no-repeat,
+      linear-gradient(var(--grid-mark), var(--grid-mark)) 100% 100% / 1px var(--corner) no-repeat;
+    pointer-events: none;
+  }
+
+  /* 어두운 바탕에서는 같은 투명도로는 선이 묻힌다 */
+  [data-theme="dark"] & {
+    --grid-line: rgb(from var(--brand) r g b / 9%);
+    --grid-line-strong: rgb(from var(--brand) r g b / 15%);
+    --grid-mark: rgb(from var(--brand) r g b / 26%);
+  }
 
   /*
     경보 결마다의 색과 세기.
 
-    가장자리 등도 이 값을 물려받는다 — 어느 결이 무슨 색인지를 두 곳에 적어 두면 한쪽만
-    고쳐 놓고 테두리와 바탕이 다른 색으로 켜지는 일이 생긴다.
+    바탕 물듦은 걷어냈지만(아래 주석) 결마다의 색은 남겨 둔다 — 되살릴 때 이 값들이 그대로
+    쓰이고, 어느 결이 무슨 색인지를 한 곳에만 적어 두어야 두 자리가 어긋나지 않는다.
+
+    &[data-alert] {
+      --room-wash: rgb(from var(--alert-color) r g b / calc(var(--pulse) * var(--alert-wash)));
+    }
   */
-  &[data-alert] {
-    /*
-      바탕도 테두리와 같은 맥동 시계를 탄다.
-      카드에 가려지지 않은 틈으로만 보이므로, 테두리보다 옅게 두어도 화면 전체가 물든 것으로 읽힌다.
-    */
-    --room-wash: rgb(from var(--alert-color) r g b / calc(var(--pulse) * var(--alert-wash)));
-  }
 
   &[data-alert="critical"] {
     --alert-color: var(--critical);
@@ -55,12 +127,13 @@
     --alert-wash: 9%;
   }
 
-  /* 점등이 멎으면 --pulse 가 0 에 머문다 — 가장 진할 때로 고정해 경보가 걸린 사실을 잃지 않는다 */
-  @include media.reduced-motion {
-    &[data-alert] {
-      --room-wash: rgb(from var(--alert-color) r g b / var(--alert-wash));
+  /*
+    @include media.reduced-motion {
+      &[data-alert] {
+        --room-wash: rgb(from var(--alert-color) r g b / var(--alert-wash));
+      }
     }
-  }
+  */
 
   @include media.kiosk {
     padding: s.$space-5 s.$space-6 s.$space-6;
@@ -86,30 +159,26 @@
 
 /*
   화면 가장자리 경보 등.
-  글을 읽을 수 없는 거리에서도 상태가 전해져야 해서, 안쪽으로 번지는 그림자를 맥동시킨다.
-  본문 위에 얇게 덮이므로 클릭은 통과시킨다.
 
-  색과 굵기는 `.room` 이 결에 따라 정해 둔 것을 물려받는다 — 바탕과 테두리가 한 값을 나눠 쓴다.
-*/
-.edge {
-  position: absolute;
-  inset: 0;
-  z-index: 30;
-  border-radius: inherit;
-  pointer-events: none;
+  300개소 규모에서는 주의·경고·통신두절이 늘 한두 건은 있어 점멸이 상시 동작이 된다.
+  종일 걸어 두는 화면에서 눈이 먼저 지치므로 걷어냈다(2026-08-21 회의). 상태는 판 안의
+  색 구분이 이미 말한다. 되살릴 때는 아래 규칙만 풀면 된다.
 
-  /*
-    제 주기로 깜빡이지 않고 전역 맥동 시계(--pulse)를 그대로 쓴다.
-    급한 정도는 빠르기가 아니라 세기로 알린다 — 화면의 다른 점등과 박자가 어긋나지 않는다.
-  */
-  box-shadow:
-    inset 0 0 0 calc(var(--pulse) * var(--alert-weight, 4px)) var(--alert-color),
-    inset 0 0 34px -6px rgb(from var(--alert-color) r g b / calc(var(--pulse) * 100%));
+  .edge {
+    position: absolute;
+    inset: 0;
+    z-index: 30;
+    border-radius: inherit;
+    pointer-events: none;
+    box-shadow:
+      inset 0 0 0 calc(var(--pulse) * var(--alert-weight, 4px)) var(--alert-color),
+      inset 0 0 34px -6px rgb(from var(--alert-color) r g b / calc(var(--pulse) * 100%));
 
-  @include media.reduced-motion {
-    box-shadow: inset 0 0 0 3px var(--alert-color);
+    @include media.reduced-motion {
+      box-shadow: inset 0 0 0 3px var(--alert-color);
+    }
   }
-}
+*/
 
 .bar {
   display: flex;

@@ -3,51 +3,95 @@
 @use "@/styles/utils/mixins" as mx;
 
 /*
-  시·군별 금일 발전량.
+  지역별 발전시간.
 
-  열다섯 곳을 하나도 빠뜨리지 않고 보여야 해서 두 열로 접는다 — 한 열로 세우면 판이 화면
-  높이를 넘겨 아래쪽 시·군이 잘리고, 잘린 줄은 없는 것과 같다.
-
-  세로로 먼저 채운다(`grid-auto-flow: column`). 가로로 채우면 1·2위가 좌우로 갈라져 앉아
-  순위가 두 줄을 오가며 읽히는데, 세로로 채우면 왼쪽 열이 위에서 아래로 그대로 순위가 된다.
+  두 열로 접고 한 줄을 두 단으로 나눈다 — 이름과 값이 위, 막대가 아래 칸 폭 전체다.
+  셋을 한 줄에 나란히 두면 막대에 55px 밖에 남지 않아 길이를 견줄 수 없었고, 한 열로 펴면
+  열다섯 줄이 판 높이에 아슬아슬하게 걸려 화면이 조금만 낮아도 아래가 잘렸다.
 */
 .region {
-  display: flex;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-rows: repeat(8, minmax(0, 1fr));
+  grid-auto-flow: column;
+  gap: s.$space-2 s.$space-4;
   flex: 1;
-  flex-direction: column;
-  gap: s.$space-2;
   min-height: 0;
-
-  &__list {
-    display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    grid-template-rows: repeat(8, auto);
-    grid-auto-flow: column;
-    align-content: space-between;
-    gap: s.$space-1 s.$space-4;
-    flex: 1;
-    min-height: 0;
-    list-style: none;
-    overflow: hidden;
-  }
+  list-style: none;
 
   &__row {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 3px;
+    min-width: 0;
+
+    /* 1위 한 줄만 도드라지게 둔다 — 어디가 제일 많이 냈는지가 먼저 읽힌다 */
+    &[data-lead] {
+      .region__rank {
+        background-color: var(--solar);
+        color: var(--text-on-brand);
+      }
+
+      .region__value {
+        color: var(--solar-text);
+        font-weight: 700;
+      }
+    }
+  }
+
+  &__head {
+    display: flex;
+    align-items: baseline;
+    gap: s.$space-1;
+    min-width: 0;
+  }
+
+  &__rank {
+    @include t.caption;
+
     display: grid;
-    grid-template-columns: 52px minmax(0, 1fr) 58px;
-    align-items: center;
-    gap: s.$space-2;
+    width: 15px;
+    height: 15px;
+    flex-shrink: 0;
+    place-items: center;
+    border-radius: s.$radius-xs;
+    background-color: var(--surface-sunken);
+    color: var(--text-faint);
+    font-family: var(--font-data);
+    font-size: 10px;
+    line-height: 1;
   }
 
   &__name {
     @include t.caption;
     @include mx.truncate;
 
+    flex: 1;
+    min-width: 0;
     color: var(--text-muted);
   }
 
+  &__value {
+    @include t.label-sm;
+
+    flex-shrink: 0;
+    color: var(--text-strong);
+    font-family: var(--font-data);
+    font-variant-numeric: tabular-nums;
+  }
+
+  &__unit {
+    @include t.caption;
+
+    margin-left: 1px;
+    color: var(--text-faint);
+  }
+
+  /* 막대는 칸 폭을 다 쓴다 — 값은 위에 적혀 있으므로 안에 글자를 얹지 않는다 */
   &__track {
     display: block;
-    height: 6px;
+    height: 7px;
     border-radius: s.$radius-full;
     background-color: var(--surface-sunken);
     overflow: hidden;
@@ -57,23 +101,7 @@
     display: block;
     height: 100%;
     border-radius: s.$radius-full;
-    background: linear-gradient(90deg, var(--brand), var(--solar));
+    background: linear-gradient(90deg, var(--brand) 12%, var(--solar));
     transition: width 0.5s cubic-bezier(0.22, 0.68, 0.32, 1);
-  }
-
-  &__value {
-    @include t.data-sm;
-
-    color: var(--text-strong);
-    text-align: right;
-  }
-
-  &__foot {
-    @include t.caption;
-
-    flex-shrink: 0;
-    padding-top: s.$space-2;
-    border-top: 1px solid var(--border-subtle);
-    color: var(--text-faint);
   }
 }

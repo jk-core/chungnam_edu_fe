@@ -36,9 +36,23 @@
     min-height: 0;
   }
 
+  /*
+    대체 지도는 살짝 왼쪽에 세운다.
+
+    가운데 그대로 두면 오른쪽에 펼치는 발전소 상세와 겹쳐 도 모양의 오른쪽 절반이 가린다
+    (2026-08-21 회의).
+  */
   &__svg {
     width: 100%;
     min-height: 0;
+    padding-right: 22%;
+  }
+
+  /* 도 모양 아래 겹 — 조금 내려 깔아 두께를 만든다 */
+  &__shadow {
+    color: color-mix(in srgb, var(--brand) 26%, transparent);
+    transform: translate(0, 7px);
+    filter: blur(2px);
   }
 
   /*
@@ -57,30 +71,44 @@
 }
 
 /*
-  자동 순회 재생·정지.
+  자동 순회 제어 — 이전 · 정지/재생 · 다음.
 
-  글자를 함께 둔다 — 아이콘만으로는 지금이 도는 중인지 멈춘 중인지가 삼각형과 두 막대의
-  뜻을 아는 사람에게만 읽힌다. 뒤에 붙는 개소 수가 무엇을 도는지를 말한다.
+  가운데 단추에는 글자를 함께 둔다 — 아이콘만으로는 지금이 도는 중인지 멈춘 중인지가
+  삼각형과 두 막대의 뜻을 아는 사람에게만 읽힌다. 뒤에 붙는 개소 수가 무엇을 도는지를 말한다.
+  양옆 화살표는 그 가운데 단추가 이미 무엇을 하는 자리인지 말해 주므로 글자를 두지 않는다.
 */
 .tour {
-  @include t.caption;
-
   display: inline-flex;
   align-items: center;
   gap: s.$space-1;
   flex-shrink: 0;
-  padding: 3px s.$space-2;
-  border: 1px solid var(--border-subtle);
-  border-radius: s.$radius-full;
-  background: none;
-  color: var(--text-muted);
-  white-space: nowrap;
-  transition: border-color 0.16s ease, background-color 0.16s ease, color 0.16s ease;
 
-  &:hover {
-    border-color: var(--brand-soft-border);
-    background-color: var(--brand-soft);
-    color: var(--text-strong);
+  &__button {
+    @include t.caption;
+    @include mx.keyboard-focus;
+
+    display: inline-flex;
+    align-items: center;
+    gap: s.$space-1;
+    padding: 3px s.$space-2;
+    border: 1px solid var(--border-subtle);
+    border-radius: s.$radius-full;
+    background: none;
+    color: var(--text-muted);
+    white-space: nowrap;
+    transition: border-color 0.16s ease, background-color 0.16s ease, color 0.16s ease;
+
+    &:hover {
+      border-color: var(--brand-soft-border);
+      background-color: var(--brand-soft);
+      color: var(--text-strong);
+    }
+  }
+
+  /* 앞뒤로 넘기는 단추는 화살표만 둔다 — 가운데 단추가 지금 무엇을 하는지 말한다 */
+  &__step {
+    padding: 3px;
+    border-radius: 50%;
   }
 
   /* 개소 수는 곁들이는 말이라 한 단 물린다 — 단추 이름은 「정지」·「재생」 두 글자다 */
@@ -89,8 +117,18 @@
     font-family: var(--font-data);
     font-feature-settings: "tnum" 1;
   }
+}
 
-  @include mx.keyboard-focus;
+/* 뾰족핀 — 아래 끝이 발전소 자리를 짚는다 */
+.pin {
+  fill: var(--pin-tone, var(--text-faint));
+  stroke: var(--surface);
+  stroke-width: 1.4;
+  filter: drop-shadow(0 2px 2px rgb(0 0 0 / 22%));
+
+  &__eye {
+    fill: var(--surface);
+  }
 }
 
 .dot {
@@ -138,7 +176,7 @@
   max-width: calc(100% - #{s.$space-4});
   padding: s.$space-3;
   border: 1px solid var(--border);
-  border-radius: s.$radius-md;
+  border-radius: var(--room-radius);
   background-color: var(--surface-raised);
   box-shadow: var(--shadow-lg);
   overflow-y: auto;

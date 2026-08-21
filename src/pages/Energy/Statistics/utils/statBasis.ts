@@ -19,7 +19,7 @@ export const BASIS_OPTIONS: { value: StatBasis; label: string }[] = [
 
 export const BASIS_LABEL: Record<StatBasis, string> = {
   device: '설비',
-  region: '시·군',
+  region: '지역',
   office: '교육지원청',
 };
 

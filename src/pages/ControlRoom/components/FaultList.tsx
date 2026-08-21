@@ -69,7 +69,7 @@ export function FaultList({ plants, collection }: FaultListProps) {
   } = useAutoPager<HTMLDivElement, HTMLLIElement>({ total: faults.length, intervalMs: PAGE_MS, perPage: 6 });
 
   if (faults.length === 0) {
-    return <p className={styles.empty}>지금 손봐야 할 설비가 없습니다.</p>;
+    return <p className={styles.empty}>조치가 필요한 설비가 없습니다.</p>;
   }
 
   const visible = faults.slice(from, to);
