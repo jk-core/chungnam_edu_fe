@@ -578,7 +578,12 @@
   white-space: nowrap;
   transition: transform 0.16s ease, border-color 0.16s ease;
 
-  /* 꼭짓점 — 알약과 같은 면·테두리 색을 쓰도록 마름모를 돌려 깔고 위를 알약으로 덮는다 */
+  /*
+    꼭짓점 — 알약과 같은 면·테두리 색을 쓰도록 마름모를 돌려 깔고 위를 알약으로 덮는다.
+
+    색을 물려받게(inherit) 둔다. 값을 따로 적어 두면 알약이 가리키거나 골라지거나 이상 상태로
+    물들 때 꼭짓점만 원래 색으로 남아, 마커 아래쪽이 떨어져 나온 것처럼 보인다.
+  */
   &::after {
     content: "";
     position: absolute;
@@ -586,7 +591,8 @@
     left: 50%;
     width: 9px;
     height: 9px;
-    border: 1px solid var(--border-subtle);
+    border: 1px solid;
+    border-color: inherit;
     border-radius: 1px;
     background-color: inherit;
     transform: translateX(-50%) rotate(45deg);
