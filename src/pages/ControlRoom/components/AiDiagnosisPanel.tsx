@@ -2,16 +2,23 @@ import { motion, useReducedMotion } from 'motion/react';
 import { useEffect, useMemo, useState } from 'react';
 import { AiOrbit } from '@/components/common/AiOrbit';
 import { ChevronLeftIcon, ChevronRightIcon, PauseIcon, PlayIcon } from '@/components/common/Icon';
-import { countOperation, isAbnormal, OPERATION_LABEL, OPERATION_ORDER, OPERATION_TONE } from '@/mocks/status';
-import { formatNumber } from '@/utils/format';
+import { countOperation, isAbnormal, OPERATION_LABEL } from '@/mocks/status';
+import { formatNumber, formatPercent } from '@/utils/format';
+import { withParticle } from '@/utils/korean';
+import { currentOutputOf } from '@/mocks/schoolOutput';
 import type { School } from '@/interface/energy';
 import styles from './AiDiagnosisPanel.module.scss';
+import { RegionBriefing } from './RegionBriefing';
+import type { BriefToken } from './RegionBriefing';
 
 /** 화면이 한 박자 나아가는 간격(ms) */
 const TICK_MS = 700;
 
-/** 지역 한 곳을 읽어 볼 시간(ms) */
-const REGION_MS = 8400;
+/**
+ * 지역 한 곳을 읽어 볼 시간(ms).
+ * 글이 다 찍히는 데만 4초 남짓 걸리므로, 다 읽고 한 박자 쉴 만큼을 더 준다.
+ */
+const REGION_MS = 16_000;
 
 /** 지금까지 분석한 계측값 — 박자마다 이만큼씩 늘어난다 */
 const ANALYZED_BASE = 1_284_000;
@@ -21,6 +28,8 @@ interface RegionSummary {
   name: string;
   count: number;
   capacityKw: number;
+  /** 지금 내고 있는 힘(kW) — 설비용량 대비 얼마나 쓰고 있는지를 말한다 */
+  outputKw: number;
   todayKwh: number;
   hours: number;
   abnormal: number;
@@ -50,12 +59,14 @@ function summarize(plants: School[]): RegionSummary[] {
     .map(([name, rows]) => {
       const capacityKw = rows.reduce((sum, row) => sum + row.capacityKw, 0);
       const todayKwh = rows.reduce((sum, row) => sum + row.todayKwh, 0);
+      const outputKw = rows.reduce((sum, row) => sum + currentOutputOf(row), 0);
       const abnormalRows = rows.filter((row) => isAbnormal(row.status));
 
       return {
         name,
         count: rows.length,
         capacityKw,
+        outputKw,
         todayKwh,
         hours: capacityKw > 0 ? todayKwh / capacityKw : 0,
         abnormal: abnormalRows.length,
@@ -67,23 +78,64 @@ function summarize(plants: School[]): RegionSummary[] {
     .sort((a, b) => b.abnormal - a.abnormal || b.capacityKw - a.capacityKw);
 }
 
-/** 지역 하나를 사람이 읽는 문장으로 (SFR-011-05) */
-function sentenceOf(region: RegionSummary, averageHours: number): string {
+/**
+ * 지역 한 곳을 사람이 읽는 글로 풀어낸다 (SFR-011-05).
+ *
+ * 값을 칸에 나눠 담으면 숫자는 보여도 「그래서 어떻다는 것인가」 는 읽는 사람이 이어 붙여야
+ * 한다. 규모 → 지금 내는 힘 → 오늘 실적 → 설비 상태 순으로 한 문단에 이어, 지역 하나를
+ * 훑고 지나가면 그 지역의 오늘이 남게 한다.
+ *
+ * 눈에 걸려야 하는 조각(이름·숫자)만 따로 표시해 두면 문단 안에서도 값이 먼저 읽힌다.
+ */
+function briefingOf(region: RegionSummary, averageHours: number): BriefToken[] {
+  const load = region.capacityKw > 0 ? region.outputKw / region.capacityKw : 0;
   const gap = region.hours - averageHours;
-  const compare = Math.abs(gap) < 0.05
-    ? '관내 평균과 같은 수준입니다'
-    : `관내 평균보다 ${formatNumber(Math.abs(gap), 1)}시간 ${gap > 0 ? '높습니다' : '낮습니다'}`;
-
-  if (region.abnormal === 0) {
-    return `${region.name} 설비 ${formatNumber(region.count)}개소가 모두 정상 가동 중입니다. 금일 발전시간은 ${formatNumber(region.hours, 1)}시간으로 ${compare}.`;
-  }
-
-  const parts = (['fault', 'degraded', 'commLost'] as const)
+  const normal = region.count - region.abnormal;
+  const faults = (['fault', 'degraded', 'commLost'] as const)
     .filter((status) => region.status[status] > 0)
     .map((status) => `${OPERATION_LABEL[status]} ${formatNumber(region.status[status])}건`)
     .join(' · ');
 
-  return `${region.name} ${formatNumber(region.count)}개소 가운데 ${region.worst?.name ?? ''} 외 ${formatNumber(region.abnormal - 1)}개소에서 ${parts}이 확인됩니다. 금일 발전시간은 ${formatNumber(region.hours, 1)}시간으로 ${compare}.`;
+  const tokens: BriefToken[] = [
+    // 지역 이름이 데이터에서 오므로 받침을 보고 조사를 고른다 — 「보령시은」 이 되지 않게.
+    { text: region.name, strong: true },
+    { text: `${withParticle(region.name, '은').slice(region.name.length)} 설비용량 ` },
+    { text: `${formatNumber(region.capacityKw)}kW`, strong: true },
+    { text: ' 규모의 ' },
+    { text: `${formatNumber(region.count)}개소`, strong: true },
+    { text: '를 운영하고 있습니다. 지금 출력은 ' },
+    { text: `${formatNumber(region.outputKw, 1)}kW`, strong: true },
+    { text: `로 설비용량의 ${formatPercent(load, 0)} 수준이며, 금일 ` },
+    { text: `${formatNumber(region.todayKwh)}kWh`, strong: true },
+    { text: '를 냈습니다. 발전시간은 ' },
+    { text: `${formatNumber(region.hours, 1)}시간`, strong: true },
+    {
+      text: Math.abs(gap) < 0.05
+        ? '으로 관내 평균과 같은 수준입니다. '
+        : `으로 관내 평균보다 ${formatNumber(Math.abs(gap), 1)}시간 ${gap > 0 ? '높습니다' : '낮습니다'}. `,
+    },
+  ];
+
+  if (region.abnormal === 0) {
+    tokens.push(
+      { text: '설비 ' },
+      { text: `${formatNumber(region.count)}개소`, strong: true },
+      { text: '는 모두 정상 가동 중이며 조치가 필요한 곳은 없습니다.' },
+    );
+
+    return tokens;
+  }
+
+  tokens.push(
+    { text: `${formatNumber(normal)}개소`, strong: true },
+    { text: '가 정상 가동 중이고, ' },
+    { text: region.worst?.name ?? '', strong: true },
+    { text: region.abnormal > 1 ? ` 외 ${formatNumber(region.abnormal - 1)}개소에서 ` : '에서 ' },
+    { text: faults, strong: true },
+    { text: '이 확인됩니다.' },
+  );
+
+  return tokens;
 }
 
 /**
@@ -206,53 +258,15 @@ export function AiDiagnosisPanel({ plants }: { plants: School[] }) {
         <p className={styles.card__top}>
           <span className={styles.card__name}>{region.name}</span>
           <span className={styles.card__count}>{formatNumber(region.count)}개소</span>
+          {/* 막대 없이도 상태는 한마디로 전한다 — 자세한 건수는 아래 글이 말한다 */}
+          <span className={styles.card__state} data-tone={tone}>
+            {region.abnormal > 0 ? `이상 ${formatNumber(region.abnormal)}개소` : '전체 정상'}
+          </span>
         </p>
 
-        <p className={styles.card__body}>
-          <em className={styles.card__ai}>AI</em>
-          {sentenceOf(region, averageHours)}
-        </p>
+        <span className={styles.card__quote} aria-hidden="true">AI 요약</span>
 
-        <dl className={styles.metrics}>
-          <div className={styles.metrics__item}>
-            <dt>설비용량</dt>
-            <dd>{formatNumber(region.capacityKw)}<span>kW</span></dd>
-          </div>
-          <div className={styles.metrics__item}>
-            <dt>금일 발전량</dt>
-            <dd>{formatNumber(region.todayKwh)}<span>kWh</span></dd>
-          </div>
-          <div className={styles.metrics__item}>
-            <dt>발전시간</dt>
-            <dd>{formatNumber(region.hours, 1)}<span>h</span></dd>
-          </div>
-          <div className={styles.metrics__item}>
-            <dt>이상 설비</dt>
-            <dd>{formatNumber(region.abnormal)}<span>개소</span></dd>
-          </div>
-        </dl>
-
-        {/* 상태 분포 — 이 지역 안에서 무엇이 몇 곳인지 */}
-        <div className={styles.mix}>
-          <div className={styles.mix__bar} role="img" aria-label={`${region.name} 설비 상태 분포`}>
-            {OPERATION_ORDER.filter((status) => region.status[status] > 0).map((status) => (
-              <span
-                key={status}
-                className={`${styles.mix__seg} ${styles[`mix__seg--${OPERATION_TONE[status]}`]}`}
-                style={{ width: `${(region.status[status] / region.count) * 100}%` }}
-              />
-            ))}
-          </div>
-          <ul className={styles.mix__legend}>
-            {OPERATION_ORDER.filter((status) => region.status[status] > 0).map((status) => (
-              <li key={status} className={styles.mix__item}>
-                <span className={`${styles.mix__dot} ${styles[`mix__dot--${OPERATION_TONE[status]}`]}`} aria-hidden="true" />
-                {OPERATION_LABEL[status]}
-                <span className={styles.mix__value}>{formatNumber(region.status[status])}</span>
-              </li>
-            ))}
-          </ul>
-        </div>
+        <RegionBriefing key={region.name} tokens={briefingOf(region, averageHours)} instant={Boolean(reduceMotion)} />
       </motion.article>
 
       <ol className={styles.dots} aria-hidden="true">

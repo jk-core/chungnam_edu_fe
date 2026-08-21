@@ -297,157 +297,99 @@
     font-family: var(--font-data);
   }
 
-  /* 요약 문장 — 이 판이 하는 말이라 가장 넓은 자리를 준다 */
-  &__body {
-    @include t.body-sm;
-
-    color: var(--text);
-  }
-
-  &__ai {
+  /* 지금 상태 한마디 — 막대를 걷어낸 자리를 이 배지가 대신한다 */
+  &__state {
     @include t.caption;
 
-    display: inline-block;
-    margin-right: s.$space-2;
-    padding: 0 5px;
-    border-radius: s.$radius-xs;
-    background-color: var(--brand-soft);
-    color: var(--brand);
-    font-style: normal;
-    font-weight: 700;
-    vertical-align: 2px;
-  }
-}
-
-/* 지역 지표 넷 — 요약 문장이 든 근거를 숫자로 되짚는다 */
-.metrics {
-  display: grid;
-  gap: s.$space-2;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  padding: s.$space-2 s.$space-3;
-  border-radius: var(--room-radius);
-  background-color: var(--surface-sunken);
-
-  &__item {
-    display: flex;
-    align-items: baseline;
-    justify-content: space-between;
-    gap: s.$space-2;
-    min-width: 0;
-
-    dt {
-      @include t.caption;
-
-      color: var(--text-faint);
-    }
-
-    dd {
-      @include t.label-md;
-
-      margin: 0;
-      color: var(--text-strong);
-      font-family: var(--font-data);
-      font-variant-numeric: tabular-nums;
-
-      span {
-        @include t.caption;
-
-        margin-left: 1px;
-        color: var(--text-faint);
-        font-family: var(--font-sans);
-      }
-    }
-  }
-}
-
-/* 이 지역 안의 상태 분포 */
-.mix {
-  display: flex;
-  flex-direction: column;
-  gap: s.$space-2;
-  margin-top: auto;
-
-  &__bar {
-    display: flex;
-    height: 8px;
+    flex-shrink: 0;
+    padding: 2px s.$space-2;
     border-radius: s.$radius-full;
-    background-color: var(--surface-sunken);
-    overflow: hidden;
+    background-color: var(--tone-soft);
+    color: var(--tone-text);
+    font-weight: 700;
   }
 
-  &__seg {
-    display: block;
-    height: 100%;
-
-    &--ok {
-      background-color: var(--ok);
-    }
-
-    &--brand {
-      background-color: var(--brand);
-    }
-
-    &--caution {
-      background-color: var(--caution);
-    }
-
-    &--critical {
-      background-color: var(--critical);
-    }
-
-    &--offline {
-      background-color: var(--offline);
-    }
-  }
-
-  &__legend {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 2px s.$space-3;
-    list-style: none;
-  }
-
-  &__item {
+  /* 이 아래가 진단이 쓴 글이라는 표시 */
+  &__quote {
     @include t.caption;
 
-    display: flex;
+    display: inline-flex;
     align-items: center;
     gap: s.$space-1;
-    color: var(--text-muted);
-  }
+    align-self: flex-start;
+    padding: 2px s.$space-2;
+    border-radius: s.$radius-full;
+    background-color: var(--brand-soft);
+    color: var(--brand);
+    font-weight: 700;
 
-  &__value {
-    color: var(--text-strong);
-    font-family: var(--font-data);
-  }
-
-  &__dot {
-    display: block;
-    width: 8px;
-    height: 8px;
-    border-radius: 50%;
-
-    &--ok {
-      background-color: var(--ok);
-    }
-
-    &--brand {
+    &::before {
+      content: "";
+      width: 5px;
+      height: 5px;
+      border-radius: 50%;
       background-color: var(--brand);
-    }
-
-    &--caution {
-      background-color: var(--caution);
-    }
-
-    &--critical {
-      background-color: var(--critical);
-    }
-
-    &--offline {
-      background-color: var(--offline);
     }
   }
 }
+
+/*
+  진단이 쓴 글.
+
+  숫자를 칸에 나눠 담지 않고 문단으로 잇는다 — 값만 늘어놓으면 「그래서 어떻다는 것인가」 를
+  읽는 사람이 이어 붙여야 한다. 대신 이름과 수치는 굵게 남겨 문단 안에서도 먼저 읽히게 한다.
+  줄 간격을 넉넉히 두어 벽에서도 한 줄씩 따라갈 수 있다.
+*/
+.brief {
+  @include t.body-md;
+
+  flex: 1;
+  min-height: 0;
+  color: var(--text);
+  line-height: 1.8;
+  word-break: keep-all;
+
+  /*
+    수치는 글 안에서 먼저 읽히되 경보처럼 보이지는 않아야 한다.
+    상태 색(붉은색)을 그대로 쓰면 설비용량·발전량까지 급한 값으로 읽힌다 — 급한 정도는
+    머리줄의 상태 배지가 말한다.
+  */
+  &__key {
+    color: var(--text-strong);
+    font-family: var(--font-data);
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* 아직 찍는 중임을 알리는 커서 — 다 찍히면 사라진다 */
+  &__caret {
+    display: inline-block;
+    width: 2px;
+    height: 1em;
+    margin-left: 2px;
+    background-color: var(--tone);
+    vertical-align: -2px;
+    animation: ai-caret 0.9s steps(1) infinite;
+
+    @include media.reduced-motion {
+      animation: none;
+    }
+  }
+}
+
+@keyframes ai-caret {
+  0%,
+  49% {
+    opacity: 1;
+  }
+
+  50%,
+  100% {
+    opacity: 0;
+  }
+}
+
+
 
 /* 몇 번째 지역을 보고 있는지 */
 .dots {

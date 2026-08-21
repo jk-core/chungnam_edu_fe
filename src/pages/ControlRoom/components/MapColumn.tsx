@@ -53,7 +53,11 @@ export function MapColumn({ plants, abnormalCount }: MapColumnProps) {
           />
         )}
       >
-        <AggregationPanel schools={plants} axis={axis} />
+        {/*
+          축을 바꾸면 표를 처음 쪽부터 다시 읽는다.
+          쪽 번호를 그대로 두면 셋째 쪽에서 축만 갈려, 열다섯 지역 중 열한째부터 보이기 시작한다.
+        */}
+        <AggregationPanel key={axis} schools={plants} axis={axis} />
       </Panel>
     </div>
   );
