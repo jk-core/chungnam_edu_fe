@@ -210,11 +210,13 @@
     }
   }
 
-  /* 머리글에 붙는 단위 — 값 칸마다 되풀이하지 않고 한 번만 적는다 */
+  /* 값에 붙는 단위 — 숫자보다 한 단 작고 옅게 두어 자릿수 읽기를 방해하지 않는다 */
   &__unit {
     margin-left: 2px;
     color: var(--text-faint);
-    font-weight: 400;
+    font-family: var(--font-sans);
+    font-size: 10px;
+    font-weight: 500;
   }
 
   &__count {
@@ -326,6 +328,14 @@
     font-family: var(--font-data);
     font-variant-numeric: tabular-nums;
     transition: color 0.3s ease;
+  }
+
+  &__unit {
+    margin-left: 1px;
+    font-family: var(--font-sans);
+    font-size: 10px;
+    font-weight: 500;
+    opacity: 0.75;
   }
 
   /* 채움이 숫자 자리까지 닿았다 — 면 위 글자로 뒤집는다 */

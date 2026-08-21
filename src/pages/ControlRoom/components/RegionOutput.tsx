@@ -31,10 +31,6 @@ export function RegionOutput() {
   const best = ordered[0]?.hours ?? 1;
   const worst = ordered[ordered.length - 1]?.hours ?? 0;
   const spread = Math.max(best - worst, 0.01);
-  // 관내 전체의 발전시간 — 지역 평균이 아니라 전체 발전량을 전체 설비용량으로 나눈 값이다.
-  const totalKwh = ordered.reduce((sum, region) => sum + region.todayKwh, 0);
-  const totalCapacity = ordered.reduce((sum, region) => sum + region.capacityKw, 0);
-  const totalHours = totalCapacity > 0 ? totalKwh / totalCapacity : 0;
 
   return (
     <div className={styles.region}>
@@ -62,9 +58,6 @@ export function RegionOutput() {
         })}
       </ol>
 
-      <p className={styles.region__foot}>
-        관내 평균 {formatNumber(totalHours, 1)}h · {formatNumber(ordered.length)}개 지역
-      </p>
     </div>
   );
 }

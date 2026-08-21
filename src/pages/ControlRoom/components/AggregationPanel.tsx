@@ -83,18 +83,11 @@ export function AggregationPanel({ schools, axis }: AggregationPanelProps) {
             <tr>
               <th scope="col" className={styles.table__rank}>순위</th>
               <th scope="col">구분</th>
-              <th scope="col" className={styles.table__num}>
-                설비용량<span className={styles.table__unit}>kW</span>
-              </th>
-              <th scope="col" className={styles.table__num}>
-                현재 출력<span className={styles.table__unit}>kW</span>
-              </th>
-              <th scope="col" className={styles.table__num}>
-                금일 발전량<span className={styles.table__unit}>kWh</span>
-              </th>
-              <th scope="col" className={styles.table__share}>
-                발전시간<span className={styles.table__unit}>h</span>
-              </th>
+              {/* 단위는 머리글이 아니라 값 옆에 붙인다 — 숫자와 단위가 떨어져 있으면 눈이 위아래를 오간다 */}
+              <th scope="col" className={styles.table__num}>설비용량</th>
+              <th scope="col" className={styles.table__num}>현재 출력</th>
+              <th scope="col" className={styles.table__num}>금일 발전량</th>
+              <th scope="col" className={styles.table__share}>발전시간</th>
             </tr>
           </thead>
 
@@ -133,9 +126,15 @@ export function AggregationPanel({ schools, axis }: AggregationPanelProps) {
                       ) : null}
                     </span>
                   </th>
-                  <td className={styles.table__num}>{formatNumber(row.capacityKw, 1)}</td>
-                  <td className={styles.table__num}>{formatNumber(row.outputKw, 1)}</td>
-                  <td className={styles.table__num}>{formatNumber(row.todayKwh)}</td>
+                  <td className={styles.table__num}>
+                    {formatNumber(row.capacityKw, 1)}<span className={styles.table__unit}>kW</span>
+                  </td>
+                  <td className={styles.table__num}>
+                    {formatNumber(row.outputKw, 1)}<span className={styles.table__unit}>kW</span>
+                  </td>
+                  <td className={styles.table__num}>
+                    {formatNumber(row.todayKwh)}<span className={styles.table__unit}>kWh</span>
+                  </td>
                   <td className={styles.table__share}>
                     {/*
                       숫자는 늘 오른쪽에 서고, 채움이 그 자리까지 닿으면 글자색을 뒤집는다 —
@@ -144,7 +143,9 @@ export function AggregationPanel({ schools, axis }: AggregationPanelProps) {
                     */}
                     <span className={styles.bar} data-over={ratio >= COVER_RATIO ? '' : undefined}>
                       <span className={styles.bar__fill} style={{ width: `${ratio * 100}%` }} />
-                      <span className={styles.bar__value}>{formatNumber(hoursOf(row), 1)}</span>
+                      <span className={styles.bar__value}>
+                        {formatNumber(hoursOf(row), 1)}<span className={styles.bar__unit}>h</span>
+                      </span>
                     </span>
                   </td>
                 </tr>
@@ -169,10 +170,18 @@ export function AggregationPanel({ schools, axis }: AggregationPanelProps) {
             <tr>
               <td className={styles.table__rank} />
               <th scope="row" className={styles.table__name}>총계</th>
-              <td className={styles.table__num}>{formatNumber(totals.capacityKw, 1)}</td>
-              <td className={styles.table__num}>{formatNumber(totals.outputKw, 1)}</td>
-              <td className={styles.table__num}>{formatNumber(totals.todayKwh)}</td>
-              <td className={styles.table__share}>{formatNumber(hoursOf(totals), 1)}</td>
+              <td className={styles.table__num}>
+                {formatNumber(totals.capacityKw, 1)}<span className={styles.table__unit}>kW</span>
+              </td>
+              <td className={styles.table__num}>
+                {formatNumber(totals.outputKw, 1)}<span className={styles.table__unit}>kW</span>
+              </td>
+              <td className={styles.table__num}>
+                {formatNumber(totals.todayKwh)}<span className={styles.table__unit}>kWh</span>
+              </td>
+              <td className={styles.table__share}>
+                {formatNumber(hoursOf(totals), 1)}<span className={styles.table__unit}>h</span>
+              </td>
             </tr>
           </tfoot>
         </table>

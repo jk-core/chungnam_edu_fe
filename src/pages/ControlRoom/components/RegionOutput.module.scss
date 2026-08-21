@@ -28,6 +28,11 @@
   &__list {
     display: flex;
     flex-direction: column;
+
+    /*
+      남는 높이는 줄 사이로 고르게 나눈다 — 열다섯 줄이 촘촘히 붙으면 어느 줄을 읽는지 놓친다.
+      최소 간격을 따로 못 박지 않는다. 판 높이가 조금만 달라져도 합이 넘쳐 마지막 줄이 잘린다.
+    */
     justify-content: space-between;
     flex: 1;
     min-height: 0;
@@ -85,7 +90,7 @@
     display: flex;
     align-items: center;
     justify-content: flex-end;
-    height: 17px;
+    height: 19px;
     padding-right: s.$space-2;
     border-radius: var(--room-radius);
     background-color: var(--surface-sunken);
@@ -133,12 +138,4 @@
     }
   }
 
-  &__foot {
-    @include t.caption;
-
-    flex-shrink: 0;
-    padding-top: s.$space-2;
-    border-top: 1px solid var(--border-subtle);
-    color: var(--text-faint);
-  }
 }
