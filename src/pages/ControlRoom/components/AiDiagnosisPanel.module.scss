@@ -309,26 +309,58 @@
     font-weight: 700;
   }
 
-  /* 이 아래가 진단이 쓴 글이라는 표시 */
-  &__quote {
-    @include t.caption;
+}
 
-    display: inline-flex;
-    align-items: center;
-    gap: s.$space-1;
-    align-self: flex-start;
-    padding: 2px s.$space-2;
-    border-radius: s.$radius-full;
-    background-color: var(--brand-soft);
-    color: var(--brand);
-    font-weight: 700;
+/*
+  지역 위치 지도.
 
-    &::before {
-      content: "";
-      width: 5px;
-      height: 5px;
-      border-radius: 50%;
-      background-color: var(--brand);
+  도를 지역별로 나눠 두고 지금 읽는 지역만 물들인다 — 요약 글만으로는 그 지역이 도 안에서
+  어디쯤인지 알 수 없다. 나뉜 경계는 중심점 사이의 등거리선으로 근사한 것이라 실제
+  행정경계와 똑같지는 않지만, 자리를 잡아 주기에는 충분하다.
+*/
+.map {
+  width: 100%;
+  height: 190px;
+  flex-shrink: 0;
+
+  &__ground {
+    color: var(--surface-sunken);
+  }
+
+  /* 나눈 선은 도 안에서만 보이면 된다 — 옅게 두되 어느 칸인지는 갈릴 만큼 */
+  &__cell {
+    fill: transparent;
+    stroke: var(--border);
+    transition: fill 0.4s ease, stroke 0.4s ease;
+
+    &[data-on] {
+      fill: color-mix(in srgb, var(--tone) 20%, transparent);
+      stroke: var(--tone);
+    }
+  }
+
+  /* 발전소 한 점 — 상태 색으로 찍어 요약 글의 개소 수가 지도 위에서 세어진다 */
+  &__dot {
+    stroke: var(--surface);
+
+    &--ok {
+      fill: var(--ok);
+    }
+
+    &--brand {
+      fill: var(--brand);
+    }
+
+    &--caution {
+      fill: var(--caution);
+    }
+
+    &--critical {
+      fill: var(--critical);
+    }
+
+    &--offline {
+      fill: var(--offline);
     }
   }
 }

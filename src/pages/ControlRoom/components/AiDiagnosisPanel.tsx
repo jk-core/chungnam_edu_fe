@@ -9,6 +9,7 @@ import { currentOutputOf } from '@/mocks/schoolOutput';
 import type { School } from '@/interface/energy';
 import styles from './AiDiagnosisPanel.module.scss';
 import { RegionBriefing } from './RegionBriefing';
+import { RegionMap } from './RegionMap';
 import type { BriefLine } from './RegionBriefing';
 
 /** 화면이 한 박자 나아가는 간격(ms) */
@@ -26,6 +27,8 @@ const ANALYZED_STEP = 137;
 
 interface RegionSummary {
   name: string;
+  /** 그 지역 발전소 — 지도에 상태 색 점으로 찍는다 */
+  plants: School[];
   count: number;
   capacityKw: number;
   /** 지금 내고 있는 힘(kW) — 설비용량 대비 얼마나 쓰고 있는지를 말한다 */
@@ -64,6 +67,7 @@ function summarize(plants: School[]): RegionSummary[] {
 
       return {
         name,
+        plants: rows,
         count: rows.length,
         capacityKw,
         outputKw,
@@ -278,7 +282,8 @@ export function AiDiagnosisPanel({ plants }: { plants: School[] }) {
           </span>
         </p>
 
-        <span className={styles.card__quote} aria-hidden="true">AI 요약</span>
+        {/* 글보다 자리가 먼저다 — 도 안에서 어디인지 보고 나서 숫자를 읽는다 */}
+        <RegionMap name={region.name} plants={region.plants} />
 
         <RegionBriefing key={region.name} lines={briefingOf(region, averageHours)} instant={Boolean(reduceMotion)} />
       </motion.article>
