@@ -25,7 +25,7 @@ export function RoomHeader({ searchSummary, onSearch }: RoomHeaderProps) {
           <span className={styles.brand__title}>통합관제 상황판</span>
           <span className={styles.brand__scope}>
             {SCOPE_LABEL}
-            <em className={styles.brand__variant}>시안 B · 다크 워룸</em>
+            <em className={styles.brand__variant}>시안 B · 타임라인 워룸</em>
           </span>
         </span>
       </span>

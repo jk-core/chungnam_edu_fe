@@ -30,7 +30,7 @@ export type AlertTone = 'critical' | 'caution' | 'offline';
  * 화면 가장자리를 어느 색으로 점등할지 (SFR-004-14).
  * 통신 장애는 설비 고장과 원인이 달라 갈라 놓는다.
  */
-function toneOfAlert(alert: AlertRecord): AlertTone {
+export function toneOfAlert(alert: AlertRecord): AlertTone {
   if (alert.type === '통신') return 'offline';
 
   return alert.severity === 'critical' ? 'critical' : 'caution';
