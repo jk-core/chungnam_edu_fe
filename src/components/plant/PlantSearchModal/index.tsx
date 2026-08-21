@@ -100,7 +100,7 @@ export function PlantSearchModal({ isOpen, filters, onClose, onApply, onSelect }
             label="지역"
             value={draft.region}
             onChange={(value) => setDraft({ ...draft, region: value })}
-            options={[{ value: ALL, label: '전체 시·군' }, ...REGIONS.map((item) => ({ value: item.code, label: item.name }))]}
+            options={[{ value: ALL, label: '전체 지역' }, ...REGIONS.map((item) => ({ value: item.code, label: item.name }))]}
           />
           <Select
             label="설비"

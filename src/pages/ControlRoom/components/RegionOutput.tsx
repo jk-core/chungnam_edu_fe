@@ -36,7 +36,7 @@ export function RegionOutput() {
       </ol>
 
       <p className={styles.region__foot}>
-        합계 {formatNumber(total)} kWh · {formatNumber(ordered.length)}개 시·군
+        합계 {formatNumber(total)} kWh · {formatNumber(ordered.length)}개 지역
       </p>
     </div>
   );

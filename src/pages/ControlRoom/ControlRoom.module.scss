@@ -52,10 +52,6 @@
 }
 
 .panel {
-  /* 모서리 눈금 한 획의 길이와 색 — 바탕 도면의 꺾쇠를 판 크기로 줄인 것이다 */
-  --tick: 9px;
-  --tick-color: rgb(from var(--brand) r g b / 22%);
-
   position: relative;
   display: flex;
   flex-direction: column;
@@ -82,28 +78,6 @@
     background: linear-gradient(90deg, transparent, var(--brand), transparent);
     opacity: 0.5;
     animation: panel-scan 6s linear infinite;
-  }
-
-  /*
-    네 모서리의 눈금.
-
-    바탕에 깔린 도면과 같은 표시를 판에도 두어, 판이 도면 위에 정렬돼 놓인 것으로 읽히게 한다.
-    모서리마다 가로·세로 한 획씩 여덟 겹이다 — 한 겹으로 그리면 변까지 이어져 이중 테두리가 된다.
-  */
-  &::after {
-    content: "";
-    position: absolute;
-    inset: 5px;
-    background:
-      linear-gradient(var(--tick-color), var(--tick-color)) 0 0 / var(--tick) 1px no-repeat,
-      linear-gradient(var(--tick-color), var(--tick-color)) 0 0 / 1px var(--tick) no-repeat,
-      linear-gradient(var(--tick-color), var(--tick-color)) 100% 0 / var(--tick) 1px no-repeat,
-      linear-gradient(var(--tick-color), var(--tick-color)) 100% 0 / 1px var(--tick) no-repeat,
-      linear-gradient(var(--tick-color), var(--tick-color)) 0 100% / var(--tick) 1px no-repeat,
-      linear-gradient(var(--tick-color), var(--tick-color)) 0 100% / 1px var(--tick) no-repeat,
-      linear-gradient(var(--tick-color), var(--tick-color)) 100% 100% / var(--tick) 1px no-repeat,
-      linear-gradient(var(--tick-color), var(--tick-color)) 100% 100% / 1px var(--tick) no-repeat;
-    pointer-events: none;
   }
 
   /*
@@ -142,16 +116,7 @@
       z-index: 1;
       border-radius: inherit;
 
-      /* 안쪽 면이자 모서리 눈금 — 도는 빛을 덮어야 하므로 한 겹에 함께 그린다 */
       background:
-        linear-gradient(var(--tick-color), var(--tick-color)) 5px 5px / var(--tick) 1px no-repeat,
-        linear-gradient(var(--tick-color), var(--tick-color)) 5px 5px / 1px var(--tick) no-repeat,
-        linear-gradient(var(--tick-color), var(--tick-color)) calc(100% - 5px) 5px / var(--tick) 1px no-repeat,
-        linear-gradient(var(--tick-color), var(--tick-color)) calc(100% - 5px) 5px / 1px var(--tick) no-repeat,
-        linear-gradient(var(--tick-color), var(--tick-color)) 5px calc(100% - 5px) / var(--tick) 1px no-repeat,
-        linear-gradient(var(--tick-color), var(--tick-color)) 5px calc(100% - 5px) / 1px var(--tick) no-repeat,
-        linear-gradient(var(--tick-color), var(--tick-color)) calc(100% - 5px) calc(100% - 5px) / var(--tick) 1px no-repeat,
-        linear-gradient(var(--tick-color), var(--tick-color)) calc(100% - 5px) calc(100% - 5px) / 1px var(--tick) no-repeat,
         radial-gradient(90% 70% at 100% 0%, color-mix(in srgb, var(--brand) 9%, transparent), transparent 62%),
         radial-gradient(70% 60% at 0% 100%, color-mix(in srgb, var(--solar) 7%, transparent), transparent 60%),
         var(--surface);
@@ -184,21 +149,7 @@
   &__title {
     @include t.label-md;
 
-    /* 제목 앞의 눈금 표시 — 계측기 다이얼처럼 판마다 같은 자리에 선다 */
-    position: relative;
-    padding-left: 11px;
     color: var(--text-strong);
-
-    &::before {
-      content: "";
-      position: absolute;
-      top: 0.24em;
-      left: 0;
-      width: 3px;
-      height: 0.82em;
-      border-radius: 1px;
-      background: linear-gradient(180deg, var(--brand), var(--solar));
-    }
   }
 
   &__note {

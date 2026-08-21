@@ -87,7 +87,7 @@ export function FaultGroupModal({ plants, collection, status, onClose }: FaultGr
       header: '발전소',
       render: (row) => row.name,
     },
-    { key: 'region', header: '시·군', width: '110px', hideOnTablet: true, render: (row) => row.regionName },
+    { key: 'region', header: '지역', width: '110px', hideOnTablet: true, render: (row) => row.regionName },
     {
       key: 'capacity',
       header: '설비용량',
@@ -144,7 +144,7 @@ export function FaultGroupModal({ plants, collection, status, onClose }: FaultGr
       </div>
 
       <Table
-        caption="장애 발생 발전소 목록. 발전소, 시·군, 설비용량, 추정 손실, 마지막 수신, 상태 순입니다."
+        caption="장애 발생 발전소 목록. 발전소, 지역, 설비용량, 마지막 수신, 상태 순입니다."
         columns={columns}
         rows={rows}
         getRowKey={(row) => row.id}

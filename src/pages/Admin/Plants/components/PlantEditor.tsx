@@ -111,7 +111,7 @@ export function PlantEditor({ asset, onClose }: { asset: PlantAsset; onClose: ()
     // 무엇이 바뀌었는지 필드 단위로 이력에 남긴다 (SFR-016-06).
     const plant = { id: asset.plantId, name: asset.plantName };
     const entries: AssetChange[] = [
-      ['시·군', regionNameOfCode(asset.regionCode), regionNameOfCode(draft.regionCode)],
+      ['지역', regionNameOfCode(asset.regionCode), regionNameOfCode(draft.regionCode)],
       ['주소', asset.address, next.address ?? ''],
       ['상세 주소', asset.addressDetail || '—', next.addressDetail || '—'],
       ['설치 시기', asset.installedAt, next.installedAt ?? ''],
@@ -164,7 +164,7 @@ export function PlantEditor({ asset, onClose }: { asset: PlantAsset; onClose: ()
           >
             <FormRow cols={2}>
               <Select
-                label="시·군"
+                label="지역"
                 value={draft.regionCode}
                 options={REGION_OPTIONS}
                 onChange={(value) => change({ regionCode: value })}

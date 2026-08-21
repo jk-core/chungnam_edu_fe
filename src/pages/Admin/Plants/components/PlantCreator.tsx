@@ -139,7 +139,7 @@ export function PlantCreator({ onClose }: { onClose: () => void }) {
       )}
     >
       <div className={styles.form}>
-        <FormSection legend="발전소 정보" hint="시·군은 지도 위 마커 자리를 정하는 데 쓰입니다.">
+        <FormSection legend="발전소 정보" hint="지역은 지도 위 마커 자리를 정하는 데 쓰입니다.">
           <FormRow cols={2}>
             <TextField
               label="발전소명"
@@ -149,7 +149,7 @@ export function PlantCreator({ onClose }: { onClose: () => void }) {
               required
             />
             <Select
-              label="시·군"
+              label="지역"
               value={draft.regionCode}
               options={REGION_OPTIONS}
               onChange={(value) => change({ regionCode: value })}
@@ -175,7 +175,7 @@ export function PlantCreator({ onClose }: { onClose: () => void }) {
               label="주소"
               value={draft.address}
               onChange={(value) => change({ address: value })}
-              placeholder="시·군 뒤 도로명 주소"
+              placeholder="지역 뒤 도로명 주소"
               required
             />
             <TextField
