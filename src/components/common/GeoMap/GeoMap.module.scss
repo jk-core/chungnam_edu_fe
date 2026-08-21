@@ -4,6 +4,42 @@
 @use "@/styles/utils/mixins" as mx;
 
 /*
+  어두운 화면의 지도.
+
+  카카오는 밝은 타일 한 벌만 준다 — 어두운 상황판에서 지도만 하얗게 떠 눈이 부시고, 그
+  판만 다른 화면처럼 보인다. 타일을 뒤집어 어둡게 만든 다음, 그 위에 얹힌 것들은 같은 값을
+  한 번 더 걸어 원래 색으로 되돌린다. 되돌리지 않으면 상태 색이 보색으로 바뀌어 경고가
+  초록으로, 정상이 붉게 보인다.
+
+  invert 와 hue-rotate(180deg) 는 각각 두 번 걸면 제자리로 오는 값이라, 되돌리는 데
+  같은 식을 그대로 쓴다. 축척 막대와 카카오 로고도 지도 위에 얹힌 것이라 함께 되돌린다.
+*/
+@mixin map-dark {
+  [data-theme="dark"] & {
+    filter: invert(1) hue-rotate(180deg);
+
+    // 우리가 얹은 마커·묶음과, 지도가 얹는 축척·로고를 되돌린다
+    :is(.pin, .cluster),
+    > div:not(:first-child) {
+      filter: invert(1) hue-rotate(180deg);
+    }
+  }
+}
+
+/*
+  뒤집은 타일의 색을 고른다.
+
+  뒤집기만 하면 밝은 땅 색이 누런 갈색으로 앉아 어두운 화면의 푸른 결과 따로 논다.
+  뒤집기는 정확히 되돌려야 하므로 건드리지 않고, 톤은 바깥 칸에 한 겹 얹어 낮춘다 —
+  마커까지 함께 옅어지지만 그 정도는 눈에 띄지 않는다.
+*/
+@mixin map-dark-grade {
+  [data-theme="dark"] & {
+    filter: saturate(0.62) brightness(0.92);
+  }
+}
+
+/*
   지도 껍데기.
   옆에 나란히 선 판(도넛 등)이 더 크면 이 칸도 그만큼 늘어나는데, 안쪽 지도가 고정 높이면
   아래가 빈 채로 남아 둘의 키가 안 맞아 보인다. 넘겨받은 높이는 최소치로만 쓰고
@@ -24,6 +60,8 @@
     radial-gradient(80% 70% at 50% 0%, var(--brand-soft) 0%, transparent 64%),
     var(--map-surface);
   overflow: hidden;
+
+  @include map-dark-grade;
 
   &__viewport {
     position: relative;
@@ -468,10 +506,13 @@
   box-shadow: inset 0 0 0 1px var(--brand);
 }
 
-// ── 네이버 지도 (SFR-007-05) ───────────────────────────────
+// ── 카카오 지도 (SFR-007-05) ───────────────────────────────
+
 .kakao {
   width: 100%;
   height: 100%;
+
+  @include map-dark;
 }
 
 .mini {
@@ -480,9 +521,13 @@
   border-radius: s.$radius-sm;
   overflow: hidden;
 
+  @include map-dark-grade;
+
   &__canvas {
     width: 100%;
     height: 100%;
+
+    @include map-dark;
   }
 }
 
