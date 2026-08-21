@@ -1,6 +1,7 @@
-import { formatPercent } from '@/utils/format';
+import { formatNumber, formatPercent } from '@/utils/format';
 import type { School } from '@/interface/energy';
 import styles from '../ControlRoom.module.scss';
+import { getRegionHours } from '../utils/regionHours';
 import { CumulativeKpi } from './CumulativeKpi';
 import { OutputGauge } from './OutputGauge';
 import { Panel } from './Panel';
@@ -20,6 +21,8 @@ interface SummaryColumnProps {
  * 한 줄기라 눈이 오가지 않는다. 발전소 낱개의 실적 순위는 가운데 열 집계표가 맡는다.
  */
 export function SummaryColumn({ plants, totals }: SummaryColumnProps) {
+  // 목록과 제목 줄이 같은 셈을 나눠 쓴다 — 각자 세면 평균과 목록의 값이 어긋나는 날이 온다.
+  const regions = getRegionHours();
   // 개소마다의 이용률을 고르게 평균한다 — 큰 설비가 낮아도 작은 설비 여럿이 끌어올릴 수 있다.
   const utilization = plants.length > 0
     ? plants.reduce((sum, plant) => sum + plant.utilization, 0) / plants.length
@@ -40,7 +43,7 @@ export function SummaryColumn({ plants, totals }: SummaryColumnProps) {
         />
       </Panel>
 
-      <Panel title="지역별 발전시간" note="금일 · h" grow>
+      <Panel title="지역별 발전시간" note={`${formatNumber(regions.count)}개 지역 · 평균 ${formatNumber(regions.average, 1)}h`} grow>
         <RegionOutput />
       </Panel>
     </div>

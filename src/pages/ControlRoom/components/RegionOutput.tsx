@@ -1,5 +1,5 @@
 import { formatNumber } from '@/utils/format';
-import { REGIONS } from '@/mocks/regions';
+import { getRegionHours } from '../utils/regionHours';
 import styles from './RegionOutput.module.scss';
 
 /**
@@ -23,9 +23,7 @@ const FLOOR = 0.18;
  * 않아 사실상 보이지 않았다.
  */
 export function RegionOutput() {
-  const ordered = [...REGIONS]
-    .map((region) => ({ ...region, hours: region.capacityKw > 0 ? region.todayKwh / region.capacityKw : 0 }))
-    .sort((a, b) => b.hours - a.hours);
+  const { rows: ordered } = getRegionHours();
   const best = ordered[0]?.hours ?? 1;
   const worst = ordered[ordered.length - 1]?.hours ?? 0;
   const spread = Math.max(best - worst, 0.01);
