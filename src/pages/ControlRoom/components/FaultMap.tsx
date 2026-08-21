@@ -137,7 +137,7 @@ export function FaultMap({ plants, scope = 'faults', height = MAP_HEIGHT, select
           // 붙잡아 둔 것만 푼다 — 아래 단추로 세워 둔 것이라면 닫아도 서 있어야 한다.
           setIsHeld(false);
         }}
-        aria-label="설명 닫기"
+        aria-label="상세 닫기"
       >
         <CloseIcon width={15} height={15} />
       </button>
@@ -278,7 +278,7 @@ export function FaultMap({ plants, scope = 'faults', height = MAP_HEIGHT, select
                   transform={`translate(${point.x} ${point.y}) scale(${scale})`}
                   className={selectable ? styles.pick : undefined}
                   role={selectable ? 'button' : undefined}
-                  aria-label={selectable ? `${plant.name} 설명 보기` : undefined}
+                  aria-label={selectable ? `${plant.name} 상세 보기` : undefined}
                   onClick={selectable ? () => pick(plant.id) : undefined}
                 >
                   <circle className={`${styles.dot__halo} ${styles[`dot--${OPERATION_TONE[plant.status]}`]}`} r={11} />

@@ -59,7 +59,7 @@ export function PagerBar({ page, pageCount, turnKey, intervalMs, total, controls
         className={className}
         style={style}
         onClick={() => controls.onGo(index)}
-        aria-label={`${index + 1}쪽 보기`}
+        aria-label={`${index + 1}페이지 보기`}
         aria-current={isActive ? 'true' : undefined}
       />
     );
@@ -82,7 +82,7 @@ export function PagerBar({ page, pageCount, turnKey, intervalMs, total, controls
               type="button"
               className={styles.pager__button}
               onClick={controls.onPrev}
-              aria-label="이전 쪽"
+              aria-label="이전 페이지"
             >
               <ChevronLeftIcon width={16} height={16} />
             </button>
@@ -91,7 +91,7 @@ export function PagerBar({ page, pageCount, turnKey, intervalMs, total, controls
               className={cn(styles.pager__button, { [styles['pager__button--on']]: controls.paused })}
               onClick={controls.onTogglePause}
               aria-pressed={controls.paused}
-              aria-label={controls.paused ? '자동 넘김 다시 시작' : '자동 넘김 멈춤'}
+              aria-label={controls.paused ? '자동 전환 재생' : '자동 전환 정지'}
             >
               {controls.paused ? <PlayIcon width={16} height={16} /> : <PauseIcon width={16} height={16} />}
             </button>
@@ -99,7 +99,7 @@ export function PagerBar({ page, pageCount, turnKey, intervalMs, total, controls
               type="button"
               className={styles.pager__button}
               onClick={controls.onNext}
-              aria-label="다음 쪽"
+              aria-label="다음 페이지"
             >
               <ChevronRightIcon width={16} height={16} />
             </button>

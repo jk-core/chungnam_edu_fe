@@ -20,6 +20,9 @@ const CHECKED_STEP = 137;
 /** 아래에 남겨 두는 직전 건수 */
 const TRAIL = 2;
 
+/** 이보다 작으면 손실이 없는 것으로 본다 — 「−0.0kWh」 라고 적으면 조금 잃은 것처럼 읽힌다 */
+const LOSS_FLOOR = 0.05;
+
 /** 심각도별 소견 수 — 몇 건인지만으로는 지금 손이 얼마나 급한지 알 수 없다 */
 const SEVERITY_COUNT = (['critical', 'caution', 'info'] as const)
   .map((severity) => ({ severity, count: ISSUES.filter((issue) => issue.severity === severity).length }))
@@ -65,7 +68,7 @@ export function AiScanBoard() {
           <span className={styles.deck__title}>
             <span className={styles.deck__name}>실시간 이상 감지</span>
             <span className={styles.deck__note}>
-              계측값 <strong>{formatNumber(checked)}</strong>건 훑는 중
+              계측값 <strong>{formatNumber(checked)}</strong>건 분석 중
             </span>
           </span>
           <span className={styles.deck__live}>감시 중</span>
@@ -73,7 +76,7 @@ export function AiScanBoard() {
       </div>
 
       <p className={styles.caption}>
-        잡아낸 것
+        검출 내역
         <span className={styles.caption__count}>
           {SEVERITY_COUNT.map(({ severity, count }) => `${SEVERITY_LABEL[severity]} ${count}`).join(' · ')}
         </span>
@@ -111,8 +114,12 @@ export function AiScanBoard() {
               animate={false}
             />
             <span className={styles.hit__loss}>
-              <strong>−{formatNumber(hit.lossKwh, 1)}</strong>
-              kWh/일
+              {hit.lossKwh < LOSS_FLOOR ? '추정 손실 없음' : (
+                <>
+                  <strong>−{formatNumber(hit.lossKwh, 1)}</strong>
+                  kWh/일
+                </>
+              )}
             </span>
           </p>
 
@@ -135,7 +142,9 @@ export function AiScanBoard() {
             <span className={styles.trail__at}>{issue.detectedAt.slice(11, 16)}</span>
             <span className={styles.trail__place}>{issue.schoolName}</span>
             <span className={styles.trail__category}>{issue.category}</span>
-            <span className={styles.trail__loss}>−{formatNumber(issue.lossKwh, 1)}</span>
+            <span className={styles.trail__loss}>
+              {issue.lossKwh < LOSS_FLOOR ? '—' : `−${formatNumber(issue.lossKwh, 1)}`}
+            </span>
           </motion.li>
         ))}
       </ul>

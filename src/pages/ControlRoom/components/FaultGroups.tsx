@@ -43,7 +43,7 @@ export function FaultGroups({ plants, collection }: FaultGroupsProps) {
       <StatusMix plants={plants} />
 
       {groups.length === 0 ? (
-        <p className={styles.empty}>지금 손봐야 할 설비가 없습니다.</p>
+        <p className={styles.empty}>조치가 필요한 설비가 없습니다.</p>
       ) : (
         <ul className={styles.groups}>
           {groups.map((group) => {

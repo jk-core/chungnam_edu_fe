@@ -99,7 +99,7 @@ export function MissingInverters({ plantIds, collection }: MissingInvertersProps
       </p>
 
       {missing.length === 0 ? (
-        <p className={styles.missing__none}>지금 값이 안 들어오는 인버터가 없습니다.</p>
+        <p className={styles.missing__none}>미수신 인버터가 없습니다.</p>
       ) : (
         <>
           <ul className={styles.missing__list} ref={listRef}>

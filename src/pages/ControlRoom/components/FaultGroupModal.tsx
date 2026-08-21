@@ -136,7 +136,7 @@ export function FaultGroupModal({ plants, collection, status, onClose }: FaultGr
       onClose={onClose}
       size="lg"
       title="장애 발생 현황"
-      description="추정 손실은 오늘 정상 가동한 학교들이 설비 1kW 당 낸 발전량을 기준으로 잡은 값입니다."
+      description="추정 손실은 금일 정상 가동 발전소의 설비용량 1kW 당 발전량을 기준으로 산정한 값입니다."
     >
       <div className={styles.filters}>
         <SegmentedControl label="상태" size="sm" options={statusOptions} value={only} onChange={setOnly} />

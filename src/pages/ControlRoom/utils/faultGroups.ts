@@ -49,7 +49,7 @@ export function createLossEstimate(plants: School[]) {
 function reasonOf(status: OperationStatus): string {
   const codes = FAULT_BY_STATUS[status];
 
-  if (status === 'commLost' || codes.length === 0) return '값이 끊겨 원인을 판정할 수 없습니다';
+  if (status === 'commLost' || codes.length === 0) return '통신 두절로 원인 판정 불가';
 
   const [first, ...rest] = codes;
   const summary = getFaultCode(first)?.summary ?? '';

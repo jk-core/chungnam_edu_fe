@@ -42,7 +42,7 @@ export function SideColumn({ data }: { data: ControlRoomData }) {
       <section className={`${styles.panel} ${styles.panel__grow}`} aria-label="권역별 상태">
         <h2 className={styles.panel__title}>
           권역별 상태
-          <span className={styles.panel__note}>칸 하나가 발전소 하나</span>
+          <span className={styles.panel__note}>1칸 = 발전소 1개소</span>
         </h2>
         <RegionHeatmap plants={data.rows} />
       </section>
