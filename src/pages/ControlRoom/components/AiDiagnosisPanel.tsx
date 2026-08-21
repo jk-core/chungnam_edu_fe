@@ -223,13 +223,6 @@ export function AiDiagnosisPanel({ plants }: { plants: School[] }) {
       <div className={styles.deck}>
         <span className={styles.deck__sweep} aria-hidden="true" />
 
-        <svg className={styles.deck__wave} viewBox="0 0 240 40" preserveAspectRatio="none" aria-hidden="true">
-          <path
-            className={styles.deck__waveLine}
-            d="M0 26 L14 26 L20 12 L26 32 L32 20 L40 20 L48 26 L54 26 L60 8 L66 30 L74 22 L84 22 L92 26 L100 26 L106 14 L112 30 L120 24 L132 24 L140 26 L148 26 L154 10 L160 32 L168 20 L180 20 L188 26 L196 26 L202 16 L208 28 L216 22 L240 22"
-          />
-        </svg>
-
         <div className={styles.deck__head}>
           <AiOrbit size={34} active />
           <span className={styles.deck__title}>

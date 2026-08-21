@@ -51,7 +51,16 @@
   padding: s.$space-3;
   border: 1px solid color-mix(in srgb, var(--tone) 22%, transparent);
   border-radius: var(--room-radius);
+
+  /*
+    바탕에 점 격자를 깐다.
+
+    색만 옅게 물들이면 판이 비어 보이고, 선을 그려 두면 그 선이 무슨 값인지 묻게 된다.
+    같은 간격으로 찍힌 점은 값을 말하지 않으면서 「계측하는 자리」 라는 결만 남긴다.
+  */
   background:
+    radial-gradient(circle at 1px 1px, color-mix(in srgb, var(--tone) 28%, transparent) 1px, transparent 1.4px)
+      0 0 / 10px 10px,
     radial-gradient(120% 140% at 0% 0%, color-mix(in srgb, var(--tone) 12%, transparent), transparent 62%),
     var(--surface-sunken);
   overflow: hidden;
@@ -73,30 +82,6 @@
     @include media.reduced-motion {
       animation: none;
       opacity: 0.4;
-    }
-  }
-
-  /* 들어오는 신호. 데크 바닥에 옅게 깔려 지금도 값이 들어오고 있음을 말한다 */
-  &__wave {
-    position: absolute;
-    inset-inline: 0;
-    bottom: -1px;
-    width: 100%;
-    height: 24px;
-    opacity: 0.32;
-  }
-
-  &__waveLine {
-    fill: none;
-    stroke: var(--tone);
-    stroke-width: 1.4;
-    stroke-linejoin: round;
-    stroke-dasharray: 26 14;
-    animation: ai-signal 1.8s linear infinite;
-
-    @include media.reduced-motion {
-      animation: none;
-      stroke-dasharray: none;
     }
   }
 
@@ -168,16 +153,6 @@
 
   to {
     transform: translateX(320%);
-  }
-}
-
-@keyframes ai-signal {
-  from {
-    stroke-dashoffset: 0;
-  }
-
-  to {
-    stroke-dashoffset: -40;
   }
 }
 
@@ -322,20 +297,37 @@
   width: 100%;
   height: 190px;
   flex-shrink: 0;
+  overflow: hidden;
+
+  /* 당길 때 미끄러지듯 따라간다 — 뷰박스는 부드럽게 바뀌지 않아 안쪽 묶음을 옮긴다 */
+  &__zoom {
+    transition: transform 0.7s cubic-bezier(0.22, 0.68, 0.32, 1);
+
+    @include media.reduced-motion {
+      transition: none;
+    }
+  }
 
   &__ground {
     color: var(--surface-sunken);
   }
 
-  /* 나눈 선은 도 안에서만 보이면 된다 — 옅게 두되 어느 칸인지는 갈릴 만큼 */
+  /*
+    시·군을 가르는 선.
+
+    도 하나가 통째로 보이면 어느 칸이 어느 지역인지 알 수 없다. 선은 또렷하게 긋되 굵기는
+    당겨도 그대로 두어(non-scaling-stroke), 확대했을 때 선만 두꺼워지지 않게 한다.
+  */
   &__cell {
     fill: transparent;
-    stroke: var(--border);
+    stroke: var(--border-strong);
+    stroke-width: 0.9;
     transition: fill 0.4s ease, stroke 0.4s ease;
 
     &[data-on] {
-      fill: color-mix(in srgb, var(--tone) 20%, transparent);
+      fill: color-mix(in srgb, var(--tone) 22%, transparent);
       stroke: var(--tone);
+      stroke-width: 1.6;
     }
   }
 
@@ -376,8 +368,13 @@
   display: flex;
   flex-direction: column;
 
-  /* 네 줄이 카드 높이를 고르게 나눠 갖는다 — 위로 몰아 두면 아래가 휑하다 */
-  justify-content: space-between;
+  /*
+    위에서부터 한 줄씩 쌓인다.
+
+    남는 높이를 줄 사이로 나눠 두었더니 줄이 하나 늘 때마다 이미 적힌 줄들이 아래로 밀려,
+    읽던 자리가 계속 움직였다. 자리를 붙박아 두면 새 줄만 바로 아래에 붙는다.
+  */
+  justify-content: flex-start;
   gap: s.$space-3;
   flex: 1;
   min-height: 0;

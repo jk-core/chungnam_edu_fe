@@ -84,6 +84,22 @@ export const REGION_CELLS: RegionCell[] = REGIONS.map((region) => {
   return { code: region.code, name: region.name, center, polygon };
 });
 
+/**
+ * 다각형이 도 안에서 차지하는 상자 — 그 지역만 크게 볼 때 얼마나 당길지 정하는 데 쓴다.
+ *
+ * 나눈 칸은 바깥까지 넉넉히 뻗어 있다(자를 것을 전제로 그렸다). 그대로 재면 가장자리 지역의
+ * 상자가 도의 몇 배가 되어 당길 자리를 잃으므로, 도 경로 상자 안으로 잘라 잰다.
+ */
+export function boundsOf(polygon: Point[]): { x: number; y: number; width: number; height: number } {
+  const { x, y, width, height } = CHUNGNAM_PATH_BBOX;
+  const xs = polygon.map((point) => Math.min(Math.max(point.x, x), x + width));
+  const ys = polygon.map((point) => Math.min(Math.max(point.y, y), y + height));
+  const minX = Math.min(...xs);
+  const minY = Math.min(...ys);
+
+  return { x: minX, y: minY, width: Math.max(...xs) - minX, height: Math.max(...ys) - minY };
+}
+
 /** 다각형을 SVG 경로 문자열로 */
 export function pathOf(polygon: Point[]): string {
   if (polygon.length === 0) return '';
