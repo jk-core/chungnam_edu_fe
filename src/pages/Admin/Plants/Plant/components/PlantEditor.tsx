@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { AddressSearchModal } from '@/components/common/AddressSearch';
 import { Button } from '@/components/common/Button';
 import { ConfirmDialog } from '@/components/common/ConfirmDialog';
 import { FormPage } from '@/pages/Admin/_shared/FormPage';
@@ -27,7 +28,7 @@ import { NONE, toId, usePlantCapacity } from '../hooks/usePlantData';
 const PLANT_NO_BASE = 10000;
 
 /** 폼 위에 띄운 창. 한 번에 하나만 뜬다 */
-type Picker = 'user' | 'irrad';
+type Picker = 'address' | 'user' | 'irrad';
 
 interface Draft {
   plantName: string;
@@ -198,7 +199,7 @@ export function PlantEditor({ powerPlantId }: { powerPlantId: number | null }) {
 
     removePlant(asset.plantId, entryOf(
       { id: asset.plantId, name: asset.plantName },
-      '발전소 삭제',
+      '삭제',
       `${capacity.value}${capacity.unit} · ${regionNameOfCode(asset.regionCode)}`,
       '—',
       // 같은 발전소의 등록 이력과 id 가 겹치지 않게 갈래를 붙인다 — 목록 key 로 쓰인다.
@@ -217,7 +218,7 @@ export function PlantEditor({ powerPlantId }: { powerPlantId: number | null }) {
           : `${asset.address} · 설치 ${asset.installedAt}`}
         backTo={backTo}
         danger={isNew ? null : (
-          <Button variant="solar" onClick={() => setIsDeleting(true)}>발전소 삭제</Button>
+          <Button variant="solar" onClick={() => setIsDeleting(true)}>삭제</Button>
         )}
         footer={(
           <>
@@ -247,12 +248,13 @@ export function PlantEditor({ powerPlantId }: { powerPlantId: number | null }) {
             />
           </FormRow>
           <FormRow cols={2}>
-            {/* 시·군 코드는 주소 검색이 함께 돌려준다 — 손으로 고르는 칸을 두지 않는다. */}
-            <TextField
+            {/* 시·군 코드는 검색 결과가 함께 돌려준다 — 손으로 고르는 칸을 두지 않는다. */}
+            <PickerField
               label="주소"
               value={draft.address}
-              onChange={(value) => change({ address: value })}
-              placeholder="도로명 주소"
+              placeholder="주소를 검색하세요"
+              onOpen={() => setPicker('address')}
+              hint={draft.address ? regionNameOfCode(draft.regionCode) : undefined}
               required
             />
             <TextField
@@ -341,6 +343,16 @@ export function PlantEditor({ powerPlantId }: { powerPlantId: number | null }) {
           </FormSection>
         )}
       </FormPage>
+
+      <AddressSearchModal
+        isOpen={picker === 'address'}
+        onClose={() => setPicker(null)}
+        onSelect={(address) => {
+          // 시·군 코드는 폼에 세우지 않고 여기서 함께 받아 둔다 — 서버가 그것으로 지역을 가른다.
+          change({ address: address.roadAddress, regionCode: address.sigunguCode });
+          setPicker(null);
+        }}
+      />
 
       <Modal
         isOpen={picker === 'user'}
