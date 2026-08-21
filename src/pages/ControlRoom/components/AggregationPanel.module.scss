@@ -119,6 +119,17 @@
     }
   }
 
+  /* 위 세 줄이 곧 금일 실적 순위다 — 이름 앞에 등수를 얹는다 */
+  &__medal {
+    @include t.caption;
+
+    flex-shrink: 0;
+    padding: 1px s.$space-2;
+    border-radius: s.$radius-full;
+    font-family: var(--font-data);
+    font-weight: 700;
+  }
+
   &__count {
     @include t.caption;
 
@@ -216,5 +227,28 @@
     color: var(--text-muted);
     text-align: right;
     font-family: var(--font-data);
+    font-variant-numeric: tabular-nums;
+  }
+
+  &__unit {
+    margin-left: 1px;
+    color: var(--text-faint);
+  }
+}
+
+.medal {
+  &--gold {
+    background-color: color-mix(in srgb, #d4a017 24%, transparent);
+    color: #b8860b;
+  }
+
+  &--silver {
+    background-color: color-mix(in srgb, #8c93a3 24%, transparent);
+    color: #6f7686;
+  }
+
+  &--bronze {
+    background-color: color-mix(in srgb, #c07a4b 24%, transparent);
+    color: #a4643a;
   }
 }
