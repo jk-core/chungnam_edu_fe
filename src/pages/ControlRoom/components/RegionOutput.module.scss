@@ -57,11 +57,11 @@
       }
 
       .region__bar {
-        background: linear-gradient(90deg, var(--brand), var(--solar));
+        background-color: color-mix(in srgb, var(--solar) 34%, transparent);
+        border-right-color: var(--solar);
       }
 
       .region__value {
-        color: var(--text-strong);
         font-weight: 700;
       }
     }
@@ -102,16 +102,20 @@
     overflow: hidden;
   }
 
+  /*
+    채운 면은 옅게, 끝선은 진하게.
+
+    면을 진하게 채우면 그 위에 얹은 숫자가 묻힌다 — 긴 막대일수록 숫자가 통째로 면 안에
+    들어가기 때문이다. 면은 글씨가 읽힐 만큼만 물들이고 길이는 끝선이 짚어 주면, 어느
+    길이에서도 숫자와 막대가 함께 읽힌다.
+  */
   &__bar {
     position: absolute;
     inset-block: 0;
     inset-inline-start: 0;
-    border-radius: s.$radius-sm;
-    background: linear-gradient(
-      90deg,
-      color-mix(in srgb, var(--brand) 26%, transparent),
-      color-mix(in srgb, var(--solar) 34%, transparent)
-    );
+    border-right: 2px solid var(--brand);
+    border-radius: s.$radius-sm 0 0 s.$radius-sm;
+    background-color: color-mix(in srgb, var(--brand) 26%, transparent);
     transition: width 0.5s cubic-bezier(0.22, 0.68, 0.32, 1);
   }
 
