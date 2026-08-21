@@ -19,23 +19,67 @@
   min-height: 0;
 
   &__list {
+    position: relative;
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
     grid-template-rows: repeat(8, auto);
     grid-auto-flow: column;
     align-content: space-between;
-    gap: s.$space-1 s.$space-4;
+    gap: s.$space-1 s.$space-5;
     flex: 1;
     min-height: 0;
     list-style: none;
     overflow: hidden;
+
+    /* 두 열을 가르는 실선 — 왼쪽 여덟과 오른쪽 일곱이 한 덩이로 뭉쳐 보이지 않게 한다 */
+    &::before {
+      content: "";
+      position: absolute;
+      top: 0;
+      bottom: 0;
+      left: 50%;
+      width: 1px;
+      background-color: var(--border-subtle);
+    }
   }
 
   &__row {
     display: grid;
-    grid-template-columns: 52px minmax(0, 1fr);
+    grid-template-columns: 14px 46px minmax(0, 1fr);
     align-items: center;
-    gap: s.$space-2;
+    gap: s.$space-1;
+
+    /* 1위 한 줄만 도드라지게 둔다 — 어디가 제일 많이 냈는지가 먼저 읽힌다 */
+    &[data-lead] {
+      .region__rank {
+        background-color: var(--solar);
+        color: var(--text-on-brand);
+      }
+
+      .region__bar {
+        background: linear-gradient(90deg, var(--brand), var(--solar));
+      }
+
+      .region__value {
+        color: var(--text-strong);
+        font-weight: 700;
+      }
+    }
+  }
+
+  &__rank {
+    @include t.caption;
+
+    display: grid;
+    width: 14px;
+    height: 14px;
+    place-items: center;
+    border-radius: s.$radius-xs;
+    background-color: var(--surface-sunken);
+    color: var(--text-faint);
+    font-family: var(--font-data);
+    font-size: 10px;
+    line-height: 1;
   }
 
   &__name {
@@ -63,7 +107,11 @@
     inset-block: 0;
     inset-inline-start: 0;
     border-radius: s.$radius-sm;
-    background: linear-gradient(90deg, color-mix(in srgb, var(--brand) 34%, transparent), color-mix(in srgb, var(--solar) 40%, transparent));
+    background: linear-gradient(
+      90deg,
+      color-mix(in srgb, var(--brand) 26%, transparent),
+      color-mix(in srgb, var(--solar) 34%, transparent)
+    );
     transition: width 0.5s cubic-bezier(0.22, 0.68, 0.32, 1);
   }
 

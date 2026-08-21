@@ -457,21 +457,61 @@
   }
 }
 
-/* 고장코드 참고 이미지 — 남는 높이를 채우되, 자리를 못 박아 판이 들썩이지 않게 한다 */
+/*
+  고장코드 참고 이미지.
+
+  비율을 못 박는다 — 남는 높이에 맞춰 늘리면 코드마다 사진이 다른 모양으로 눌려, 같은 설비를
+  찍은 사진인데도 매번 달라 보인다. 한 장이면 넓게 한 칸, 두 장이면 반씩 나눠 걸되 비율은 같다.
+*/
 .shot {
   position: relative;
   display: flex;
   flex-direction: column;
-  gap: 2px;
-  flex: 1;
-  min-height: 0;
+  gap: 3px;
 
-  &__image {
+  /* 남는 높이는 위쪽 글에 주고 사진은 카드 바닥에 붙인다 */
+  margin-top: auto;
+  flex-shrink: 0;
+
+  &__frames {
+    display: grid;
+    gap: s.$space-2;
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  &[data-count="2"] &__frames {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  &__frame {
+    display: block;
     width: 100%;
-    flex: 1;
-    min-height: 0;
+    padding: 0;
     border: 1px solid var(--border-subtle);
     border-radius: s.$radius-sm;
+    background: none;
+    aspect-ratio: 18 / 5;
+    overflow: hidden;
+    cursor: pointer;
+    transition: border-color 0.16s ease, transform 0.16s ease;
+
+    &:hover {
+      border-color: var(--tone);
+      transform: translateY(-1px);
+    }
+
+    @include mx.keyboard-focus;
+  }
+
+  /* 두 장일 때는 칸이 반으로 좁아지므로 비율을 세워, 두 경우의 높이가 엇비슷하게 맞는다 */
+  &[data-count="2"] &__frame {
+    aspect-ratio: 16 / 9;
+  }
+
+  &__image {
+    display: block;
+    width: 100%;
+    height: 100%;
     object-fit: cover;
     object-position: center;
   }
@@ -479,8 +519,16 @@
   &__caption {
     @include t.caption;
 
-    flex-shrink: 0;
     color: var(--text-faint);
     text-align: right;
   }
+}
+
+/* 크게 본 사진 — 모달 폭에 맞추되 세로로 넘치지 않게 */
+.zoom {
+  display: block;
+  width: 100%;
+  max-height: 62vh;
+  border-radius: s.$radius-sm;
+  object-fit: contain;
 }

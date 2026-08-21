@@ -4,8 +4,10 @@ import { AiOrbit } from '@/components/common/AiOrbit';
 import { Badge, SEVERITY_LABEL, SEVERITY_TONE } from '@/components/common/Badge';
 import { formatDuration, formatNumber, formatPercent } from '@/utils/format';
 import { getFaultCode, INVERTERS } from '@/mocks/equipment';
+import { Modal } from '@/components/common/Modal';
 import { Sparkline } from '@/components/common/Sparkline';
 import type { CollectionStatus } from '@/interface/collection';
+import type { DiagnosisFaultCode } from '@/interface/equipment';
 import type { School } from '@/interface/energy';
 import styles from './AiDiagnosisPanel.module.scss';
 
@@ -28,6 +30,9 @@ const SEVERITY_RANK = { critical: 0, caution: 1, info: 2 } as const;
 /** 현상·조치는 각각 이만큼만 편다 — 판이 들썩이지 않게 줄 수를 붙박아 둔다 */
 const LINE_LIMIT = 3;
 
+/** 카드에 거는 참고 이미지 수 */
+const SHOT_LIMIT = 2;
+
 interface AiDiagnosisPanelProps {
   plants: School[];
   /** 발전소별 수집 현황 — 마지막 수신 시각이 판정의 근거가 된다 */
@@ -47,6 +52,8 @@ interface AiDiagnosisPanelProps {
 export function AiDiagnosisPanel({ plants, collection }: AiDiagnosisPanelProps) {
   const reduceMotion = useReducedMotion();
   const [tick, setTick] = useState(0);
+  /** 눌러서 크게 본 참고 이미지 — 판은 계속 돌아도 열어 둔 사진은 그대로 둔다 */
+  const [zoom, setZoom] = useState<{ src: string; code: DiagnosisFaultCode; summary: string } | null>(null);
 
   useEffect(() => {
     const timer = window.setInterval(() => setTick((at) => at + 1), TICK_MS);
@@ -115,6 +122,8 @@ export function AiDiagnosisPanel({ plants, collection }: AiDiagnosisPanelProps) 
   const { inverter, plant, fault } = alerts[at];
   const seen = collection.get(plant.id);
   const tone = SEVERITY_TONE[fault.severity];
+  // 두 장까지만 건다 — 셋을 걸면 한 장이 우표만 해져 무엇을 찍은 사진인지 알아볼 수 없다.
+  const shots = fault.images.slice(0, SHOT_LIMIT);
 
   /*
     판정 근거 — 코드를 그렇게 붙인 계측값을 그대로 적는다.
@@ -236,19 +245,49 @@ export function AiDiagnosisPanel({ plants, collection }: AiDiagnosisPanelProps) 
           </ul>
         </motion.div>
 
-        {/* 고장코드 참고 이미지 — 글로 적힌 현상이 실제로 어떤 모습인지 함께 보인다 (SFR-013-06) */}
-        {fault.images[0] ? (
+        {/*
+          고장코드 참고 이미지 — 글로 적힌 현상이 실제로 어떤 모습인지 함께 보인다 (SFR-013-06).
+          한 장이면 넓게, 두 장이면 나란히 건다. 비율은 두 경우 모두 같아 판이 들썩이지 않는다.
+        */}
+        {shots.length > 0 ? (
           <motion.figure
             className={styles.shot}
+            data-count={shots.length}
             initial={reduceMotion ? false : { y: 10 }}
             animate={{ y: 0 }}
             transition={line(6)}
           >
-            <img className={styles.shot__image} src={fault.images[0]} alt="" />
-            <figcaption className={styles.shot__caption}>고장코드 {fault.code} 참고 이미지</figcaption>
+            <span className={styles.shot__frames}>
+              {shots.map((src) => (
+                <button
+                  key={src}
+                  type="button"
+                  className={styles.shot__frame}
+                  onClick={() => setZoom({ src, code: fault.code, summary: fault.summary })}
+                  aria-label={`고장코드 ${fault.code} 참고 이미지 크게 보기`}
+                >
+                  <img className={styles.shot__image} src={src} alt="" />
+                </button>
+              ))}
+            </span>
+            <figcaption className={styles.shot__caption}>
+              고장코드 {fault.code} 참고 이미지 {shots.length}장 · 눌러서 크게 보기
+            </figcaption>
           </motion.figure>
         ) : null}
       </motion.article>
+
+      {zoom ? (
+        <Modal
+          isOpen
+          onClose={() => setZoom(null)}
+          size="lg"
+          title={`고장코드 ${zoom.code} 참고 이미지`}
+          description={zoom.summary}
+        >
+          <img className={styles.zoom} src={zoom.src} alt={`고장코드 ${zoom.code} 참고 이미지`} />
+        </Modal>
+      ) : null}
 
       {/* 몇 번째를 보고 있는지 — 순서대로 도는 판이라 자리 표시가 있어야 한다 */}
       <ol className={styles.dots} aria-hidden="true">

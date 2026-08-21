@@ -19,8 +19,9 @@ export function RegionOutput() {
   return (
     <div className={styles.region}>
       <ol className={styles.region__list}>
-        {ordered.map((item) => (
-          <li key={item.code} className={styles.region__row}>
+        {ordered.map((item, index) => (
+          <li key={item.code} className={styles.region__row} data-lead={index === 0 ? '' : undefined}>
+            <span className={styles.region__rank}>{index + 1}</span>
             <span className={styles.region__name}>{item.name}</span>
             {/* 막대와 수치를 한 덩이로 둔다 — 따로 세우면 둘 다 좁아져 읽기 어렵다 */}
             <span className={styles.region__track}>
