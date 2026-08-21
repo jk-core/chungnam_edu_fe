@@ -121,14 +121,24 @@
   &__name {
     @include t.body-sm;
 
-    display: flex;
-    align-items: center;
-    gap: s.$space-2;
-    min-width: 0;
     overflow: hidden;
     color: var(--text-strong);
     text-align: left;
     font-weight: 500;
+  }
+
+  /*
+    이름·개소 수·배지를 가로로 놓는다.
+
+    셀(th) 에 직접 flex 를 주면 그 칸이 표 셀에서 빠져 나와 줄 높이를 1px 덜 차지한다 —
+    같은 줄인데 이 칸의 아래 선만 위로 올라앉아 가로줄이 끊겨 보인다. 안쪽에 한 겹을 두어
+    셀은 셀대로 두고 배치만 여기서 한다.
+  */
+  &__nameInner {
+    display: flex;
+    align-items: center;
+    gap: s.$space-2;
+    min-width: 0;
 
     /* 이름이 먼저 줄어들고, 개소 수와 배지는 제 크기를 지킨다 */
     > span:first-child {

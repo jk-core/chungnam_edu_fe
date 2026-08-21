@@ -114,15 +114,24 @@ export function AggregationPanel({ schools, axis }: AggregationPanelProps) {
                     ) : rank}
                   </td>
                   <th scope="row" className={styles.table__name}>
-                    <span>{row.name}</span>
-                    {row.count > 1 ? <span className={styles.table__count}>{row.count}개소</span> : null}
-                    {row.school ? (
-                      <Badge tone={OPERATION_TONE[row.school.status]} withDot>
-                        {OPERATION_LABEL[row.school.status]}
-                      </Badge>
-                    ) : row.abnormal > 0 ? (
-                      <Badge tone="critical">이상 {row.abnormal}</Badge>
-                    ) : null}
+                    {/*
+                      가로 놓기는 안쪽 조각이 맡는다.
+
+                      셀에 직접 display:flex 를 주면 그 칸이 표 셀에서 빠져 나와 줄 높이를
+                      1px 덜 차지한다 — 같은 줄인데 이 칸의 아래 선만 위로 올라앉아 가로줄이
+                      끊겨 보인다.
+                    */}
+                    <span className={styles.table__nameInner}>
+                      <span>{row.name}</span>
+                      {row.count > 1 ? <span className={styles.table__count}>{row.count}개소</span> : null}
+                      {row.school ? (
+                        <Badge tone={OPERATION_TONE[row.school.status]} withDot>
+                          {OPERATION_LABEL[row.school.status]}
+                        </Badge>
+                      ) : row.abnormal > 0 ? (
+                        <Badge tone="critical">이상 {row.abnormal}</Badge>
+                      ) : null}
+                    </span>
                   </th>
                   <td className={styles.table__num}>{formatNumber(row.capacityKw, 1)}</td>
                   <td className={styles.table__num}>{formatNumber(row.outputKw, 1)}</td>
