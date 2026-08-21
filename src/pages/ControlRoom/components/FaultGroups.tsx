@@ -11,9 +11,11 @@ import styles from './FaultGroups.module.scss';
 
 /**
  * 묶음마다 펴 두는 이름 수.
- * 판 높이가 상태 분포 한 줄 + 세 묶음 × (머리 한 줄 + 칩 두 줄)이라, 이보다 늘리면 아래가 잘린다.
+ *
+ * 한 줄에 들어가는 만큼만 편다 — 이름은 몇 개 보이든 「어디가」 를 다 답하지 못하고,
+ * 그 답은 더보기가 연 목록이 한다. 대신 아낀 높이를 위 AI 진단 판이 가져간다.
  */
-const CHIP_LIMIT = 5;
+const CHIP_LIMIT = 3;
 
 interface FaultGroupsProps {
   /** 전체 발전소 — 이 중 이상 상태만 묶고, 정상 학교는 기대 발전량의 잣대가 된다 */

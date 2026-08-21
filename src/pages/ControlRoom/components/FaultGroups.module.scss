@@ -2,8 +2,8 @@
 @use "@/styles/tokens/typography" as t;
 @use "@/styles/utils/mixins" as mx;
 
-/* 칩 한 줄에 든 이름이 길어도 두 줄을 넘지 않게 붙잡는 폭 */
-$chip-max: 132px;
+/* 이름 셋과 더보기가 한 줄에 나란히 서게 붙잡는 폭 */
+$chip-max: 96px;
 
 /* 상태 분포 한 줄과 묶음들 — 남는 높이는 묶음 쪽이 가져간다 */
 .wrap {
@@ -114,11 +114,10 @@ $chip-max: 132px;
 
 /*
   이름 칩.
-  판이 낮아 두 줄까지만 둔다 — 넘치는 것은 「더보기」가 모달로 마저 보여 준다.
+  한 줄만 둔다 — 넘치는 것은 「더보기」가 모달로 마저 보여 준다.
 */
 .chips {
   display: flex;
-  flex-wrap: wrap;
   gap: s.$space-1;
   list-style: none;
 }

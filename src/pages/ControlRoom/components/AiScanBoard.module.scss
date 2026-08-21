@@ -9,10 +9,51 @@ $finding-body: 2.9em;
 .scan {
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: s.$space-2;
+}
 
-  /* 단계마다 색이 달라 글자와 빛이 함께 물든다 — 어디를 지나는지 읽지 않아도 알게 한다 */
+/*
+  훑는 자리.
+
+  단계 색으로 옅게 물든 판 위에 빛이 지나간다 — 숫자 하나 없이도 지금 무언가 돌고 있다는
+  것이 읽혀야 한다. 색은 단계가 넘어갈 때마다 함께 바뀌므로 배경도 같이 물든다.
+*/
+.deck {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: s.$space-2;
+  padding: s.$space-3;
+  border: 1px solid color-mix(in srgb, var(--stage) 22%, transparent);
+  border-radius: s.$radius-md;
+  background:
+    radial-gradient(120% 140% at 0% 0%, color-mix(in srgb, var(--stage) 12%, transparent), transparent 62%),
+    var(--surface-sunken);
+  overflow: hidden;
+  transition: border-color 0.5s ease, background-color 0.5s ease;
+
+  /* 판을 가로지르는 빛. 끝나는 자리가 없어 계속 훑는 중임을 말한다 */
+  &__sweep {
+    position: absolute;
+    inset-block: 0;
+    inset-inline-start: 0;
+    width: 32%;
+    background: linear-gradient(
+      90deg,
+      transparent,
+      color-mix(in srgb, var(--stage) 14%, transparent),
+      transparent
+    );
+    animation: ai-sweep 2.6s linear infinite;
+
+    @include media.reduced-motion {
+      animation: none;
+      opacity: 0.4;
+    }
+  }
+
   &__head {
+    position: relative;
     display: flex;
     align-items: center;
     gap: s.$space-2;
@@ -64,57 +105,90 @@ $finding-body: 2.9em;
       }
     }
   }
+}
 
-  &__track {
-    position: relative;
-    height: 4px;
-    border-radius: s.$radius-full;
-    background-color: var(--surface-sunken);
-    overflow: hidden;
-  }
+/* 세 단계를 한 줄에 세운 레일 — 지금이 어디쯤인지 자리로 읽힌다 */
+.rail {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: s.$space-1;
+  list-style: none;
 
-  &__sweep {
-    position: absolute;
-    inset-block: 0;
-    inset-inline-start: 0;
-    width: 38%;
-    border-radius: s.$radius-full;
-    background: linear-gradient(90deg, transparent, var(--stage), transparent);
-    animation: ai-sweep 1.9s linear infinite;
+  &__step {
+    display: flex;
+    align-items: center;
+    gap: s.$space-1;
+    flex: 1;
+    min-width: 0;
 
-    @include media.reduced-motion {
-      width: 100%;
-      background: var(--stage);
-      opacity: 0.32;
-      animation: none;
+    /* 단계 사이를 잇는 실. 마지막 칸 뒤에는 잇지 않는다 */
+    &:not(:last-child)::after {
+      content: "";
+      height: 1px;
+      flex: 1;
+      background-color: var(--border-subtle);
+    }
+
+    &[data-state="done"] {
+      .rail__mark {
+        border-color: color-mix(in srgb, var(--step) 46%, transparent);
+        background-color: color-mix(in srgb, var(--step) 18%, transparent);
+        color: var(--step);
+      }
+
+      .rail__name {
+        color: var(--text-muted);
+      }
+
+      &::after {
+        background-color: color-mix(in srgb, var(--step) 40%, transparent);
+      }
+    }
+
+    &[data-state="on"] {
+      .rail__mark {
+        border-color: var(--step);
+        background-color: var(--step);
+        color: var(--surface);
+        box-shadow: 0 0 0 3px color-mix(in srgb, var(--step) 18%, transparent);
+      }
+
+      .rail__name {
+        color: var(--step);
+        font-weight: 700;
+      }
     }
   }
 
-}
+  &__mark {
+    @include t.caption;
 
-@keyframes ai-sweep {
-  from {
-    transform: translateX(-100%);
+    display: grid;
+    width: 16px;
+    height: 16px;
+    flex-shrink: 0;
+    place-items: center;
+    border: 1px solid var(--border-subtle);
+    border-radius: 50%;
+    color: var(--text-faint);
+    font-family: var(--font-data);
+    line-height: 1;
+    transition: border-color 0.3s ease, background-color 0.3s ease, color 0.3s ease, box-shadow 0.3s ease;
   }
 
-  to {
-    transform: translateX(300%);
-  }
-}
+  &__name {
+    @include t.caption;
 
-@keyframes ai-pulse {
-  0%,
-  100% {
-    opacity: 0.35;
-  }
-
-  50% {
-    opacity: 1;
+    flex-shrink: 0;
+    color: var(--text-faint);
+    transition: color 0.3s ease;
   }
 }
 
 /* 지금 무엇을 짚어 보는 중인지 — 켜진 것 하나만 물들고 지나간 것은 흐려진다 */
 .checks {
+  position: relative;
   display: flex;
   flex-wrap: wrap;
   gap: s.$space-1;
@@ -126,6 +200,7 @@ $finding-body: 2.9em;
     padding: 1px s.$space-2;
     border: 1px solid var(--border-subtle);
     border-radius: s.$radius-full;
+    background-color: var(--surface);
     color: var(--text-faint);
     transition: border-color 0.3s ease, background-color 0.3s ease, color 0.3s ease;
 
@@ -141,10 +216,60 @@ $finding-body: 2.9em;
   }
 }
 
+@keyframes ai-sweep {
+  from {
+    transform: translateX(-100%);
+  }
+
+  to {
+    transform: translateX(320%);
+  }
+}
+
+@keyframes ai-pulse {
+  0%,
+  100% {
+    opacity: 0.35;
+  }
+
+  50% {
+    opacity: 1;
+  }
+}
+
+/* 아래 소견 묶음의 머리말 — 몇 건이 잡혔는지를 곁들인다 */
+.caption {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: s.$space-2;
+
+  @include t.caption;
+
+  color: var(--text-faint);
+
+  &__count {
+    color: var(--text-muted);
+    font-family: var(--font-data);
+  }
+}
+
 /* 방금 잡아낸 것 — 진단이 도는 동안 한 건씩 넘어간다 */
 .finding {
-  padding-top: s.$space-2;
-  border-top: 1px solid var(--border-subtle);
+  padding-left: s.$space-3;
+  border-left: 3px solid var(--tone);
+
+  &[data-tone="critical"] {
+    --tone: var(--critical);
+  }
+
+  &[data-tone="caution"] {
+    --tone: var(--caution);
+  }
+
+  &[data-tone="brand"] {
+    --tone: var(--brand);
+  }
 
   &__card {
     display: flex;
@@ -192,17 +317,6 @@ $finding-body: 2.9em;
     color: var(--text-muted);
   }
 
-  &__body {
-    @include t.caption;
-
-    display: -webkit-box;
-    min-height: $finding-body;
-    overflow: hidden;
-    color: var(--text);
-    -webkit-box-orient: vertical;
-    -webkit-line-clamp: 2;
-  }
-
   &__loss {
     @include t.caption;
 
@@ -219,5 +333,27 @@ $finding-body: 2.9em;
       font-family: var(--font-data);
       font-variant-numeric: tabular-nums;
     }
+  }
+
+  &__body {
+    @include t.caption;
+
+    display: -webkit-box;
+    min-height: $finding-body;
+    overflow: hidden;
+    color: var(--text);
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+  }
+
+  /* 무엇을 하라는 말까지 있어야 판정이 일로 이어진다 */
+  &__action {
+    @include t.caption;
+    @include mx.truncate;
+
+    margin-top: 1px;
+    padding-top: s.$space-1;
+    border-top: 1px dashed var(--border-subtle);
+    color: var(--text-muted);
   }
 }

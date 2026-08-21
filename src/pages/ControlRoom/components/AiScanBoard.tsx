@@ -23,6 +23,14 @@ const FINDING_EVERY = 7;
  */
 const SCAN_STEPS = ANALYSIS_STEPS.filter((step) => step.stage !== 'done');
 
+/** 레일에 적는 짧은 이름 — 칸이 좁아 단계 이름을 그대로 쓰면 셋이 겹친다 */
+const RAIL_LABEL: Record<AnalysisStage, string> = {
+  scan: '스캔',
+  classify: '분류',
+  reason: '추론',
+  done: '완료',
+};
+
 /**
  * 단계마다 무엇을 대조하는지.
  *
@@ -37,13 +45,21 @@ const CHECKS: Record<AnalysisStage, string[]> = {
 };
 
 /**
+ * 심각도별 소견 수.
+ * 「몇 건」 만으로는 급한지 아닌지 알 수 없다 — 긴급이 몇인지가 곧 지금 손이 얼마나 급한지다.
+ */
+const SEVERITY_COUNT = (['critical', 'caution', 'info'] as const)
+  .map((severity) => ({ severity, count: ISSUES.filter((issue) => issue.severity === severity).length }))
+  .filter((item) => item.count > 0);
+
+/**
  * AI 진단이 관내를 훑는 중임을 보여 준다 (SFR-011-05, SFR-014-04).
  *
  * 상황판은 지금 무엇이 일어나는지를 보여 주는 화면이라, 진단이 돌고 있다는 사실 자체가
  * 읽혀야 한다. 진행률로 차오르는 막대는 두지 않는다 — 다 차고 나면 멈춘 것처럼 보이고,
  * 실제로도 진단은 한 번 끝나는 일이 아니라 계속 도는 일이다.
  *
- * 위쪽은 지금 무엇을 대조하는 중인지, 아래쪽은 그렇게 해서 잡아낸 소견 한 건이다.
+ * 위쪽은 지금 어느 단계에서 무엇을 대조하는 중인지, 아래쪽은 그렇게 해서 잡아낸 소견이다.
  * 어느 소견이 와도 판 높이는 그대로다 — 벽에 걸린 화면에서 칸이 들썩이면 옆 판까지 함께 밀린다.
  */
 export function AiScanBoard() {
@@ -56,41 +72,64 @@ export function AiScanBoard() {
     return () => window.clearInterval(timer);
   }, []);
 
-  const step = SCAN_STEPS[Math.floor(tick / STAGE_EVERY) % SCAN_STEPS.length];
+  const at = Math.floor(tick / STAGE_EVERY) % SCAN_STEPS.length;
+  const step = SCAN_STEPS[at];
   const checks = CHECKS[step.stage];
   const checking = tick % checks.length;
   const finding = ISSUES[Math.floor(tick / FINDING_EVERY) % ISSUES.length];
 
   return (
     <div className={styles.scan} style={{ '--stage': step.color } as CSSProperties}>
-      <div className={styles.scan__head}>
-        <AiOrbit size={26} active />
-        <span className={styles.scan__stage}>
-          <span className={styles.scan__label}>{step.label}</span>
-          <span className={styles.scan__note}>{step.note}</span>
+      {/* 훑는 자리 — 배경이 단계 색으로 옅게 물들고 그 위로 빛이 지난다 */}
+      <div className={styles.deck}>
+        <span className={styles.deck__sweep} aria-hidden="true" />
+
+        <div className={styles.deck__head}>
+          <AiOrbit size={34} active />
+          <span className={styles.deck__stage}>
+            <span className={styles.deck__label}>{step.label}</span>
+            <span className={styles.deck__note}>{step.note}</span>
+          </span>
+          <span className={styles.deck__live}>진단 중</span>
+        </div>
+
+        {/* 세 단계를 한 줄에 세워, 지금이 어디쯤인지 이름과 자리로 함께 읽히게 한다 */}
+        <ol className={styles.rail}>
+          {SCAN_STEPS.map((item, index) => (
+            <li
+              key={item.stage}
+              className={styles.rail__step}
+              data-state={index === at ? 'on' : index < at ? 'done' : undefined}
+              style={{ '--step': item.color } as CSSProperties}
+            >
+              <span className={styles.rail__mark}>{index + 1}</span>
+              <span className={styles.rail__name}>{RAIL_LABEL[item.stage]}</span>
+            </li>
+          ))}
+        </ol>
+
+        {/* 지금 대조하는 항목만 물들고 나머지는 물러나 있다 */}
+        <ul className={styles.checks} aria-label={`${step.label} 대조 항목`}>
+          {checks.map((check, index) => (
+            <li
+              key={check}
+              className={styles.checks__item}
+              data-state={index === checking ? 'on' : index < checking ? 'done' : undefined}
+            >
+              {check}
+            </li>
+          ))}
+        </ul>
+      </div>
+
+      <p className={styles.caption}>
+        방금 잡아낸 것
+        <span className={styles.caption__count}>
+          {SEVERITY_COUNT.map(({ severity, count }) => `${SEVERITY_LABEL[severity]} ${count}`).join(' · ')}
         </span>
-        <span className={styles.scan__live}>진단 중</span>
-      </div>
+      </p>
 
-      {/* 빛이 왼쪽에서 오른쪽으로 계속 흐른다 — 차오르는 막대와 달리 끝나는 자리가 없다 */}
-      <div className={styles.scan__track} aria-hidden="true">
-        <span className={styles.scan__sweep} />
-      </div>
-
-      {/* 지금 대조하는 항목만 물들고 나머지는 물러나 있다 */}
-      <ul className={styles.checks} aria-label={`${step.label} 대조 항목`}>
-        {checks.map((check, index) => (
-          <li
-            key={check}
-            className={styles.checks__item}
-            data-state={index === checking ? 'on' : index < checking ? 'done' : undefined}
-          >
-            {check}
-          </li>
-        ))}
-      </ul>
-
-      <div className={styles.finding}>
+      <div className={styles.finding} data-tone={SEVERITY_TONE[finding.severity]}>
         <AnimatePresence mode="wait" initial={false}>
           <motion.div
             key={finding.id}
@@ -125,6 +164,7 @@ export function AiScanBoard() {
             </p>
 
             <p className={styles.finding__body}>{finding.summary}</p>
+            <p className={styles.finding__action}>{finding.action}</p>
           </motion.div>
         </AnimatePresence>
       </div>
