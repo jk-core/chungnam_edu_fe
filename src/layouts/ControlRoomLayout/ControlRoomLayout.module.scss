@@ -13,15 +13,80 @@
   overflow: hidden;
 
   /*
-    맨 위 칸이 경보로 물드는 자리다.
+    도면 위에 판을 얹은 바탕.
 
-    두 마디가 같은 색인 그러데이션은 곧 한 겹의 단색 판이다 — 바탕 그림을 다시 적지 않고
-    그 위에 색만 한 겹 얹을 수 있다. 경보가 없으면 투명이라 없는 것과 같다.
+    관제 화면은 지도·표·게이지가 각자 떠 있어 판 사이 틈이 허전하다. 설계 도면처럼 눈금을
+    깔아 두면 그 틈이 「아직 그리지 않은 자리」 가 아니라 좌표를 가진 판 위로 읽힌다.
+    눈금은 판에 거의 다 가려지고 틈과 가장자리로만 비치므로 아주 옅게 둔다.
+
+    맨 위 칸은 경보로 물드는 자리다. 두 마디가 같은 색인 그러데이션은 곧 한 겹의 단색 판이라,
+    바탕 그림을 다시 적지 않고 그 위에 색만 한 겹 얹을 수 있다. 경보가 없으면 투명이다.
   */
+  --grid-line: rgb(from var(--brand) r g b / 7%);
+  --grid-line-strong: rgb(from var(--brand) r g b / 12%);
+  --grid-mark: rgb(from var(--brand) r g b / 22%);
+
   background:
     linear-gradient(var(--room-wash, transparent), var(--room-wash, transparent)),
+
+    /* 큰 눈금이 만나는 자리의 점 — 도면의 기준점처럼 좌표를 짚어 준다 */
+    radial-gradient(circle at 0 0, var(--grid-mark) 0 1.5px, transparent 1.6px),
+
+    /* 큰 눈금 */
+    repeating-linear-gradient(90deg, var(--grid-line-strong) 0 1px, transparent 1px 120px),
+    repeating-linear-gradient(0deg, var(--grid-line-strong) 0 1px, transparent 1px 120px),
+
+    /* 잔 눈금 */
+    repeating-linear-gradient(90deg, var(--grid-line) 0 1px, transparent 1px 24px),
+    repeating-linear-gradient(0deg, var(--grid-line) 0 1px, transparent 1px 24px),
+
+    /* 오른쪽 위에서 퍼지는 동심원 — 계측 장비의 눈금판처럼 결을 준다 */
+    repeating-radial-gradient(circle at 88% 6%, var(--grid-line) 0 1px, transparent 1px 96px),
+
     radial-gradient(60% 40% at 12% 0%, var(--sky-glow) 0%, transparent 62%),
     linear-gradient(180deg, var(--sky-top) 0%, var(--paper) 46%);
+  background-size:
+    auto,
+    120px 120px,
+    auto,
+    auto,
+    auto,
+    auto,
+    auto,
+    auto,
+    auto;
+
+  /*
+    도면 테두리의 네 모서리 꺾쇠.
+
+    눈금만으로는 화면 가장자리가 어디까지인지 흐릿하다. 모서리만 꺾어 두면 도면을 펼쳐 놓은
+    자리처럼 판이 잡히고, 선을 네 변에 다 두르는 것보다 조용하다. 모서리마다 가로·세로
+    한 획씩 여덟 겹을 깐다 — 한 겹으로 그리려 하면 변까지 이어져 액자가 된다.
+  */
+  &::before {
+    --corner: 26px;
+
+    content: "";
+    position: absolute;
+    inset: s.$space-3;
+    background:
+      linear-gradient(var(--grid-mark), var(--grid-mark)) 0 0 / var(--corner) 1px no-repeat,
+      linear-gradient(var(--grid-mark), var(--grid-mark)) 0 0 / 1px var(--corner) no-repeat,
+      linear-gradient(var(--grid-mark), var(--grid-mark)) 100% 0 / var(--corner) 1px no-repeat,
+      linear-gradient(var(--grid-mark), var(--grid-mark)) 100% 0 / 1px var(--corner) no-repeat,
+      linear-gradient(var(--grid-mark), var(--grid-mark)) 0 100% / var(--corner) 1px no-repeat,
+      linear-gradient(var(--grid-mark), var(--grid-mark)) 0 100% / 1px var(--corner) no-repeat,
+      linear-gradient(var(--grid-mark), var(--grid-mark)) 100% 100% / var(--corner) 1px no-repeat,
+      linear-gradient(var(--grid-mark), var(--grid-mark)) 100% 100% / 1px var(--corner) no-repeat;
+    pointer-events: none;
+  }
+
+  /* 어두운 바탕에서는 같은 투명도로는 선이 묻힌다 */
+  [data-theme="dark"] & {
+    --grid-line: rgb(from var(--brand) r g b / 9%);
+    --grid-line-strong: rgb(from var(--brand) r g b / 15%);
+    --grid-mark: rgb(from var(--brand) r g b / 26%);
+  }
 
   /*
     경보 결마다의 색과 세기.
