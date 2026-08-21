@@ -1,3 +1,5 @@
+import { z } from 'zod';
+
 /*
   API 계약 공통 껍데기.
 
@@ -36,20 +38,24 @@ export function crudEndpoints(resource: string): CrudEndpoints {
 }
 
 /** 목록 요청 공통. 쪽 번호는 0 부터 */
-export interface PagingRequest {
-  page: number;
-  size: number;
-}
+export const pagingRequest = z.object({
+  page: z.number().int().min(0),
+  size: z.number().int().positive(),
+});
 
-export interface PagingResponse<T> {
-  content: T[];
-  page: number;
-  size: number;
-  totalElements: number;
-  totalPages: number;
+export type PagingRequest = z.infer<typeof pagingRequest>;
+
+export function pagingResponse<T extends z.ZodType>(content: T) {
+  return z.object({
+    content: z.array(content),
+    page: z.number().int(),
+    size: z.number().int(),
+    totalElements: z.number().int(),
+    totalPages: z.number().int(),
+  });
 }
 
 /** 등록·수정·삭제 응답 — 방금 다룬 PK 하나 */
-export interface MutationResponse {
-  id: number;
-}
+export const mutationResponse = z.object({ id: z.number().int() });
+
+export type MutationResponse = z.infer<typeof mutationResponse>;

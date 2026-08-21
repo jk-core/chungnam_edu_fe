@@ -1,6 +1,7 @@
 import styles from './Form.module.scss';
 import type { CSSProperties, ReactNode } from 'react';
 
+export { createFields, createForm } from './createForm';
 export { FormField, describedBy, imeProps } from './FormField';
 export type { FieldWidth, ImeMode } from './FormField';
 export { NumberField, PasswordField, TextArea, TextField } from './fields';
