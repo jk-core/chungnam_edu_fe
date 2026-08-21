@@ -1,7 +1,7 @@
 import { Badge } from '@/components/common/Badge';
 import { ChevronRightIcon, MapPinIcon } from '@/components/common/Icon';
 import { currentOutputOf, hourlySeriesOf } from '@/mocks/schoolOutput';
-import { isAbnormal, OPERATION_LABEL, OPERATION_TONE, RTU_LABEL } from '@/mocks/status';
+import { isAbnormal, OPERATION_LABEL, OPERATION_TONE } from '@/mocks/status';
 import { Sparkline } from '@/components/common/Sparkline';
 import { SUNRISE_HOUR } from '@/mocks/generation';
 import { formatNumber, formatPercent } from '@/utils/format';
@@ -20,6 +20,9 @@ interface PlantDetailPanelProps {
  * 지도 위 말풍선이 아니라 옆 칸을 통째로 쓴다 — 자리가 넉넉하니 상태와 곡선만 겨우 보이던 것을
  * 주소·설비·오늘 실적까지 함께 편다. 지도를 끌어도 가려지지 않고, 다음 발전소를 눌러도
  * 같은 자리가 내용만 갈린다.
+ *
+ * 담는 것은 칸 높이에 맞춘다. 설치일자와 일사량계 상태까지 넣었더니 한 줄이 넘쳐 칸에 스크롤이
+ * 생겼는데, 훑어보는 화면에서 굴려야 보이는 줄은 없는 것과 같다. 그 둘은 발전 현황 화면에서 본다.
  */
 export function PlantDetailPanel({ plant, onOpen }: PlantDetailPanelProps) {
   const series = hourlySeriesOf(plant);
@@ -55,7 +58,7 @@ export function PlantDetailPanel({ plant, onOpen }: PlantDetailPanelProps) {
         </button>
       ) : null}
 
-      <div className={styles.section}>
+      <div>
         <p className={styles.sectionTitle}>
           시간대별 발전량 ({Math.floor(SUNRISE_HOUR)}시 ~ 20시)
         </p>
@@ -78,10 +81,6 @@ export function PlantDetailPanel({ plant, onOpen }: PlantDetailPanelProps) {
           </div>
         ))}
       </dl>
-
-      <p className={styles.foot}>
-        설치 {plant.installedAt} · 일사량계 {RTU_LABEL[plant.pyranometerStatus]}
-      </p>
     </div>
   );
 }
