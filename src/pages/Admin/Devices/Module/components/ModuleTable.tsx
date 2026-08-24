@@ -64,7 +64,7 @@ export function ModuleTable({ rows }: { rows: ModuleProduct[] }) {
     <Reveal delay={0.05}>
       <Card
         title="모듈 제품"
-        description="여기에 등록한 제품을 인버터 등록에서 고릅니다. 용량은 설비용량 산출에 그대로 쓰입니다."
+        description="여기에 등록한 제품을 설비 등록에서 고릅니다. 용량은 설비용량 산출에 그대로 쓰입니다."
       >
         {rows.length === 0 ? (
           <EmptyState title="조건에 맞는 제품이 없습니다" description="검색어를 지우거나 새 제품을 등록해 보세요." />

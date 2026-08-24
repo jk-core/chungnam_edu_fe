@@ -117,7 +117,7 @@ export function UserEditor({ userId }: UserEditorProps) {
       <Form methods={methods} onSubmit={setPending}>
         <FormPage
           title={isNew ? '사용자 등록' : '사용자 수정'}
-          description="교육기관 담당자는 소속 학교의 설비만 조회할 수 있습니다."
+          description="등급에 따라 볼 수 있는 발전소와 메뉴가 달라집니다."
           backTo={backTo}
           danger={isNew ? null : <Button variant="solar" onClick={() => setIsDeleting(true)}>삭제</Button>}
           footer={(

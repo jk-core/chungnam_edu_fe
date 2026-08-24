@@ -48,16 +48,7 @@ export interface AssetChange {
   after: string;
 }
 
-/** RTU(RTU) 이력 구분 (SFR-017-03) */
-export type RtuEventKind = 'install' | 'replace' | 'relocate' | 'firmware';
-
-export interface RtuEvent {
-  at: string;
-  kind: RtuEventKind;
-  note: string;
-}
-
-/** RTU 한 대 (SFR-017-01~03) */
+/** RTU 한 대. 관리 화면은 없고 수집 주기·상태를 읽는 쪽만 쓴다 */
 export interface Rtu {
   id: string;
   plantId: string;
@@ -70,5 +61,4 @@ export interface Rtu {
   status: RtuStatus;
   /** 마지막 수신 시각 */
   lastSeenAt: string;
-  events: RtuEvent[];
 }

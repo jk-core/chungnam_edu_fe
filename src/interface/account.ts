@@ -17,7 +17,7 @@ export interface AuthUser {
   email: string;
   /**
    * 조회 가능한 발전소 id 목록.
-   * 빈 배열이면 제한 없음(도 전체) — admin·office 가 여기에 해당한다.
+   * 빈 배열이면 제한 없음(도 전체) — 관리자·게스트가 여기에 해당한다.
    */
   plantIds: string[];
 }

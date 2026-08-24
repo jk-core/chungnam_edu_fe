@@ -34,7 +34,7 @@ export function AccountTree() {
     <Reveal>
       <Card
         title="계정 트리"
-        description="교육청 아래에 교육기관 계정이 달립니다. 교육기관 계정은 담당 학교만 조회합니다."
+        description="교육청 아래에 수용가 계정이 달립니다. 수용가는 자기 발전소만 조회합니다."
       >
         <div className={styles.orgTree}>
           <div className={styles.orgNode}>
@@ -59,7 +59,7 @@ export function AccountTree() {
               </div>
             ))}
             <p className={styles.toolbar__note}>
-              … 외 교육기관 계정 {Math.max(0, customerUsers.length - BRANCH_LIMIT)}개
+              … 외 수용가 계정 {Math.max(0, customerUsers.length - BRANCH_LIMIT)}개
             </p>
           </div>
         </div>

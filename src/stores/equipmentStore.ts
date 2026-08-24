@@ -4,35 +4,22 @@ import type {
   DeviceChange,
   EquipmentMaster,
   InverterProduct,
-  JunctionBoxMaster,
   ModuleProduct,
   Pyranometer,
   StringMaster,
 } from '@/interface/deviceMaster';
-import type { Rtu } from '@/interface/asset';
-import {
-  SEED_DEVICE_CHANGES,
-  SEED_EQUIPMENT,
-  SEED_INVERTER_PRODUCTS,
-  SEED_JUNCTION_BOXES,
-  SEED_STRINGS,
-} from '@/mocks/deviceMaster';
+import { SEED_DEVICE_CHANGES, SEED_EQUIPMENT, SEED_INVERTER_PRODUCTS, SEED_STRINGS } from '@/mocks/deviceMaster';
 import { SEED_MODULES } from '@/mocks/moduleProducts';
 import { SEED_PYRANOMETERS } from '@/mocks/pyranometers';
-import { RTUS } from '@/mocks/rtu';
 
 /**
  * 시스템장비 관리의 쓰기 상태 (SFR-016-01/05, SFR-017).
  *
  * 발전소·사용자를 다루는 `assetStore` 와 같은 방식이다 — 시드는 mocks 가 갖고 여기는 변경분만
- * 얹는다. 일곱 갈래가 저마다 등록·수정·삭제 세 갈래를 갖는데, 한 스토어에 몰아 두면
- * `assetStore` 처럼 넓어지므로 장비 몫만 따로 세운다.
+ * 얹는다. 갈래마다 등록·수정·삭제 셋을 갖는데, 한 스토어에 몰아 두면 `assetStore` 처럼
+ * 넓어지므로 장비 몫만 따로 세운다.
  */
 interface EquipmentState {
-  rtuCreated: Rtu[];
-  rtuPatched: Record<string, Partial<Rtu>>;
-  rtuDeleted: string[];
-
   /** 발전소에 실제로 선 설비 (meain) */
   equipmentCreated: EquipmentMaster[];
   equipmentPatched: Record<string, Partial<EquipmentMaster>>;
@@ -42,10 +29,6 @@ interface EquipmentState {
   inverterCreated: InverterProduct[];
   inverterPatched: Record<string, Partial<InverterProduct>>;
   inverterDeleted: string[];
-
-  junctionCreated: JunctionBoxMaster[];
-  junctionPatched: Record<string, Partial<JunctionBoxMaster>>;
-  junctionDeleted: string[];
 
   moduleCreated: ModuleProduct[];
   modulePatched: Record<string, Partial<ModuleProduct>>;
@@ -59,20 +42,14 @@ interface EquipmentState {
   pyranometerPatched: Record<string, Partial<Pyranometer>>;
   pyranometerDeleted: string[];
 
-  /** 일곱 갈래가 함께 쓰는 변경 이력 (SFR-016-06) */
+  /** 갈래가 함께 쓰는 변경 이력 (SFR-016-06) */
   deviceChanges: DeviceChange[];
-
-  saveRtu: (item: Rtu, entries: DeviceChange[], isNew: boolean) => void;
-  removeRtu: (id: string, entry: DeviceChange) => void;
 
   saveEquipment: (item: EquipmentMaster, entries: DeviceChange[], isNew: boolean) => void;
   removeEquipment: (id: string, entry: DeviceChange) => void;
 
   saveInverter: (item: InverterProduct, entries: DeviceChange[], isNew: boolean) => void;
   removeInverter: (id: string, entry: DeviceChange) => void;
-
-  saveJunction: (item: JunctionBoxMaster, entries: DeviceChange[], isNew: boolean) => void;
-  removeJunction: (id: string, entry: DeviceChange) => void;
 
   saveModule: (item: ModuleProduct, entries: DeviceChange[], isNew: boolean) => void;
   removeModule: (id: string, entry: DeviceChange) => void;
@@ -85,7 +62,7 @@ interface EquipmentState {
   removePyranometer: (id: string, entry: DeviceChange) => void;
 
   nextId: (prefix: string) => string;
-  /** 서버가 새로 매길 숫자 번호를 흉내 낸다 (cid·moduleId·connectBoxId·stringId·irradId) */
+  /** 서버가 새로 매길 숫자 번호를 흉내 낸다 (cid·moduleId·inverterId·stringId·irradId) */
   nextSeq: () => number;
 }
 
@@ -110,18 +87,12 @@ function upsert<T>(
 const useEquipmentStore = create<EquipmentState>()(
   persist(
     (set, get) => ({
-      rtuCreated: [],
-      rtuPatched: {},
-      rtuDeleted: [],
       equipmentCreated: [],
       equipmentPatched: {},
       equipmentDeleted: [],
       inverterCreated: [],
       inverterPatched: {},
       inverterDeleted: [],
-      junctionCreated: [],
-      junctionPatched: {},
-      junctionDeleted: [],
       moduleCreated: [],
       modulePatched: {},
       moduleDeleted: [],
@@ -132,22 +103,6 @@ const useEquipmentStore = create<EquipmentState>()(
       pyranometerPatched: {},
       pyranometerDeleted: [],
       deviceChanges: [],
-
-      saveRtu: (item, entries, isNew) =>
-        set((state) => {
-          const next = upsert(state.rtuCreated, state.rtuPatched, item, (row) => row.id, isNew);
-
-          return {
-            rtuCreated: next.created,
-            rtuPatched: next.patched,
-            deviceChanges: [...entries, ...state.deviceChanges],
-          };
-        }),
-      removeRtu: (id, entry) =>
-        set((state) => ({
-          rtuDeleted: [...state.rtuDeleted, id],
-          deviceChanges: [entry, ...state.deviceChanges],
-        })),
 
       saveEquipment: (item, entries, isNew) =>
         set((state) => {
@@ -178,22 +133,6 @@ const useEquipmentStore = create<EquipmentState>()(
       removeInverter: (id, entry) =>
         set((state) => ({
           inverterDeleted: [...state.inverterDeleted, id],
-          deviceChanges: [entry, ...state.deviceChanges],
-        })),
-
-      saveJunction: (item, entries, isNew) =>
-        set((state) => {
-          const next = upsert(state.junctionCreated, state.junctionPatched, item, (row) => row.id, isNew);
-
-          return {
-            junctionCreated: next.created,
-            junctionPatched: next.patched,
-            deviceChanges: [...entries, ...state.deviceChanges],
-          };
-        }),
-      removeJunction: (id, entry) =>
-        set((state) => ({
-          junctionDeleted: [...state.junctionDeleted, id],
           deviceChanges: [entry, ...state.deviceChanges],
         })),
 
@@ -283,7 +222,7 @@ const useEquipmentStore = create<EquipmentState>()(
   ),
 );
 
-/** 시드 + 변경분을 합친 목록. 여섯 엔티티가 같은 규칙을 쓴다. */
+/** 시드 + 변경분을 합친 목록. 다섯 엔티티가 같은 규칙을 쓴다. */
 function merge<T>(
   seed: T[],
   created: T[],
@@ -294,10 +233,6 @@ function merge<T>(
   return [...created, ...seed]
     .filter((item) => !deleted.includes(keyOf(item)))
     .map((item) => ({ ...item, ...patched[keyOf(item)] }));
-}
-
-export function mergeRtus(created: Rtu[], patched: Record<string, Partial<Rtu>>, deleted: string[]): Rtu[] {
-  return merge(RTUS, created, patched, deleted, (item) => item.id);
 }
 
 export function mergeEquipment(
@@ -314,14 +249,6 @@ export function mergeInverterProducts(
   deleted: string[],
 ): InverterProduct[] {
   return merge(SEED_INVERTER_PRODUCTS, created, patched, deleted, (item) => item.id);
-}
-
-export function mergeJunctions(
-  created: JunctionBoxMaster[],
-  patched: Record<string, Partial<JunctionBoxMaster>>,
-  deleted: string[],
-): JunctionBoxMaster[] {
-  return merge(SEED_JUNCTION_BOXES, created, patched, deleted, (item) => item.id);
 }
 
 export function mergeModules(
