@@ -247,29 +247,38 @@
   }
 }
 
+/*
+  장을 고르는 단추.
+
+  고른 장이 색으로 갈려야 지금 어느 이야기를 보고 있는지 알 수 있다. 전에는 `--active` 를 먼저
+  적고 그 아래에 바탕색·글자색을 다시 적은 규칙이 와서, 나중 규칙이 이겨 고른 단추가 나머지와
+  똑같이 보였다. 밑동을 먼저 두고 그 안에 갈림을 넣는다.
+*/
 .dot {
+  @include mx.press;
+  @include t.label-md;
+
+  padding: 5px s.$space-4;
+  border: 1px solid var(--border);
+  border-radius: s.$radius-full;
+  background-color: transparent;
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: color 0.3s ease, border-color 0.3s ease, background-color 0.3s ease;
+
   &:hover {
     border-color: var(--solar);
+    color: var(--text-strong);
   }
 
   &--active {
     border-color: var(--solar);
     background-color: var(--solar);
     color: var(--text-on-solar);
-  }
 
-  &,
-&--active {
-    @include mx.press;
-    @include t.label-md;
-
-    padding: 5px s.$space-4;
-    border: 1px solid var(--border);
-    border-radius: s.$radius-full;
-    background-color: transparent;
-    color: var(--text-muted);
-    cursor: pointer;
-    transition: color 0.3s ease, border-color 0.3s ease, background-color 0.3s ease;
+    &:hover {
+      color: var(--text-on-solar);
+    }
   }
 }
 

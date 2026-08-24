@@ -98,7 +98,7 @@ export function ElementaryStage({ stats, content }: ElementaryStageProps) {
             <li key={item.id}>
               <button
                 type="button"
-                className={index === clock.chapter ? styles['dot--active'] : styles.dot}
+                className={cn(styles.dot, { [styles['dot--active']]: index === clock.chapter })}
                 onClick={() => clock.goTo(index)}
                 aria-current={index === clock.chapter ? 'true' : undefined}
               >
