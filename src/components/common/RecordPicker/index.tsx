@@ -1,63 +1,12 @@
-import { useId, useState } from 'react';
+import { useState } from 'react';
 import { Button } from '@/components/common/Button';
-import { cn } from '@/utils/cn';
 import { DEFAULT_PAGE_SIZE, Pagination } from '@/components/common/Pagination';
 import { EmptyState } from '@/components/common/EmptyState';
-import { FormField, TextField } from '@/components/common/Form';
 import { SearchIcon } from '@/components/common/Icon';
+import { SearchInput } from '@/components/common/SearchInput';
 import { Table } from '@/components/common/Table';
 import type { Column } from '@/components/common/Table';
 import styles from './RecordPicker.module.scss';
-
-interface PickerFieldProps {
-  label: string;
-  /** 고른 것의 표시 이름. 비어 있으면 안내 문구가 대신 선다 */
-  value: string;
-  placeholder: string;
-  onOpen: () => void;
-  required?: boolean;
-  optional?: boolean;
-  disabled?: boolean;
-  hint?: string;
-  error?: string;
-}
-
-/**
- * 폼 쪽 짝 — 고른 값을 보여 주고 누르면 검색기를 연다.
- * 칸 전체가 곧 버튼이라 값이 길어도 누를 자리를 찾을 필요가 없다.
- */
-export function PickerField({
-  label,
-  value,
-  placeholder,
-  onOpen,
-  required,
-  optional,
-  disabled,
-  hint,
-  error,
-}: PickerFieldProps) {
-  const id = useId();
-
-  return (
-    <FormField label={label} htmlFor={id} required={required} optional={optional} hint={hint} error={error}>
-      <button
-        id={id}
-        type="button"
-        className={cn(styles.pickerField, {
-          [styles['pickerField--empty']]: !value,
-          [styles['pickerField--invalid']]: !!error,
-        })}
-        onClick={onOpen}
-        disabled={disabled}
-        aria-describedby={error ? `${id}-error` : hint ? `${id}-hint` : undefined}
-      >
-        <span className={styles.pickerField__value}>{value || placeholder}</span>
-        <SearchIcon className={styles.pickerField__icon} />
-      </button>
-    </FormField>
-  );
-}
 
 interface RecordPickerProps<T> {
   columns: Column<T>[];
@@ -112,14 +61,7 @@ export function RecordPicker<T>({
           setPage(1);
         }}
       >
-        <TextField
-          label={placeholder}
-          hideLabel
-          value={draft}
-          onChange={setDraft}
-          placeholder={placeholder}
-          width="md"
-        />
+        <SearchInput label={placeholder} value={draft} onChange={setDraft} placeholder={placeholder} />
         <Button type="submit" variant="secondary" iconLeft={<SearchIcon />}>검색</Button>
       </form>
 

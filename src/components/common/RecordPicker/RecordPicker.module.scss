@@ -1,39 +1,4 @@
 @use "@/styles/tokens/spacing" as s;
-@use "@/styles/utils/mixins" as mx;
-
-/* 폼 한 줄에 입력들과 나란히 서므로 상자를 그쪽과 같은 것으로 쓴다. */
-.pickerField {
-  @include mx.control-box;
-
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: s.$space-2;
-  text-align: left;
-
-  &:hover:not(:disabled) {
-    border-color: var(--border-strong);
-  }
-
-  &--empty {
-    color: var(--text-faint);
-  }
-
-  &--invalid {
-    border-color: var(--critical);
-  }
-
-  &__value {
-    overflow: hidden;
-    white-space: nowrap;
-    text-overflow: ellipsis;
-  }
-
-  &__icon {
-    flex-shrink: 0;
-    color: var(--text-muted);
-  }
-}
 
 .picker {
   display: flex;
@@ -45,7 +10,7 @@
 
   &__search {
     display: flex;
-    align-items: flex-end;
+    align-items: center;
     gap: s.$space-2;
   }
 

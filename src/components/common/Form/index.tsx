@@ -2,11 +2,20 @@ import styles from './Form.module.scss';
 import type { CSSProperties, ReactNode } from 'react';
 
 export { createFields, createForm } from './createForm';
-export { FormField, describedBy, imeProps } from './FormField';
-export type { FieldWidth, ImeMode } from './FormField';
+export { FormField } from './FormField';
+export { imeProps } from './controls/shared';
+export type { FieldWidth, ImeMode } from './controls/shared';
+export { DateControl } from './controls/DateControl';
+export { NumberControl } from './controls/NumberControl';
+export { PasswordControl } from './controls/PasswordControl';
+export { PickerControl } from './controls/PickerControl';
+export { RadioControl } from './controls/RadioControl';
+export { SelectControl } from './controls/SelectControl';
+export { TextAreaControl } from './controls/TextAreaControl';
+export { TextControl } from './controls/TextControl';
 export { NumberField, PasswordField, TextArea, TextField } from './fields';
 export { CHECK_OPTIONS, RadioGroup } from './RadioGroup';
-export type { RadioOption } from './RadioGroup';
+export type { OptionTone, RadioOption } from './controls/RadioControl';
 export { FileUpload } from './FileUpload';
 export type { UploadFile } from './FileUpload';
 

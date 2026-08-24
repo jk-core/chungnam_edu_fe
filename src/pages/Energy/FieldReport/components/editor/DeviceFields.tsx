@@ -1,7 +1,6 @@
 import { Button } from '@/components/common/Button';
-import { FormRow, FormSection, TextField } from '@/components/common/Form';
+import { FormField, FormRow, FormSection, SelectControl, TextField } from '@/components/common/Form';
 import { PlusIcon } from '@/components/common/Icon';
-import { Select } from '@/components/common/Select';
 import type { InspectedDevice } from '@/interface/fieldReport';
 import styles from '../../FieldReport.module.scss';
 
@@ -28,13 +27,13 @@ export function DeviceFields({ devices, onChange, reportId }: DeviceFieldsProps)
     <FormSection legend="점검 설비" hint="이번 점검에서 실제로 본 설비와 설비별 특이사항을 적습니다.">
       {devices.map((device, index) => (
         <FormRow key={device.id} cols={3}>
-          <Select
-            asField
-            label={`${index + 1}번 설비 구분`}
-            value={device.kind}
-            options={DEVICE_KINDS.map((kind) => ({ value: kind, label: kind }))}
-            onChange={(value) => patchRow(device.id, { kind: value })}
-          />
+          <FormField label={`${index + 1}번 설비 구분`}>
+            <SelectControl
+              value={device.kind}
+              options={DEVICE_KINDS.map((kind) => ({ value: kind, label: kind }))}
+              onChange={(value) => patchRow(device.id, { kind: value })}
+            />
+          </FormField>
           <TextField
             label={`${index + 1}번 설비명`}
             value={device.name}

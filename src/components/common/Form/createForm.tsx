@@ -1,16 +1,18 @@
-import { useId, useState } from 'react';
+import { useState } from 'react';
 import { Controller, FormProvider, useFormContext, useWatch } from 'react-hook-form';
-import dayjs from 'dayjs';
 import { Button } from '@/components/common/Button';
-import { DatePicker } from '@/components/common/DatePicker';
-import { describedBy, FormField } from '@/components/common/Form/FormField';
-import { NumberField, PasswordField, TextArea, TextField } from '@/components/common/Form/fields';
-import { PickerField } from '@/components/common/RecordPicker';
-import { RadioGroup } from '@/components/common/Form/RadioGroup';
-import { Select } from '@/components/common/Select';
-import type { FieldWidth, ImeMode } from '@/components/common/Form/FormField';
-import type { RadioOption } from '@/components/common/Form/RadioGroup';
 import type { Granularity } from '@/utils/date';
+import { DateControl } from './controls/DateControl';
+import { FormField } from './FormField';
+import { NumberControl } from './controls/NumberControl';
+import { PasswordControl } from './controls/PasswordControl';
+import { PickerControl } from './controls/PickerControl';
+import { RadioControl } from './controls/RadioControl';
+import { SelectControl } from './controls/SelectControl';
+import { TextAreaControl } from './controls/TextAreaControl';
+import { TextControl } from './controls/TextControl';
+import type { FieldWidth, ImeMode } from './controls/shared';
+import type { RadioOption } from './controls/RadioControl';
 import type { FieldPath, FieldPathByValue, FieldValues, PathValue, UseFormReturn } from 'react-hook-form';
 import type { ReactNode } from 'react';
 
@@ -20,8 +22,11 @@ import type { ReactNode } from 'react';
   `createForm<Values>()` 을 **파일 모듈 스코프에서 한 번** 부르고 그 결과를 쓴다. 컴포넌트 안에서
   부르면 렌더마다 필드 컴포넌트가 새로 정의돼 입력이 통째로 리마운트된다.
 
-  기존 입력 프리미티브(fields.tsx·RadioGroup·Select·PickerField)는 ref 를 넘기지 않고 `name`·
-  `onBlur` 도 받지 않아 `register()` 가 붙을 자리가 없다 — 전부 `Controller` 로 잇는다.
+  각 필드가 하는 일은 셋뿐이다 — RHF 에 잇고, `FormField` 로 이름을 붙이고, 컨트롤을 놓는다.
+  라벨·오류 마크업은 어디에도 다시 나오지 않는다.
+
+  컨트롤은 ref 를 받지 않고 `name`·`onBlur` 도 모르므로 `register()` 가 붙을 자리가 없다 —
+  전부 `Controller` 로 잇는다.
 */
 
 interface FieldProps {
@@ -48,12 +53,12 @@ export function createFields<T extends FieldValues>() {
 
   function Text({
     name,
+    label,
+    required,
+    optional,
+    hint,
     transform,
-    ime,
-    width,
-    maxLength,
-    readOnly,
-    ...rest
+    ...control
   }: FieldProps & {
     name: FieldPathByValue<T, string>;
     /** 적는 대로 값을 다듬는다 — 연락처 하이픈이 이 자리다 */
@@ -63,54 +68,69 @@ export function createFields<T extends FieldValues>() {
     maxLength?: number;
     readOnly?: boolean;
   }) {
-    const { control } = useFormContext<T>();
+    const { control: form } = useFormContext<T>();
     const error = useFieldError(name);
 
     return (
       <Controller
         name={name}
-        control={control}
+        control={form}
         render={({ field }) => (
-          <TextField
-            {...rest}
-            value={field.value}
-            onChange={(next) => field.onChange(transform ? transform(next) : next)}
-            ime={ime}
-            width={width}
-            maxLength={maxLength}
-            readOnly={readOnly}
-            error={error}
-          />
+          <FormField label={label} required={required} optional={optional} hint={hint} error={error}>
+            <TextControl
+              {...control}
+              value={field.value}
+              onChange={(next) => field.onChange(transform ? transform(next) : next)}
+            />
+          </FormField>
         )}
       />
     );
   }
 
-  function Area({ name, maxLength, ...rest }: FieldProps & { name: FieldPathByValue<T, string>; maxLength?: number }) {
-    const { control } = useFormContext<T>();
+  function Area({
+    name,
+    label,
+    required,
+    optional,
+    hint,
+    ...control
+  }: FieldProps & { name: FieldPathByValue<T, string>; maxLength?: number }) {
+    const { control: form } = useFormContext<T>();
     const error = useFieldError(name);
 
     return (
       <Controller
         name={name}
-        control={control}
+        control={form}
         render={({ field }) => (
-          <TextArea {...rest} value={field.value} onChange={field.onChange} maxLength={maxLength} error={error} />
+          <FormField label={label} required={required} optional={optional} hint={hint} error={error}>
+            <TextAreaControl {...control} value={field.value} onChange={field.onChange} />
+          </FormField>
         )}
       />
     );
   }
 
-  function Password({ name, width, ...rest }: FieldProps & { name: FieldPathByValue<T, string>; width?: FieldWidth }) {
-    const { control } = useFormContext<T>();
+  function Password({
+    name,
+    label,
+    required,
+    optional,
+    hint,
+    ...control
+  }: FieldProps & { name: FieldPathByValue<T, string>; width?: FieldWidth }) {
+    const { control: form } = useFormContext<T>();
     const error = useFieldError(name);
 
     return (
       <Controller
         name={name}
-        control={control}
+        control={form}
         render={({ field }) => (
-          <PasswordField {...rest} value={field.value} onChange={field.onChange} width={width} error={error} />
+          <FormField label={label} required={required} optional={optional} hint={hint} error={error}>
+            <PasswordControl {...control} value={field.value} onChange={field.onChange} />
+          </FormField>
         )}
       />
     );
@@ -124,84 +144,72 @@ export function createFields<T extends FieldValues>() {
    */
   function Num({
     name,
-    emptyValue = Number.NaN,
-    min,
-    max,
-    step,
+    label,
+    required,
+    optional,
+    hint,
     unit,
-    readOnly,
-    width,
-    ...rest
+    emptyValue = Number.NaN,
+    ...control
   }: FieldProps & {
     name: FieldPathByValue<T, number> | FieldPathByValue<T, number | null>;
     emptyValue?: number | null;
     min?: number;
     max?: number;
     step?: number;
+    /** 값 뒤에 붙는 단위 표기 */
     unit?: string;
     readOnly?: boolean;
     width?: FieldWidth;
   }) {
-    const { control } = useFormContext<T>();
+    const { control: form } = useFormContext<T>();
     const error = useFieldError(name);
 
     return (
       <Controller
         name={name}
-        control={control}
+        control={form}
         render={({ field }) => (
-          <NumberField
-            {...rest}
-            value={field.value === null || Number.isNaN(field.value) ? '' : (field.value as number)}
-            onChange={(next) => field.onChange(next === '' ? emptyValue : next)}
-            min={min}
-            max={max}
-            step={step}
-            unit={unit}
-            readOnly={readOnly}
-            width={width}
+          <FormField
+            label={label}
+            required={required}
+            optional={optional}
+            // 단위는 도움말에 실어 보낸다 — 칸 안에 적을 자리가 없고, 스크린리더도 이 줄로 읽는다.
+            hint={unit ? `${hint ? `${hint} · ` : ''}단위 ${unit}` : hint}
             error={error}
-          />
+          >
+            <NumberControl
+              {...control}
+              value={field.value === null || Number.isNaN(field.value) ? '' : (field.value as number)}
+              onChange={(next) => field.onChange(next === '' ? emptyValue : next)}
+            />
+          </FormField>
         )}
       />
     );
   }
 
-  /**
-   * 달력에서 고르는 날짜 칸.
-   * 폼이 담는 값은 `YYYY-MM-DD` 문자열이다 — 그대로 서버로 나가고 비교·정렬도 이 형태로 한다.
-   */
   function DateField({
     name,
-    granularity = 'day',
     label,
-    ...rest
+    required,
+    optional,
+    hint,
+    ...control
   }: FieldProps & {
     name: FieldPathByValue<T, string>;
     granularity?: Granularity;
   }) {
-    const { control } = useFormContext<T>();
-    const id = useId();
+    const { control: form } = useFormContext<T>();
     const error = useFieldError(name);
 
     return (
       <Controller
         name={name}
-        control={control}
+        control={form}
         render={({ field }) => (
-          <FormField {...rest} label={label} htmlFor={id} error={error}>
-            <DatePicker
-              id={id}
-              asField
-              label={label}
-              granularity={granularity}
-              value={field.value ? dayjs(field.value).toDate() : null}
-              onChange={(next) => field.onChange(dayjs(next).format('YYYY-MM-DD'))}
-              placeholder={rest.placeholder}
-              disabled={rest.disabled}
-              invalid={Boolean(error)}
-              describedBy={describedBy(id, rest.hint, error)}
-            />
+          <FormField label={label} required={required} optional={optional} hint={hint} error={error}>
+            <DateControl {...control} value={field.value} onChange={field.onChange} />
           </FormField>
         )}
       />
@@ -229,16 +237,9 @@ export function createFields<T extends FieldValues>() {
         name={name}
         control={control}
         render={({ field }) => (
-          <Select
-            asField
-            label={label}
-            required={required}
-            hint={hint}
-            error={error}
-            value={field.value as V}
-            options={options}
-            onChange={field.onChange}
-          />
+          <FormField label={label} required={required} hint={hint} error={error}>
+            <SelectControl value={field.value as V} options={options} onChange={field.onChange} />
+          </FormField>
         )}
       />
     );
@@ -265,15 +266,15 @@ export function createFields<T extends FieldValues>() {
         name={name}
         control={control}
         render={({ field }) => (
-          <RadioGroup
-            legend={label}
-            value={field.value as V}
-            options={options}
-            onChange={field.onChange}
-            required={required}
-            inline={inline}
-            error={error}
-          />
+          <FormField as="fieldset" label={label} required={required} error={error}>
+            <RadioControl
+              value={field.value as V}
+              options={options}
+              onChange={field.onChange}
+              required={required}
+              inline={inline}
+            />
+          </FormField>
         )}
       />
     );
@@ -290,7 +291,12 @@ export function createFields<T extends FieldValues>() {
     name,
     displayName,
     modal,
-    ...rest
+    label,
+    required,
+    optional,
+    hint,
+    disabled,
+    placeholder,
   }: FieldProps & {
     name: FieldPath<T>;
     /** 보일 이름을 담은 칸. 값이 곧 이름이면(주소) `name` 을 그대로 준다 */
@@ -315,7 +321,16 @@ export function createFields<T extends FieldValues>() {
 
     return (
       <>
-        <PickerField {...rest} value={String(display ?? '')} onOpen={() => setIsOpen(true)} error={error} />
+        {/* 검색기는 껍데기 밖에 둔다 — FormField 는 컨트롤 하나를 감싸 거기에 id·aria 를 꽂는다. */}
+        <FormField label={label} required={required} optional={optional} hint={hint} error={error}>
+          <PickerControl
+            value={String(display ?? '')}
+            placeholder={placeholder}
+            disabled={disabled}
+            isOpen={isOpen}
+            onOpen={() => setIsOpen(true)}
+          />
+        </FormField>
         {isOpen
           ? modal({
             onClose: () => setIsOpen(false),

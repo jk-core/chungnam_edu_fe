@@ -9,6 +9,22 @@
   gap: s.$space-2;
   min-width: 0;
 
+  /*
+    라디오 묶음처럼 이름을 가리킬 컨트롤이 여럿일 때. `min-width: 0` 을 물려받는 것이 중요한데,
+    fieldset 의 기본 `min-width` 는 `min-content` 라 그대로 두면 FormRow 의 minmax(0,1fr) 을
+    밀어내 표가 옆으로 삐져나간다.
+  */
+  &--fieldset {
+    margin: 0;
+    padding: 0;
+    border: none;
+
+    /* legend 는 익명 콘텐츠 상자 밖이라 위 `gap` 이 닿지 않는다 — 라벨 간격을 직접 준다 */
+    > .field__label {
+      margin-bottom: s.$space-2;
+    }
+  }
+
   &__label {
     @include t.label-sm;
 
@@ -68,6 +84,87 @@
     font-family: var(--font-data);
     font-variant-numeric: tabular-nums;
     text-align: right;
+  }
+
+  /* 화살표는 우리가 그린다 — 브라우저 기본 화살표는 OS 마다 크기·색이 달라 옆 칸과 안 맞는다 */
+  &--select {
+    appearance: none;
+    padding-right: s.$space-8;
+  }
+}
+
+.selectWrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+
+  &__icon {
+    position: absolute;
+    right: s.$space-3;
+    width: s.$space-4;
+    height: s.$space-4;
+    color: var(--text-faint);
+    pointer-events: none;
+  }
+}
+
+.pickerControl {
+  @include mx.control-box;
+
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: s.$space-2;
+  text-align: left;
+
+  &:hover:not(:disabled) {
+    border-color: var(--border-strong);
+  }
+
+  &--empty {
+    color: var(--text-faint);
+  }
+
+  &__value {
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+  }
+
+  &__icon {
+    flex-shrink: 0;
+    width: s.$space-4;
+    height: s.$space-4;
+    color: var(--text-muted);
+  }
+}
+
+.dateControl {
+  @include mx.control-box;
+
+  display: flex;
+  align-items: center;
+  gap: s.$space-2;
+  text-align: left;
+
+  &--empty .dateControl__value {
+    color: var(--text-faint);
+  }
+
+  &__icon,
+  &__chevron {
+    flex-shrink: 0;
+    width: s.$space-4;
+    height: s.$space-4;
+    color: var(--text-faint);
+  }
+
+  /* 글자칸과 같은 줄에 서므로 값도 왼쪽에서 시작한다 */
+  &__value {
+    flex-grow: 1;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
   }
 }
 
@@ -157,6 +254,10 @@
     display: flex;
     flex-direction: column;
     gap: s.$space-2;
+
+    &--inline {
+      flex-flow: row wrap;
+    }
   }
 }
 

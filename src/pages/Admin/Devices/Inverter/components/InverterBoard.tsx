@@ -5,7 +5,7 @@ import { createPath } from '@/pages/Admin/_shared/adminPath';
 import { DeviceHistory } from '@/pages/Admin/_shared/device/DeviceHistory';
 import { formatNumber } from '@/utils/format';
 import { PlusIcon } from '@/components/common/Icon';
-import { TextField } from '@/components/common/Form';
+import { SearchInput } from '@/components/common/SearchInput';
 import { useInverterProducts } from '@/pages/Admin/_shared/device/useSelectableEquipment';
 import styles from '@/pages/Admin/Admin.module.scss';
 import { InverterTable } from './InverterTable';
@@ -34,9 +34,8 @@ export function InverterBoard() {
     <>
       <div className={styles.toolbar}>
         <div className={styles.toolbar__left}>
-          <TextField
+          <SearchInput
             label="이름 검색"
-            hideLabel
             value={keyword}
             onChange={setKeyword}
             placeholder="인버터 이름·업체 이름으로 검색"

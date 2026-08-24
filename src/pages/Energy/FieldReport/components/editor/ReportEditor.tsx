@@ -2,11 +2,10 @@ import { useState } from 'react';
 import { Button } from '@/components/common/Button';
 import { ConfirmDialog } from '@/components/common/ConfirmDialog';
 import { flattenTemplate } from '@/mocks/fieldReport';
-import { FormRow, FormSection, TextArea, TextField } from '@/components/common/Form';
+import { FormField, FormRow, FormSection, SelectControl, TextArea, TextField } from '@/components/common/Form';
 import { Modal } from '@/components/common/Modal';
 import { MSG } from '@/configs/messages';
 import { NOW, TODAY } from '@/mocks/today';
-import { Select } from '@/components/common/Select';
 import { toast } from '@/stores/toastStore';
 import { useAuthUser } from '@/stores/authStore';
 import useFieldReportStore from '@/stores/fieldReportStore';
@@ -234,17 +233,17 @@ export function ReportEditor({ origin, onClose }: ReportEditorProps) {
 
           <FormSection legend="점검 개요" hint="양식을 고르면 아래 체크리스트가 그 양식으로 바뀝니다.">
             <FormRow cols={2}>
-              <Select
-                asField
-                label="점검 양식"
-                value={draft.templateId}
-                // 양식이 바뀌면 문항 자체가 달라지므로 앞서 고른 답은 남기지 않는다.
-                onChange={(value) => change({ templateId: value, results: {}, notes: {} })}
-                options={templates.map((item) => ({
-                  value: item.id,
-                  label: `${item.label} (${item.inspectType} · v${item.version})`,
-                }))}
-              />
+              <FormField label="점검 양식">
+                <SelectControl
+                  value={draft.templateId}
+                  // 양식이 바뀌면 문항 자체가 달라지므로 앞서 고른 답은 남기지 않는다.
+                  onChange={(value) => change({ templateId: value, results: {}, notes: {} })}
+                  options={templates.map((item) => ({
+                    value: item.id,
+                    label: `${item.label} (${item.inspectType} · v${item.version})`,
+                  }))}
+                />
+              </FormField>
               <TextField
                 label="점검 대상"
                 value={draft.targetName}

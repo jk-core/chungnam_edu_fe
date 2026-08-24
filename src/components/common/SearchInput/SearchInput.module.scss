@@ -1,0 +1,16 @@
+@use "@/styles/utils/mixins" as mx;
+
+.search {
+  @include mx.chip-box;
+
+  &--md {
+    width: 12.5rem;
+  }
+
+  /* 검색 버튼과 한 줄에 서는 자리가 있어 flex 기준도 함께 준다 — 버튼 몫을 뺀 나머지를 갖는다 */
+  &--full {
+    flex: 1;
+    width: 100%;
+    min-width: 0;
+  }
+}

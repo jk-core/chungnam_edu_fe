@@ -24,39 +24,12 @@
   }
 
   &__input {
+    @include mx.chip-box;
+
     appearance: none;
     flex-grow: 1;
     min-width: 0;
-    height: s.$control-height-chip;
-    padding: 0 s.$space-8 0 s.$space-4;
-    background-color: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: s.$radius-full;
-    color: var(--text-strong);
-    transition: border-color 0.16s ease, box-shadow 0.16s ease;
-
-    @include t.label-md;
-
-    &:hover {
-      border-color: var(--border-strong);
-    }
-
-    @include mx.keyboard-focus {
-      border-color: var(--brand);
-      box-shadow: var(--shadow-focus);
-      outline: none;
-    }
-
-    /*
-      폼 안에 설 때. 툴바에서는 버튼과 나란히 서는 알약이 맞고, 폼에서는 옆 칸들과 같은 상자가 맞다.
-      같은 파일 뒤쪽 규칙이라 순서로 이긴다 — 다른 파일에서 덮으려 하면 번들 순서에 밀린다.
-    */
-    &--field {
-      @include mx.control-box;
-
-      height: auto;
-      padding-right: s.$space-8;
-    }
+    padding-right: s.$space-8;
   }
 
   &__icon {

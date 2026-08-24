@@ -60,6 +60,7 @@ export default tseslint.config(
       'no-restricted-imports': ['error', {
         patterns: [{ group: ['../../../*'], message: '절대경로로 변경해주세요.' }],
       }],
+      'import/no-cycle': ['error', { maxDepth: 4 }],
       'react/self-closing-comp': 'error',
       'import/order': ['error', {
         groups: ['builtin', 'external', 'internal', 'parent', 'sibling', 'index', 'object', 'unknown', 'type'],
@@ -96,6 +97,27 @@ export default tseslint.config(
       'no-useless-rename': ['error'],
       '@typescript-eslint/no-unused-vars': ['error', { ignoreRestSiblings: true, argsIgnorePattern: '^_' }],
       '@typescript-eslint/dot-notation': 'error',
+    },
+  },
+  {
+    /*
+      툴바 칩은 폼을 몰라야 한다.
+
+      한때 Select 가 `asField` 로 폼 껍데기를 그렸더니, 표 하나 쓰는 모니터링 화면이 폼 트리를
+      통째로 번들에 끌고 왔고 Form ↔ RecordPicker 순환까지 생겼다. 폼 칸이 필요하면 그 자리에
+      맞는 것(`Form/controls/*`)을 쓴다.
+    */
+    files: ['src/components/common/{Select,DatePicker,SearchInput}/**'],
+    rules: {
+      'no-restricted-imports': ['error', {
+        patterns: [
+          { group: ['../../../*'], message: '절대경로로 변경해주세요.' },
+          {
+            group: ['**/components/common/Form', '**/components/common/Form/**'],
+            message: '툴바 칩은 폼을 모릅니다. 폼 칸이 필요하면 Form/controls 에 만들어 쓰세요.',
+          },
+        ],
+      }],
     },
   },
 );

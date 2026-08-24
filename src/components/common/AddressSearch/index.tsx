@@ -4,7 +4,7 @@ import { EmptyState } from '@/components/common/EmptyState';
 import { findAddresses } from '@/mocks/addresses';
 import { Modal } from '@/components/common/Modal';
 import { SearchIcon } from '@/components/common/Icon';
-import { TextField } from '@/components/common/Form';
+import { SearchInput } from '@/components/common/SearchInput';
 import type { AddressResult } from '@/interface/address';
 import styles from './AddressSearch.module.scss';
 
@@ -43,9 +43,8 @@ export function AddressSearchModal({ isOpen, onClose, onSelect }: AddressSearchM
             setKeyword(draft);
           }}
         >
-          <TextField
+          <SearchInput
             label="주소 검색"
-            hideLabel
             value={draft}
             onChange={setDraft}
             placeholder="예: 홍북읍 선화로 22, 충남교육청"

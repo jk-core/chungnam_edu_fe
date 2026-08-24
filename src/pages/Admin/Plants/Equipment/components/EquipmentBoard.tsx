@@ -5,7 +5,7 @@ import { createPath } from '@/pages/Admin/_shared/adminPath';
 import { DeviceHistory } from '@/pages/Admin/_shared/device/DeviceHistory';
 import { formatNumber } from '@/utils/format';
 import { PlusIcon } from '@/components/common/Icon';
-import { TextField } from '@/components/common/Form';
+import { SearchInput } from '@/components/common/SearchInput';
 import styles from '@/pages/Admin/Admin.module.scss';
 import { useEquipmentRows } from '../hooks/useEquipmentRows';
 import { EquipmentTable } from './EquipmentTable';
@@ -36,9 +36,8 @@ export function EquipmentBoard() {
     <>
       <div className={styles.toolbar}>
         <div className={styles.toolbar__left}>
-          <TextField
+          <SearchInput
             label="이름 검색"
-            hideLabel
             value={keyword}
             onChange={setKeyword}
             placeholder="설비명·CID·RTU 통신ID·발전소명으로 검색"

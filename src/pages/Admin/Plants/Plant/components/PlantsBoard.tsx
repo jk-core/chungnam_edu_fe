@@ -4,7 +4,7 @@ import { Button } from '@/components/common/Button';
 import { createPath } from '@/pages/Admin/_shared/adminPath';
 import { formatNumber } from '@/utils/format';
 import { PlusIcon } from '@/components/common/Icon';
-import { TextField } from '@/components/common/Form';
+import { SearchInput } from '@/components/common/SearchInput';
 import { useManagedUsers } from '@/pages/Admin/Plants/Equipment/hooks/useEquipmentPickers';
 import styles from '@/pages/Admin/Admin.module.scss';
 import { useAssetOf, usePlantRows } from '../hooks/usePlantData';
@@ -44,9 +44,8 @@ export function PlantsBoard() {
     <>
       <div className={styles.toolbar}>
         <div className={styles.toolbar__left}>
-          <TextField
+          <SearchInput
             label="이름 검색"
-            hideLabel
             value={keyword}
             onChange={setKeyword}
             placeholder="ID·발전소 이름·사용자로 검색"

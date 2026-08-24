@@ -5,7 +5,7 @@ import { createPath } from '@/pages/Admin/_shared/adminPath';
 import { DeviceHistory } from '@/pages/Admin/_shared/device/DeviceHistory';
 import { formatNumber } from '@/utils/format';
 import { PlusIcon } from '@/components/common/Icon';
-import { TextField } from '@/components/common/Form';
+import { SearchInput } from '@/components/common/SearchInput';
 import styles from '@/pages/Admin/Admin.module.scss';
 import { usePyranometerRows } from '../hooks/usePyranometerRows';
 import { PyranometerTable } from './PyranometerTable';
@@ -34,9 +34,8 @@ export function PyranometerBoard() {
     <>
       <div className={styles.toolbar}>
         <div className={styles.toolbar__left}>
-          <TextField
+          <SearchInput
             label="이름 검색"
-            hideLabel
             value={keyword}
             onChange={setKeyword}
             placeholder="일사량계명·RTU 통신ID 로 검색"
