@@ -76,7 +76,6 @@ export function StringSheet({ cid }: StringSheetProps) {
   const [isDeleting, setIsDeleting] = useState(false);
 
   const inverterId = useWatch({ control: methods.control, name: 'inverterId' });
-  const rows = useWatch({ control: methods.control, name: 'rows' });
 
   const owner = equipment.find((item) => item.inverterId === inverterId);
 
@@ -231,7 +230,11 @@ export function StringSheet({ cid }: StringSheetProps) {
 
       <ConfirmDialog
         isOpen={isDeleting}
-        title={MSG.deleteConfirm(`${owner?.name ?? '설비'} 스트링 ${formatNumber(rows.length)}조`)}
+        /*
+          지우는 것은 저장돼 있는 전체다 — 편집판의 초안 줄 수를 세면 줄을 다 뺀 상태에서
+          「0조를 삭제할까요?」라고 묻고 저장분을 전부 지운다.
+        */
+        title={MSG.deleteConfirm(`${owner?.name ?? '설비'} 스트링 ${formatNumber(listOf(inverterId).length)}조`)}
         description="이 설비에 등록된 스트링을 모두 지웁니다. 한 조만 지우려면 위 편집판에서 그 줄을 빼세요."
         confirmLabel="삭제"
         tone="danger"
