@@ -1,0 +1,23 @@
+@use "@/styles/tokens/spacing" as s;
+
+.picker {
+  display: flex;
+  flex-direction: column;
+  gap: s.$space-4;
+
+  /* 폼과 자리를 바꿔 쓰는 자리라 표가 짧아도 창 높이가 움찔거리지 않게 미리 재 둔다. */
+  min-height: 420px;
+
+  &__search {
+    display: flex;
+    align-items: center;
+    gap: s.$space-2;
+  }
+
+  &__row {
+    /* 칸에 칠한다 — 줄에 칠하면 표가 가진 hover 배경에 덮여 지금 고른 줄이 사라진다. */
+    &--current > td {
+      background-color: var(--brand-soft);
+    }
+  }
+}

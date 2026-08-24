@@ -15,6 +15,7 @@
     "lint:fix": "eslint src --fix --max-warnings=0 && stylelint \"src/**/*.scss\" --fix --config .stylelintrc.json"
   },
   "dependencies": {
+    "@hookform/resolvers": "^5.5.3",
     "dayjs": "^1.11.21",
     "echarts": "^6.1.0",
     "echarts-for-react": "^3.0.6",
@@ -23,9 +24,11 @@
     "motion": "^12.42.2",
     "react": "^19.2.8",
     "react-dom": "^19.2.8",
+    "react-hook-form": "^7.83.0",
     "react-kakao-maps-sdk": "^1.2.1",
     "react-router-dom": "^7.18.1",
     "sass": "^1.102.0",
+    "zod": "^4.4.3",
     "zustand": "^5.0.14"
   },
   "devDependencies": {

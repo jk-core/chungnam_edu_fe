@@ -1,19 +1,20 @@
-import { useMemo } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Badge } from '@/components/common/Badge';
 import { Button } from '@/components/common/Button';
 import { Card } from '@/components/common/Card';
+import { editPath } from '@/pages/Admin/_shared/adminPath';
 import { flattenTemplate } from '@/mocks/fieldReport';
 import { Reveal } from '@/components/common/Reveal';
 import { Table } from '@/components/common/Table';
-import useFieldReportStore, { mergeTemplates } from '@/stores/fieldReportStore';
+import { useTemplates } from '@/stores/fieldReportStore';
 import type { Column } from '@/components/common/Table';
 import type { ReportTemplate } from '@/interface/fieldReport';
 import styles from '@/pages/Admin/Admin.module.scss';
 
-/** 점검 양식 목록 (SFR-021-14). 문항을 고치려면 여기서 골라 편집기를 연다. */
-export function TemplateTable({ onEdit }: { onEdit: (template: ReportTemplate) => void }) {
-  const templatePatched = useFieldReportStore((state) => state.templatePatched);
-  const templates = useMemo(() => mergeTemplates(templatePatched), [templatePatched]);
+/** 점검 양식 목록 (SFR-021-14). 문항을 고치려면 여기서 골라 편집기로 들어간다. */
+export function TemplateTable() {
+  const templates = useTemplates();
+  const navigate = useNavigate();
 
   const columns: Column<ReportTemplate>[] = [
     {
@@ -55,7 +56,15 @@ export function TemplateTable({ onEdit }: { onEdit: (template: ReportTemplate) =
       header: '관리',
       width: '110px',
       align: 'center',
-      render: (row) => <Button size="sm" variant="secondary" onClick={() => onEdit(row)}>문항 편집</Button>,
+      render: (row) => (
+        <Button
+          size="sm"
+          variant="secondary"
+          onClick={() => navigate(editPath('field-reports', 'templates', 'templateId', row.id))}
+        >
+          문항 편집
+        </Button>
+      ),
     },
   ];
 

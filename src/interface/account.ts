@@ -1,9 +1,10 @@
 /**
- * 계정 역할.
- * SFR-023-02 는 교육청 계정에 전체 조회를, SFR-023-03 은 교육기관 계정에 본인 설비만 허용한다.
- * 여기에 SFR-018-05(사용자 관리는 관리자만)를 더해 세 갈래로 나눈다.
+ * 계정 등급 (userTypeCode).
+ *
+ * 게스트 2001 · 수용가 2002 · 그룹관리자 2006 · 관리자 2998 · 개발자 2999.
+ * **개발자는 화면에 세우지 않는다** — 등급 선택지에도, 사용자 목록에도 나오지 않는다.
  */
-export type Role = 'admin' | 'office' | 'institution';
+export type Role = 'guest' | 'customer' | 'group' | 'admin' | 'developer';
 
 /** 로그인한 사용자 */
 export interface AuthUser {
@@ -16,7 +17,7 @@ export interface AuthUser {
   email: string;
   /**
    * 조회 가능한 발전소 id 목록.
-   * 빈 배열이면 제한 없음(도 전체) — admin·office 가 여기에 해당한다.
+   * 빈 배열이면 제한 없음(도 전체) — 관리자·게스트가 여기에 해당한다.
    */
   plantIds: string[];
 }
@@ -30,8 +31,6 @@ export interface ManagedUser {
   loginId: string;
   name: string;
   role: Role;
-  orgName: string;
-  department: string;
   email: string;
   /** 휴대전화번호 (cellPhone) */
   phone: string;

@@ -1,0 +1,70 @@
+import { useMemo, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { Button } from '@/components/common/Button';
+import { createPath } from '@/pages/Admin/_shared/adminPath';
+import { formatNumber } from '@/utils/format';
+import { PlusIcon } from '@/components/common/Icon';
+import { SearchInput } from '@/components/common/SearchInput';
+import useAssetStore, { mergeUsers } from '@/stores/assetStore';
+import styles from '@/pages/Admin/Admin.module.scss';
+import { UserHistory } from './UserHistory';
+import { UserTable } from './UserTable';
+
+/**
+ * 사용자 관리 (SFR-018) — 관리자만 들어온다 (SFR-018-05).
+ * 검색어 하나로 목록과 이력을 함께 좁히므로 그 값만 여기서 쥔다.
+ */
+export function UsersBoard() {
+  const userCreated = useAssetStore((state) => state.userCreated);
+  const userPatched = useAssetStore((state) => state.userPatched);
+  const userDeleted = useAssetStore((state) => state.userDeleted);
+  const navigate = useNavigate();
+
+  const [keyword, setKeyword] = useState('');
+
+  const users = useMemo(() => {
+    /*
+      그룹관리자는 맡은 발전소가 본체라 옆 탭에서 따로 다룬다.
+      개발자는 화면에 세우지 않는다 — 서버도 목록에서 빼고 내려준다.
+    */
+    const all = mergeUsers(userCreated, userPatched, userDeleted)
+      .filter((user) => user.role !== 'group' && user.role !== 'developer');
+    const trimmed = keyword.trim();
+
+    return trimmed
+      ? all.filter((user) => user.name.includes(trimmed)
+        || user.loginId.includes(trimmed)
+        || user.email.includes(trimmed))
+      : all;
+  }, [userCreated, userPatched, userDeleted, keyword]);
+
+  const lockedCount = users.filter((user) => user.locked).length;
+
+  return (
+    <>
+      <div className={styles.toolbar}>
+        <div className={styles.toolbar__left}>
+          <SearchInput
+            label="이름 검색"
+            value={keyword}
+            onChange={setKeyword}
+            placeholder="사용자명으로 검색"
+            width="md"
+          />
+          <p className={styles.toolbar__note}>
+            총 {formatNumber(users.length)}개{lockedCount > 0 ? ` · 잠금 ${lockedCount}건` : ''}
+          </p>
+        </div>
+        <div className={styles.toolbar__actions}>
+          <Button iconLeft={<PlusIcon />} onClick={() => navigate(createPath('users', 'account'))}>
+            사용자 등록
+          </Button>
+        </div>
+      </div>
+
+      <UserTable rows={users} />
+
+      <UserHistory keyword={keyword} />
+    </>
+  );
+}

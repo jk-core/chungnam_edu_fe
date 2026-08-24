@@ -1,6 +1,6 @@
-import { Select } from '@/components/common/Select';
-import { TextField } from '@/components/common/Form';
 import { formatNumber } from '@/utils/format';
+import { SearchInput } from '@/components/common/SearchInput';
+import { Select } from '@/components/common/Select';
 import styles from '@/pages/Admin/Admin.module.scss';
 import { STATE_FILTER } from './reportState';
 
@@ -20,9 +20,8 @@ export function ReportToolbar({ keyword, onKeywordChange, state, onStateChange, 
   return (
     <div className={styles.toolbar}>
       <div className={styles.toolbar__left}>
-        <TextField
+        <SearchInput
           label="이름 검색"
-          hideLabel
           value={keyword}
           onChange={onKeywordChange}
           placeholder="발전소명·점검자·보고서 번호로 검색"

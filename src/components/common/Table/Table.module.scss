@@ -46,6 +46,12 @@
     @include mx.sr-only;
   }
 
+  &__row {
+    &--clickable {
+      cursor: pointer;
+    }
+  }
+
   &__cell {
     &--hideTablet {
       @include media.tablet {

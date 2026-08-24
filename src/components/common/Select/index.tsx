@@ -13,6 +13,12 @@ interface SelectProps<T extends string> {
   className?: string;
 }
 
+/**
+ * 목록·조회 화면 위에서 무엇을 볼지 좁히는 칩.
+ *
+ * 폼 칸이 아니다 — 옆에 서는 것이 저장 버튼이 아니라 세그먼트·날짜 칩이라서 그쪽 키와 알약
+ * 모서리를 따른다. 폼 안의 고르는 칸은 `Form.Select`(`Form/controls/SelectControl`)가 따로 있다.
+ */
 export function Select<T extends string>({
   label,
   value,
@@ -24,14 +30,14 @@ export function Select<T extends string>({
   const id = useId();
 
   return (
-    <div className={cn(styles.field, { [className ?? '']: !!className })}>
-      <label htmlFor={id} className={cn(styles.field__label, { [styles['field__label--hidden']]: hideLabel })}>
+    <div className={cn(styles.select, { [className ?? '']: !!className })}>
+      <label htmlFor={id} className={cn(styles.select__label, { [styles['select__label--hidden']]: hideLabel })}>
         {label}
       </label>
-      <div className={styles.field__control}>
+      <div className={styles.select__control}>
         <select
           id={id}
-          className={styles.field__select}
+          className={styles.select__input}
           value={value}
           onChange={(event) => onChange(event.target.value as T)}
         >
@@ -41,7 +47,7 @@ export function Select<T extends string>({
             </option>
           ))}
         </select>
-        <ChevronDownIcon className={styles.field__icon} />
+        <ChevronDownIcon className={styles.select__icon} />
       </div>
     </div>
   );

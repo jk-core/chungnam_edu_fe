@@ -1,192 +1,60 @@
-import { useId, useState } from 'react';
-import { EyeIcon, EyeOffIcon } from '@/components/common/Icon';
-import { cn } from '@/utils/cn';
-import { describedBy, FormField, imeProps } from './FormField';
-import styles from './Form.module.scss';
-import type { FieldWidth, ImeMode } from './FormField';
+import type { ImeMode } from '@/utils/ime';
+import { FormField } from './FormField';
+import { PasswordControl } from './controls/PasswordControl';
+import { TextAreaControl } from './controls/TextAreaControl';
+import { TextControl } from './controls/TextControl';
+import type { FieldWidth } from './controls/shared';
+
+/*
+  react-hook-form 을 쓰지 않는 화면(로컬 draft 로 도는 폼)이 아직 여럿이라 남겨 둔다.
+  그쪽이 전부 옮겨 가면 이 파일은 사라지고, 호출부가 `FormField` 와 컨트롤을 직접 조립한다.
+*/
 
 interface BaseProps {
   label: string;
-  value: string;
-  onChange: (value: string) => void;
   required?: boolean;
   optional?: boolean;
   hint?: string;
   error?: string;
+  hideLabel?: boolean;
+  value: string;
+  onChange: (value: string) => void;
   placeholder?: string;
   disabled?: boolean;
   readOnly?: boolean;
   maxLength?: number;
   ime?: ImeMode;
   width?: FieldWidth;
-  /** 라벨을 눈에서만 감춘다 — 목록 위 검색창처럼 자리 표시로 뜻이 분명한 곳에 쓴다. */
-  hideLabel?: boolean;
 }
 
-export function TextField({
-  label,
-  value,
-  onChange,
-  required,
-  optional,
-  hint,
-  error,
-  placeholder,
-  disabled,
-  readOnly,
-  maxLength,
-  ime = 'hangul',
-  width = 'full',
-  hideLabel,
-}: BaseProps) {
-  const id = useId();
-
+export function TextField({ label, required, optional, hint, error, hideLabel, ...control }: BaseProps) {
   return (
-    <FormField
-      label={label}
-      htmlFor={id}
-      required={required}
-      optional={optional}
-      hint={hint}
-      error={error}
-      hideLabel={hideLabel}
-    >
-      <input
-        id={id}
-        type="text"
-        className={cn(styles.control, styles[`width--${width}`])}
-        value={value}
-        onChange={(event) => onChange(event.target.value)}
-        placeholder={placeholder}
-        disabled={disabled}
-        readOnly={readOnly}
-        maxLength={maxLength}
-        aria-required={required}
-        aria-invalid={Boolean(error)}
-        aria-describedby={describedBy(id, hint, error)}
-        {...imeProps(ime)}
-      />
+    <FormField label={label} required={required} optional={optional} hint={hint} error={error} hideLabel={hideLabel}>
+      <TextControl {...control} />
     </FormField>
   );
 }
 
 export function TextArea({
   label,
-  value,
-  onChange,
   required,
   optional,
   hint,
   error,
-  placeholder,
-  disabled,
-  readOnly,
-  maxLength,
-  ime = 'hangul',
-}: BaseProps) {
-  const id = useId();
-
+  hideLabel,
+  ...control
+}: Omit<BaseProps, 'width'>) {
   return (
-    <FormField label={label} htmlFor={id} required={required} optional={optional} hint={hint} error={error}>
-      <textarea
-        id={id}
-        className={cn(styles.control, styles['control--textarea'])}
-        value={value}
-        onChange={(event) => onChange(event.target.value)}
-        placeholder={placeholder}
-        disabled={disabled}
-        readOnly={readOnly}
-        maxLength={maxLength}
-        aria-required={required}
-        aria-invalid={Boolean(error)}
-        aria-describedby={describedBy(id, hint, error)}
-        {...imeProps(ime)}
-      />
+    <FormField label={label} required={required} optional={optional} hint={hint} error={error} hideLabel={hideLabel}>
+      <TextAreaControl {...control} />
     </FormField>
   );
 }
 
-interface NumberFieldProps extends Omit<BaseProps, 'value' | 'onChange' | 'ime'> {
-  value: number | '';
-  onChange: (value: number | '') => void;
-  min?: number;
-  max?: number;
-  step?: number;
-  /** 값 뒤에 붙는 단위 표기 */
-  unit?: string;
-}
-
-export function NumberField({
-  label,
-  value,
-  onChange,
-  required,
-  optional,
-  hint,
-  error,
-  placeholder,
-  disabled,
-  readOnly,
-  min,
-  max,
-  step,
-  unit,
-  width = 'sm',
-}: NumberFieldProps) {
-  const id = useId();
-  const suffix = unit ? `${hint ? `${hint} · ` : ''}단위 ${unit}` : hint;
-
+export function PasswordField({ label, required, optional, hint, error, hideLabel, ...control }: BaseProps) {
   return (
-    <FormField label={label} htmlFor={id} required={required} optional={optional} hint={suffix} error={error}>
-      <input
-        id={id}
-        type="number"
-        className={cn(styles.control, styles['control--number'], styles[`width--${width}`])}
-        value={value}
-        onChange={(event) => onChange(event.target.value === '' ? '' : Number(event.target.value))}
-        placeholder={placeholder}
-        disabled={disabled}
-        readOnly={readOnly}
-        min={min}
-        max={max}
-        step={step}
-        inputMode="numeric"
-        aria-required={required}
-        aria-invalid={Boolean(error)}
-        aria-describedby={describedBy(id, suffix, error)}
-      />
-    </FormField>
-  );
-}
-
-export function PasswordField({ label, value, onChange, required, hint, error, disabled, width = 'md' }: BaseProps) {
-  const id = useId();
-  const [isRevealed, setIsRevealed] = useState(false);
-
-  return (
-    <FormField label={label} htmlFor={id} required={required} hint={hint} error={error}>
-      <span className={cn(styles.passwordWrap, styles[`width--${width}`])}>
-        <input
-          id={id}
-          type={isRevealed ? 'text' : 'password'}
-          className={styles.control}
-          value={value}
-          onChange={(event) => onChange(event.target.value)}
-          disabled={disabled}
-          autoComplete="new-password"
-          aria-required={required}
-          aria-invalid={Boolean(error)}
-          aria-describedby={describedBy(id, hint, error)}
-        />
-        <button
-          type="button"
-          className={styles.passwordWrap__toggle}
-          onClick={() => setIsRevealed((prev) => !prev)}
-          aria-label={isRevealed ? '비밀번호 숨기기' : '비밀번호 보기'}
-        >
-          {isRevealed ? <EyeOffIcon width={18} height={18} /> : <EyeIcon width={18} height={18} />}
-        </button>
-      </span>
+    <FormField label={label} required={required} optional={optional} hint={hint} error={error} hideLabel={hideLabel}>
+      <PasswordControl {...control} />
     </FormField>
   );
 }

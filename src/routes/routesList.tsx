@@ -1,5 +1,6 @@
 import { Navigate, useParams } from 'react-router-dom';
 import { lazy } from 'react';
+import { ADMIN_ROLES } from '@/mocks/accounts';
 import AuthLayout from '@/layouts/AuthLayout';
 import RootLayout from '@/layouts/RootLayout';
 import SubPageLayout from '@/layouts/SubPageLayout';
@@ -100,13 +101,28 @@ export const routes: RouteObject[] = [
           },
           {
             // 관리자 콘솔은 내부망 전용이고 관리자 역할만 통과한다 (SER-001-18, SFR-018-05).
-            element: <RequireAuth roles={['admin']} />,
+            element: <RequireAuth roles={ADMIN_ROLES} />,
             children: [
               {
                 path: 'admin',
                 element: <AdminLayout />,
                 children: [
                   { index: true, element: <Navigate to={PATH.ADMIN_PLANTS} replace /> },
+                  /*
+                    등록·수정 폼이 페이지라 저마다 주소를 갖는다. 서브탭이 있는 갈래는 갈래까지
+                    주소에 싣고, 그 아래 `new`·`edit` 가 폼이 된다.
+
+                    고칠 대상은 `edit?powerPlantId=3` 처럼 queryString 으로 받는다 — 주소에
+                    식별자를 박지 않는 사내 컨벤션이고, 갈래 이름과 식별자가 같은 자리를 두고
+                    다투지도 않는다.
+                  */
+                  ...['plants', 'devices', 'field-reports', 'users'].flatMap((tab) => [
+                    { path: tab, element: <AdminPage /> },
+                    { path: `${tab}/:kind`, element: <AdminPage /> },
+                    { path: `${tab}/:kind/new`, element: <AdminPage depth="form" /> },
+                    { path: `${tab}/:kind/edit`, element: <AdminPage depth="form" /> },
+                  ]),
+                  // 나머지 갈래는 목록 한 장뿐이라 폼 주소가 없다.
                   { path: ':tab', element: <AdminPage /> },
                 ],
               },

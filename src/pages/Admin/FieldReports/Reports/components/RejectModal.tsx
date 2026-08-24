@@ -1,6 +1,6 @@
 import { Button } from '@/components/common/Button';
+import { FormField, TextAreaControl } from '@/components/common/Form';
 import { Modal } from '@/components/common/Modal';
-import { TextArea } from '@/components/common/Form';
 import type { FieldReport } from '@/interface/fieldReport';
 
 interface RejectModalProps {
@@ -27,14 +27,14 @@ export function RejectModal({ report, reason, onReasonChange, onConfirm, onClose
         </>
       )}
     >
-      <TextArea
-        label="반려 사유"
-        value={reason}
-        onChange={onReasonChange}
-        required
-        placeholder="무엇을 고쳐서 다시 내야 하는지 적어 주세요."
-        maxLength={300}
-      />
+      <FormField label="반려 사유" required>
+        <TextAreaControl
+          value={reason}
+          onChange={onReasonChange}
+          placeholder="무엇을 고쳐서 다시 내야 하는지 적어 주세요."
+          maxLength={300}
+        />
+      </FormField>
     </Modal>
   );
 }

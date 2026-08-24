@@ -87,6 +87,21 @@ export function formatDelta(ratio: number): string {
   return `${sign}${formatNumber(ratio * 100, 1)}%`;
 }
 
+/**
+ * 전화번호에 하이픈을 넣는다. 적는 중에도 자리에 맞춰 끊어 준다.
+ * 지역번호는 02 만 두 자리이고, 국번은 남은 자릿수가 여덟을 넘을 때만 네 자리가 된다.
+ */
+export function formatPhone(value: string): string {
+  const digits = value.replace(/\D/g, '').slice(0, 11);
+  const head = digits.startsWith('02') ? 2 : 3;
+  const middle = digits.length - head > 7 ? 4 : 3;
+
+  if (digits.length <= head) return digits;
+  if (digits.length <= head + middle) return `${digits.slice(0, head)}-${digits.slice(head)}`;
+
+  return `${digits.slice(0, head)}-${digits.slice(head, head + middle)}-${digits.slice(head + middle)}`;
+}
+
 /** 분 단위 시간을 "2일 3시간" 같은 표기로 바꾼다. */
 export function formatDuration(minutes: number): string {
   if (minutes < 60) return `${minutes}분`;

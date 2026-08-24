@@ -1,8 +1,9 @@
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Badge } from '@/components/common/Badge';
-import { Button } from '@/components/common/Button';
 import { Card } from '@/components/common/Card';
 import { CELL_TYPE_LABEL } from '@/mocks/moduleProducts';
+import { editPath } from '@/pages/Admin/_shared/adminPath';
 import { DEFAULT_PAGE_SIZE, Pagination } from '@/components/common/Pagination';
 import { EmptyState } from '@/components/common/EmptyState';
 import { Reveal } from '@/components/common/Reveal';
@@ -12,14 +13,9 @@ import type { Column } from '@/components/common/Table';
 import type { ModuleProduct } from '@/interface/deviceMaster';
 import styles from '@/pages/Admin/Admin.module.scss';
 
-interface ModuleTableProps {
-  rows: ModuleProduct[];
-  onEdit: (product: ModuleProduct) => void;
-  onDelete: (product: ModuleProduct) => void;
-}
-
 /** 모듈 제품 목록 (SFR-016-01). 쪽 나눔은 표가 스스로 쥔다. */
-export function ModuleTable({ rows, onEdit, onDelete }: ModuleTableProps) {
+export function ModuleTable({ rows }: { rows: ModuleProduct[] }) {
+  const navigate = useNavigate();
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(DEFAULT_PAGE_SIZE);
   const [shown, setShown] = useState(rows);
@@ -54,27 +50,6 @@ export function ModuleTable({ rows, onEdit, onDelete }: ModuleTableProps) {
     },
     { key: 'watt', header: '용량', align: 'right', width: '90px', render: (row) => `${formatNumber(row.wattPerPanel)}W` },
     {
-      key: 'power',
-      header: '최대 전압 · 전류',
-      width: '150px',
-      hideOnTablet: true,
-      render: (row) => `${row.maxVoltage}V · ${row.maxCurrent}A`,
-    },
-    {
-      key: 'open',
-      header: '개방 · 단락',
-      width: '150px',
-      hideOnTablet: true,
-      render: (row) => `${row.openVoltage}V · ${row.shortCurrent}A`,
-    },
-    {
-      key: 'coeff',
-      header: '온도계수',
-      width: '150px',
-      hideOnTablet: true,
-      render: (row) => `${row.voltTempCoeff} · ${row.currentTempCoeff} %/℃`,
-    },
-    {
       key: 'cell',
       header: '셀 종류',
       width: '90px',
@@ -83,35 +58,24 @@ export function ModuleTable({ rows, onEdit, onDelete }: ModuleTableProps) {
         <Badge tone={row.cellType === 'double' ? 'brand' : 'neutral'}>{CELL_TYPE_LABEL[row.cellType]}</Badge>
       ),
     },
-    {
-      key: 'action',
-      header: '관리',
-      width: '140px',
-      align: 'center',
-      render: (row) => (
-        <span className={styles.toolbar__actions}>
-          <Button size="sm" variant="secondary" onClick={() => onEdit(row)}>수정</Button>
-          <Button size="sm" variant="ghost" onClick={() => onDelete(row)}>삭제</Button>
-        </span>
-      ),
-    },
   ];
 
   return (
     <Reveal delay={0.05}>
       <Card
         title="모듈 제품"
-        description="여기에 등록한 제품을 인버터 등록에서 고릅니다. 용량은 설비용량 산출에 그대로 쓰입니다."
+        description="여기에 등록한 제품을 설비 등록에서 고릅니다. 용량은 설비용량 산출에 그대로 쓰입니다."
       >
         {rows.length === 0 ? (
           <EmptyState title="조건에 맞는 제품이 없습니다" description="검색어를 지우거나 새 제품을 등록해 보세요." />
         ) : (
           <>
             <Table
-              caption="모듈 제품 목록. 모듈명과 업체, 용량, 최대 전압·전류, 개방·단락, 온도계수, 셀 종류 순입니다."
+              caption="모듈 제품 목록. ID, 모듈명과 업체, 용량, 셀 종류 순입니다."
               columns={columns}
               rows={pageRows}
               getRowKey={(row) => row.id}
+              onRowClick={(row) => navigate(editPath('devices', 'module', 'moduleId', row.moduleId))}
             />
             <Pagination
               page={currentPage}
