@@ -113,7 +113,7 @@ jobs:
         with:
           payload-file-path: /tmp/slack-payload.json
         env:
-          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+          SLACK_WEBHOOK_URL: ${{ secrets.FE_SLACK_CHANNEL_ID }}
           SLACK_WEBHOOK_TYPE: INCOMING_WEBHOOK
 
   # 2. 리뷰 요청 시 알림
@@ -191,7 +191,7 @@ jobs:
         with:
           payload-file-path: /tmp/slack-payload.json
         env:
-          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+          SLACK_WEBHOOK_URL: ${{ secrets.FE_SLACK_CHANNEL_ID }}
           SLACK_WEBHOOK_TYPE: INCOMING_WEBHOOK
 
   # 3. PR 리뷰 제출 시 알림 (승인 / 변경 요청 / 코멘트 리뷰)
@@ -301,7 +301,7 @@ jobs:
         with:
           payload-file-path: /tmp/slack-payload.json
         env:
-          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+          SLACK_WEBHOOK_URL: ${{ secrets.FE_SLACK_CHANNEL_ID }}
           SLACK_WEBHOOK_TYPE: INCOMING_WEBHOOK
 
   # 4. PR 일반 코멘트 작성 시 알림 (대화창 코멘트, 인라인 코드 코멘트는 제외)
@@ -399,5 +399,5 @@ jobs:
         with:
           payload-file-path: /tmp/slack-payload.json
         env:
-          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+          SLACK_WEBHOOK_URL: ${{ secrets.FE_SLACK_CHANNEL_ID }}
           SLACK_WEBHOOK_TYPE: INCOMING_WEBHOOK
