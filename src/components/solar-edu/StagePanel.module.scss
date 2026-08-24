@@ -1,0 +1,158 @@
+@use "@/styles/tokens/spacing" as s;
+@use "@/styles/tokens/typography" as t;
+@use "@/styles/utils/mixins" as mx;
+
+/*
+  단계별 설명 칸.
+
+  위에서 아래로 그림 · 차례표 · 설명이다. 그림이 어디를 말하는지 짚고, 차례표가 그 자리가 몇
+  번째인지 알려 주고, 설명이 거기서 무슨 일이 일어나는지 적는다. 세 켜가 늘 같은 자리에 있어야
+  단계가 넘어가도 읽는 법을 다시 익히지 않는다.
+*/
+.panel {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: s.$space-4;
+  padding: s.$space-5;
+  border: 1px solid var(--border-subtle);
+  border-radius: s.$radius-lg;
+  background-color: var(--surface);
+  box-shadow: var(--shadow-sm);
+  min-height: 0;
+}
+
+.head {
+  display: flex;
+  flex-direction: column;
+  gap: s.$space-1;
+
+  &__title {
+    @include t.title-sm;
+
+    color: var(--text-strong);
+  }
+
+  &__note {
+    @include t.body-sm;
+
+    color: var(--text-muted);
+  }
+}
+
+/* 설비 한 벌. 남는 높이를 여기에 몰아 그림이 가장 크게 선다 */
+.plant {
+  display: flex;
+  flex: 1;
+  align-items: center;
+  justify-content: center;
+  padding: s.$space-3;
+  border: 1px solid var(--border-subtle);
+  border-radius: s.$radius-md;
+  background-color: var(--surface-sunken);
+  min-height: 0;
+  overflow: hidden;
+}
+
+/*
+  전기가 흐르는 차례.
+  가로로 늘어놓아 왼쪽에서 오른쪽으로 흐른다는 것이 배치 자체로 읽히게 한다.
+*/
+.steps {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: s.$space-2;
+  list-style: none;
+}
+
+.step {
+  @include mx.press;
+  @include t.label-sm;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  width: 100%;
+  padding: s.$space-2 s.$space-1;
+  border: 1px solid var(--border);
+  border-radius: s.$radius-md;
+  background-color: transparent;
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: color 0.3s ease, border-color 0.3s ease, background-color 0.3s ease;
+
+  &:hover {
+    border-color: var(--solar);
+    color: var(--text-strong);
+  }
+
+  &__no {
+    @include t.caption;
+
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 18px;
+    height: 18px;
+    flex-shrink: 0;
+    border-radius: s.$radius-full;
+    background-color: var(--surface-sunken);
+    color: var(--text-faint);
+    font-style: normal;
+  }
+
+  &--on {
+    border-color: var(--solar);
+    background-color: var(--solar-soft);
+    color: var(--solar-deep);
+
+    &:hover {
+      color: var(--solar-deep);
+    }
+
+    .step__no {
+      background-color: var(--solar);
+      color: var(--text-on-solar);
+    }
+  }
+}
+
+/*
+  그 자리에서 일어나는 일.
+  단계가 넘어갈 때 글이 통째로 갈리므로, 새 글이 들어오는 것이 보이도록 살짝 떠오르게 한다.
+*/
+.lesson {
+  display: flex;
+  flex-direction: column;
+  gap: s.$space-2;
+  padding: s.$space-4;
+  border-left: 3px solid var(--solar);
+  border-radius: 0 s.$radius-md s.$radius-md 0;
+  background-color: var(--surface-sunken);
+  animation: stage-in 0.35s ease-out;
+
+  &__part {
+    @include t.label-md;
+
+    color: var(--text-strong);
+  }
+
+  &__body {
+    @include t.body-md;
+
+    color: var(--text);
+  }
+}
+
+@keyframes stage-in {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}

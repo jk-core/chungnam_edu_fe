@@ -359,10 +359,16 @@
   }
 }
 
+/*
+  나무 한 그루와 환산 카드 석 장.
+
+  카드가 저마다 값 아래에 근거 한 줄을 달고 있어, 나무에 148px 을 내주면 근거가 두 줄로 접히면서
+  석 장이 칸 높이를 넘겼다. 나무를 줄여 카드 폭을 넓히면 근거가 한 줄로 눕는다.
+*/
 .impact {
   display: grid;
-  grid-template-columns: 148px minmax(0, 1fr);
-  gap: s.$space-4;
+  grid-template-columns: 112px minmax(0, 1fr);
+  gap: s.$space-3;
   flex: 1;
   min-height: 0;
 
@@ -398,10 +404,10 @@
 
 .impactCard {
   display: grid;
-  grid-template-columns: 30px minmax(0, 1fr) auto;
+  grid-template-columns: 26px minmax(0, 1fr) auto;
   align-items: center;
-  column-gap: s.$space-3;
-  padding: s.$space-2 s.$space-3;
+  column-gap: s.$space-2;
+  padding: 6px s.$space-3;
   border: 1px solid var(--border-subtle);
   border-radius: s.$radius-md;
   background-color: var(--surface-sunken);
@@ -410,15 +416,15 @@
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    width: 30px;
-    height: 30px;
+    width: 26px;
+    height: 26px;
     border-radius: s.$radius-sm;
     background-color: var(--ok-soft);
     color: var(--ok-text);
 
     svg {
-      width: 18px;
-      height: 18px;
+      width: 16px;
+      height: 16px;
     }
   }
 
@@ -444,10 +450,11 @@
     color: var(--text-muted);
   }
 
+  /* 근거는 카드 폭을 통째로 쓴다 — 이름 아래에만 두면 폭이 모자라 두 줄로 접힌다 */
   &__basis {
     @include t.caption;
 
-    grid-column: 2 / -1;
+    grid-column: 1 / -1;
     color: var(--text-faint);
   }
 }
@@ -480,9 +487,17 @@
     color: var(--text-muted);
   }
 
+  /*
+    계통도.
+    이 칸에서 늘고 줄 수 있는 것은 그림뿐이다 — 남는 높이를 그림이 받아 내고, 글과 눈금은
+    제 높이를 지킨다. 그림은 viewBox 로 그려 작아져도 뭉개지지 않는다.
+  */
   &__art {
-    flex: 1;
-    min-height: 180px;
+    flex: 1 1 auto;
+    min-height: 96px;
+
+    /* 굴려 보는 화면에서는 받을 자리가 넉넉해 그림만 끝없이 커진다 — 위쪽을 묶는다 */
+    max-height: 240px;
     border-radius: s.$radius-md;
     background: linear-gradient(180deg, var(--sky-top) 0%, var(--surface-sunken) 100%);
   }
@@ -513,6 +528,7 @@
     }
   }
 
+  /* 글은 줄지 않는다 — 잘린 글은 쓰지 않은 글과 같다 */
   &__story {
     display: flex;
     flex-direction: column;

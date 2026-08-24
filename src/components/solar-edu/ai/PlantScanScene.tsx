@@ -1,4 +1,5 @@
 import { cn } from '@/utils/cn';
+import { PLANT_SPOT_LABEL } from '@/mocks/eduContent';
 import type { PlantSpot } from '@/mocks/eduContent';
 import styles from './AiParts.module.scss';
 import type { CSSProperties } from 'react';
@@ -10,10 +11,10 @@ const delay = (seconds: number) => ({ animationDelay: `${seconds}s` }) as CSSPro
  * 겨냥 표시를 그리는 데도, 그 자리를 확대해 들여다보는 데도 이 크기가 필요하다.
  */
 const SPOTS: Record<PlantSpot, { x: number; y: number; w: number; h: number; label: string }> = {
-  cell: { x: 12, y: 74, w: 112, h: 84, label: '태양전지 셀' },
-  module: { x: 144, y: 106, w: 124, h: 66, label: '모듈 · 스트링' },
-  inverter: { x: 286, y: 102, w: 92, h: 78, label: '인버터' },
-  grid: { x: 396, y: 98, w: 108, h: 82, label: '학교 · 전기망' },
+  cell: { x: 12, y: 74, w: 112, h: 84, label: PLANT_SPOT_LABEL.cell },
+  module: { x: 144, y: 106, w: 124, h: 66, label: PLANT_SPOT_LABEL.module },
+  inverter: { x: 286, y: 102, w: 92, h: 78, label: PLANT_SPOT_LABEL.inverter },
+  grid: { x: 396, y: 98, w: 108, h: 82, label: PLANT_SPOT_LABEL.grid },
 };
 
 /*
