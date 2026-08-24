@@ -22,13 +22,15 @@
     }
   }
 
+  /*
+    라벨 뒤에 붙는 표시는 라벨의 줄상자를 그대로 물려받는다 — 크기·행간을 따로 주면 그 칸만
+    라벨이 높아져, 한 줄에 선 옆 칸과 입력 상자의 윗변이 어긋난다.
+  */
   &__required {
     color: var(--critical-text);
   }
 
   &__optional {
-    @include t.caption;
-
     color: var(--text-faint);
     font-weight: 400;
   }
@@ -55,49 +57,11 @@
 }
 
 .control {
-  @include t.body-sm;
-
-  width: 100%;
-  min-height: 40px;
-  padding: s.$space-2 s.$space-3;
-  border: 1px solid var(--border);
-  border-radius: s.$radius-sm;
-  background-color: var(--surface);
-  color: var(--text-strong);
-  transition: border-color 0.16s ease, box-shadow 0.16s ease;
-
-  &::placeholder {
-    color: var(--text-faint);
-  }
-
-  @include mx.keyboard-focus {
-    outline: none;
-    border-color: var(--brand);
-    box-shadow: var(--shadow-focus);
-  }
-
-  &:disabled,
-  &:read-only {
-    background-color: var(--surface-sunken);
-    color: var(--text-muted);
-  }
-
-  &[aria-invalid="true"] {
-    border-color: var(--critical);
-  }
+  @include mx.control-box;
 
   &--textarea {
     min-height: 108px;
     resize: vertical;
-  }
-
-  /* 달력 여는 버튼을 옆 입력칸과 같은 선에 세운다 — 툴바 칩 모양 그대로면 혼자 작고 둥글다. */
-  &--date {
-    display: flex;
-    justify-content: flex-start;
-    height: auto;
-    padding-inline: s.$space-3;
-    border-radius: s.$radius-sm;
   }
 
   &--number {
@@ -107,25 +71,27 @@
   }
 }
 
+/*
+  좁게 세워야 하는 칸의 상한. 「채우지 않는다」는 뜻이므로 `full` 은 클래스 자체가 없다.
+
+  단위가 고정이어야 한다 — `ch` 로 두면 숫자칸이 다른 글꼴(--font-data)을 써서, 같은 `sm` 인데
+  글자칸보다 넓어진다.
+*/
 .width {
   &--xs {
-    max-width: 8ch;
+    max-width: 3.5rem;
   }
 
   &--sm {
-    max-width: 16ch;
+    max-width: 7rem;
   }
 
   &--md {
-    max-width: 28ch;
+    max-width: 12.5rem;
   }
 
   &--lg {
-    max-width: 44ch;
-  }
-
-  &--full {
-    max-width: 100%;
+    max-width: 19.5rem;
   }
 }
 
@@ -170,12 +136,19 @@
     flex-flow: row wrap;
   }
 
+  /*
+    라벨과 선택지 사이는 다른 칸의 라벨-입력 간격과 같아야 한다.
+
+    간격을 margin 으로 주는 것은 legend 가 fieldset 의 익명 콘텐츠 상자 **밖**에 그려져
+    부모의 flex 아이템이 아니기 때문이다 — 위 `gap` 은 legend 에 닿지 않는다.
+  */
   &__legend {
     @include t.label-sm;
 
     display: flex;
     align-items: center;
     gap: s.$space-1;
+    margin-bottom: s.$space-2;
     padding: 0;
     color: var(--text-strong);
   }
@@ -188,16 +161,13 @@
 }
 
 .option {
-  @include t.body-sm;
+  @include mx.control-box;
 
+  /* 여러 개가 한 줄에 나란히 서는 칸이라 폭만 내용에 맞춘다 */
   display: inline-flex;
   align-items: center;
   gap: s.$space-2;
-  padding: s.$space-2 s.$space-3;
-  border: 1px solid var(--border);
-  border-radius: s.$radius-sm;
-  background-color: var(--surface);
-  color: var(--text);
+  width: auto;
   cursor: pointer;
   transition: border-color 0.16s ease, background-color 0.16s ease;
 
@@ -256,8 +226,8 @@
   &__mark {
     display: grid;
     place-items: center;
-    width: 16px;
-    height: 16px;
+    width: s.$space-4;
+    height: s.$space-4;
     flex-shrink: 0;
     border: 1.6px solid var(--border-strong);
     border-radius: 50%;
@@ -286,8 +256,10 @@
     align-items: center;
     gap: s.$space-2;
     padding: s.$space-6;
+
+    /* 점선은 「여기 끌어다 놓는다」는 표시라 남기고, 모서리만 다른 칸에 맞춘다 */
     border: 1px dashed var(--border-strong);
-    border-radius: s.$radius-md;
+    border-radius: s.$radius-sm;
     background-color: var(--surface-sunken);
     color: var(--text-muted);
     transition: border-color 0.16s ease, background-color 0.16s ease;
@@ -405,9 +377,11 @@
   padding: 0;
   border: none;
 
+  /* legend 는 fieldset 의 익명 콘텐츠 상자 밖이라 위 `gap` 이 닿지 않는다 — margin 으로 준다. */
   &__legend {
     @include t.title-sm;
 
+    margin-bottom: s.$space-2;
     padding: 0;
     color: var(--text-strong);
   }

@@ -24,7 +24,8 @@ interface DatePickerProps {
   id?: string;
   invalid?: boolean;
   describedBy?: string;
-  /** 여는 버튼 모양을 놓이는 자리에 맞춘다 — 툴바 칩과 폼 입력칸은 높이·모서리가 다르다 */
+  /** 여는 버튼을 툴바 칩(알약)이 아니라 옆 입력들과 같은 상자로 그린다 */
+  asField?: boolean;
   className?: string;
 }
 
@@ -60,6 +61,7 @@ export function DatePicker({
   id,
   invalid,
   describedBy,
+  asField = false,
   className,
 }: DatePickerProps) {
   const [isOpen, setIsOpen] = useState(false);
@@ -87,6 +89,7 @@ export function DatePicker({
         type="button"
         className={cn(styles.trigger, {
           [styles['trigger--empty']]: !value,
+          [styles['trigger--field']]: asField,
           // 넘겨받은 것이 뒤에 와야 호출부가 모양을 덮어쓸 수 있다.
           [className ?? '']: !!className,
         })}

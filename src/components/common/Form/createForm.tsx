@@ -2,7 +2,6 @@ import { useId, useState } from 'react';
 import { Controller, FormProvider, useFormContext, useWatch } from 'react-hook-form';
 import dayjs from 'dayjs';
 import { Button } from '@/components/common/Button';
-import { cn } from '@/utils/cn';
 import { DatePicker } from '@/components/common/DatePicker';
 import { describedBy, FormField } from '@/components/common/Form/FormField';
 import { NumberField, PasswordField, TextArea, TextField } from '@/components/common/Form/fields';
@@ -12,7 +11,6 @@ import { Select } from '@/components/common/Select';
 import type { FieldWidth, ImeMode } from '@/components/common/Form/FormField';
 import type { RadioOption } from '@/components/common/Form/RadioGroup';
 import type { Granularity } from '@/utils/date';
-import styles from '@/components/common/Form/Form.module.scss';
 import type { FieldPath, FieldPathByValue, FieldValues, PathValue, UseFormReturn } from 'react-hook-form';
 import type { ReactNode } from 'react';
 
@@ -194,7 +192,7 @@ export function createFields<T extends FieldValues>() {
           <FormField {...rest} label={label} htmlFor={id} error={error}>
             <DatePicker
               id={id}
-              className={cn(styles.control, styles['control--date'])}
+              asField
               label={label}
               granularity={granularity}
               value={field.value ? dayjs(field.value).toDate() : null}
@@ -210,19 +208,21 @@ export function createFields<T extends FieldValues>() {
     );
   }
 
-  /** 고른 값이 언제나 있는 자리라 오류 슬롯을 두지 않는다. */
   function Pick<V extends string>({
     name,
     options,
     label,
-    hideLabel,
+    required,
+    hint,
   }: {
     name: FieldPathByValue<T, V>;
     options: { value: V; label: string }[];
     label: string;
-    hideLabel?: boolean;
+    required?: boolean;
+    hint?: string;
   }) {
     const { control } = useFormContext<T>();
+    const error = useFieldError(name);
 
     return (
       <Controller
@@ -230,8 +230,11 @@ export function createFields<T extends FieldValues>() {
         control={control}
         render={({ field }) => (
           <Select
+            asField
             label={label}
-            hideLabel={hideLabel}
+            required={required}
+            hint={hint}
+            error={error}
             value={field.value as V}
             options={options}
             onChange={field.onChange}

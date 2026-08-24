@@ -2,7 +2,7 @@
 @use "@/styles/tokens/typography" as t;
 @use "@/styles/utils/mixins" as mx;
 
-.field {
+.select {
   display: flex;
   flex-direction: column;
   gap: s.$space-2;
@@ -23,11 +23,11 @@
     align-items: center;
   }
 
-  &__select {
+  &__input {
     appearance: none;
     flex-grow: 1;
     min-width: 0;
-    height: 36px;
+    height: s.$control-height-chip;
     padding: 0 s.$space-8 0 s.$space-4;
     background-color: var(--surface);
     border: 1px solid var(--border);
@@ -46,13 +46,24 @@
       box-shadow: var(--shadow-focus);
       outline: none;
     }
+
+    /*
+      폼 안에 설 때. 툴바에서는 버튼과 나란히 서는 알약이 맞고, 폼에서는 옆 칸들과 같은 상자가 맞다.
+      같은 파일 뒤쪽 규칙이라 순서로 이긴다 — 다른 파일에서 덮으려 하면 번들 순서에 밀린다.
+    */
+    &--field {
+      @include mx.control-box;
+
+      height: auto;
+      padding-right: s.$space-8;
+    }
   }
 
   &__icon {
     position: absolute;
     right: s.$space-3;
-    width: 16px;
-    height: 16px;
+    width: s.$space-4;
+    height: s.$space-4;
     color: var(--text-faint);
     pointer-events: none;
   }

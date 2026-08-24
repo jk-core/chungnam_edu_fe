@@ -6,7 +6,7 @@
   display: inline-flex;
   align-items: center;
   gap: s.$space-2;
-  height: 36px;
+  height: s.$control-height-chip;
   padding-inline: s.$space-4 s.$space-3;
   background-color: var(--surface);
   border: 1px solid var(--border);
@@ -39,9 +39,34 @@
     border-color: var(--critical);
   }
 
+  /*
+    폼 안에 설 때. 툴바에서는 버튼과 나란히 서는 알약이 맞고, 폼에서는 옆 칸들과 같은 상자가 맞다.
+    같은 파일 뒤쪽 규칙이라 순서로 이긴다 — 다른 파일에서 덮으려 하면 번들 순서에 밀린다.
+  */
+  &--field {
+    @include mx.control-box;
+
+    justify-content: space-between;
+    height: auto;
+    padding-inline: s.$space-3;
+
+    &:hover {
+      border-color: var(--border-strong);
+      box-shadow: none;
+    }
+
+    .trigger__value {
+      @include t.body-sm;
+
+      /* 글자칸과 같은 줄에 서므로 값도 왼쪽에서 시작한다 — 칩에서는 아이콘 사이에 끼어 가운데였다. */
+      flex-grow: 1;
+      text-align: left;
+    }
+  }
+
   &__icon {
-    width: 16px;
-    height: 16px;
+    width: s.$space-4;
+    height: s.$space-4;
     color: var(--text-faint);
     transition: color 0.16s ease;
   }

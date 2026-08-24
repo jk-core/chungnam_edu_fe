@@ -29,6 +29,7 @@ export function DeviceFields({ devices, onChange, reportId }: DeviceFieldsProps)
       {devices.map((device, index) => (
         <FormRow key={device.id} cols={3}>
           <Select
+            asField
             label={`${index + 1}번 설비 구분`}
             value={device.kind}
             options={DEVICE_KINDS.map((kind) => ({ value: kind, label: kind }))}

@@ -235,6 +235,7 @@ export function ReportEditor({ origin, onClose }: ReportEditorProps) {
           <FormSection legend="점검 개요" hint="양식을 고르면 아래 체크리스트가 그 양식으로 바뀝니다.">
             <FormRow cols={2}>
               <Select
+                asField
                 label="점검 양식"
                 value={draft.templateId}
                 // 양식이 바뀌면 문항 자체가 달라지므로 앞서 고른 답은 남기지 않는다.

@@ -83,7 +83,7 @@ export function TextArea({
   readOnly,
   maxLength,
   ime = 'hangul',
-}: BaseProps) {
+}: Omit<BaseProps, 'width'>) {
   const id = useId();
 
   return (
@@ -131,7 +131,7 @@ export function NumberField({
   max,
   step,
   unit,
-  width = 'sm',
+  width = 'full',
 }: NumberFieldProps) {
   const id = useId();
   const suffix = unit ? `${hint ? `${hint} · ` : ''}단위 ${unit}` : hint;
@@ -159,7 +159,7 @@ export function NumberField({
   );
 }
 
-export function PasswordField({ label, value, onChange, required, hint, error, disabled, width = 'md' }: BaseProps) {
+export function PasswordField({ label, value, onChange, required, hint, error, disabled, width = 'full' }: BaseProps) {
   const id = useId();
   const [isRevealed, setIsRevealed] = useState(false);
 
