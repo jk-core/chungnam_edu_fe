@@ -1,12 +1,18 @@
-import { useState } from 'react';
+import { useId, useState } from 'react';
 import { Controller, FormProvider, useFormContext, useWatch } from 'react-hook-form';
+import dayjs from 'dayjs';
 import { Button } from '@/components/common/Button';
+import { cn } from '@/utils/cn';
+import { DatePicker } from '@/components/common/DatePicker';
+import { describedBy, FormField } from '@/components/common/Form/FormField';
 import { NumberField, PasswordField, TextArea, TextField } from '@/components/common/Form/fields';
 import { PickerField } from '@/components/common/RecordPicker';
 import { RadioGroup } from '@/components/common/Form/RadioGroup';
 import { Select } from '@/components/common/Select';
 import type { FieldWidth, ImeMode } from '@/components/common/Form/FormField';
 import type { RadioOption } from '@/components/common/Form/RadioGroup';
+import type { Granularity } from '@/utils/date';
+import styles from '@/components/common/Form/Form.module.scss';
 import type { FieldPath, FieldPathByValue, FieldValues, PathValue, UseFormReturn } from 'react-hook-form';
 import type { ReactNode } from 'react';
 
@@ -163,6 +169,47 @@ export function createFields<T extends FieldValues>() {
     );
   }
 
+  /**
+   * 달력에서 고르는 날짜 칸.
+   * 폼이 담는 값은 `YYYY-MM-DD` 문자열이다 — 그대로 서버로 나가고 비교·정렬도 이 형태로 한다.
+   */
+  function DateField({
+    name,
+    granularity = 'day',
+    label,
+    ...rest
+  }: FieldProps & {
+    name: FieldPathByValue<T, string>;
+    granularity?: Granularity;
+  }) {
+    const { control } = useFormContext<T>();
+    const id = useId();
+    const error = useFieldError(name);
+
+    return (
+      <Controller
+        name={name}
+        control={control}
+        render={({ field }) => (
+          <FormField {...rest} label={label} htmlFor={id} error={error}>
+            <DatePicker
+              id={id}
+              className={cn(styles.control, styles['control--date'])}
+              label={label}
+              granularity={granularity}
+              value={field.value ? dayjs(field.value).toDate() : null}
+              onChange={(next) => field.onChange(dayjs(next).format('YYYY-MM-DD'))}
+              placeholder={rest.placeholder}
+              disabled={rest.disabled}
+              invalid={Boolean(error)}
+              describedBy={describedBy(id, rest.hint, error)}
+            />
+          </FormField>
+        )}
+      />
+    );
+  }
+
   /** 고른 값이 언제나 있는 자리라 오류 슬롯을 두지 않는다. */
   function Pick<V extends string>({
     name,
@@ -289,7 +336,7 @@ export function createFields<T extends FieldValues>() {
     );
   }
 
-  return { Text, Area, Password, Number: Num, Select: Pick, Radio, Picker, Submit };
+  return { Text, Area, Password, Number: Num, Date: DateField, Select: Pick, Radio, Picker, Submit };
 }
 
 export function createForm<T extends FieldValues>() {

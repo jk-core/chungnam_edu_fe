@@ -25,6 +25,20 @@
     }
   }
 
+  &:disabled {
+    background-color: var(--surface-sunken);
+    color: var(--text-muted);
+    cursor: not-allowed;
+  }
+
+  &--empty .trigger__value {
+    color: var(--text-faint);
+  }
+
+  &[aria-invalid="true"] {
+    border-color: var(--critical);
+  }
+
   &__icon {
     width: 16px;
     height: 16px;

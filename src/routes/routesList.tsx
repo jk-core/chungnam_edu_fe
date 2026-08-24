@@ -1,5 +1,6 @@
 import { Navigate, useParams } from 'react-router-dom';
 import { lazy } from 'react';
+import { ADMIN_ROLES } from '@/mocks/accounts';
 import AuthLayout from '@/layouts/AuthLayout';
 import RootLayout from '@/layouts/RootLayout';
 import SubPageLayout from '@/layouts/SubPageLayout';
@@ -101,7 +102,7 @@ export const routes: RouteObject[] = [
           },
           {
             // 관리자 콘솔은 내부망 전용이고 관리자 역할만 통과한다 (SER-001-18, SFR-018-05).
-            element: <RequireAuth roles={['admin']} />,
+            element: <RequireAuth roles={ADMIN_ROLES} />,
             children: [
               {
                 path: 'admin',

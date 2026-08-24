@@ -56,6 +56,16 @@ export const ROLE_LABEL: Record<Role, string> = {
  */
 export const SELECTABLE_ROLES: Role[] = ['guest', 'customer', 'group', 'admin'];
 
+/**
+ * 관리자 콘솔에 들어가고 전권을 갖는 등급 — 관리자(2998)·개발자(2999) 둘뿐이다.
+ * 라우트 가드·메뉴·세션 길이가 저마다 판정하면 한 곳만 늘어나 권한이 새므로 여기 한 줄을 본다.
+ */
+export const ADMIN_ROLES: Role[] = ['admin', 'developer'];
+
+export function isAdminRole(role: Role | undefined): boolean {
+  return role !== undefined && ADMIN_ROLES.includes(role);
+}
+
 /** 등급별로 무엇까지 볼 수 있는지 — 로그인 화면과 계정 메뉴에서 그대로 쓴다. */
 export const ROLE_SCOPE_NOTE: Record<Role, string> = {
   guest: '전체 발전소를 조회만 합니다.',

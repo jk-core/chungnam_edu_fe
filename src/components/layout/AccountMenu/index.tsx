@@ -14,7 +14,7 @@ import {
 import { Badge } from '@/components/common/Badge';
 import { buildPath } from '@/routes/buildPath';
 import { PATH } from '@/routes/routes';
-import { ROLE_LABEL, ROLE_SCOPE_NOTE } from '@/mocks/accounts';
+import { isAdminRole, ROLE_LABEL, ROLE_SCOPE_NOTE } from '@/mocks/accounts';
 import { cn } from '@/utils/cn';
 import useAuthStore, { useAuthUser, useLogout } from '@/stores/authStore';
 import { useSelectedPlantId } from '@/stores/plantStore';
@@ -154,7 +154,7 @@ export function AccountMenu({ onOpenHelp }: AccountMenuProps) {
                 </button>
               ) : null}
 
-              {user.role === 'admin' ? (
+              {isAdminRole(user.role) ? (
                 <Link
                   to={PATH.ADMIN_PLANTS}
                   role="menuitem"

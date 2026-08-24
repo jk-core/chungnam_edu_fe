@@ -5,9 +5,9 @@ import type { FieldReport, ReportState } from '@/interface/fieldReport';
 /**
  * 현장보고서 접근 통제 (SFR-021-16).
  *
- * - 교육기관 담당자: 담당 학교 보고서를 쓰고 제출까지 한다. 반려된 건은 고쳐서 다시 낸다.
- * - 교육청 담당자: 전체를 열람하고 검토·확인으로 넘기거나 반려한다. 작성은 현장 몫이라 막는다.
- * - 관리자: 전부 할 수 있다.
+ * - 수용가·그룹관리자: 맡은 발전소 보고서를 쓰고 제출까지 한다. 반려된 건은 고쳐서 다시 낸다.
+ * - 게스트: 전체를 열람하고 검토·확인으로 넘기거나 반려한다. 작성은 현장 몫이라 막는다.
+ * - 관리자·개발자: 전부 할 수 있다.
  */
 export interface FieldPermission {
   canWrite: boolean;
@@ -34,14 +34,16 @@ export function getFieldPermission(user: AuthUser | null): FieldPermission {
   const role = user?.role ?? 'customer';
   const ownPlants = user?.plantIds ?? [];
 
+  // 맡은 발전소가 정해진 등급은 그 밖을 읽지 못한다 — 수용가는 자기 것, 그룹관리자는 맡은 곳들.
+  const isScoped = role === 'customer' || role === 'group';
   const canRead = (report: FieldReport) => (
-    role === 'customer' && ownPlants.length > 0 ? ownPlants.includes(report.schoolId) : true
+    isScoped && ownPlants.length > 0 ? ownPlants.includes(report.schoolId) : true
   );
 
   if (role === 'guest') {
     return {
       canWrite: false,
-      writeBlockedReason: '작성은 학교 담당자 권한입니다. 제출된 보고서를 검토·확인하거나 반려할 수 있습니다.',
+      writeBlockedReason: '작성은 수용가 권한입니다. 제출된 보고서를 검토·확인하거나 반려할 수 있습니다.',
       canShare: true,
       canAdvance: (report) => report.state !== 'draft' && report.state !== 'rejected' && !isLast(report.state),
       canReject: (report) => REJECTABLE.includes(report.state),
@@ -51,7 +53,7 @@ export function getFieldPermission(user: AuthUser | null): FieldPermission {
     };
   }
 
-  if (role === 'customer') {
+  if (isScoped) {
     return {
       canWrite: true,
       canShare: true,

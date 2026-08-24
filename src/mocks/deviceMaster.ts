@@ -3,7 +3,6 @@ import type {
   EquipmentMaster,
   InverterKind,
   InverterProduct,
-  JunctionBoxMaster,
   StringMaster,
 } from '@/interface/deviceMaster';
 import { getSeedAsset } from './assetMaster';
@@ -107,37 +106,26 @@ export const SEED_EQUIPMENT: EquipmentMaster[] = INVERTERS.map((inverter, index)
     note: '',
     installedAt: `${installedAt}-01`,
     operatedAt: `${installedAt}-15`,
+    firstReceivedAt: `${installedAt}-15 06:20`,
+    // 통신이 끊긴 설비는 마지막 수신이 한참 전에 멈춰 있다.
+    lastReceivedAt: inverter.status === 'commLost' ? stampAgo(3, '05:40') : stampAgo(0, '14:35'),
   };
 });
 
 /**
  * 서버가 매기는 일련번호를 흉내 낸다.
- * 인버터 순번과 그 안 순번을 섞어, 목업을 다시 만들어도 같은 값이 나오게 한다.
+ * 설비 순번과 그 안 순번을 섞어, 목업을 다시 만들어도 같은 값이 나오게 한다.
  */
-function boxSeq(inverterId: string, index: number): number {
+function stringSeq(inverterId: string, index: number): number {
   return INVERTERS.findIndex((item) => item.id === inverterId) * 100 + index + 1;
 }
-
-export const SEED_JUNCTION_BOXES: JunctionBoxMaster[] = INVERTERS.flatMap((inverter) => {
-  const master = SEED_EQUIPMENT.find((item) => item.inverterId === inverter.id);
-
-  return inverter.junctionBoxes.map((box, index) => ({
-    id: box.id,
-    connectBoxId: boxSeq(inverter.id, index),
-    inverterId: inverter.id,
-    name: box.name,
-    seriesCount: master?.series1 ?? 18,
-    // 접속반 하나가 받는 조 수는 그 아래 채널 수를 따른다.
-    parallelCount: Math.max(1, box.channels.length),
-  }));
-});
 
 export const SEED_STRINGS: StringMaster[] = INVERTERS.flatMap((inverter) => {
   const master = SEED_EQUIPMENT.find((item) => item.inverterId === inverter.id);
 
   return inverter.strings.map((unit, index) => ({
     id: unit.id,
-    stringId: boxSeq(inverter.id, index),
+    stringId: stringSeq(inverter.id, index),
     inverterId: inverter.id,
     seq: index + 1,
     name: unit.name,

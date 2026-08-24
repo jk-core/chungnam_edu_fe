@@ -1,5 +1,6 @@
 import { useMemo } from 'react';
 import { ADMIN_NAVIGATION, visibleNavigation } from '@/configs/navigation';
+import { isAdminRole } from '@/mocks/accounts';
 import { useAuthUser } from '@/stores/authStore';
 import type { NavSection } from '@/configs/navigation';
 
@@ -17,5 +18,5 @@ export function useVisibleNavigation(): NavSection[] {
 export function useAdminNavigation(): NavSection | null {
   const user = useAuthUser();
 
-  return user?.role === 'admin' ? ADMIN_NAVIGATION : null;
+  return isAdminRole(user?.role) ? ADMIN_NAVIGATION : null;
 }

@@ -91,6 +91,15 @@
     resize: vertical;
   }
 
+  /* 달력 여는 버튼을 옆 입력칸과 같은 선에 세운다 — 툴바 칩 모양 그대로면 혼자 작고 둥글다. */
+  &--date {
+    display: flex;
+    justify-content: flex-start;
+    height: auto;
+    padding-inline: s.$space-3;
+    border-radius: s.$radius-sm;
+  }
+
   &--number {
     font-family: var(--font-data);
     font-variant-numeric: tabular-nums;

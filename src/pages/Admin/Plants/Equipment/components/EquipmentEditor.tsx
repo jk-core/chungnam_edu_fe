@@ -122,6 +122,9 @@ export function EquipmentEditor({ cid }: EquipmentEditorProps) {
       installedAt: values.installedAt.trim(),
       // 운영일시는 운전시작일을 따라간다 — 손으로 고치는 값이 아니다.
       operatedAt: values.operatedAt.trim() || values.installedAt.trim(),
+      // 수집기가 채우는 값이라 등록·수정에서 만들지 않는다.
+      firstReceivedAt: target?.firstReceivedAt ?? null,
+      lastReceivedAt: target?.lastReceivedAt ?? null,
     };
     const logTarget = {
       kind: 'equipment' as const,
@@ -314,7 +317,7 @@ export function EquipmentEditor({ cid }: EquipmentEditorProps) {
             </FormRow>
             <FormRow cols={2}>
               <Form.Text label="설비 이름" name="name" maxLength={120} required />
-              <Form.Text label="운전시작일" name="installedAt" ime="numeric" hint="YYYY-MM-DD" optional />
+              <Form.Date label="운전시작일" name="installedAt" placeholder="운전을 시작한 날" optional />
             </FormRow>
           </FormSection>
 
@@ -561,11 +564,11 @@ export function EquipmentEditor({ cid }: EquipmentEditorProps) {
                 </div>
                 <div>
                   <dt>최초 수신일자</dt>
-                  <dd>{target?.installedAt || '—'}</dd>
+                  <dd>{target?.firstReceivedAt || '—'}</dd>
                 </div>
                 <div>
                   <dt>최종 수신일자</dt>
-                  <dd>{target?.operatedAt || '—'}</dd>
+                  <dd>{target?.lastReceivedAt || '—'}</dd>
                 </div>
                 <div>
                   <dt>특이사항</dt>

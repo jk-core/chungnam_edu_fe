@@ -55,19 +55,6 @@ export interface Pyranometer {
   status: RtuStatus;
 }
 
-/** 접속반 등록 정보 (SFR-017-06). 서버 규격은 `SolaConnectBoxEquipment` 다. */
-export interface JunctionBoxMaster {
-  id: string;
-  /** 서버가 매기는 접속반 번호 (connectBoxId) */
-  connectBoxId: number;
-  inverterId: string;
-  name: string;
-  /** 모듈 직렬 개수 */
-  seriesCount: number;
-  /** 모듈 병렬 개수 */
-  parallelCount: number;
-}
-
 /** 스트링 등록 정보 — 인버터 하나에 여러 개 (SFR-016-01). 서버 규격은 `SolaString` 이다. */
 export interface StringMaster {
   id: string;
@@ -147,6 +134,9 @@ export interface EquipmentMaster {
   /** 운전시작일 (meainInstDtm) */
   installedAt: string;
   operatedAt: string;
+  /** 수집이 처음·마지막으로 들어온 때. 등록이 아니라 수집기가 채우는 값이라 폼이 만지지 않는다 */
+  firstReceivedAt: string | null;
+  lastReceivedAt: string | null;
 }
 
 /** 장비 등록 정보 변경 이력 한 건 (SFR-016-06) — 일곱 갈래가 함께 쓴다 */
