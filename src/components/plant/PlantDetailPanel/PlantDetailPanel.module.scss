@@ -13,14 +13,14 @@
   color: var(--text-strong);
 }
 
+/*
+  칸 사이 간격은 `.panel` 의 gap 하나로만 둔다.
+  덩이마다 margin-top 을 따로 걸어 두었더니 gap 위에 겹쳐 20px·24px 로 제각각 벌어졌고,
+  그만큼 글이 아래로 밀려 지도 옆 칸에 스크롤이 생겼다.
+*/
 .badges {
   display: flex;
   gap: s.$space-2;
-  margin-top: s.$space-2;
-}
-
-.section {
-  margin-top: s.$space-3;
 }
 
 .sectionTitle {
@@ -41,7 +41,6 @@
   align-items: center;
   gap: 4px;
   width: 100%;
-  margin-top: s.$space-3;
   padding: s.$space-2 s.$space-3;
   justify-content: center;
   border: 1px solid var(--brand-soft-border);
@@ -118,12 +117,4 @@
     color: var(--text-strong);
     font-variant-numeric: tabular-nums;
   }
-}
-
-.foot {
-  @include t.caption;
-
-  padding-top: s.$space-2;
-  border-top: 1px solid var(--border-subtle);
-  color: var(--text-faint);
 }

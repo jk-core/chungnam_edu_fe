@@ -25,10 +25,10 @@ export function TriageColumn({ data }: { data: ControlRoomData }) {
   }, [data.openAlerts]);
 
   return (
-    <section className={styles.triage} aria-label="지금 손봐야 할 설비">
+    <section className={styles.triage} aria-label="조치 필요 설비">
       <header className={styles.triage__head}>
         <h2 className={styles.triage__title}>
-          지금 손봐야 할 설비
+          조치 필요 설비
           <em data-empty={faults.length === 0 ? '' : undefined}>{formatNumber(faults.length)}</em>
         </h2>
         <span className={styles.triage__note}>

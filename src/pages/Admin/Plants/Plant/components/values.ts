@@ -1,5 +1,5 @@
 import { NOW } from '@/mocks/today';
-import { PLANT_TYPES } from '@/mocks/schools';
+import { SCHOOL_LEVELS } from '@/mocks/schools';
 import { REGION_CODES } from '@/mocks/manageCodes';
 import type { PlantFormValues } from '@/service/plant/type';
 import type { ManagedUser } from '@/interface/account';
@@ -8,7 +8,7 @@ import type { Pyranometer } from '@/interface/deviceMaster';
 
 export const EMPTY_VALUES: PlantFormValues = {
   plantName: '',
-  plantType: PLANT_TYPES[0],
+  plantType: SCHOOL_LEVELS[0],
   regionCode: REGION_CODES[0].regionCode,
   address: '',
   addressDetail: '',

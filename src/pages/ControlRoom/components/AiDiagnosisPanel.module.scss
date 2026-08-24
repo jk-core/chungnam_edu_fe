@@ -1,0 +1,493 @@
+@use "@/styles/tokens/spacing" as s;
+@use "@/styles/tokens/typography" as t;
+@use "@/styles/utils/media" as media;
+@use "@/styles/utils/mixins" as mx;
+
+.diag {
+  display: flex;
+  flex-direction: column;
+  gap: s.$space-2;
+  flex: 1;
+  min-height: 0;
+
+  /* 지금 읽고 있는 알림의 심각도가 판 전체의 색을 정한다 */
+  &[data-tone="critical"] {
+    --tone: var(--critical);
+    --tone-soft: var(--critical-soft);
+    --tone-text: var(--critical-text);
+  }
+
+  &[data-tone="caution"] {
+    --tone: var(--caution);
+    --tone-soft: var(--caution-soft);
+    --tone-text: var(--caution-text);
+  }
+
+  &[data-tone="ok"] {
+    --tone: var(--ok);
+    --tone-soft: var(--ok-soft);
+    --tone-text: var(--ok-text);
+  }
+
+  &__empty {
+    @include t.body-sm;
+
+    margin: auto;
+    color: var(--text-faint);
+  }
+}
+
+/*
+  지켜보는 자리.
+
+  진행률이나 단계는 두지 않는다 — 진단은 차례를 밟아 끝나는 일이 아니라 값이 들어오는 대로
+  계속 지켜보는 일이다. 빛이 쉬지 않고 가로지르고, 분석한 계측값 수가 계속 오른다.
+*/
+.deck {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  flex-shrink: 0;
+  padding: s.$space-3;
+  border: 1px solid color-mix(in srgb, var(--tone) 22%, transparent);
+  border-radius: var(--room-radius);
+
+  /*
+    바탕에 점 격자를 깐다.
+
+    색만 옅게 물들이면 판이 비어 보이고, 선을 그려 두면 그 선이 무슨 값인지 묻게 된다.
+    같은 간격으로 찍힌 점은 값을 말하지 않으면서 「계측하는 자리」 라는 결만 남긴다.
+  */
+  background:
+    radial-gradient(circle at 1px 1px, color-mix(in srgb, var(--tone) 28%, transparent) 1px, transparent 1.4px)
+      0 0 / 10px 10px,
+    radial-gradient(120% 140% at 0% 0%, color-mix(in srgb, var(--tone) 12%, transparent), transparent 62%),
+    var(--surface-sunken);
+  overflow: hidden;
+  transition: border-color 0.5s ease;
+
+  &__sweep {
+    position: absolute;
+    inset-block: 0;
+    inset-inline-start: 0;
+    width: 32%;
+    background: linear-gradient(
+      90deg,
+      transparent,
+      color-mix(in srgb, var(--tone) 14%, transparent),
+      transparent
+    );
+    animation: ai-sweep 2.6s linear infinite;
+
+    @include media.reduced-motion {
+      animation: none;
+      opacity: 0.4;
+    }
+  }
+
+  &__head {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: s.$space-2;
+  }
+
+  &__title {
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+    flex: 1;
+    min-width: 0;
+  }
+
+  &__name {
+    @include t.label-md;
+    @include mx.truncate;
+
+    color: var(--text-strong);
+  }
+
+  /* 분석한 양 — 이 숫자가 쉬지 않고 오르는 것이 곧 지금 돌고 있다는 말이다 */
+  &__note {
+    @include t.caption;
+    @include mx.truncate;
+
+    color: var(--text-faint);
+
+    strong {
+      color: var(--tone-text);
+      font-family: var(--font-data);
+      font-variant-numeric: tabular-nums;
+      font-weight: 700;
+    }
+  }
+
+  &__live {
+    @include t.caption;
+
+    display: inline-flex;
+    align-items: center;
+    gap: s.$space-1;
+    flex-shrink: 0;
+    color: var(--text-muted);
+
+    &::before {
+      content: "";
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background-color: var(--tone);
+      animation: ai-pulse 1.6s ease-in-out infinite;
+
+      @include media.reduced-motion {
+        animation: none;
+      }
+    }
+  }
+}
+
+@keyframes ai-sweep {
+  from {
+    transform: translateX(-100%);
+  }
+
+  to {
+    transform: translateX(320%);
+  }
+}
+
+@keyframes ai-pulse {
+  0%,
+  100% {
+    opacity: 0.35;
+  }
+
+  50% {
+    opacity: 1;
+  }
+}
+
+@keyframes ai-scanline {
+  from {
+    transform: translateY(-100%);
+  }
+
+  to {
+    transform: translateY(1400%);
+  }
+}
+
+.caption {
+  @include t.caption;
+
+  display: flex;
+  align-items: center;
+  gap: s.$space-2;
+  flex-shrink: 0;
+  color: var(--text-faint);
+
+  &__label {
+    flex-shrink: 0;
+  }
+
+  &__count {
+    flex: 1;
+    color: var(--text-muted);
+    font-family: var(--font-data);
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* 앞뒤로 넘기고 세워 두는 단추 — 지도 순회 제어와 같은 생김새로 둔다 */
+  &__controls {
+    display: inline-flex;
+    align-items: center;
+    gap: 2px;
+    flex-shrink: 0;
+  }
+
+  &__step {
+    @include mx.keyboard-focus;
+
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 20px;
+    height: 20px;
+    padding: 0;
+    border: 1px solid var(--border-subtle);
+    border-radius: 50%;
+    background: none;
+    color: var(--text-muted);
+    cursor: pointer;
+    transition: border-color 0.16s ease, background-color 0.16s ease, color 0.16s ease;
+
+    &:hover {
+      border-color: color-mix(in srgb, var(--tone) 52%, transparent);
+      background-color: var(--tone-soft);
+      color: var(--tone-text);
+    }
+  }
+}
+
+/*
+  지역 한 곳.
+
+  고장코드 낱건 대신 가지고 있는 값으로 요약을 적는다. 심각도 색 띠는 두지 않는다 —
+  지역 요약은 한 설비의 판정이 아니라 그 지역의 상태 분포이고, 색은 아래 분포 막대가 말한다.
+*/
+.card {
+  display: flex;
+  flex-direction: column;
+  gap: s.$space-3;
+  flex: 1;
+  min-height: 0;
+  padding: s.$space-3;
+  border: 1px solid color-mix(in srgb, var(--tone) 24%, transparent);
+  border-radius: var(--room-radius);
+  background:
+    linear-gradient(180deg, color-mix(in srgb, var(--tone) 7%, transparent), transparent 46%),
+    var(--surface);
+  box-shadow: var(--shadow-sm);
+
+  &__top {
+    display: flex;
+    align-items: baseline;
+    gap: s.$space-2;
+  }
+
+  &__name {
+    @include t.title-sm;
+    @include mx.truncate;
+
+    flex: 1;
+    min-width: 0;
+    color: var(--text-strong);
+  }
+
+  &__count {
+    @include t.label-sm;
+
+    flex-shrink: 0;
+    color: var(--text-muted);
+    font-family: var(--font-data);
+  }
+
+  /* 지금 상태 한마디 — 막대를 걷어낸 자리를 이 배지가 대신한다 */
+  &__state {
+    @include t.caption;
+
+    flex-shrink: 0;
+    padding: 2px s.$space-2;
+    border-radius: s.$radius-full;
+    background-color: var(--tone-soft);
+    color: var(--tone-text);
+    font-weight: 700;
+  }
+
+}
+
+/*
+  지역 위치 지도.
+
+  도를 지역별로 나눠 두고 지금 읽는 지역만 물들인다 — 요약 글만으로는 그 지역이 도 안에서
+  어디쯤인지 알 수 없다.
+
+  충남 바깥은 판 바탕색 하나로 둔다. 이웃 시·도 면은 그리지 않는다 — 그림의 네 변에 맞춰
+  잘려 있어 테두리를 두르면 판이 끝나는 자리에 곧은 선이 남고, 한 지역을 당겨 보면 그 선이
+  화면 한복판을 가로지른다. 바탕 한 장 위에 충남만 떠 있게 두면 그런 자국이 생기지 않는다.
+*/
+.map {
+  width: 100%;
+  height: 190px;
+  flex-shrink: 0;
+  border-radius: 5px;
+  background-color: color-mix(in srgb, var(--surface-sunken) 60%, var(--surface));
+  overflow: hidden;
+
+  /* 당길 때 미끄러지듯 따라간다 — 뷰박스는 부드럽게 바뀌지 않아 안쪽 묶음을 옮긴다 */
+  &__zoom {
+    transition: transform 0.7s cubic-bezier(0.22, 0.68, 0.32, 1);
+
+    @include media.reduced-motion {
+      transition: none;
+    }
+  }
+
+  /*
+    시·군 면.
+
+    도 하나가 통째로 보이면 어느 칸이 어느 지역인지 알 수 없다. 선은 또렷하게 긋되 굵기는
+    당겨도 그대로 두어(non-scaling-stroke), 확대했을 때 선만 두꺼워지지 않게 한다.
+  */
+  &__cell {
+    fill: var(--surface-sunken);
+    stroke: var(--border-strong);
+    stroke-width: 0.9;
+    transition: fill 0.4s ease, stroke 0.4s ease;
+
+    &[data-on] {
+      fill: color-mix(in srgb, var(--tone) 26%, transparent);
+      stroke: var(--tone);
+      stroke-width: 1.8;
+    }
+  }
+
+  /* 발전소 한 점 — 상태 색으로 찍어 요약 글의 개소 수가 지도 위에서 세어진다 */
+  &__dot {
+    stroke: var(--surface);
+
+    &--ok {
+      fill: var(--ok);
+    }
+
+    &--brand {
+      fill: var(--brand);
+    }
+
+    &--caution {
+      fill: var(--caution);
+    }
+
+    &--critical {
+      fill: var(--critical);
+    }
+
+    &--offline {
+      fill: var(--offline);
+    }
+  }
+}
+
+/*
+  진단이 쓴 글.
+
+  규모·출력·실적·상태를 줄로 가른다 — 한 문단으로 이어 쓰면 값이 글 속에 묻히고, 무엇을
+  말하는 줄인지 알려면 문장을 처음부터 읽어야 한다. 왼쪽에 이름표를 세우면 그 줄만 떼어
+  봐도 뜻이 서고, 세로로 훑을 때 네 가지가 같은 자리에서 시작한다.
+*/
+.brief {
+  display: flex;
+  flex-direction: column;
+
+  /*
+    위에서부터 한 줄씩 쌓인다.
+
+    남는 높이를 줄 사이로 나눠 두었더니 줄이 하나 늘 때마다 이미 적힌 줄들이 아래로 밀려,
+    읽던 자리가 계속 움직였다. 자리를 붙박아 두면 새 줄만 바로 아래에 붙는다.
+  */
+  justify-content: flex-start;
+  gap: s.$space-3;
+  flex: 1;
+  min-height: 0;
+
+  &__line {
+    display: grid;
+    gap: s.$space-3;
+    grid-template-columns: 40px minmax(0, 1fr);
+    align-items: baseline;
+  }
+
+  &__label {
+    @include t.caption;
+
+    padding: 1px 0;
+    border-radius: s.$radius-xs;
+    background-color: var(--surface-sunken);
+    color: var(--text-faint);
+    text-align: center;
+    font-weight: 700;
+  }
+
+  &__text {
+    @include t.body-sm;
+
+    color: var(--text);
+    line-height: 1.65;
+    word-break: keep-all;
+  }
+
+  /*
+    값에 색을 준다.
+
+    굵기만으로는 한 문장 안의 값 서너 개가 모두 같은 무게로 읽혀, 어느 것이 살펴볼 값인지
+    글을 끝까지 읽어야 안다. 상태를 말하는 값만 그 상태색으로 물들여 「경고」 와 「통신단절」 이
+    읽기 전에 갈리게 하고, 설비용량·발전량처럼 급한 정도가 없는 값은 강조색 하나로 묶는다 —
+    그런 값까지 붉게 적으면 온 문장이 경보처럼 보인다.
+
+    바탕이 밝은 카드이므로 배지에 쓰는 면색이 아니라 글자용 색을 쓴다. 면색 그대로는
+    주황·연두가 흰 바탕에서 흐려진다.
+  */
+  &__key {
+    color: var(--brand);
+    font-family: var(--font-data);
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+
+    &[data-tone="ok"] {
+      color: var(--ok-text);
+    }
+
+    &[data-tone="caution"] {
+      color: var(--caution-text);
+    }
+
+    &[data-tone="critical"] {
+      color: var(--critical-text);
+    }
+
+    &[data-tone="offline"] {
+      color: var(--offline-text);
+    }
+  }
+
+  /* 아직 찍는 중임을 알리는 커서 — 그 줄이 끝나면 다음 줄로 옮겨 간다 */
+  &__caret {
+    display: inline-block;
+    width: 2px;
+    height: 1em;
+    margin-left: 2px;
+    background-color: var(--tone);
+    vertical-align: -2px;
+    animation: ai-caret 0.9s steps(1) infinite;
+
+    @include media.reduced-motion {
+      animation: none;
+    }
+  }
+}
+
+@keyframes ai-caret {
+  0%,
+  49% {
+    opacity: 1;
+  }
+
+  50%,
+  100% {
+    opacity: 0;
+  }
+}
+
+
+
+/* 몇 번째 지역을 보고 있는지 */
+.dots {
+  display: flex;
+  gap: 4px;
+  flex-shrink: 0;
+  justify-content: center;
+  list-style: none;
+
+  &__dot {
+    width: 5px;
+    height: 5px;
+    border-radius: 50%;
+    background-color: var(--border);
+    transition: background-color 0.3s ease, transform 0.3s ease;
+
+    &[data-state="on"] {
+      background-color: var(--tone);
+      transform: scale(1.35);
+    }
+  }
+}

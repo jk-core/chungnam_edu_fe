@@ -18,11 +18,18 @@ $space-12: 112px;
 $control-height: 40px;
 $control-height-chip: 36px;
 
+/*
+  모서리 반지름.
+
+  판·카드·입력칸처럼 상자로 읽히는 것은 화면을 가리지 않고 모두 12px 한 값을 쓴다 —
+  칸마다 곡률이 다르면 같은 화면 안에서 부품이 따로 놀아 보인다 (2026-08-21 UI 검토 회의).
+  작은 칩과 표시용 조각만 6px 을 남기고, 알약은 여전히 full 이다.
+*/
 $radius-xs: 6px;
-$radius-sm: 8px;
+$radius-sm: 12px;
 $radius-md: 12px;
-$radius-lg: 16px;
-$radius-xl: 24px;
+$radius-lg: 12px;
+$radius-xl: 12px;
 $radius-full: 999px;
 
 // KRDS 차용 — 컨테이너 폭과 좌우 여백

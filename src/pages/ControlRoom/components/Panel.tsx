@@ -8,6 +8,8 @@ interface PanelProps {
   note?: ReactNode;
   /** 열에 남는 높이를 이 판이 받을지 */
   grow?: boolean;
+  /** 테두리를 도는 빛으로 이 판이 스스로 돌고 있음을 알릴지 — AI 진단처럼 살아 있는 판에만 준다 */
+  accent?: boolean;
   children: ReactNode;
 }
 
@@ -19,9 +21,15 @@ interface PanelProps {
  *
  * 제목을 `aria-label` 로도 쓴다 — 둘을 따로 적으면 제목만 고치고 이름표는 옛말로 남는다.
  */
-export function Panel({ title, note, grow, children }: PanelProps) {
+export function Panel({ title, note, grow, accent, children }: PanelProps) {
+  const className = [
+    styles.panel,
+    grow ? styles.col__grow : '',
+    accent ? styles['panel--accent'] : '',
+  ].filter(Boolean).join(' ');
+
   return (
-    <section className={grow ? `${styles.panel} ${styles.col__grow}` : styles.panel} aria-label={title}>
+    <section className={className} aria-label={title}>
       <div className={styles.panel__head}>
         <h2 className={styles.panel__title}>{title}</h2>
         {note ? <span className={styles.panel__note}>{note}</span> : null}

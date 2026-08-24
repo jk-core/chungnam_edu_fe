@@ -23,7 +23,7 @@ export const plantDetailRequestSchema = z.object({
   powerPlantId: z.number().int(),
 });
 
-export const plantTypeSchema = z.enum(['초등학교', '중학교', '고등학교', '특수학교', '기관']);
+export const plantTypeSchema = z.enum(['유치원', '초등학교', '중학교', '고등학교', '특수학교', '교육기관']);
 
 export const plantDetailResponseSchema = z.object({
   powerPlantId: z.number().int(),

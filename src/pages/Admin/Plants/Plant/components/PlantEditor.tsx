@@ -12,7 +12,7 @@ import { listPath } from '@/pages/Admin/_shared/adminPath';
 import { Modal } from '@/components/common/Modal';
 import { MSG } from '@/configs/messages';
 import { plantFormSchema } from '@/service/plant/type';
-import { PLANT_TYPES, SCHOOLS } from '@/mocks/schools';
+import { SCHOOL_LEVELS, SCHOOLS } from '@/mocks/schools';
 import { RecordPicker } from '@/components/common/RecordPicker';
 import { regionNameOfCode } from '@/mocks/manageCodes';
 import { toast } from '@/stores/toastStore';
@@ -196,7 +196,7 @@ export function PlantEditor({ powerPlantId }: { powerPlantId: number | null }) {
               <Form.Select
                 label="구분"
                 name="plantType"
-                options={PLANT_TYPES.map((item) => ({ value: item, label: item }))}
+                options={SCHOOL_LEVELS.map((item) => ({ value: item, label: item }))}
               />
             </FormRow>
             <FormRow cols={2}>

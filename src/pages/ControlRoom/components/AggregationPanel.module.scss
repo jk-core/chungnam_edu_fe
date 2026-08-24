@@ -60,9 +60,12 @@
   table-layout: fixed;
   border-collapse: collapse;
 
-  /* 이름 칸이 가장 넓어야 한다 — 숫자는 폭이 정해져 있지만 이름은 길이가 제각각이다 */
-  & thead th:first-child {
-    width: 40%;
+  /*
+    이름 칸이 가장 넓어야 한다 — 숫자는 폭이 정해져 있지만 이름은 길이가 제각각이다.
+    맨 앞 순위가 생긴 뒤로는 두 번째 칸이 이름 자리다.
+  */
+  & thead th:nth-child(2) {
+    width: 34%;
   }
 
   & thead th {
@@ -79,6 +82,16 @@
     font-weight: 500;
   }
 
+  /* 머리글은 제 칸 값과 같은 쪽에 선다 — 숫자 위에 왼쪽 글씨가 앉으면 열이 어긋나 보인다 */
+  & thead th.table__num,
+  & thead th.table__share {
+    text-align: right;
+  }
+
+  & thead th.table__rank {
+    text-align: center;
+  }
+
   &__caption {
     @include mx.sr-only;
   }
@@ -89,6 +102,16 @@
     @include media.reduced-motion {
       animation: none;
     }
+
+    /*
+      줄 높이를 못 박는다.
+
+      배지가 붙은 줄과 붙지 않은 줄이 1~2px 씩 달라, 쪽이 넘어가거나 축을 바꿀 때마다
+      표 높이가 흔들렸다. 줄마다 같은 높이를 주면 어떤 조합이 와도 표는 같은 자리를 차지한다.
+    */
+    tr {
+      height: 38px;
+    }
   }
 
   /*
@@ -98,14 +121,24 @@
   &__name {
     @include t.body-sm;
 
-    display: flex;
-    align-items: center;
-    gap: s.$space-2;
-    min-width: 0;
     overflow: hidden;
     color: var(--text-strong);
     text-align: left;
     font-weight: 500;
+  }
+
+  /*
+    이름·개소 수·배지를 가로로 놓는다.
+
+    셀(th) 에 직접 flex 를 주면 그 칸이 표 셀에서 빠져 나와 줄 높이를 1px 덜 차지한다 —
+    같은 줄인데 이 칸의 아래 선만 위로 올라앉아 가로줄이 끊겨 보인다. 안쪽에 한 겹을 두어
+    셀은 셀대로 두고 배치만 여기서 한다.
+  */
+  &__nameInner {
+    display: flex;
+    align-items: center;
+    gap: s.$space-2;
+    min-width: 0;
 
     /* 이름이 먼저 줄어들고, 개소 수와 배지는 제 크기를 지킨다 */
     > span:first-child {
@@ -117,6 +150,79 @@
     > * {
       flex-shrink: 0;
     }
+  }
+
+  /* 위 세 줄이 곧 금일 실적 순위다 — 이름 앞에 등수를 얹는다 */
+  &__medal {
+    @include t.caption;
+
+    flex-shrink: 0;
+    padding: 1px s.$space-2;
+    border-radius: s.$radius-full;
+    font-family: var(--font-data);
+    font-weight: 700;
+  }
+
+  /* 자리만 지키는 빈 줄 — 눈에 띄지 않게 둔다 */
+  &__filler {
+    visibility: hidden;
+  }
+
+  /* 맨 앞 순위 — 세 자리 안쪽이라 폭을 못 박고 가운데 세운다 */
+  &__rank {
+    @include t.label-sm;
+
+    width: 42px;
+    color: var(--text-faint);
+    text-align: center;
+    font-family: var(--font-data);
+    font-variant-numeric: tabular-nums;
+    font-weight: 500;
+  }
+
+  /* 1·2·3 위만 금·은·동을 얹는다 */
+  &__medal {
+    @include t.caption;
+
+    display: inline-grid;
+    width: 22px;
+    height: 22px;
+    place-items: center;
+    border-radius: 50%;
+    font-family: var(--font-data);
+    font-weight: 700;
+  }
+
+  /* 총계 — 줄을 다 읽고 난 자리에서 관내 전체를 받는다 */
+  &__foot {
+    /* 순위 자리에 서는 「총계」 는 숫자가 아니라 말이라 폭에 맞춰 줄이지 않는다 */
+    .table__rank {
+      font-family: var(--font-sans);
+      white-space: nowrap;
+    }
+
+    th,
+    td {
+      padding-top: s.$space-2;
+      border-top: 1px solid var(--border);
+      color: var(--text-strong);
+      font-weight: 700;
+    }
+
+    .table__share {
+      font-family: var(--font-data);
+      font-variant-numeric: tabular-nums;
+      text-align: right;
+    }
+  }
+
+  /* 값에 붙는 단위 — 숫자보다 한 단 작고 옅게 두어 자릿수 읽기를 방해하지 않는다 */
+  &__unit {
+    margin-left: 2px;
+    color: var(--text-faint);
+    font-family: var(--font-sans);
+    font-size: 10px;
+    font-weight: 500;
   }
 
   &__count {
@@ -181,10 +287,17 @@
   }
 }
 
+/*
+  새 쪽이 옆에서 밀려 들어온다.
+
+  옮기는 거리를 짧게 둔다 — 화면이 다른 탭에 가리면 브라우저가 애니메이션을 시작 지점에
+  세워 두는데, 그때 표 본문만 옮겨진 자리에 멈춰 머리글·총계와 어긋나 보인다. 8px 이면
+  움직임은 남고 멈춰 서도 어긋난 티가 나지 않는다.
+*/
 @keyframes rows-slide {
   from {
     opacity: 0;
-    transform: translateX(28px);
+    transform: translateX(8px);
   }
 
   to {
@@ -193,28 +306,71 @@
   }
 }
 
+/*
+  막대가 곧 값의 자리다.
+
+  채움은 진하게 둔다 — 옅게 깔면 예쁘긴 해도 어디까지 찼는지 멀리서 읽히지 않는다. 대신
+  숫자는 채움이 제 자리까지 닿았는지에 따라 색을 뒤집어, 면 위에서도 바탕 위에서도 읽힌다.
+*/
 .bar {
-  display: block;
-  height: 6px;
-  border-radius: s.$radius-full;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  height: 20px;
+  padding-right: s.$space-2;
+  border-radius: var(--room-radius);
   background-color: var(--surface-sunken);
   overflow: hidden;
 
   &__fill {
-    display: block;
-    height: 100%;
-    border-radius: s.$radius-full;
-    background: linear-gradient(90deg, var(--brand), var(--solar));
+    position: absolute;
+    inset-block: 0;
+    inset-inline-start: 0;
+    border-radius: var(--room-radius);
+    background: linear-gradient(90deg, var(--brand) 12%, var(--solar));
+    box-shadow: inset 0 1px 0 rgb(255 255 255 / 22%);
     transition: width 0.5s cubic-bezier(0.22, 0.68, 0.32, 1);
   }
 
   &__value {
-    @include t.caption;
+    @include t.label-sm;
 
-    display: block;
-    margin-top: 2px;
-    color: var(--text-muted);
-    text-align: right;
+    position: relative;
+    color: var(--text-strong);
     font-family: var(--font-data);
+    font-variant-numeric: tabular-nums;
+    transition: color 0.3s ease;
+  }
+
+  &__unit {
+    margin-left: 1px;
+    font-family: var(--font-sans);
+    font-size: 10px;
+    font-weight: 500;
+    opacity: 0.75;
+  }
+
+  /* 채움이 숫자 자리까지 닿았다 — 면 위 글자로 뒤집는다 */
+  &[data-over] &__value {
+    color: var(--text-on-brand);
+    text-shadow: 0 1px 1px rgb(0 0 0 / 22%);
+  }
+}
+
+.medal {
+  &--gold {
+    background-color: color-mix(in srgb, #d4a017 24%, transparent);
+    color: #b8860b;
+  }
+
+  &--silver {
+    background-color: color-mix(in srgb, #8c93a3 24%, transparent);
+    color: #6f7686;
+  }
+
+  &--bronze {
+    background-color: color-mix(in srgb, #c07a4b 24%, transparent);
+    color: #a4643a;
   }
 }

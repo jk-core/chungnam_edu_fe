@@ -58,12 +58,17 @@ export function PlantMapLayer({ plants, level, selectedId, onSelect, onOpenClust
 
         if (single) {
           const plant = single.data;
+          /*
+            뾰족한 끝이 좌표를 짚도록 아래 끝을 기준점에 맞춘다 (2026-08-21 회의).
+            가운데를 맞추면 이름표 높이의 절반만큼 위치가 어긋나, 어느 점이 어느 학교인지
+            촘촘한 자리에서 헷갈린다.
+          */
           const selected = plant.id === selectedId;
           // 이상 설비는 이름표째 상태색으로 물들고 점등된다 — 색점 하나로는 128개 사이에서 눈에 걸리지 않는다.
           const alert = isAbnormal(plant.status);
 
           return (
-            <CustomOverlayMap key={plant.id} position={position} xAnchor={0.5} yAnchor={0.5} zIndex={10} clickable>
+            <CustomOverlayMap key={plant.id} position={position} xAnchor={0.5} yAnchor={1} zIndex={10} clickable>
               <button
                 type="button"
                 className={cn(styles.pin, styles[`pin--${TONE_CLASS[plant.status]}`], {

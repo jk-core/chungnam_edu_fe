@@ -1,4 +1,4 @@
-import type { PlantType } from './energy';
+import type { SchoolLevel } from './energy';
 import type { RtuStatus } from './status';
 
 /**
@@ -31,7 +31,7 @@ export interface PlantAsset {
   /** 연결한 일사량계 번호 (irradId) */
   irradId: number | null;
   /** 구분 (plantType) */
-  plantType: PlantType;
+  plantType: SchoolLevel;
   /** 비고 (etc) */
   etc: string;
 }

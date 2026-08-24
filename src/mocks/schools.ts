@@ -1,74 +1,31 @@
 import type { OperationStatus, RtuStatus } from '@/interface/status';
-import type { PlantType, School, SchoolLevel } from '@/interface/energy';
-import { REGIONS } from './regions';
+import type { School, SchoolLevel } from '@/interface/energy';
+import { PLANT_SEEDS } from './plantMaster';
+import { REGION_HOURS } from './regions';
 import { countOperation, isProducing } from './status';
-import { createRandom, pickNumber, pickOne } from './random';
+import { createRandom, hashSeed, pickNumber } from './random';
+import type { PlantSeed } from './plantMaster';
 
 /**
- * 시·군별 지명. 학교 이름과 도로명에 함께 쓴다.
- * 지역과 어긋나는 이름이 나오지 않도록 시·군 안에서만 고른다.
+ * 발전소 목록.
+ *
+ * 이름·지역·학교급·설비용량·주소·설치년도·좌표는 교육청 마스터 표(`plantMaster`)에서 그대로 온다.
+ * 계측에서 와야 할 값(운전상태·발전량·이용률 등)만 여기서 만든다 — 실제 수집이 붙으면 이 파일만
+ * 걷어내면 된다.
+ *
+ * 난수 씨앗은 발전소 id 에서 뽑는다. 순서대로 한 수열을 나눠 쓰면 마스터 표에 한 줄만 끼어들어도
+ * 그 뒤 전부의 상태가 바뀌어, 어제 본 화면과 오늘 본 화면이 달라진다.
  */
-const PLACE_NAMES: Record<string, string[]> = {
-  cheonan: ['중앙', '백석', '두정', '병천', '직산', '풍세', '신방', '성정'],
-  asan: ['온양', '배방', '탕정', '도고', '송악', '음봉', '선장'],
-  seosan: ['성연', '음암', '해미', '고북', '대산', '부석', '지곡'],
-  dangjin: ['합덕', '송산', '신평', '우강', '면천', '순성', '고대'],
-  nonsan: ['강경', '연무', '은진', '광석', '성동', '노성'],
-  gongju: ['유구', '반포', '계룡', '정안', '의당', '이인'],
-  boryeong: ['대천', '주교', '웅천', '청소', '남포', '오천'],
-  hongseong: ['광천', '홍동', '홍북', '결성', '갈산', '은하'],
-  yesan: ['삽교', '덕산', '대흥', '신양', '광시', '고덕'],
-  buyeo: ['규암', '외산', '은산', '임천', '홍산', '석성'],
-  geumsan: ['진산', '남이', '추부', '부리', '제원', '복수'],
-  seocheon: ['장항', '마서', '한산', '비인', '판교', '문산'],
-  taean: ['안면', '소원', '원북', '근흥', '이원', '고남'],
-  cheongyang: ['정산', '운곡', '대치', '목면', '화성', '남양'],
-  gyeryong: ['엄사', '두마', '금암', '계룡', '신도', '향한'],
-};
 
-/** 시·군별 하위 행정구역 */
-const SUB_AREA: Record<string, string[]> = {
-  cheonan: ['동남구', '서북구', '병천면'],
-  asan: ['배방읍', '탕정면', '온양동'],
-  seosan: ['음암면', '해미면', '동문동'],
-  dangjin: ['합덕읍', '송악읍', '신평면'],
-  nonsan: ['강경읍', '연무읍', '은진면'],
-  gongju: ['유구읍', '계룡면', '반포면'],
-  boryeong: ['웅천읍', '주교면', '대천동'],
-  hongseong: ['홍북읍', '홍동면', '광천읍'],
-  yesan: ['삽교읍', '덕산면', '대흥면'],
-  buyeo: ['규암면', '외산면', '은산면'],
-  geumsan: ['진산면', '남이면', '추부면'],
-  seocheon: ['장항읍', '마서면', '한산면'],
-  taean: ['안면읍', '남면', '소원면'],
-  cheongyang: ['정산면', '운곡면', '대치면'],
-  gyeryong: ['엄사면', '두마면', '신도안면'],
-};
-
-const LEVELS: SchoolLevel[] = ['초등학교', '중학교', '고등학교', '특수학교'];
-
-/**
- * 시·군별 마커 흩뿌림 반경(도).
- * 지도에서 마커가 경계 밖으로 나가지 않도록, 좁거나 뾰족한 시·군은 반경을 줄였다.
- */
-const SPREAD: Record<string, number> = {
-  cheonan: 0.05,
-  asan: 0.05,
-  seosan: 0.045,
-  dangjin: 0.04,
-  nonsan: 0.045,
-  gongju: 0.05,
-  boryeong: 0.03,
-  hongseong: 0.045,
-  yesan: 0.04,
-  buyeo: 0.045,
-  // 금산은 남동쪽 끝이 뾰족해 조금만 벗어나도 경계를 넘는다.
-  geumsan: 0.012,
-  seocheon: 0.025,
-  taean: 0.025,
-  cheongyang: 0.04,
-  gyeryong: 0.015,
-};
+/** 학교급. 마스터 표의 구분을 그대로 따른다. */
+export const SCHOOL_LEVELS: SchoolLevel[] = [
+  '유치원',
+  '초등학교',
+  '중학교',
+  '고등학교',
+  '특수학교',
+  '교육기관',
+];
 
 function pickStatus(next: () => number): OperationStatus {
   const roll = next();
@@ -94,62 +51,41 @@ function pickPyranometerStatus(next: () => number, plantStatus: OperationStatus)
   return 'normal';
 }
 
-function buildSchools(): School[] {
-  const next = createRandom(20260728);
-  const schools: School[] = [];
+/** 설치년도만 있는 마스터 값에 월을 붙인다. 태양광 준공은 대체로 봄·가을에 몰린다. */
+function installMonth(next: () => number): string {
+  const months = [3, 4, 5, 9, 10, 11, 12];
 
-  REGIONS.forEach((region) => {
-    // 시·군별 실제 학교 수 전부를 만들지 않고, 대표 표본만 생성한다.
-    const sampleCount = Math.max(4, Math.round(region.schoolCount * 0.35));
-    const places = PLACE_NAMES[region.code];
-    const spread = SPREAD[region.code] ?? 0.04;
-
-    for (let index = 0; index < sampleCount; index += 1) {
-      // 지명은 순환시키고 학교급은 한 바퀴마다 밀어, (지명 × 학교급) 조합이 겹치지 않게 한다.
-      const place = places[index % places.length];
-      const level = LEVELS[(index + Math.floor(index / places.length)) % LEVELS.length];
-      const capacityKw = pickNumber(next, 42, 186, 1);
-      const utilization = pickNumber(next, 0.108, 0.176, 4);
-      const todayKwh = pickNumber(next, capacityKw * 3.1, capacityKw * 5.4, 1);
-      const status = pickStatus(next);
-      const subArea = pickOne(next, SUB_AREA[region.code]);
-      const buildingNumber = 1 + Math.floor(next() * 240);
-
-      schools.push({
-        id: `${region.code}-${index + 1}`,
-        name: `${place}${level}`,
-        regionCode: region.code,
-        regionName: region.name,
-        level,
-        address: `충청남도 ${region.name} ${subArea} ${place}로 ${buildingNumber}`,
-        capacityKw,
-        inverterCount: Math.max(1, Math.round(capacityKw / 48)),
-        pyranometerStatus: pickPyranometerStatus(next, status),
-        todayKwh: isProducing(status) ? todayKwh : 0,
-        monthKwh: pickNumber(next, todayKwh * 24, todayKwh * 29, 0),
-        yearKwh: pickNumber(next, capacityKw * 980, capacityKw * 1420, 0),
-        utilization,
-        status,
-        installedAt: `${2016 + Math.floor(next() * 9)}-0${1 + Math.floor(next() * 9)}`,
-        // 시·군 중심에서 조금씩 흩뿌려 마커가 한 점에 겹치지 않게 한다.
-        location: {
-          lng: Math.round((region.center.lng + pickNumber(next, -spread, spread, 4)) * 10000) / 10000,
-          // 위도 1도가 경도 1도보다 길어, 같은 거리를 두려면 조금 좁혀야 한다.
-          lat: Math.round((region.center.lat + pickNumber(next, -spread * 0.8, spread * 0.8, 4)) * 10000) / 10000,
-        },
-      });
-    }
-  });
-
-  return schools;
+  return String(months[Math.floor(next() * months.length)]).padStart(2, '0');
 }
 
-export const SCHOOLS: School[] = buildSchools();
+function toSchool(seed: PlantSeed): School {
+  const next = createRandom(hashSeed(seed.id));
+  const status = pickStatus(next);
+  // 같은 시·군이라도 방위각·그늘·오염도가 달라, 지역 발전시간을 중심으로 흩뿌린다.
+  const hours = (REGION_HOURS[seed.regionCode] ?? 3.8) * pickNumber(next, 0.82, 1.14, 3);
+  const todayKwh = Math.round(seed.capacityKw * hours * 10) / 10;
 
-export const SCHOOL_LEVELS = LEVELS;
+  return {
+    id: seed.id,
+    name: seed.name,
+    regionCode: seed.regionCode,
+    regionName: seed.regionName,
+    level: seed.level,
+    address: seed.address,
+    capacityKw: seed.capacityKw,
+    inverterCount: Math.max(1, Math.round(seed.capacityKw / 48)),
+    pyranometerStatus: pickPyranometerStatus(next, status),
+    todayKwh: isProducing(status) ? todayKwh : 0,
+    monthKwh: Math.round(todayKwh * pickNumber(next, 24, 29, 2)),
+    yearKwh: Math.round(seed.capacityKw * pickNumber(next, 980, 1420, 1)),
+    utilization: Math.round((hours / 24) * 10000) / 10000,
+    status,
+    installedAt: `${seed.installedAt}-${installMonth(next)}`,
+    location: { lng: seed.lng, lat: seed.lat },
+  };
+}
 
-/** 발전소 구분 (plantType) — 학교급 넷에 기관을 더한다 */
-export const PLANT_TYPES: PlantType[] = [...LEVELS, '기관'];
+export const SCHOOLS: School[] = PLANT_SEEDS.map(toSchool);
 
 export const STATUS_COUNT = countOperation(SCHOOLS);
 

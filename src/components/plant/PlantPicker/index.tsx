@@ -16,7 +16,7 @@ import { useSelectNode } from '@/stores/plantStore';
 import styles from './PlantPicker.module.scss';
 
 const REGION_OPTIONS = [
-  { value: 'all', label: '전체 시·군' },
+  { value: 'all', label: '전체 지역' },
   ...REGIONS.map((region) => ({ value: region.code, label: region.name })),
 ];
 
@@ -142,7 +142,7 @@ export function PlantPicker({ variant = 'inline' }: PlantPickerProps) {
               onChange={(event) => setQuery(event.target.value)}
             />
           </label>
-          <Select label="시·군" value={regionCode} options={REGION_OPTIONS} onChange={setRegionCode} hideLabel />
+          <Select label="지역" value={regionCode} options={REGION_OPTIONS} onChange={setRegionCode} hideLabel />
         </div>
 
         {/*
@@ -155,7 +155,7 @@ export function PlantPicker({ variant = 'inline' }: PlantPickerProps) {
         <p className={styles.count}>{formatNumber(results.length)}개 발전소</p>
 
         {results.length === 0 ? (
-          <EmptyState title="조건에 맞는 발전소가 없습니다" description="검색어나 시·군을 바꿔 보세요." />
+          <EmptyState title="조건에 맞는 발전소가 없습니다" description="검색어나 지역을 바꿔 보세요." />
         ) : (
           <ul className={styles.list}>
             {results.map((school) => {
