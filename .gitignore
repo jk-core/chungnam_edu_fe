@@ -35,3 +35,6 @@ yarn-error.log*
 # env
 .env
 .env.*
+
+# 시안 캡처 산출물 — 스크립트가 만드는 임시 폴더
+tmp/

@@ -17,6 +17,13 @@ interface ControlRoomLayoutProps {
    * 이름표가 없으면 회의 자리에서 "왼쪽 그거" 로만 불리게 된다. 고르고 나면 지운다.
    */
   variantLabel?: string;
+  /**
+   * 이 화면만 다른 결로 볼지.
+   *
+   * 색을 달리한 시안을 고르는 동안에만 쓴다 — 상황판은 화면을 다 쓰므로 바탕까지 함께
+   * 갈려야 하고, 판만 어둡게 하면 밝은 바탕 위에 검은 상자가 뜬다. 비워 두면 앱 설정을 따른다.
+   */
+  theme?: 'light' | 'dark';
   /** 손봐야 할 경보 중 가장 급한 결. 없으면 null — 화면 테두리와 바탕이 그 색으로 점등한다. */
   alertTone: 'critical' | 'caution' | 'offline' | null;
   /** 검색창을 눌렀을 때 — 조회 조건 모달을 연다 (SFR-004-11/12) */
@@ -33,6 +40,7 @@ interface ControlRoomLayoutProps {
 export function ControlRoomLayout({
   scopeLabel,
   variantLabel,
+  theme,
   alertTone,
   onSearch,
   searchSummary,
@@ -42,7 +50,7 @@ export function ControlRoomLayout({
 
   return (
     /* 결을 화면 전체가 물려받는다 — 바탕과 가장자리가 같은 색으로 함께 점등한다 */
-    <div className={styles.room} data-alert={alertTone ?? undefined}>
+    <div className={styles.room} data-theme={theme} data-alert={alertTone ?? undefined}>
       {/* 멀리서도 "지금 뭔가 잘못됐다" 가 읽히도록 화면 가장자리가 맥동한다 */}
       {/*
         가장자리 경보 등 — 상시 점멸이 되어 걷어냈다(2026-08-21 회의). 되살릴 때는 이 줄만 풀면 된다.

@@ -91,7 +91,8 @@
     pointer-events: none;
   }
 
-  /* 어두운 바탕에서는 같은 투명도로는 선이 묻힌다 */
+  /* 어두운 바탕에서는 같은 투명도로는 선이 묻힌다. 이 화면만 어둡게 켜 둔 경우까지 함께 받는다 */
+  &[data-theme="dark"],
   [data-theme="dark"] & {
     --grid-line: rgb(from var(--brand) r g b / 9%);
     --grid-line-strong: rgb(from var(--brand) r g b / 15%);

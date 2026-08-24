@@ -24,12 +24,15 @@ export const PATH = {
   /** 통합관제 전체화면 상황판 (SFR-004) */
   CONTROL: '/control',
   /*
-    비교용 상황판 시안. 어느 구성이 나은지 고르는 동안만 둔다 —
-    같은 값을 쓰고 늘어놓는 방식만 다르다. 고르고 나면 이긴 하나만 남기고 지운다.
+    배치 시안. `/control` 이 최종안이고 이쪽은 견줌용이다 —
+    보여 주는 값과 판은 그대로 두고 어디에 세우는지·무슨 색인지만 다르다.
+    고르고 나면 이긴 하나만 `/control` 에 옮기고 나머지는 지운다.
   */
-  CONTROL_B: '/control/b',
-  CONTROL_C: '/control/c',
-  CONTROL_D: '/control/d',
+  CONTROL_1: '/control/1',
+  CONTROL_2: '/control/2',
+  CONTROL_3: '/control/3',
+  CONTROL_4: '/control/4',
+  CONTROL_5: '/control/5',
   /** 마이페이지 (SFR-024) */
   MY: '/my',
 
