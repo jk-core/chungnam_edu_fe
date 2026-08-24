@@ -39,6 +39,25 @@ function pickStatus(next: () => number): OperationStatus {
   return 'running';
 }
 
+/**
+ * 상태가 발전량에 남기는 자국.
+ *
+ * 「주의」는 성능이 떨어졌다는 뜻이고 「경고」는 설비가 상한 것이다. 그런데도 값을 온전히 내면
+ * 발전시간 순위 맨 위에 주의 학교가 서서, 같은 줄에서 뱃지와 숫자가 서로를 부정한다 —
+ * 실제로 1·3 위가 주의였다. 발전량뿐 아니라 발전시간·이용률이 함께 눌려야 하므로 값을 만들기
+ * 전 시간에 곱한다.
+ *
+ * 준비중·통신단절은 여기서 건드리지 않는다 — 그쪽은 「덜 낸다」 가 아니라 「받은 값이 없다」 라
+ * 아래에서 0 으로 떨어뜨린다.
+ */
+const OUTPUT_DERATE: Record<OperationStatus, [number, number]> = {
+  running: [1, 1],
+  ready: [1, 1],
+  degraded: [0.55, 0.78],
+  fault: [0.12, 0.35],
+  commLost: [1, 1],
+};
+
 /** 일사량계는 발전설비보다 고장이 적고, 대부분 통신 문제로 끊긴다. */
 function pickPyranometerStatus(next: () => number, plantStatus: OperationStatus): RtuStatus {
   if (plantStatus === 'commLost') return 'disconnected';
@@ -62,7 +81,11 @@ function toSchool(seed: PlantSeed): School {
   const next = createRandom(hashSeed(seed.id));
   const status = pickStatus(next);
   // 같은 시·군이라도 방위각·그늘·오염도가 달라, 지역 발전시간을 중심으로 흩뿌린다.
-  const hours = (REGION_HOURS[seed.regionCode] ?? 3.8) * pickNumber(next, 0.82, 1.14, 3);
+  // 성한 설비가 아니면 그만큼 덜 낸다 — 어느 상태든 한 번씩 뽑아야 정상 학교의 값이 흔들리지 않는다.
+  const [derateFrom, derateTo] = OUTPUT_DERATE[status];
+  const hours = (REGION_HOURS[seed.regionCode] ?? 3.8)
+    * pickNumber(next, 0.82, 1.14, 3)
+    * pickNumber(next, derateFrom, derateTo, 3);
   const todayKwh = Math.round(seed.capacityKw * hours * 10) / 10;
 
   return {

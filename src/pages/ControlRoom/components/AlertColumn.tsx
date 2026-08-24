@@ -1,10 +1,7 @@
-import { formatNumber } from '@/utils/format';
 import type { CollectionStatus } from '@/interface/collection';
 import type { School } from '@/interface/energy';
 import styles from '../ControlRoom.module.scss';
-import { AiDiagnosisPanel } from './AiDiagnosisPanel';
-import { FaultGroups } from './FaultGroups';
-import { Panel } from './Panel';
+import { AiPanel, FaultPanel } from './panels';
 
 interface AlertColumnProps {
   plants: School[];
@@ -25,13 +22,8 @@ interface AlertColumnProps {
 export function AlertColumn({ plants, abnormalCount, collection }: AlertColumnProps) {
   return (
     <div className={styles.col}>
-      <Panel title="AI 진단" note={`관내 ${formatNumber(plants.length)}개소`} grow accent>
-        <AiDiagnosisPanel plants={plants} />
-      </Panel>
-
-      <Panel title="장애 발생 현황" note={`이상 ${formatNumber(abnormalCount)}개소`}>
-        <FaultGroups plants={plants} collection={collection} />
-      </Panel>
+      <AiPanel plants={plants} grow />
+      <FaultPanel plants={plants} abnormalCount={abnormalCount} collection={collection} />
     </div>
   );
 }
