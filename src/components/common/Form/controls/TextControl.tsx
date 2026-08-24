@@ -1,7 +1,8 @@
 import { cn } from '@/utils/cn';
+import { imeProps } from '@/utils/ime';
+import type { ImeMode } from '@/utils/ime';
 import styles from '../Form.module.scss';
-import { imeProps } from './shared';
-import type { FieldWidth, ImeMode } from './shared';
+import type { FieldWidth } from './shared';
 import type { ComponentPropsWithoutRef } from 'react';
 
 interface TextControlProps extends Omit<ComponentPropsWithoutRef<'input'>, 'value' | 'onChange' | 'type'> {
@@ -17,7 +18,7 @@ export function TextControl({ value, onChange, ime = 'hangul', width = 'full', c
       {...rest}
       {...imeProps(ime)}
       type="text"
-      className={cn(styles.control, styles[`width--${width}`], { [className ?? '']: !!className })}
+      className={cn(styles.control, styles[`width--${width}`], className)}
       value={value}
       onChange={(event) => onChange(event.target.value)}
     />

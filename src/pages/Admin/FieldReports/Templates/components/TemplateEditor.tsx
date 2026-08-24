@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/common/Button';
 import { ConfirmDialog } from '@/components/common/ConfirmDialog';
 import { FormPage } from '@/pages/Admin/_shared/FormPage';
-import { FormSection, TextArea, TextField } from '@/components/common/Form';
+import { FormField, FormSection, TextAreaControl, TextControl } from '@/components/common/Form';
 import { listPath } from '@/pages/Admin/_shared/adminPath';
 import { NOW, TODAY } from '@/mocks/today';
 import { PlusIcon } from '@/components/common/Icon';
@@ -95,18 +95,15 @@ export function TemplateEditor({ template }: TemplateEditorProps) {
             legend={`${index + 1}번 분류`}
             hint="문항은 한 줄에 하나씩 적습니다. 빈 줄은 무시합니다."
           >
-            <TextField
-              label="분류 이름"
-              value={section.title}
-              onChange={(value) => setSection(index, { title: value })}
-              required
-            />
-            <TextArea
-              label="문항"
-              value={section.items.join('\n')}
-              onChange={(value) => setSection(index, { items: value.split('\n') })}
-              hint={`${liveItems(section.items).length}문항`}
-            />
+            <FormField label="분류 이름" required>
+              <TextControl value={section.title} onChange={(value) => setSection(index, { title: value })} />
+            </FormField>
+            <FormField label="문항" hint={`${liveItems(section.items).length}문항`}>
+              <TextAreaControl
+                value={section.items.join('\n')}
+                onChange={(value) => setSection(index, { items: value.split('\n') })}
+              />
+            </FormField>
             <div className={styles.toolbar__actions}>
               <Button
                 size="sm"
@@ -131,15 +128,14 @@ export function TemplateEditor({ template }: TemplateEditorProps) {
         </div>
 
         <FormSection legend="개정 사유" hint="이력에 그대로 남습니다. 무엇을 왜 고쳤는지 적어 주세요.">
-          <TextArea
-            label="개정 사유"
-            hideLabel
-            value={note}
-            onChange={setNote}
-            required
-            placeholder="예: 태양전지 분류에 적외선 열화상 항목을 더했습니다."
-            maxLength={200}
-          />
+          <FormField label="개정 사유" hideLabel required>
+            <TextAreaControl
+              value={note}
+              onChange={setNote}
+              placeholder="예: 태양전지 분류에 적외선 열화상 항목을 더했습니다."
+              maxLength={200}
+            />
+          </FormField>
         </FormSection>
       </FormPage>
 

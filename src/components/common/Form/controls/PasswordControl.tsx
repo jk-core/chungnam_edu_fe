@@ -15,7 +15,7 @@ export function PasswordControl({ value, onChange, width = 'full', className, ..
   const [isRevealed, setIsRevealed] = useState(false);
 
   return (
-    <span className={cn(styles.passwordWrap, styles[`width--${width}`], { [className ?? '']: !!className })}>
+    <span className={cn(styles.passwordWrap, styles[`width--${width}`], className)}>
       <input
         {...rest}
         type={isRevealed ? 'text' : 'password'}

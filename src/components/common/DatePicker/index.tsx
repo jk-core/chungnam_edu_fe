@@ -8,7 +8,6 @@ import styles from './DatePicker.module.scss';
 interface DatePickerProps {
   value: Date;
   onChange: (value: Date) => void;
-  /** day = 일자, month = 월, year = 연도 단위로 고른다. */
   granularity: Granularity;
   /** 스크린리더에 읽힐 항목 이름 */
   label: string;

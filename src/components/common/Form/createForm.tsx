@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Controller, FormProvider, useFormContext, useWatch } from 'react-hook-form';
 import { Button } from '@/components/common/Button';
 import type { Granularity } from '@/utils/date';
+import type { ImeMode } from '@/utils/ime';
 import { DateControl } from './controls/DateControl';
 import { FormField } from './FormField';
 import { NumberControl } from './controls/NumberControl';
@@ -11,19 +12,15 @@ import { RadioControl } from './controls/RadioControl';
 import { SelectControl } from './controls/SelectControl';
 import { TextAreaControl } from './controls/TextAreaControl';
 import { TextControl } from './controls/TextControl';
-import type { FieldWidth, ImeMode } from './controls/shared';
+import { withUnit } from './controls/shared';
+import type { FieldWidth } from './controls/shared';
 import type { RadioOption } from './controls/RadioControl';
 import type { FieldPath, FieldPathByValue, FieldValues, PathValue, UseFormReturn } from 'react-hook-form';
 import type { ReactNode } from 'react';
 
 /*
-  폼 한 벌 만들기.
-
   `createForm<Values>()` 을 **파일 모듈 스코프에서 한 번** 부르고 그 결과를 쓴다. 컴포넌트 안에서
   부르면 렌더마다 필드 컴포넌트가 새로 정의돼 입력이 통째로 리마운트된다.
-
-  각 필드가 하는 일은 셋뿐이다 — RHF 에 잇고, `FormField` 로 이름을 붙이고, 컨트롤을 놓는다.
-  라벨·오류 마크업은 어디에도 다시 나오지 않는다.
 
   컨트롤은 ref 를 받지 않고 `name`·`onBlur` 도 모르므로 `register()` 가 붙을 자리가 없다 —
   전부 `Controller` 로 잇는다.
@@ -157,7 +154,6 @@ export function createFields<T extends FieldValues>() {
     min?: number;
     max?: number;
     step?: number;
-    /** 값 뒤에 붙는 단위 표기 */
     unit?: string;
     readOnly?: boolean;
     width?: FieldWidth;
@@ -170,14 +166,7 @@ export function createFields<T extends FieldValues>() {
         name={name}
         control={form}
         render={({ field }) => (
-          <FormField
-            label={label}
-            required={required}
-            optional={optional}
-            // 단위는 도움말에 실어 보낸다 — 칸 안에 적을 자리가 없고, 스크린리더도 이 줄로 읽는다.
-            hint={unit ? `${hint ? `${hint} · ` : ''}단위 ${unit}` : hint}
-            error={error}
-          >
+          <FormField label={label} required={required} optional={optional} hint={withUnit(hint, unit)} error={error}>
             <NumberControl
               {...control}
               value={field.value === null || Number.isNaN(field.value) ? '' : (field.value as number)}
@@ -281,11 +270,8 @@ export function createFields<T extends FieldValues>() {
   }
 
   /**
-   * 표에서 골라 오는 칸.
-   *
-   * 화면에 보일 이름은 `displayName` 이 가리키는 칸이 들고 있다 — 목록을 다시 뒤져 이름을 찾지
-   * 않아도 되고, 고를 때 딸려 바뀌는 칸(주소 → 시·군, 사용자 → 발전소 비우기)을 `patch` 하나로
-   * 함께 넘길 수 있다.
+   * 보일 이름을 `displayName` 칸이 들고 있어 목록을 다시 뒤지지 않는다. 고를 때 딸려 바뀌는
+   * 칸(주소 → 시·군, 사용자 → 발전소 비우기)도 `onSelect` 한 번에 함께 넘어온다.
    */
   function Picker({
     name,
@@ -309,16 +295,6 @@ export function createFields<T extends FieldValues>() {
     const display = useWatch({ control, name: displayName });
     const error = useFieldError(name);
 
-    const patch = (next: Partial<T>) => {
-      Object.entries(next).forEach(([field, value]) => {
-        // 고른 순간 스키마를 다시 돌린다 — 문맥(등급·이미 쓴 순번)이 값에 실려 있어 같은 틱에 판정돼야 한다.
-        setValue(field as FieldPath<T>, value as PathValue<T, FieldPath<T>>, {
-          shouldValidate: true,
-          shouldDirty: true,
-        });
-      });
-    };
-
     return (
       <>
         {/* 검색기는 껍데기 밖에 둔다 — FormField 는 컨트롤 하나를 감싸 거기에 id·aria 를 꽂는다. */}
@@ -335,7 +311,13 @@ export function createFields<T extends FieldValues>() {
           ? modal({
             onClose: () => setIsOpen(false),
             onSelect: (next) => {
-              patch(next);
+              Object.entries(next).forEach(([field, value]) => {
+                // 문맥(등급·이미 쓴 순번)이 값에 실려 있어 고른 순간 같은 틱에 다시 판정돼야 한다.
+                setValue(field as FieldPath<T>, value as PathValue<T, FieldPath<T>>, {
+                  shouldValidate: true,
+                  shouldDirty: true,
+                });
+              });
               setIsOpen(false);
             },
           })
@@ -359,14 +341,11 @@ export function createFields<T extends FieldValues>() {
 
 export function createForm<T extends FieldValues>() {
   function Root({ methods, onSubmit, children }: RootProps<T>) {
-    const submit = methods.handleSubmit(onSubmit);
-
     return (
       <FormProvider {...methods}>
         <form
           noValidate
           onSubmit={(event) => {
-            // 막는 일부터 한다 — 걸러 내고 돌아가더라도 브라우저가 페이지를 새로 부르면 안 된다.
             event.preventDefault();
 
             /*
@@ -375,7 +354,7 @@ export function createForm<T extends FieldValues>() {
             */
             if (event.target !== event.currentTarget) return;
 
-            void submit(event);
+            void methods.handleSubmit(onSubmit)(event);
           }}
         >
           {children}

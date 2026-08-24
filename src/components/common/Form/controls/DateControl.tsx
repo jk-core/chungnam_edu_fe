@@ -9,7 +9,7 @@ import styles from '../Form.module.scss';
 import type { ComponentPropsWithoutRef } from 'react';
 
 interface DateControlProps extends Omit<ComponentPropsWithoutRef<'button'>, 'value' | 'onChange' | 'type'> {
-  /** 폼이 담는 값은 `YYYY-MM-DD` 문자열이다 — 그대로 서버로 나가고 비교·정렬도 이 형태로 한다 */
+  /** 그대로 서버로 나가고 비교·정렬도 이 형태로 한다 */
   value: string;
   onChange: (value: string) => void;
   granularity?: Granularity;
@@ -17,9 +17,7 @@ interface DateControlProps extends Omit<ComponentPropsWithoutRef<'button'>, 'val
 }
 
 /**
- * 폼에서 날짜를 고르는 칸.
- *
- * 툴바의 `DatePicker` 와 **다른 컴포넌트**다 — 거기는 알약, 여기는 옆 글자칸과 같은 상자다.
+ * 툴바의 `DatePicker` 와 다른 물건이다 — 거기는 알약, 여기는 옆 글자칸과 같은 상자다.
  * 달력 창(`CalendarModal`)만 함께 쓴다.
  */
 export function DateControl({
@@ -29,6 +27,9 @@ export function DateControl({
   placeholder = '날짜를 고르세요',
   className,
   disabled,
+  id,
+  // button role 은 aria-required 를 지원하지 않는다 — 라벨의 * 와 저장 시 오류가 그 몫을 한다.
+  'aria-required': _required,
   ...rest
 }: DateControlProps) {
   const [isOpen, setIsOpen] = useState(false);
@@ -38,12 +39,18 @@ export function DateControl({
     <>
       <button
         {...rest}
+        id={id}
         type="button"
-        className={cn(styles.dateControl, { [styles['dateControl--empty']]: !picked, [className ?? '']: !!className })}
+        className={cn(styles.dateControl, !picked && styles['dateControl--empty'], className)}
         onClick={() => setIsOpen(true)}
         disabled={disabled}
         aria-haspopup="dialog"
         aria-expanded={isOpen}
+        /*
+          라벨만 걸면 버튼 이름이 「운전시작일」에서 끝나고 고른 날짜는 안 읽힌다.
+          자기 자신을 함께 가리켜 라벨 뒤에 내용(날짜)을 붙인다.
+        */
+        aria-labelledby={id ? `${id}-label ${id}` : undefined}
       >
         <CalendarIcon className={styles.dateControl__icon} />
         <span className={styles.dateControl__value}>

@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import { useCallback } from 'react';
 import { Button } from '@/components/common/Button';
 import { formatByGranularity } from '@/utils/date';
 import { getMonthDays, getYearMonths } from '@/mocks/weather';
@@ -11,7 +11,6 @@ import styles from './DatePicker.module.scss';
 interface CalendarModalProps {
   isOpen: boolean;
   onClose: () => void;
-  /** day = 일자, month = 월, year = 연도 단위로 고른다. */
   granularity: Granularity;
   /** 열었을 때 펼칠 자리. 아직 고른 것이 없으면 오늘에서 편다 */
   value: Date | null;
@@ -50,10 +49,11 @@ export function CalendarModal({ isOpen, onClose, granularity, value, onSelect }:
   const { plant } = usePlantScope();
 
   // 굴려 보는 달력이라 달마다 그때그때 읽어 간다. 조회 대상이 바뀌면 그 발전소 값으로 갈린다.
-  const calendar = useMemo(() => ({
-    getDays: (year: number, month: number) => getMonthDays(plant?.id ?? null, year, month),
-    getMonths: (year: number) => getYearMonths(plant?.id ?? null, year),
-  }), [plant?.id]);
+  const getDays = useCallback(
+    (year: number, month: number) => getMonthDays(plant?.id ?? null, year, month),
+    [plant?.id],
+  );
+  const getMonths = useCallback((year: number) => getYearMonths(plant?.id ?? null, year), [plant?.id]);
 
   const choose = (next: Date) => {
     onSelect(next);
@@ -84,8 +84,8 @@ export function CalendarModal({ isOpen, onClose, granularity, value, onSelect }:
         granularity={granularity}
         selected={value ?? new Date()}
         onSelect={choose}
-        getDays={calendar.getDays}
-        getMonths={calendar.getMonths}
+        getDays={getDays}
+        getMonths={getMonths}
       />
     </Modal>
   );

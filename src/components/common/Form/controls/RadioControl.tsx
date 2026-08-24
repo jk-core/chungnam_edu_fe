@@ -3,7 +3,6 @@ import { CheckIcon } from '@/components/common/Icon';
 import { cn } from '@/utils/cn';
 import styles from '../Form.module.scss';
 
-/** 선택지에 상태색을 입힐 때 쓴다. 점검 결과 3지가 대표 예다. */
 export type OptionTone = 'brand' | 'ok' | 'critical' | 'offline';
 
 export interface RadioOption<T extends string> {
@@ -20,12 +19,7 @@ interface RadioControlProps<T extends string> {
   inline?: boolean;
 }
 
-/**
- * 몇 안 되는 것 중 하나를 고르는 칸.
- *
- * 이름은 감싸는 `FormField as="fieldset"` 의 legend 가 준다 — `<label for>` 로는 여러 개인
- * 이 묶음을 가리킬 수 없다.
- */
+/** 이름은 감싸는 `FormField as="fieldset"` 이 준다 — `<label for>` 로는 여럿인 묶음을 가리킬 수 없다. */
 export function RadioControl<T extends string>({
   value,
   options,
@@ -36,17 +30,18 @@ export function RadioControl<T extends string>({
   const name = useId();
 
   return (
-    <div className={cn(styles.group__list, { [styles['group__list--inline']]: inline })}>
+    <div className={cn(styles.optionList, inline && styles['optionList--inline'])}>
       {options.map((option) => {
         const isChecked = option.value === value;
 
         return (
           <label
             key={option.value}
-            className={cn(styles.option, {
-              [styles['option--checked']]: isChecked,
-              [styles[`option--${option.tone ?? 'brand'}`]]: Boolean(option.tone),
-            })}
+            className={cn(
+              styles.option,
+              isChecked && styles['option--checked'],
+              option.tone && styles[`option--${option.tone}`],
+            )}
           >
             <input
               type="radio"

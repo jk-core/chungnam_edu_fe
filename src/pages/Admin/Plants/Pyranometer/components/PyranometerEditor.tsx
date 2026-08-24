@@ -5,7 +5,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { Button } from '@/components/common/Button';
 import { ConfirmDialog } from '@/components/common/ConfirmDialog';
 import { createdEntry, deletedEntry, diffEntries } from '@/pages/Admin/_shared/device/deviceChangeLog';
-import { createForm, FormRow, FormSection, NumberField } from '@/components/common/Form';
+import { createForm, FormField, FormRow, FormSection, NumberControl } from '@/components/common/Form';
 import { FormPage } from '@/pages/Admin/_shared/FormPage';
 import { listPath } from '@/pages/Admin/_shared/adminPath';
 import { MSG } from '@/configs/messages';
@@ -158,13 +158,9 @@ export function PyranometerEditor({ irradId }: PyranometerEditorProps) {
             </FormRow>
             <FormRow cols={2}>
               {/* 고를 수 없는 값이라 폼 밖에 둔다 — 보여 주기만 한다. */}
-              <NumberField
-                label="RTU 포트"
-                value={PYRANOMETER_PORT}
-                onChange={() => undefined}
-                readOnly
-                hint="일사량계 고정"
-              />
+              <FormField label="RTU 포트" hint="일사량계 고정">
+                <NumberControl value={PYRANOMETER_PORT} onChange={() => undefined} readOnly />
+              </FormField>
               <Form.Radio label="모듈 온도계" name="moduleThermometer" options={YES_NO} />
             </FormRow>
           </FormSection>

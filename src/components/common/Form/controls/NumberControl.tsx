@@ -16,9 +16,7 @@ export function NumberControl({ value, onChange, width = 'full', className, ...r
       {...rest}
       type="number"
       inputMode="numeric"
-      className={cn(styles.control, styles['control--number'], styles[`width--${width}`], {
-        [className ?? '']: !!className,
-      })}
+      className={cn(styles.control, styles['control--number'], styles[`width--${width}`], className)}
       value={value}
       onChange={(event) => onChange(event.target.value === '' ? '' : Number(event.target.value))}
     />

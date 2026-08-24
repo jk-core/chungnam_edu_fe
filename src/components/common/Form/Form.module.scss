@@ -147,6 +147,10 @@
   gap: s.$space-2;
   text-align: left;
 
+  &:hover:not(:disabled) {
+    border-color: var(--border-strong);
+  }
+
   &--empty .dateControl__value {
     color: var(--text-faint);
   }
@@ -221,43 +225,13 @@
   }
 }
 
-.group {
+.optionList {
   display: flex;
   flex-direction: column;
   gap: s.$space-2;
-  margin: 0;
-  padding: 0;
-  border: none;
 
-  &--inline .group__list {
+  &--inline {
     flex-flow: row wrap;
-  }
-
-  /*
-    라벨과 선택지 사이는 다른 칸의 라벨-입력 간격과 같아야 한다.
-
-    간격을 margin 으로 주는 것은 legend 가 fieldset 의 익명 콘텐츠 상자 **밖**에 그려져
-    부모의 flex 아이템이 아니기 때문이다 — 위 `gap` 은 legend 에 닿지 않는다.
-  */
-  &__legend {
-    @include t.label-sm;
-
-    display: flex;
-    align-items: center;
-    gap: s.$space-1;
-    margin-bottom: s.$space-2;
-    padding: 0;
-    color: var(--text-strong);
-  }
-
-  &__list {
-    display: flex;
-    flex-direction: column;
-    gap: s.$space-2;
-
-    &--inline {
-      flex-flow: row wrap;
-    }
   }
 }
 
@@ -274,10 +248,6 @@
 
   &:hover {
     background-color: var(--surface-hover);
-  }
-
-  &--checkbox .option__mark {
-    border-radius: s.$radius-xs;
   }
 
   &--checked .option__mark {
