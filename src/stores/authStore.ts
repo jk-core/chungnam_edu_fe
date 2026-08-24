@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import { createJSONStorage, persist } from 'zustand/middleware';
-import { getAccountById } from '@/mocks/accounts';
+import { getAccountById, isAdminRole } from '@/mocks/accounts';
 import useAssetStore from '@/stores/assetStore';
 import type { AuthUser, Role } from '@/interface/account';
 
@@ -21,7 +21,7 @@ const minutesToMs = (minutes: number) => minutes * 60 * 1000;
 function sessionMinutesOf(role: Role): number {
   const { policy } = useAssetStore.getState();
 
-  return role === 'admin' ? policy.adminSessionMinutes : policy.userSessionMinutes;
+  return isAdminRole(role) ? policy.adminSessionMinutes : policy.userSessionMinutes;
 }
 
 const useAuthStore = create<AuthState>()(
@@ -86,7 +86,7 @@ export function useCanSeeAllPlants(): boolean {
 
 /** 관리자 콘솔 진입 가능 여부 (SFR-018-05, SER-001-18) */
 export function useIsAdmin(): boolean {
-  return useAuthStore((state) => state.user?.role === 'admin');
+  return useAuthStore((state) => isAdminRole(state.user?.role));
 }
 
 export function hasRole(user: AuthUser | null, roles: Role[] | undefined): boolean {

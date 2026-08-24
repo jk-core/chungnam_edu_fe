@@ -1,5 +1,6 @@
-import type { Role } from '@/interface/account';
+import { ADMIN_ROLES } from '@/mocks/accounts';
 import { PATH } from '@/routes/routes';
+import type { Role } from '@/interface/account';
 
 export interface NavChild {
   label: string;
@@ -126,22 +127,19 @@ export const NAVIGATION: NavSection[] = [
 export const ADMIN_NAVIGATION: NavSection = {
   label: '관리자 콘솔',
   path: PATH.ADMIN,
-  roles: ['admin'],
+  roles: ADMIN_ROLES,
   children: [
     {
       label: '발전소·설비 관리',
       path: PATH.ADMIN_PLANTS,
-      description: '발전소·인버터·스트링·환경센서를 등록하고 수정 이력을 남깁니다.',
+      description: '발전소와 그 아래 선 설비·스트링·일사량계를 등록하고 수정 이력을 남깁니다.',
       requirements: ['SFR-016-01', 'SFR-016-02', 'SFR-016-03', 'SFR-016-04', 'SFR-016-05', 'SFR-016-06'],
     },
     {
       label: '시스템장비 관리',
       path: PATH.ADMIN_DEVICES,
-      description: 'RTU·인버터·접속반·모듈·스트링·일사량계를 등록·수정·삭제하고 교체·이설 이력을 봅니다.',
-      requirements: [
-        'SFR-016-01', 'SFR-016-05', 'SFR-016-06',
-        'SFR-017-01', 'SFR-017-02', 'SFR-017-03', 'SFR-017-04', 'SFR-017-05', 'SFR-017-06', 'SFR-017-07',
-      ],
+      description: '설비 등록에서 고를 인버터·모듈 제품 카탈로그를 등록·수정·삭제하고 변경 이력을 봅니다.',
+      requirements: ['SFR-016-05', 'SFR-016-06', 'SFR-017-04', 'SFR-017-05'],
     },
     {
       label: '현장보고서 관리',
@@ -158,7 +156,7 @@ export const ADMIN_NAVIGATION: NavSection = {
     {
       label: '계정·권한 관리',
       path: PATH.ADMIN_ACCOUNTS,
-      description: '교육청·교육기관 계정 트리와 접근 가능 화면을 정합니다.',
+      description: '등급별 계정 트리와 접근 가능 화면을 정합니다.',
       requirements: ['SFR-023-01', 'SFR-023-02', 'SFR-023-03'],
     },
     {

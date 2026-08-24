@@ -1,0 +1,101 @@
+@use "@/styles/tokens/spacing" as s;
+@use "@/styles/tokens/typography" as t;
+
+.search {
+  display: flex;
+  flex-direction: column;
+  gap: s.$space-4;
+
+  /* 결과가 없을 때와 있을 때 창 높이가 튀지 않게 자리를 미리 재 둔다. */
+  min-height: 420px;
+
+  &__form {
+    display: flex;
+    align-items: center;
+    gap: s.$space-2;
+  }
+
+  &__guide {
+    display: flex;
+    flex-direction: column;
+    gap: s.$space-1;
+    padding: s.$space-3 s.$space-4;
+    border-radius: s.$radius-sm;
+    background-color: var(--surface-sunken);
+
+    @include t.caption;
+
+    color: var(--text-muted);
+  }
+
+  /* 테두리는 바깥이 갖고 스크롤은 안쪽이 한다 — 스크롤바가 모서리를 갉지 않게. */
+  &__results {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    min-height: 0;
+    max-height: 360px;
+    overflow: hidden;
+    border: 1px solid var(--border);
+    border-radius: s.$radius-sm;
+  }
+
+  &__list {
+    flex: 1;
+    min-height: 0;
+    overflow-y: auto;
+    scrollbar-gutter: stable;
+  }
+}
+
+.item {
+  display: flex;
+  gap: s.$space-4;
+  width: 100%;
+  padding: s.$space-3 s.$space-4;
+  border-bottom: 1px solid var(--border-subtle);
+  text-align: left;
+  transition: background-color 0.16s ease;
+
+  &:last-child {
+    border-bottom: none;
+  }
+
+  &:hover,
+  &:focus-visible {
+    background-color: var(--surface-hover);
+  }
+
+  &__zonecode {
+    flex-shrink: 0;
+    width: 56px;
+    padding-top: 2px;
+
+    @include t.data-sm;
+
+    color: var(--text-muted);
+  }
+
+  &__body {
+    display: flex;
+    flex-direction: column;
+    gap: s.$space-1;
+    min-width: 0;
+  }
+
+  &__road {
+    @include t.body-md;
+
+    color: var(--text-strong);
+  }
+
+  &__building {
+    color: var(--text-muted);
+  }
+
+  &__jibun {
+    @include t.caption;
+
+    color: var(--text-faint);
+  }
+}

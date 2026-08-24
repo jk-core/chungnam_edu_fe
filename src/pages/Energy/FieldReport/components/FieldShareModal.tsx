@@ -81,8 +81,8 @@ export function FieldShareModal({ report, onClose, onShare }: FieldShareModalPro
                   onClick={() => setPicked((prev) => (on ? prev.filter((id) => id !== user.id) : [...prev, user.id]))}
                 >
                   <span className={styles.share__name}>{user.name}</span>
-                  <Badge tone={user.role === 'institution' ? 'neutral' : 'brand'}>{ROLE_LABEL[user.role]}</Badge>
-                  <span className={styles.share__org}>{user.orgName}</span>
+                  <Badge tone={user.role === 'admin' ? 'brand' : 'neutral'}>{ROLE_LABEL[user.role]}</Badge>
+                  <span className={styles.share__org}>{user.loginId}</span>
                 </button>
               );
             })}
@@ -98,6 +98,6 @@ export function FieldShareModal({ report, onClose, onShare }: FieldShareModalPro
 /** 교육청 계정은 전체를, 학교 계정은 담당 발전소만 볼 수 있다 (SFR-023-02/03). */
 function recipientsFor(schoolId: string): ManagedUser[] {
   return SEED_USERS.filter((user) => (
-    user.role === 'institution' ? user.plantIds.includes(schoolId) : true
+    user.role === 'customer' ? user.plantIds.includes(schoolId) : true
   ));
 }

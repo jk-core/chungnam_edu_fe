@@ -1,69 +1,90 @@
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
+import { useForm } from 'react-hook-form';
+import { useNavigate } from 'react-router-dom';
+import { zodResolver } from '@hookform/resolvers/zod';
 import { Button } from '@/components/common/Button';
 import { CELL_TYPE_LABEL } from '@/mocks/moduleProducts';
 import { ConfirmDialog } from '@/components/common/ConfirmDialog';
-import { FormRow, FormSection, NumberField, RadioGroup, TextField } from '@/components/common/Form';
-import { Modal } from '@/components/common/Modal';
-import { MSG } from '@/configs/messages';
+import { createdEntry, deletedEntry, diffEntries } from '@/pages/Admin/_shared/device/deviceChangeLog';
+import { createForm, FormRow, FormSection } from '@/components/common/Form';
 import { formatNumber } from '@/utils/format';
+import { FormPage } from '@/pages/Admin/_shared/FormPage';
+import { listPath } from '@/pages/Admin/_shared/adminPath';
+import { moduleFormSchema, NUMERIC } from '@/service/module/type';
+import { MSG } from '@/configs/messages';
 import { toast } from '@/stores/toastStore';
 import { useAuthUser } from '@/stores/authStore';
-import useEquipmentStore from '@/stores/equipmentStore';
+import { useModuleProducts } from '@/pages/Admin/Plants/Equipment/hooks/useEquipmentRows';
+import useEquipmentStore, { mergeEquipment } from '@/stores/equipmentStore';
+import type { ModuleFormValues, NumericKey } from '@/service/module/type';
 import type { ModuleProduct } from '@/interface/deviceMaster';
-import styles from '@/pages/Admin/Admin.module.scss';
-import { createdEntry, diffEntries } from '../../utils/deviceChangeLog';
-import { EMPTY_DRAFT, NUMERIC } from './moduleFields';
-import type { ModuleDraft, NumericKey } from './moduleFields';
+import { EMPTY_VALUES, toFormValues } from './values';
+
+const Form = createForm<ModuleFormValues>();
+
+/** 표에 적어 둔 범위·단위를 그대로 입력 칸에 옮긴다. */
+function NumberSpec({ name }: { name: NumericKey }) {
+  const spec = NUMERIC.find((item) => item.key === name);
+
+  if (!spec) return null;
+
+  return (
+    <Form.Number
+      label={spec.label}
+      name={name}
+      min={spec.min}
+      max={spec.max}
+      step={0.01}
+      unit={spec.unit}
+      placeholder={`${spec.min} ~ ${spec.max}`}
+      required
+    />
+  );
+}
 
 interface ModuleEditorProps {
-  /** 고친다면 그 제품, 새로 등록한다면 null */
-  target: ModuleProduct | null;
-  onClose: () => void;
+  /** 고칠 제품의 서버 식별자. 없으면 새로 세우는 자리다 */
+  moduleId: number | null;
 }
 
 /** 모듈 제품 등록·수정 (SFR-016-01, SFR-017-05) */
-export function ModuleEditor({ target, onClose }: ModuleEditorProps) {
+export function ModuleEditor({ moduleId }: ModuleEditorProps) {
   const saveModule = useEquipmentStore((state) => state.saveModule);
   const nextId = useEquipmentStore((state) => state.nextId);
   const nextSeq = useEquipmentStore((state) => state.nextSeq);
+  const removeModule = useEquipmentStore((state) => state.removeModule);
+  const equipmentCreated = useEquipmentStore((state) => state.equipmentCreated);
+  const equipmentPatched = useEquipmentStore((state) => state.equipmentPatched);
+  const equipmentDeleted = useEquipmentStore((state) => state.equipmentDeleted);
   const actor = useAuthUser();
+  const products = useModuleProducts();
+  const navigate = useNavigate();
 
-  const [draft, setDraft] = useState<ModuleDraft>(() => (target ? { ...target } : EMPTY_DRAFT));
-  const [errors, setErrors] = useState<Record<string, string>>({});
-  const [isConfirming, setIsConfirming] = useState(false);
-
+  const target = products.find((row) => row.moduleId === moduleId) ?? null;
+  const backTo = listPath('devices', 'module');
   const isNew = target === null;
 
-  const submit = () => {
-    const found: Record<string, string> = {};
+  const methods = useForm<ModuleFormValues>({
+    defaultValues: target ? toFormValues(target) : EMPTY_VALUES,
+    resolver: zodResolver(moduleFormSchema),
+    mode: 'onChange',
+  });
 
-    if (!draft.name.trim()) found.name = MSG.requiredField('모듈명');
-    if (!draft.maker.trim()) found.maker = MSG.requiredField('업체명');
+  const [pending, setPending] = useState<ModuleFormValues | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
 
-    NUMERIC.forEach(({ key, label, min, max }) => {
-      const value = draft[key];
+  // 이 제품을 쓰는 설비가 몇 대인지 — 삭제 확인에 적어 준다.
+  const inUse = useMemo(
+    () => mergeEquipment(equipmentCreated, equipmentPatched, equipmentDeleted)
+      .filter((item) => item.moduleProductId === target?.id).length,
+    [equipmentCreated, equipmentPatched, equipmentDeleted, target],
+  );
 
-      if (value === '' || value < min || value > max) found[key] = MSG.numberRange(label, min, max);
-    });
-
-    setErrors(found);
-    if (Object.keys(found).length === 0) setIsConfirming(true);
-  };
-
-  const commit = () => {
+  const commit = (values: ModuleFormValues) => {
     const saved: ModuleProduct = {
-      ...draft,
+      ...values,
       id: target?.id ?? nextId('MOD'),
       moduleId: target?.moduleId ?? nextSeq(),
-      name: draft.name.trim(),
-      maker: draft.maker.trim(),
-      wattPerPanel: Number(draft.wattPerPanel),
-      maxVoltage: Number(draft.maxVoltage),
-      maxCurrent: Number(draft.maxCurrent),
-      openVoltage: Number(draft.openVoltage),
-      shortCurrent: Number(draft.shortCurrent),
-      voltTempCoeff: Number(draft.voltTempCoeff),
-      currentTempCoeff: Number(draft.currentTempCoeff),
     };
     const logTarget = { kind: 'module' as const, id: saved.id, name: saved.name, actor: actor?.name ?? '관리자' };
 
@@ -86,69 +107,45 @@ export function ModuleEditor({ target, onClose }: ModuleEditorProps) {
 
     saveModule(saved, entries, isNew);
     toast.success(isNew ? MSG.createSuccess('모듈 제품') : MSG.updateSuccess(saved.name));
-    setIsConfirming(false);
-    onClose();
+    navigate(backTo);
   };
 
-  const numberField = (key: NumericKey) => {
-    const spec = NUMERIC.find((item) => item.key === key);
+  const remove = () => {
+    if (!target) return;
 
-    if (!spec) return null;
-
-    return (
-      <NumberField
-        label={spec.label}
-        value={draft[key]}
-        onChange={(value) => setDraft({ ...draft, [key]: value })}
-        min={spec.min}
-        max={spec.max}
-        step={0.01}
-        unit={spec.unit}
-        required
-        error={errors[key]}
-      />
-    );
+    removeModule(target.id, deletedEntry(
+      { kind: 'module', id: target.id, name: target.name, actor: actor?.name ?? '관리자' },
+      `${target.maker} · ${formatNumber(target.wattPerPanel)}W`,
+    ));
+    toast.success(MSG.deleteSuccess(target.name));
+    navigate(backTo);
   };
 
   return (
     <>
-      <Modal
-        isOpen
-        onClose={onClose}
-        size="lg"
-        title={isNew ? '모듈 제품 등록' : '모듈 제품 수정'}
-        description="제조사 데이터시트의 STC 기준 값을 넣습니다."
-        footer={(
-          <>
-            <Button variant="secondary" onClick={onClose}>취소</Button>
-            <Button onClick={submit}>저장</Button>
-          </>
-        )}
-      >
-        <div className={styles.form}>
+      <Form methods={methods} onSubmit={setPending}>
+        <FormPage
+          title={isNew ? '모듈 제품 등록' : '모듈 제품 수정'}
+          description="제조사 데이터시트의 STC 기준 값을 넣습니다."
+          backTo={backTo}
+          danger={isNew ? null : <Button variant="solar" onClick={() => setIsDeleting(true)}>삭제</Button>}
+          footer={(
+            <>
+              <Button variant="secondary" onClick={() => navigate(backTo)}>취소</Button>
+              <Form.Submit />
+            </>
+          )}
+        >
           <FormSection legend="제품 정보">
             <FormRow cols={2}>
-              <TextField
-                label="모듈명"
-                value={draft.name}
-                onChange={(value) => setDraft({ ...draft, name: value })}
-                required
-                error={errors.name}
-              />
-              <TextField
-                label="업체명"
-                value={draft.maker}
-                onChange={(value) => setDraft({ ...draft, maker: value })}
-                required
-                error={errors.maker}
-              />
+              <Form.Text label="모듈명" name="name" required />
+              <Form.Text label="업체명" name="maker" required />
             </FormRow>
             <FormRow cols={2}>
-              {numberField('wattPerPanel')}
-              <RadioGroup
-                legend="셀 종류"
-                value={draft.cellType}
-                onChange={(value) => setDraft({ ...draft, cellType: value })}
+              <NumberSpec name="wattPerPanel" />
+              <Form.Radio
+                label="셀 종류"
+                name="cellType"
                 options={[
                   { value: 'single', label: CELL_TYPE_LABEL.single },
                   { value: 'double', label: CELL_TYPE_LABEL.double },
@@ -160,30 +157,42 @@ export function ModuleEditor({ target, onClose }: ModuleEditorProps) {
 
           <FormSection legend="전기 특성" hint="최대 출력 동작점과 개방·단락 값입니다.">
             <FormRow cols={2}>
-              {numberField('maxVoltage')}
-              {numberField('maxCurrent')}
+              <NumberSpec name="maxVoltage" />
+              <NumberSpec name="maxCurrent" />
             </FormRow>
             <FormRow cols={2}>
-              {numberField('openVoltage')}
-              {numberField('shortCurrent')}
+              <NumberSpec name="openVoltage" />
+              <NumberSpec name="shortCurrent" />
             </FormRow>
           </FormSection>
 
           <FormSection legend="온도계수" hint="전압은 음수, 전류는 양수입니다.">
             <FormRow cols={2}>
-              {numberField('voltTempCoeff')}
-              {numberField('currentTempCoeff')}
+              <NumberSpec name="voltTempCoeff" />
+              <NumberSpec name="currentTempCoeff" />
             </FormRow>
           </FormSection>
-        </div>
-      </Modal>
+        </FormPage>
+      </Form>
 
       <ConfirmDialog
-        isOpen={isConfirming}
-        title={isNew ? MSG.createConfirm('모듈 제품') : MSG.updateConfirm(draft.name)}
+        isOpen={pending !== null}
+        title={isNew ? MSG.createConfirm('모듈 제품') : MSG.updateConfirm(pending?.name ?? '모듈 제품')}
         confirmLabel="저장"
-        onConfirm={commit}
-        onClose={() => setIsConfirming(false)}
+        onConfirm={() => pending && commit(pending)}
+        onClose={() => setPending(null)}
+      />
+
+      <ConfirmDialog
+        isOpen={isDeleting}
+        title={MSG.deleteConfirm(target?.name ?? '모듈 제품')}
+        description={inUse > 0
+          ? `이 제품을 쓰는 설비가 ${formatNumber(inUse)}대 있습니다. 삭제하면 해당 설비의 모듈을 다시 골라야 합니다.`
+          : '등록 이력에는 삭제한 사실이 남습니다.'}
+        confirmLabel="삭제"
+        tone="danger"
+        onConfirm={remove}
+        onClose={() => setIsDeleting(false)}
       />
     </>
   );

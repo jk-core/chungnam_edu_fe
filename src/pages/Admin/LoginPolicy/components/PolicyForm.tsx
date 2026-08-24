@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { Button } from '@/components/common/Button';
 import { Card } from '@/components/common/Card';
 import { ConfirmDialog } from '@/components/common/ConfirmDialog';
-import { FormRow, FormSection, NumberField } from '@/components/common/Form';
+import { FormField, FormRow, FormSection, NumberControl, withUnit } from '@/components/common/Form';
 import { MSG } from '@/configs/messages';
 import { Reveal } from '@/components/common/Reveal';
 import { toast } from '@/stores/toastStore';
@@ -65,17 +65,14 @@ export function PolicyForm() {
     const spec: PolicyField = POLICY_FIELDS[key];
 
     return (
-      <NumberField
-        label={spec.label}
-        value={draft[key]}
-        onChange={(value) => setDraft({ ...draft, [key]: value })}
-        unit={spec.unit}
-        min={spec.min}
-        max={spec.max}
-        hint={spec.hint}
-        required
-        error={errorOf(key)}
-      />
+      <FormField label={spec.label} hint={withUnit(spec.hint, spec.unit)} required error={errorOf(key)}>
+        <NumberControl
+          value={draft[key]}
+          onChange={(value) => setDraft({ ...draft, [key]: value })}
+          min={spec.min}
+          max={spec.max}
+        />
+      </FormField>
     );
   };
 

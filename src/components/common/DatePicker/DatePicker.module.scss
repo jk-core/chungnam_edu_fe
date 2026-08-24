@@ -3,18 +3,13 @@
 @use "@/styles/utils/mixins" as mx;
 
 .trigger {
+  @include mx.chip-box;
+  @include mx.press;
+
   display: inline-flex;
   align-items: center;
   gap: s.$space-2;
-  height: 36px;
   padding-inline: s.$space-4 s.$space-3;
-  background-color: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: s.$radius-full;
-  color: var(--text-strong);
-  transition: border-color 0.16s ease, background-color 0.16s ease, box-shadow 0.2s ease;
-
-  @include mx.press;
 
   &:hover {
     border-color: var(--brand);
@@ -26,8 +21,8 @@
   }
 
   &__icon {
-    width: 16px;
-    height: 16px;
+    width: s.$space-4;
+    height: s.$space-4;
     color: var(--text-faint);
     transition: color 0.16s ease;
   }
@@ -39,8 +34,8 @@
   }
 
   &__chevron {
-    width: 14px;
-    height: 14px;
+    width: s.$space-4;
+    height: s.$space-4;
     color: var(--text-faint);
   }
 }

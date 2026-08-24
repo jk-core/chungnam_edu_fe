@@ -43,6 +43,15 @@ export function useReportReview() {
     setAdvancing(null);
   };
 
+  /*
+    사유는 그 보고서 것이다 — 창을 어떻게 닫든 함께 비운다.
+    취소로만 닫고 비우지 않았더니, 다음 보고서 반려창이 앞 사유를 담은 채 버튼까지 활성으로 열렸다.
+  */
+  const endReject = () => {
+    setRejecting(null);
+    setReason('');
+  };
+
   const reject = () => {
     const trimmed = reason.trim();
 
@@ -50,8 +59,7 @@ export function useReportReview() {
 
     move(rejecting, 'rejected', `반려했습니다. — ${trimmed}`, { rejectReason: trimmed });
     toast.success(`${rejecting.schoolName} 보고서를 반려했습니다.`);
-    setRejecting(null);
-    setReason('');
+    endReject();
   };
 
   return {
@@ -62,7 +70,7 @@ export function useReportReview() {
     askAdvance: setAdvancing,
     askReject: setRejecting,
     closeAdvance: () => setAdvancing(null),
-    closeReject: () => setRejecting(null),
+    closeReject: endReject,
     advance,
     reject,
   };

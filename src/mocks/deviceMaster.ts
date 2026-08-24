@@ -1,13 +1,13 @@
 import type {
   DeviceChange,
+  EquipmentMaster,
   InverterKind,
-  InverterMaster,
-  JunctionBoxMaster,
+  InverterProduct,
   StringMaster,
 } from '@/interface/deviceMaster';
 import { getSeedAsset } from './assetMaster';
 import { INVERTERS } from './equipment';
-import { getModuleByName, SEED_MODULES } from './moduleProducts';
+import { SEED_MODULES } from './moduleProducts';
 import { createRandom, hashSeed, pickNumber } from './random';
 import { getSchoolById } from './schools';
 import { stampAgo } from './today';
@@ -30,68 +30,102 @@ function splitArray(next: () => number, panelCount: number): { series: number; p
   return { series, parallel: Math.max(1, Math.round(panelCount / series)) };
 }
 
-export const SEED_INVERTER_MASTERS: InverterMaster[] = INVERTERS.map((inverter, index) => {
-  const next = createRandom(hashSeed(`inverter-master-${inverter.id}`));
+/** 카탈로그에 올릴 용량 단계. 설비 실제 용량을 이 중 가장 가까운 값으로 올려 붙인다. */
+const PRODUCT_CAPACITIES = [3, 5, 10, 20, 30, 50, 75, 100, 250, 500];
+
+function nearestCapacity(capacityKw: number): number {
+  return PRODUCT_CAPACITIES.reduce(
+    (best, item) => (Math.abs(item - capacityKw) < Math.abs(best - capacityKw) ? item : best),
+    PRODUCT_CAPACITIES[0],
+  );
+}
+
+/**
+ * 인버터 제품 카탈로그 (SFR-017-04).
+ * 업체 × 타입 × 용량 단계로 세워 두고, 아래 설비가 그중 하나를 가리킨다.
+ */
+export const SEED_INVERTER_PRODUCTS: InverterProduct[] = INVERTER_MAKERS.flatMap((maker, makerIndex) =>
+  (['string', 'central', 'micro'] as InverterKind[]).flatMap((kind, kindIndex) =>
+    PRODUCT_CAPACITIES.map((capacityKw, capaIndex) => {
+      const seq = (makerIndex * 3 + kindIndex) * PRODUCT_CAPACITIES.length + capaIndex + 1;
+
+      return {
+        id: `INVP-${String(seq).padStart(3, '0')}`,
+        inverterId: 31000 + seq,
+        maker,
+        name: `${kind === 'central' ? 'PVS' : kind === 'micro' ? 'PVM' : 'PVI'}-${capacityKw}K`,
+        capacityKw,
+        kind,
+        phase: capacityKw < 20 ? ('단상' as const) : ('삼상' as const),
+      };
+    })));
+
+/** 설비가 물릴 제품을 업체·타입·용량으로 찾는다. 없으면 카탈로그 첫 줄로 떨어진다. */
+function productFor(maker: string, kind: InverterKind, capacityKw: number): InverterProduct {
+  const wanted = nearestCapacity(capacityKw);
+
+  return SEED_INVERTER_PRODUCTS.find(
+    (item) => item.maker === maker && item.kind === kind && item.capacityKw === wanted,
+  ) ?? SEED_INVERTER_PRODUCTS[0];
+}
+
+export const SEED_EQUIPMENT: EquipmentMaster[] = INVERTERS.map((inverter, index) => {
+  const next = createRandom(hashSeed(`equipment-${inverter.id}`));
   const asset = getSeedAsset(inverter.schoolId);
-  const product = asset ? getModuleByName(asset.module.model) : null;
-  const watt = product?.wattPerPanel ?? SEED_MODULES[0].wattPerPanel;
+  const product = SEED_MODULES[index % SEED_MODULES.length];
+  const watt = product.wattPerPanel;
   const panelCount = Math.max(1, Math.round((inverter.capacityKw * 1000) / watt));
   const { series, parallel } = splitArray(next, panelCount);
   const installedAt = asset?.installedAt ?? '2021-03';
+  const kind: InverterKind = inverter.type === 'central' ? 'central' : 'string';
 
   return {
     inverterId: inverter.id,
     // 설비 식별자(cid)는 서버가 매기는 11자리 숫자다 — 목록·검색이 이 값을 쓴다.
     cid: 10192000000 + index + 1,
     plantId: inverter.schoolId,
+    userId: asset?.userId ?? null,
     name: inverter.name,
-    maker: INVERTER_MAKERS[index % INVERTER_MAKERS.length],
-    productName: `${inverter.type === 'central' ? 'PVS' : 'PVI'}-${Math.round(inverter.capacityKw)}K`,
     rtuCommId: `INV${String(index + 1).padStart(4, '0')}`,
-    // 3번 포트는 일사량계 몫이라 인버터는 0~2, 4~11 만 쓴다.
+    // 3번 포트는 일사량계 몫이라 설비는 0~2, 4~11 만 쓴다.
     rtuPort: [0, 1, 2, 4, 5, 6][index % 6],
-    kind: inverter.type === 'central' ? 'central' : 'string',
-    phase: inverter.phase,
-    moduleProductId: product?.id ?? SEED_MODULES[0].id,
+    inverterProductId: productFor(
+      INVERTER_MAKERS[index % INVERTER_MAKERS.length],
+      kind,
+      inverter.capacityKw,
+    ).id,
+    moduleProductId: product.id,
+    azimuth: [150, 165, 180, 180, 195, 210][index % 6],
+    inclineAngle: [10, 15, 20, 25, 30][index % 5],
     series1: series,
     parallel1: parallel,
     series2: 0,
     parallel2: 0,
     equipmentCapacity: Math.round(inverter.capacityKw * 1000) / 1000,
+    asExpiresAt: `${Number(installedAt.slice(0, 4)) + 5}${installedAt.slice(4)}-01`,
     note: '',
     installedAt: `${installedAt}-01`,
     operatedAt: `${installedAt}-15`,
+    firstReceivedAt: `${installedAt}-15 06:20`,
+    // 통신이 끊긴 설비는 마지막 수신이 한참 전에 멈춰 있다.
+    lastReceivedAt: inverter.status === 'commLost' ? stampAgo(3, '05:40') : stampAgo(0, '14:35'),
   };
 });
 
 /**
  * 서버가 매기는 일련번호를 흉내 낸다.
- * 인버터 순번과 그 안 순번을 섞어, 목업을 다시 만들어도 같은 값이 나오게 한다.
+ * 설비 순번과 그 안 순번을 섞어, 목업을 다시 만들어도 같은 값이 나오게 한다.
  */
-function boxSeq(inverterId: string, index: number): number {
+function stringSeq(inverterId: string, index: number): number {
   return INVERTERS.findIndex((item) => item.id === inverterId) * 100 + index + 1;
 }
 
-export const SEED_JUNCTION_BOXES: JunctionBoxMaster[] = INVERTERS.flatMap((inverter) => {
-  const master = SEED_INVERTER_MASTERS.find((item) => item.inverterId === inverter.id);
-
-  return inverter.junctionBoxes.map((box, index) => ({
-    id: box.id,
-    connectBoxId: boxSeq(inverter.id, index),
-    inverterId: inverter.id,
-    name: box.name,
-    seriesCount: master?.series1 ?? 18,
-    // 접속반 하나가 받는 조 수는 그 아래 채널 수를 따른다.
-    parallelCount: Math.max(1, box.channels.length),
-  }));
-});
-
 export const SEED_STRINGS: StringMaster[] = INVERTERS.flatMap((inverter) => {
-  const master = SEED_INVERTER_MASTERS.find((item) => item.inverterId === inverter.id);
+  const master = SEED_EQUIPMENT.find((item) => item.inverterId === inverter.id);
 
   return inverter.strings.map((unit, index) => ({
     id: unit.id,
-    stringId: boxSeq(inverter.id, index),
+    stringId: stringSeq(inverter.id, index),
     inverterId: inverter.id,
     seq: index + 1,
     name: unit.name,
@@ -102,18 +136,17 @@ export const SEED_STRINGS: StringMaster[] = INVERTERS.flatMap((inverter) => {
 
 /** 인버터 타입 표기 (SFR-017-04) */
 export const INVERTER_KIND_LABEL: Record<InverterKind, string> = {
-  general: '일반형',
   string: '스트링형',
   central: '센트럴형',
   micro: '마이크로형',
 };
 
 /**
- * 인버터 설비용량 산출 (SFR-016-03).
+ * 설비용량 산출 (SFR-016-03).
  * 손으로 넣지 않는다 — 고른 모듈 1장 출력에 MPPT 1·2번 직병렬 장수를 곱한다.
  */
-export function computeInverterCapacity(
-  master: Pick<InverterMaster, 'series1' | 'parallel1' | 'series2' | 'parallel2'>,
+export function computeEquipmentCapacity(
+  master: Pick<EquipmentMaster, 'series1' | 'parallel1' | 'series2' | 'parallel2'>,
   wattPerPanel: number,
 ): number {
   const panels = master.series1 * master.parallel1 + master.series2 * master.parallel2;
@@ -121,13 +154,18 @@ export function computeInverterCapacity(
   return (panels * wattPerPanel) / 1000;
 }
 
+/** 목록·검색에 내보내는 제품 표기. 업체명으로도 찾을 수 있게 한 줄에 함께 담는다. */
+export function describeInverterProduct(product: InverterProduct | undefined): string {
+  return product ? `${product.maker} - ${product.name} (${product.inverterId})` : '';
+}
+
 /** 관리 화면을 처음 열었을 때도 이력 칸이 비어 있지 않도록 몇 줄 깔아 둔다. */
 export const SEED_DEVICE_CHANGES: DeviceChange[] = [
   {
     id: 'DC-3104',
     kind: 'rtu',
-    targetId: SEED_INVERTER_MASTERS[2]?.plantId ?? '',
-    targetName: getSchoolById(SEED_INVERTER_MASTERS[2]?.plantId ?? null)?.name ?? '',
+    targetId: SEED_EQUIPMENT[2]?.plantId ?? '',
+    targetName: getSchoolById(SEED_EQUIPMENT[2]?.plantId ?? null)?.name ?? '',
     at: stampAgo(9, '11:05'),
     actor: '김도현',
     field: '수집 주기',
@@ -136,14 +174,25 @@ export const SEED_DEVICE_CHANGES: DeviceChange[] = [
   },
   {
     id: 'DC-3103',
-    kind: 'inverter',
-    targetId: SEED_INVERTER_MASTERS[5]?.inverterId ?? '',
-    targetName: SEED_INVERTER_MASTERS[5]?.name ?? '',
+    kind: 'equipment',
+    targetId: SEED_EQUIPMENT[5]?.inverterId ?? '',
+    targetName: SEED_EQUIPMENT[5]?.name ?? '',
     at: stampAgo(17, '14:30'),
     actor: '김도현',
-    field: '인버터 업체명',
-    before: '윌링스',
-    after: SEED_INVERTER_MASTERS[5]?.maker ?? '',
+    field: '경사각',
+    before: '25도',
+    after: `${SEED_EQUIPMENT[5]?.inclineAngle ?? 0}도`,
+  },
+  {
+    id: 'DC-3101',
+    kind: 'inverter',
+    targetId: SEED_INVERTER_PRODUCTS[1].id,
+    targetName: SEED_INVERTER_PRODUCTS[1].name,
+    at: stampAgo(31, '16:42'),
+    actor: '박세연',
+    field: '인버터 용량',
+    before: '4 kW',
+    after: `${SEED_INVERTER_PRODUCTS[1].capacityKw} kW`,
   },
   {
     id: 'DC-3102',

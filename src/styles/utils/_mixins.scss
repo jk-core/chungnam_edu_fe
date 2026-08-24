@@ -1,4 +1,5 @@
 @use "../tokens/spacing" as s;
+@use "../tokens/typography" as t;
 @use "./media" as media;
 
 // KRDS 차용 — 콘텐츠 컨테이너와 좌우 여백
@@ -81,6 +82,86 @@
     &:active:not(:disabled) {
       transform: none;
     }
+  }
+}
+
+/*
+  폼에 서는 입력칸의 상자.
+
+  글자칸·숫자칸·검색기·라디오·달력이 한 줄에 나란히 서므로 높이·모서리·글자를 한곳에서 정한다.
+  이 믹스인 없이 파일마다 손으로 그렸더니 모서리가 셋(8·12·999px), 높이가 셋(36·38.8·40px),
+  글자 크기가 넷(12·13·14·15px)으로 갈렸다.
+
+  `:read-only` 를 input·textarea 로 한정하는 것이 핵심이다 — 그 의사클래스는 「편집 가능하지
+  않은 모든 요소」에 걸려서, 상자를 button 에 씌우면 잠기지도 않은 칸이 회색으로 칠해진다.
+*/
+@mixin control-box {
+  @include t.body-sm;
+
+  width: 100%;
+  min-height: s.$control-height;
+  padding: s.$space-2 s.$space-3;
+  border: 1px solid var(--border);
+  border-radius: s.$radius-sm;
+  background-color: var(--surface);
+  color: var(--text-strong);
+  transition: border-color 0.16s ease, box-shadow 0.16s ease;
+
+  &::placeholder {
+    color: var(--text-faint);
+  }
+
+  @include keyboard-focus {
+    outline: none;
+    border-color: var(--brand);
+    box-shadow: var(--shadow-focus);
+  }
+
+  &:disabled,
+  &:is(input, textarea):read-only {
+    background-color: var(--surface-sunken);
+    color: var(--text-muted);
+  }
+
+  &[aria-invalid="true"] {
+    border-color: var(--critical);
+  }
+}
+
+/*
+  툴바에 서는 칩의 상자.
+
+  폼 칸과 다른 물건이다 — 버튼·세그먼트와 나란히 서므로 그쪽 키(36px)와 알약 모서리를 따른다.
+  폼 칸이 이 모습을 쓰거나 칩이 `control-box` 를 쓰는 일은 없다. 한 컴포넌트는 둘 중 하나다.
+*/
+@mixin chip-box {
+  @include t.label-md;
+
+  min-height: s.$control-height-chip;
+  padding: 0 s.$space-4;
+  border: 1px solid var(--border);
+  border-radius: s.$radius-full;
+  background-color: var(--surface);
+  color: var(--text-strong);
+  transition: border-color 0.16s ease, box-shadow 0.16s ease;
+
+  &::placeholder {
+    color: var(--text-faint);
+  }
+
+  &:hover {
+    border-color: var(--border-strong);
+  }
+
+  @include keyboard-focus {
+    outline: none;
+    border-color: var(--brand);
+    box-shadow: var(--shadow-focus);
+  }
+
+  &:disabled {
+    background-color: var(--surface-sunken);
+    color: var(--text-muted);
   }
 }
 

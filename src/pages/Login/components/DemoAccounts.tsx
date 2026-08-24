@@ -33,7 +33,7 @@ export function DemoAccounts({ onEnter, isLocked }: DemoAccountsProps) {
               <span className={styles.demo__note}>{ROLE_SCOPE_NOTE[item.role]}</span>
             </span>
             <span className={styles.demo__meta}>
-              <Badge tone={item.role === 'institution' ? 'neutral' : 'brand'}>{ROLE_LABEL[item.role]}</Badge>
+              <Badge tone={item.role === 'admin' ? 'brand' : 'neutral'}>{ROLE_LABEL[item.role]}</Badge>
               <ChevronRightIcon />
             </span>
           </button>
