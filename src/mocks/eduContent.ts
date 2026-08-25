@@ -155,7 +155,7 @@ export const IMPACT_DEFS: Record<ImpactId, ImpactDef> = {
     label: '탄소 저감량',
     perKwh: CO2_PER_KWH,
     unit: 'kg CO₂',
-    basis: `전기 1kWh 를 만들 때 평균 ${CO2_PER_KWH}kg 의 탄소가 나온다고 보고 계산했다`,
+    basis: `배출계수 ${CO2_PER_KWH}kgCO₂/kWh 기준`,
     fractionDigits: 0,
     line: '여기서 만든 만큼 화력발전소가 덜 돌아가고, 그만큼 석탄과 가스를 태우지 않아도 된다',
   },
@@ -164,7 +164,7 @@ export const IMPACT_DEFS: Record<ImpactId, ImpactDef> = {
     // 줄인 CO₂ 를 소나무가 1년 동안 마시는 양으로 나눈다. 계수는 utils/eco 와 한 곳을 본다.
     perKwh: CO2_PER_KWH / CO2_PER_TREE_YEAR,
     unit: '그루',
-    basis: `소나무 한 그루가 1년에 ${CO2_PER_TREE_YEAR}kg 을 흡수한다고 보고 계산했다`,
+    basis: `탄소흡수량 연간 ${CO2_PER_TREE_YEAR}kg 기준`,
     fractionDigits: 0,
     line: '줄인 탄소를 소나무가 1년에 흡수하는 양으로 나눈 값이다. 소나무를 몇 그루 심은 것과 같은 효과인지 보여 준다',
   },
@@ -172,7 +172,7 @@ export const IMPACT_DEFS: Record<ImpactId, ImpactDef> = {
     label: '4인 가구 사용일수',
     perKwh: 1 / (350 / 30),
     unit: '일',
-    basis: '4인 가구 한 곳이 하루에 11.7kWh 를 쓴다고 보고 계산했다',
+    basis: '4인 가구 일 11.7kWh 기준',
     fractionDigits: 1,
     line: '4인 가구 한 곳이 며칠 동안 쓸 수 있는 양인지 계산한 값이다',
   },
@@ -180,7 +180,7 @@ export const IMPACT_DEFS: Record<ImpactId, ImpactDef> = {
     label: '교실 조명 점등 시간',
     perKwh: 25,
     unit: '시간',
-    basis: '40W 짜리 조명 하나를 계속 켜 둔다고 보고 계산했다',
+    basis: '40W 조명 기준',
     fractionDigits: 0,
     line: '교실 조명 하나를 쉬지 않고 켜 둘 수 있는 시간이다',
   },
@@ -405,7 +405,7 @@ const HIGH: HighContent = {
     head: '환산해 본 의미',
     // 대상 이름의 받침에 따라 조사가 달라지지 않도록 "에서" 로 받는다
     note: (scopeLabel, stats) =>
-      `${scopeLabel}에서 오늘 만든 ${formatNumber(stats.dayKwh)}kWh 가 어느 정도인지 익숙한 단위로 바꾸면 이만큼이다`,
+      `${scopeLabel}에서 오늘 만든 ${formatNumber(stats.dayKwh)}kWh 가 어느 정도인지 일상지표로 바꾸면 다음과 같다`,
     caption: '발전시간이 길었던 날일수록 이 값들도 함께 커진다',
     // 가운데 열을 AI 판단에 내주면서 이 칸이 좁아졌다 — 넉 장은 눌려 읽히지 않아 석 장으로 줄인다.
     itemIds: ['co2', 'tree', 'led'],
@@ -484,10 +484,10 @@ const HIGH: HighContent = {
   },
   facts: [
     '태양전지는 온도가 높을수록 효율이 떨어진다. 일사량이 가장 큰 한여름에 오히려 효율이 떨어지는 이유다.',
-    '모듈 표면에 먼지가 쌓이면 발전량이 몇 % 씩 줄어든다. 비가 한 번 내리면 그만큼 회복된다.',
+    '모듈에 먼지가 쌓이면 발전량이 일정 비율 감소하고, 비가 내리면 다시 회복된다.',
     '직렬로 이은 모듈 하나에만 그늘이 져도 스트링 전체의 출력이 그 모듈에 맞춰 함께 떨어진다.',
     '모듈에 든 바이패스 다이오드는 음영이 진 셀 구간을 우회해 전류를 흘려보낸다.',
-    'kW 는 지금 이 순간의 출력, kWh 는 그 출력으로 쌓은 양이다. 속도와 거리의 관계와 같다.',
+    'kW는 순간적인 전력을, kWh는 일정시간동안 누적된 전력량을 의미한다. 속도-거리의 관계와 같다.',
   ],
 };
 
