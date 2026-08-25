@@ -96,9 +96,6 @@ export function MiddleCompare({ scopeLabel, stats, content }: MiddleCompareProps
     <div className={styles.board}>
       <header className={styles.head}>
         <h2 className={styles.head__title}>비교해 보기</h2>
-        <p className={styles.head__note}>
-          한 번에 한 가지만 바꿔서 비교하면, 무엇이 발전량을 바꾸는지 알 수 있다
-        </p>
       </header>
 
       {/*

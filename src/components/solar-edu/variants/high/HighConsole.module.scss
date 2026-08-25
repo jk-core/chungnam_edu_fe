@@ -177,44 +177,55 @@
   }
 }
 
+/* 지나온 단계와 남은 단계 — 이름만 늘어놓아 지금이 어디쯤인지 보인다 */
+.trail {
+  display: flex;
+  flex: none;
+  flex-wrap: wrap;
+  gap: s.$space-2;
+  list-style: none;
+
+  &__step {
+    @include t.caption;
+
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 3px s.$space-3;
+    border: 1px solid var(--border);
+    border-radius: s.$radius-full;
+    color: var(--text-faint);
+    transition: color 0.5s ease, border-color 0.5s ease;
+
+    span {
+      color: inherit;
+      font-family: var(--font-data);
+    }
+
+    &[data-on] {
+      border-color: var(--ai-scan);
+      color: var(--ai-scan);
+    }
+  }
+}
+
+/* 단계가 넘어갈 때 글이 통째로 갈리므로, 새 글이 들어오는 것이 보이도록 살짝 떠오르게 한다 */
 .log {
   display: flex;
   flex: 1;
   flex-direction: column;
   gap: s.$space-2;
   min-height: 0;
-  overflow-y: auto;
-  overscroll-behavior: contain;
+  padding: s.$space-3;
+  border-left: 2px solid var(--ai-scan);
+  border-radius: s.$radius-sm;
+  background-color: var(--surface-sunken);
+  animation: log-step-in 0.4s ease both;
 
-  &__row {
-    display: grid;
-    grid-template-columns: auto minmax(0, 1fr);
-    gap: s.$space-2;
-    padding: s.$space-2;
-    border-left: 2px solid var(--border);
-    border-radius: s.$radius-sm;
-    background-color: var(--surface-sunken);
-    opacity: 0.45;
-    transition: opacity 0.5s ease, border-color 0.5s ease;
+  &__term {
+    @include t.label-sm;
 
-    &[data-on] {
-      border-left-color: var(--ai-scan);
-      opacity: 1;
-    }
-
-    strong {
-      @include t.label-sm;
-
-      display: block;
-      color: var(--text-strong);
-    }
-  }
-
-  &__key {
-    @include t.caption;
-
-    color: var(--ai-scan);
-    font-family: var(--font-data);
+    color: var(--text-strong);
   }
 
   &__physics {
@@ -227,6 +238,18 @@
     @include t.caption;
 
     color: var(--ai-scan);
+  }
+}
+
+@keyframes log-step-in {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+
+  to {
+    opacity: 1;
+    transform: none;
   }
 }
 
@@ -349,9 +372,13 @@
   .feature__fill,
   .graph__edge,
   .graph__node,
-  .log__row,
+  .trail__step,
   .line,
   .progress span {
     transition: none;
+  }
+
+  .log {
+    animation: none;
   }
 }
