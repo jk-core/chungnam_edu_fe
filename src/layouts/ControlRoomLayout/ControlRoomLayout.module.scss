@@ -257,6 +257,17 @@
     color: var(--text-strong);
   }
 
+  /*
+    시계 자릿수 한 칸.
+    가장 넓은 숫자(`0`)의 폭을 칸으로 삼아 어떤 숫자가 와도 자리가 같다 — 글꼴이 tabular 를
+    지원하지 않아도 폭이 고정된다. 지원하는 글꼴에서는 칸이 글자에 꼭 맞아 티가 나지 않는다.
+  */
+  &__digit {
+    display: inline-block;
+    width: 0.84em;
+    text-align: center;
+  }
+
   &__date {
     @include t.caption;
 
@@ -348,12 +359,14 @@
    ──────────────────────────────────────────────────────────────────── */
 .room[data-skin="cyber"] {
   /*
-    글꼴은 제목·라벨까지만 갈아 끼우고 **계측값은 손대지 않는다**.
-    Orbitron 은 자릿수 폭이 고르지 않다 — 30px 기준으로 `1` 이 11.7px, `0` 이 25.0px 이라
-    `tnum` 을 켜 봐야 그런 기능이 없어 무시된다. 초가 바뀔 때마다 벽시계가 옆으로 흔들리고
-    표의 숫자 열도 자리를 못 잡는다. 수치는 폭이 고른 Space Grotesk 로 남긴다.
+    글꼴은 제목·라벨·계측값까지 한 벌로 간다 — 수치만 다른 글꼴이면 같은 화면이 두 벌로 읽힌다.
+
+    Orbitron 은 자릿수 폭이 고르지 않다 (30px 기준 `1` 11.7px, `0` 25.0px). `tnum` 기능이
+    없어 CSS 로 켤 수도 없다. 그래서 매초 바뀌는 벽시계만 자릿수 칸을 못 박아 흔들림을 잡고
+    (`RoomClock` 의 `--digit`), 나머지 수치는 이 글꼴의 비례폭을 그대로 받는다.
   */
   --font-sans: "Orbitron", "Pretendard Variable", pretendard, sans-serif;
+  --font-data: "Orbitron", "Space Grotesk", sans-serif;
 
   /* 모서리를 거의 직각으로 — 둥근 상자는 안내 카드로 읽히고, 각진 상자는 계측 장비로 읽힌다 */
   --room-radius: 2px;
