@@ -76,26 +76,10 @@ $chip-max: 96px;
     @include t.caption;
     @include mx.truncate;
 
-    display: flex;
-    align-items: center;
-    gap: s.$space-1;
     flex: 1;
     min-width: 0;
     color: var(--text-faint);
   }
-
-  &__ai {
-    @include t.caption;
-
-    flex-shrink: 0;
-    padding: 0 5px;
-    border-radius: var(--room-radius);
-    background-color: var(--brand-soft);
-    color: var(--brand);
-    font-style: normal;
-    font-weight: 700;
-  }
-
 }
 
 /*

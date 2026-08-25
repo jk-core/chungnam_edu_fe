@@ -23,6 +23,8 @@ interface ControlRoomLayoutProps {
   onSearch: () => void;
   /** 걸어 둔 조건 요약. 없으면 안내 문구를 대신 띄운다 */
   searchSummary?: string;
+  /** 화면에 깔린 값이 언제 수집된 것인지 (`YYYY-MM-DD HH:mm`) */
+  collectedAt?: string;
   children: ReactNode;
 }
 
@@ -36,6 +38,7 @@ export function ControlRoomLayout({
   alertTone,
   onSearch,
   searchSummary,
+  collectedAt,
   children,
 }: ControlRoomLayoutProps) {
   const { isFullscreen, toggle: toggleFullscreen } = useFullscreen();
@@ -64,13 +67,23 @@ export function ControlRoomLayout({
         </div>
 
         <div className={styles.bar__right}>
-          {/* 조회 조건 (SFR-004-11/12). 최근 수집 시각은 수집 연동 현황 판이 맡는다. */}
+          {/* 조회 조건 (SFR-004-11/12) */}
           <button type="button" className={styles.search} onClick={onSearch}>
             <SearchIcon width={16} height={16} aria-hidden />
             <span className={styles.search__text}>
               {searchSummary ?? '학교·설비 검색'}
             </span>
           </button>
+
+          {/*
+            화면에 깔린 값이 언제 기준인지.
+            벽시계 옆에 붙여 지금 시각과 곧바로 견주게 한다 — 둘이 벌어져 있으면 그 자체가
+            수집이 밀렸다는 신호다 (SFR-004-04/05).
+          */}
+          <span className={styles.collected}>
+            최근 수집
+            <strong>{collectedAt}</strong>
+          </span>
 
           <RoomClock />
 

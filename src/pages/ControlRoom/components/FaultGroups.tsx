@@ -54,10 +54,7 @@ export function FaultGroups({ plants, collection }: FaultGroupsProps) {
                 <p className={styles.group__head}>
                   <span className={styles.group__label}>{OPERATION_LABEL[group.status]}</span>
                   <strong className={styles.group__count}>{formatNumber(group.plants.length)}</strong>
-                  <span className={styles.group__reason}>
-                    <em className={styles.group__ai}>AI</em>
-                    {group.reason}
-                  </span>
+                  <span className={styles.group__reason}>{group.reason}</span>
                 </p>
 
                 <ul className={styles.chips}>

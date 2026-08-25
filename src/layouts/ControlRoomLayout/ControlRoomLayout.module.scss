@@ -294,6 +294,23 @@
   }
 }
 
+/* 화면에 깔린 값의 기준 시각 — 옆 벽시계와 견주라고 나란히 세운다 */
+.collected {
+  @include t.caption;
+
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  color: var(--text-faint);
+
+  strong {
+    @include t.label-sm;
+
+    color: var(--text-muted);
+    font-family: var(--font-data);
+  }
+}
+
 .search {
   display: flex;
   align-items: center;

@@ -172,6 +172,8 @@
   right: s.$space-2;
   bottom: s.$space-2;
   z-index: 6;
+  display: flex;
+  flex-direction: column;
   width: 252px;
   max-width: calc(100% - #{s.$space-4});
   padding: s.$space-3;
@@ -179,8 +181,16 @@
   border-radius: var(--room-radius);
   background-color: var(--surface-raised);
   box-shadow: var(--shadow-lg);
-  overflow-y: auto;
+  overflow: hidden;
   animation: fault-side-in 0.2s ease-out;
+
+  /* 상자는 바깥이 갖고 스크롤은 안쪽이 맡는다 — 스크롤바가 테두리를 건드리지 않는다 */
+  &__scroll {
+    flex: 1;
+    min-height: 0;
+    overflow: hidden auto;
+    scrollbar-gutter: stable;
+  }
 
   &__close {
     position: absolute;
