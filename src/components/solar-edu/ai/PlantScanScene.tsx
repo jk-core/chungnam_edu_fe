@@ -39,7 +39,7 @@ interface PlantScanSceneProps {
  * AI 가 들여다보는 설비 한 벌 (SFR-005-02).
  *
  * 격자와 막대만으로는 AI 가 부지런히 무언가를 한다는 것까지만 보인다. 무엇을 보는지가 보이려면
- * 볼 대상이 화면에 있어야 한다. 그래서 태양전지 셀에서 학교 전기망까지를 한 장에 늘어놓고,
+ * 볼 대상이 화면에 있어야 한다. 그래서 태양전지 셀에서 학교까지를 한 장에 늘어놓고,
  * 단계가 넘어갈 때마다 AI 의 시선이 그중 한 자리로 옮겨 가게 했다.
  *
  * 왼쪽부터 오른쪽으로 전기가 만들어져 흘러가는 순서다 — 그림 자체가 발전 원리의 차례이기도 하다.
@@ -157,7 +157,7 @@ export function PlantScanScene({ focus }: PlantScanSceneProps) {
           <text x="390" y="144" fill="var(--ok-text)" fontSize="10" textAnchor="middle" fontFamily="Space Grotesk, sans-serif">AC</text>
         </g>
 
-        {/* ── 4. 학교와 전기망 — 쓰이고, 남으면 나간다 ─────────── */}
+        {/* ── 4. 학교 — 만든 전기가 그대로 쓰인다 ───────────────── */}
         <g className={tone('grid')}>
           <path d="M408 172V118h64v54Z" fill="var(--surface)" stroke="var(--border-strong)" strokeWidth="1.6" />
           <path d="M402 118h76v-9h-76Z" fill="var(--surface-sunken)" stroke="var(--border-strong)" strokeWidth="1.2" />
@@ -170,12 +170,6 @@ export function PlantScanScene({ focus }: PlantScanSceneProps) {
               <rect key={`l${slot}`} className={styles.window} style={delay(0.9 + slot * 0.25)} x={415 + slot * 18} y={148} width={12} height={14} rx="2" />
             ))}
           </g>
-
-          {/* 남은 전기가 빠져나가는 전신주 */}
-          <g stroke="var(--text-faint)" strokeWidth="2" strokeLinecap="round">
-            <path d="M492 172V122M484 128h16M486 136h12" />
-          </g>
-          <path d="M472 132h12" stroke="var(--ok)" strokeWidth="2.2" strokeLinecap="round" />
         </g>
 
         <path d="M6 178h508" stroke="var(--border-subtle)" strokeWidth="1.6" />

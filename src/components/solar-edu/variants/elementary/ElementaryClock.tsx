@@ -62,27 +62,27 @@ const ARC_TO = 390;
 const HEIGHT_LESSON = [
   {
     until: 0.22,
-    title: '해가 낮게 떠 있어요',
-    body: '햇빛이 비스듬히 들어와 판 위에 넓게 퍼져요. 같은 빛이 넓게 나뉘니 한 자리가 받는 양은 적어요.',
+    title: '해가 지금 막 떴어요',
+    body: '햇빛이 비스듬히 들어와 패널 위에 넓게 퍼져요. 같은 빛이 넓게 나뉘니 한 자리가 받는 양은 적어요.',
   },
   {
     until: 0.4,
-    title: '해가 올라가고 있어요',
-    body: '해가 높아질수록 빛이 판에 더 똑바로 닿아요. 막대가 점점 길어지는 것이 그 때문이에요.',
+    title: '해가 점점 뜨고 있어요',
+    body: '해가 높아질수록 빛이 패널에 더 똑바로 닿아요. 막대가 점점 길어지는 것이 그 때문이에요.',
   },
   {
     until: 0.62,
-    title: '해가 가장 높아요',
-    body: '빛이 판에 거의 똑바로 내리쬐어요. 같은 넓이에 빛이 가장 많이 모이는 때라, 지금이 하루 중 전기를 가장 많이 만드는 시간이에요.',
+    title: '해가 제일 높이 떠 있어요',
+    body: '햇빛이 똑바로 내려와서, 전기를 가장 많이 만드는 시간이에요.',
   },
   {
     until: 0.82,
-    title: '해가 내려가고 있어요',
-    body: '다시 비스듬해지면서 약해져요. 아직 밝아 보여도 판이 받는 빛은 아까보다 적어요.',
+    title: '해가 점점 지고 있어요',
+    body: '다시 비스듬해지면서 약해져요. 아직 밝아 보여도 패널이 받는 빛은 아까보다 적어요.',
   },
   {
     until: 1.01,
-    title: '해가 지고 있어요',
+    title: '해가 곧 완전히 져요',
     body: '햇빛이 지나오는 공기층이 두꺼워져서 많이 흩어져요. 이제 곧 오늘 발전이 끝나요.',
   },
 ];
@@ -295,7 +295,7 @@ export function ElementaryClock({ stats, content, nowHour }: ElementaryClockProp
         ) : (
           <p className={styles.lesson}>
             <strong>해가 지고 없어요</strong>
-            해가 지면 판은 전기를 만들지 않아요. 내일 아침 해가 다시 뜨면 막대가 왼쪽부터 자라기 시작해요.
+            해가 지면 패널은 전기를 만들지 않아요. 내일 아침 해가 다시 뜨면 막대가 왼쪽부터 자라기 시작해요.
           </p>
         )}
       </section>
@@ -303,10 +303,10 @@ export function ElementaryClock({ stats, content, nowHour }: ElementaryClockProp
       {/* 오른쪽 — 그 시계가 뜻하는 것 */}
       <div className={styles.side}>
         <Card
-          label="실시간 출력"
+          label="우리 학교가 전기를 이만큼 만드는 중이에요"
           value={formatNumber(stats.outputKw, 1)}
           unit="kW"
-          note={`가장 셀 때의 ${Math.round(stats.loadRatio * 100)}만큼 내고 있어요`}
+          note={`천장 에어컨 ${formatNumber((stats.outputKw * 1000) / AIRCON_WATT)}대를 켤 수 있어요`}
           tone="solar"
           art={<SunArt />}
         />
@@ -319,7 +319,7 @@ export function ElementaryClock({ stats, content, nowHour }: ElementaryClockProp
           art={<CupArt ratio={Math.min(1, stats.equivalentHours / 8)} />}
         />
         <Card
-          label="소나무로 환산하면"
+          label="소나무를 심은 효과"
           value={formatNumber(kwhToTrees(stats.dayKwh))}
           unit="그루"
           note="탄소가 그만큼 줄었어요"
@@ -327,7 +327,7 @@ export function ElementaryClock({ stats, content, nowHour }: ElementaryClockProp
           art={<TreeArt />}
         />
         <Card
-          label="4인 가구 사용일수"
+          label="4인 가족이 쓸 수 있는 날"
           value={formatNumber(kwhToHouseholdDays(stats.dayKwh))}
           unit="일"
           note={`에어컨이라면 ${formatNumber((stats.dayKwh * 1000) / AIRCON_WATT)}시간이에요`}

@@ -61,7 +61,7 @@ export function HighConsole({ scopeLabel, stats, content }: HighConsoleProps) {
         자체는 특징량 네 줄로만 스친다. 걸어 두는 화면의 목적이 태양광 설명이라면 진단은
         그 위에 얹히는 이야기여야지 그것을 밀어내서는 안 된다.
       */}
-      <PrincipleStrip stats={stats} level="high" heading="진단하는 대상 — 햇빛이 전기가 되는 길" />
+      <PrincipleStrip stats={stats} level="high" heading="진단하는 대상 — 햇빛이 전기가 되는 과정" />
 
       <div className={styles.console}>
         {/* 왼쪽 — 무엇을 입력받는가 */}

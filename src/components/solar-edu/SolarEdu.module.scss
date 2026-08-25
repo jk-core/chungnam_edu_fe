@@ -724,12 +724,6 @@
   animation: spark-run 2.4s linear infinite;
 }
 
-.overviewGrid {
-  offset-path: path("M333 166q11 -4 16 -12");
-  offset-rotate: 0deg;
-  animation: spark-run 2.2s linear infinite;
-}
-
 .overviewStage {
   transition: opacity 0.6s ease;
 
@@ -748,7 +742,6 @@
   .overviewLight,
   .overviewDc,
   .overviewAc,
-  .overviewGrid,
   .tree__sway {
     animation: none;
   }

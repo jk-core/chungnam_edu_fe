@@ -59,7 +59,7 @@ export function MiddleCompare({ scopeLabel, stats, content }: MiddleCompareProps
       id: 'day',
       question: '오늘과 어제, 무엇이 달랐을까?',
       variable: '날씨만 다름',
-      because: '설비는 어제와 똑같다. 달라진 것은 날씨뿐이므로, 이 차이는 그대로 햇빛 양의 차이다.',
+      because: '설비는 어제와 똑같다. 달라진 것은 날씨뿐이므로, 이 차이는 일사량의 차이이다.',
       left: { label: '오늘', value: stats.dayKwh },
       right: { label: '어제', value: stats.dayKwh * YESTERDAY_RATIO },
       unit: 'kWh',
@@ -70,7 +70,7 @@ export function MiddleCompare({ scopeLabel, stats, content }: MiddleCompareProps
       id: 'weather',
       question: '맑은 날과 흐린 날은 얼마나 차이 날까?',
       variable: '구름만 다름',
-      because: '구름이 햇빛을 가리면 판에 닿는 에너지 자체가 줄어든다. 설비 고장이 아니다.',
+      because: '구름이 해를 가리면, 패널에 도달하는 에너지가 줄어든다.',
       left: { label: '맑은 날', value: stats.dayKwh },
       right: { label: '흐린 날', value: stats.dayKwh * CLOUDY_RATIO },
       unit: 'kWh',
@@ -95,7 +95,7 @@ export function MiddleCompare({ scopeLabel, stats, content }: MiddleCompareProps
   return (
     <div className={styles.board}>
       <header className={styles.head}>
-        <h2 className={styles.head__title}>둘씩 놓고 비교해 보기</h2>
+        <h2 className={styles.head__title}>비교해 보기</h2>
         <p className={styles.head__note}>
           한 번에 한 가지만 바꿔서 비교하면, 무엇이 발전량을 바꾸는지 알 수 있다
         </p>

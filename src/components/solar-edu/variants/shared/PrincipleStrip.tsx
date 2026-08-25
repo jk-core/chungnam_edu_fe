@@ -18,21 +18,21 @@ type StepId = 'sun' | 'cell' | 'inverter' | 'school';
 const COPY: Record<EduLevel, Record<StepId, { label: string; line: string }>> = {
   elementary: {
     sun: { label: '햇빛', line: '해가 우리 학교 지붕을 비춰요' },
-    cell: { label: '태양전지', line: '햇빛을 받으면 판이 전기를 만들어요' },
+    cell: { label: '태양전지', line: '햇빛을 받으면 패널이 전기를 만들어요' },
     inverter: { label: '인버터', line: '교실에서 쓸 수 있는 전기로 바꿔 줘요' },
     school: { label: '교실', line: '불을 켜고 선풍기를 돌리는 데 써요' },
   },
   middle: {
-    sun: { label: '일사강도', line: '해가 높을수록 판 1m² 가 받는 에너지가 커진다' },
+    sun: { label: '일사강도', line: '해가 높을수록 패널 1m² 가 받는 에너지가 커진다' },
     cell: { label: '태양전지', line: '햇빛을 받은 전자가 한 방향으로 흘러 직류가 된다' },
     inverter: { label: '인버터', line: '한 방향으로만 흐르는 직류를 교류로 바꾼다' },
-    school: { label: '학교', line: '학교가 먼저 쓰고, 남으면 전기망으로 내보낸다' },
+    school: { label: '학교', line: '만든 전기는 학교가 그대로 쓴다' },
   },
   high: {
     sun: { label: '일사강도', line: '수평면 도달 복사 에너지. STC 기준 1,000W/m²' },
     cell: { label: '태양전지', line: 'PN 접합의 광기전력 효과로 직류를 만든다' },
     inverter: { label: '인버터', line: 'MPPT 로 최대 전력점을 좇으며 DC 를 AC 로 바꾼다' },
-    school: { label: '계통', line: '자가소비 후 잉여 전력은 계통으로 역송한다' },
+    school: { label: '학교', line: '생산 전력을 수용가에서 전량 자가소비한다' },
   },
 };
 

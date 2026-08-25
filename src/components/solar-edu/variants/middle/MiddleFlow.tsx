@@ -222,9 +222,9 @@ export function MiddleFlow({ stats, content }: MiddleFlowProps) {
             흩어진다는 사실이야말로 태양광을 이해하는 데 빠질 수 없는 대목이다.
           */}
           <p className={styles.loss}>
-            판이 받은 빛 가운데 전기가 되는 몫은 <strong>{formatNumber(efficiency, 1)}%</strong> 예요.
-            나머지는 대부분 열이 되어 흩어지고, 일부는 표면에서 되튕겨 나가요.
-            그래서 판이 뜨거워지면 오히려 효율이 조금 떨어져요.
+            패널이 받은 빛 가운데 전기가 되는 몫은 <strong>{formatNumber(efficiency, 1)}%</strong> 이다.
+            나머지는 대부분 열이 되어 흩어지고, 일부는 표면에서 되튕겨 나간다.
+            이와 별개로 패널이 뜨거워지면 전압이 낮아져, 같은 빛을 받아도 효율이 떨어진다.
           </p>
 
           <ol className={styles.steps__list}>
