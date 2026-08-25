@@ -30,13 +30,13 @@ import { summarizeString, useStringsOf } from '@/pages/Admin/Plants/String/hooks
 import { toast } from '@/stores/toastStore';
 import { useAuthUser } from '@/stores/authStore';
 import { useInverterProducts } from '@/pages/Admin/_shared/device/useSelectableEquipment';
+import { useManagedUsers, usePlantAssets } from '@/hooks/usePlantAssets';
 import useEquipmentStore from '@/stores/equipmentStore';
 import type { EquipmentFormValues } from '@/service/equipment/type';
 import type { EquipmentMaster, StringMaster } from '@/interface/deviceMaster';
 import styles from '@/pages/Admin/Admin.module.scss';
 import { useDerivedCapacity } from '../hooks/useDerivedCapacity';
 import { useEquipmentRows, useModuleProducts } from '../hooks/useEquipmentRows';
-import { useManagedUsers, usePlantAssets } from '../hooks/useEquipmentPickers';
 import { EMPTY_VALUES, moduleLabelOf, toFormValues, userLabelOf } from './values';
 
 /** CID 는 기존 체계를 따라 이 값에 일련번호를 더해 만든다 */

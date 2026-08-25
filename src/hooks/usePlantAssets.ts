@@ -5,10 +5,12 @@ import type { ManagedUser } from '@/interface/account';
 import type { PlantAsset } from '@/interface/asset';
 
 /**
- * 설비 폼의 검색기가 고를 목록.
+ * 발전소 등록 정보와 담당자 계정.
  *
- * 사용자와 발전소는 발전소 관리·사용자 관리가 쥔 값이라 설비 쪽 스토어에 없다. 두 검색기가
- * 같은 규칙(지운 것 제외)을 봐야 해서 여기 한 곳에서 꺼낸다.
+ * 관리자 콘솔의 설비 폼이 검색기에 쓰려고 만든 것인데, 발전소 정보 화면도 같은 값을 읽는다.
+ * 관리자 폴더 아래 두면 조회 화면이 관리자 화면을 가로질러 가져다 쓰게 되어 위치의 뜻이
+ * 깨지므로 여기로 올렸다. 두 훅이 함께 있는 것은 지운 것을 거르는 규칙을 같이 봐야 하기
+ * 때문이다 — 한쪽만 지운 계정을 세우면 폼과 목록이 다른 것을 보게 된다.
  */
 export function useManagedUsers(): ManagedUser[] {
   const userCreated = useAssetStore((state) => state.userCreated);

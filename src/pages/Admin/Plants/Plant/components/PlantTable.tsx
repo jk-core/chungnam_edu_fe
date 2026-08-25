@@ -7,7 +7,7 @@ import { editPath } from '@/pages/Admin/_shared/adminPath';
 import { OPERATION_LABEL, OPERATION_TONE } from '@/mocks/status';
 import { Reveal } from '@/components/common/Reveal';
 import { Table } from '@/components/common/Table';
-import { useManagedUsers } from '@/pages/Admin/Plants/Equipment/hooks/useEquipmentPickers';
+import { useManagedUsers } from '@/hooks/usePlantAssets';
 import type { Column } from '@/components/common/Table';
 import type { School } from '@/interface/energy';
 import styles from '@/pages/Admin/Admin.module.scss';

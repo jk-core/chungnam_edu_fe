@@ -15,7 +15,7 @@ import { PlusIcon } from '@/components/common/Icon';
 import { RecordPicker } from '@/components/common/RecordPicker';
 import { ROLE_LABEL } from '@/mocks/accounts';
 import { toast } from '@/stores/toastStore';
-import { useManagedUsers, usePlantAssets } from '@/pages/Admin/Plants/Equipment/hooks/useEquipmentPickers';
+import { useManagedUsers, usePlantAssets } from '@/hooks/usePlantAssets';
 import { usePlantCapacity } from '@/pages/Admin/Plants/Plant/hooks/usePlantData';
 import useAssetStore from '@/stores/assetStore';
 import type { GroupFormValues } from '@/service/user/type';

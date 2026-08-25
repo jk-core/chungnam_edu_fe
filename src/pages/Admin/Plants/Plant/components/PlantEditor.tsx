@@ -16,7 +16,7 @@ import { SCHOOL_LEVELS, SCHOOLS } from '@/mocks/schools';
 import { RecordPicker } from '@/components/common/RecordPicker';
 import { regionNameOfCode } from '@/mocks/manageCodes';
 import { toast } from '@/stores/toastStore';
-import { useManagedUsers, usePlantAssets } from '@/pages/Admin/Plants/Equipment/hooks/useEquipmentPickers';
+import { useManagedUsers, usePlantAssets } from '@/hooks/usePlantAssets';
 import { usePyranometerRows } from '@/pages/Admin/Plants/Pyranometer/hooks/usePyranometerRows';
 import useAssetStore from '@/stores/assetStore';
 import type { PlantFormValues } from '@/service/plant/type';
