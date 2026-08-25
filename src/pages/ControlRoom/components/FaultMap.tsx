@@ -8,6 +8,7 @@ import { useKakaoMaps } from '@/hooks/useKakaoMaps';
 import { MapStatusFilter, useStatusFilter } from '@/components/plant/MapStatusFilter';
 import { ChevronLeftIcon, ChevronRightIcon, CloseIcon, PauseIcon, PlayIcon } from '@/components/common/Icon';
 import { PlantDetailPanel } from '@/components/plant/PlantDetailPanel';
+import { PlantPhotos } from '@/components/plant/PlantPhotos';
 import type { School } from '@/interface/energy';
 import styles from './FaultMap.module.scss';
 
@@ -162,6 +163,14 @@ export function FaultMap({ plants, scope = 'faults', height = MAP_HEIGHT, select
             transition={{ duration: reduceMotion ? 0.15 : 0.26, ease: [0.22, 0.68, 0.32, 1] }}
           >
             <PlantDetailPanel plant={openPlant} />
+
+            {/*
+              현장 사진.
+              상황판을 지켜보는 사람은 그 학교에 가 본 적이 없다. 이름과 주소만 들고 현장에
+              전화하면 어디를 말하는지부터 맞춰야 하는데, 사진 두 장이 그 왕복을 없앤다.
+              좁은 칸이라 대표 두 장까지만 편다.
+            */}
+            <PlantPhotos plantId={openPlant.id} limit={2} className={styles.side__photos} />
           </motion.div>
         </AnimatePresence>
       </div>

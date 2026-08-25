@@ -15,7 +15,7 @@ export function RegistryCard({ view }: { view: PlantInfoView }) {
   if (!plant) return null;
 
   return (
-    <Reveal delay={0.06}>
+    <Reveal delay={0.1}>
       <Card title="등록 정보" description="발전소 대장에 적힌 값입니다. 고치는 것은 관리자 콘솔에서 합니다.">
         <dl className={styles.facts}>
           {/* 번호는 세는 값이 아니라 이름이라 천단위 쉼표를 넣지 않는다 */}

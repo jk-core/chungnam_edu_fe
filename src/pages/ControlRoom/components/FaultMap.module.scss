@@ -184,6 +184,11 @@
   overflow: hidden;
   animation: fault-side-in 0.2s ease-out;
 
+  /* 설명 아래 한 줄 띄워 사진을 붙인다 — 붙여 두면 수치 표의 마지막 줄로 읽힌다 */
+  &__photos {
+    margin-top: s.$space-3;
+  }
+
   /* 상자는 바깥이 갖고 스크롤은 안쪽이 맡는다 — 스크롤바가 테두리를 건드리지 않는다 */
   &__scroll {
     flex: 1;

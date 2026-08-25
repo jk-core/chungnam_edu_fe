@@ -19,7 +19,7 @@ export function SensorCard({ view }: { view: PlantInfoView }) {
   if (!plant) return null;
 
   return (
-    <Reveal delay={0.14}>
+    <Reveal delay={0.18}>
       <Card title="계측 설비" description="이 발전소의 값이 올라오는 경로입니다.">
         <div className={styles.sensors}>
           <section className={styles.sensor}>

@@ -101,7 +101,7 @@ export function EquipmentCard({ view }: { view: PlantInfoView }) {
   if (!plant) return null;
 
   return (
-    <Reveal delay={0.1}>
+    <Reveal delay={0.14}>
       <Card
         title="설비 구성"
         description={`인버터 ${formatNumber(rows.length)}대 · 합계 ${formatNumber(totals.capacityKw, 1)}kW · 모듈 ${formatNumber(totals.panelCount)}장`}

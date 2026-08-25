@@ -3,6 +3,7 @@ import { EmptyState } from '@/components/common/EmptyState';
 import { usePlantInfoView } from '../hooks/usePlantInfoView';
 import styles from '../PlantInfo.module.scss';
 import { EquipmentCard } from './EquipmentCard';
+import { PhotoCard } from './PhotoCard';
 import { PlantSummaryCard } from './PlantSummaryCard';
 import { RegistryCard } from './RegistryCard';
 import { SensorCard } from './SensorCard';
@@ -33,6 +34,7 @@ export function PlantInfoBoard() {
   return (
     <div className={styles.tab}>
       <PlantSummaryCard view={view} />
+      <PhotoCard view={view} />
       <RegistryCard view={view} />
       <EquipmentCard view={view} />
       <SensorCard view={view} />

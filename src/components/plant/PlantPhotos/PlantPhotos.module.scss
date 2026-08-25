@@ -1,0 +1,59 @@
+@use "@/styles/tokens/spacing" as s;
+@use "@/styles/tokens/typography" as t;
+@use "@/styles/utils/mixins" as mx;
+
+/*
+  사진 줄.
+
+  장수가 발전소마다 달라서 칸을 고르게 나눈다 — 한 장뿐인 곳에서 그 한 장이 줄을 가로질러
+  커지면 세 장인 곳과 크기가 딴판이 되어 같은 자리로 안 읽힌다.
+*/
+.strip {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(0, 1fr));
+  gap: s.$space-2;
+  list-style: none;
+}
+
+.item {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+
+/* 사진이 들어올 자리는 늘 같은 비율로 잡아 둔다 — 파일이 들어와도 칸 높이가 움찔거리지 않는다 */
+.image,
+.blank {
+  aspect-ratio: 4 / 3;
+  width: 100%;
+  border-radius: s.$radius-sm;
+}
+
+.image {
+  display: block;
+  border: 1px solid var(--border-subtle);
+  object-fit: cover;
+  background-color: var(--surface-sunken);
+}
+
+.blank {
+  @include t.caption;
+
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  border: 1px dashed var(--border);
+  background-color: var(--surface-sunken);
+  color: var(--text-faint);
+  text-align: center;
+}
+
+.caption {
+  @include t.caption;
+  @include mx.truncate;
+
+  color: var(--text-muted);
+}
