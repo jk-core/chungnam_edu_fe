@@ -17,6 +17,15 @@ import styles from './FaultGroups.module.scss';
  */
 const CHIP_LIMIT = 3;
 
+/*
+  묶음 제목만 다르게 부른다 (2026-08-25 사업팀 회의).
+  값이 끊긴 것을 「통신단절」이라 하면 회선 고장으로 읽혀, 여기서는 일어난 일 그대로 적는다.
+  공용 라벨은 그대로 두었으므로 지도 툴팁·집계표·더보기 목록은 아직 「통신단절」이다.
+*/
+const GROUP_LABEL: Partial<Record<OperationStatus, string>> = {
+  commLost: '데이터 미수신',
+};
+
 interface FaultGroupsProps {
   /** 전체 발전소 — 이 중 이상 상태만 묶고, 정상 학교는 기대 발전량의 잣대가 된다 */
   plants: School[];
@@ -52,7 +61,7 @@ export function FaultGroups({ plants, collection }: FaultGroupsProps) {
             return (
               <li key={group.status} className={styles.group} data-tone={OPERATION_TONE[group.status]}>
                 <p className={styles.group__head}>
-                  <span className={styles.group__label}>{OPERATION_LABEL[group.status]}</span>
+                  <span className={styles.group__label}>{GROUP_LABEL[group.status] ?? OPERATION_LABEL[group.status]}</span>
                   <strong className={styles.group__count}>{formatNumber(group.plants.length)}</strong>
                   <span className={styles.group__reason}>{group.reason}</span>
                 </p>
