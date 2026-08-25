@@ -119,27 +119,34 @@ function Row({ row, expanded, onToggle, onFaultClick, child = false }: RowProps)
     <>
       <tr className={cn(styles.row, { [styles['row--child']]: child })}>
         <th scope="row" className={cn(styles.name, { [styles['name--child']]: child })}>
-          {hasChildren ? (
-            <button
-              type="button"
-              className={styles.name__toggle}
-              aria-expanded={expanded}
-              aria-label={`${row.name} 하위 설비 ${expanded ? '접기' : '펼치기'}`}
-              onClick={onToggle}
-            >
-              <ChevronRightIcon
-                className={cn(styles.name__toggleIcon, { [styles['name__toggleIcon--open']]: expanded })}
-                width={12}
-                height={12}
-                aria-hidden
-              />
-            </button>
-          ) : (
-            <span className={styles.name__toggle} aria-hidden />
-          )}
-          <span className={cn(styles.name__dot, styles[`dot--${row.status}`])} title={OPERATION_LABEL[row.status]} />
-          <span className={styles.name__text}>{row.name}</span>
-          <span className={styles.name__meta}>{row.meta}</span>
+          {/*
+            줄 세우기는 칸이 아니라 그 안쪽 껍데기가 맡는다.
+            `th` 에 직접 flex 를 걸면 그 칸이 표의 줄 배치에서 빠져 나와, 옆 칸들보다 높이가
+            낮아진다. 칸마다 아래 테두리를 두고 있으므로 그 차이가 곧 어긋난 가로선이 된다.
+          */}
+          <span className={styles.name__inner}>
+            {hasChildren ? (
+              <button
+                type="button"
+                className={styles.name__toggle}
+                aria-expanded={expanded}
+                aria-label={`${row.name} 하위 설비 ${expanded ? '접기' : '펼치기'}`}
+                onClick={onToggle}
+              >
+                <ChevronRightIcon
+                  className={cn(styles.name__toggleIcon, { [styles['name__toggleIcon--open']]: expanded })}
+                  width={12}
+                  height={12}
+                  aria-hidden
+                />
+              </button>
+            ) : (
+              <span className={styles.name__toggle} aria-hidden />
+            )}
+            <span className={cn(styles.name__dot, styles[`dot--${row.status}`])} title={OPERATION_LABEL[row.status]} />
+            <span className={styles.name__text}>{row.name}</span>
+            <span className={styles.name__meta}>{row.meta}</span>
+          </span>
         </th>
 
         {row.points.map((point) => (

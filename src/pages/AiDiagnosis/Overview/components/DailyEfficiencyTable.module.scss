@@ -64,13 +64,17 @@
   }
 }
 
+/*
+  줄 이름 칸.
+
+  `display: flex` 는 이 칸이 아니라 안쪽 껍데기가 쓴다. 칸에 직접 걸면 표의 줄 배치에서 빠져 나와
+  옆 칸들보다 높이가 낮아지고, 칸마다 아래 테두리를 두고 있으므로 그 차이가 곧 어긋난 가로선이
+  된다(실측 35.00px 대 36.69px).
+*/
 .name {
   position: sticky;
   left: 0;
   z-index: 2;
-  display: flex;
-  align-items: center;
-  gap: 6px;
   min-width: 260px;
   padding: s.$space-2 s.$space-3;
   border-bottom: 1px solid var(--border-subtle);
@@ -81,6 +85,12 @@
 
   &--child {
     padding-left: s.$space-6;
+  }
+
+  &__inner {
+    display: flex;
+    align-items: center;
+    gap: 6px;
   }
 
   &__toggle {

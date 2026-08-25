@@ -110,34 +110,3 @@ export function Split({ data }: LayoutProps) {
     </div>
   );
 }
-
-/**
- * 시안 E — 네 단.
- *
- * 장애 현황을 제 열로 떼어 내 위 판에 밀리지 않게 한다. 남색 자리에 금색을 앉혀
- * 발전 화면다운 결을 준다 — 지도만 제 색을 지켜 대비가 생긴다.
- */
-export function Quad({ data }: LayoutProps) {
-  return (
-    <div className={`${styles.board} ${styles.quad} ${styles.sunlit}`}>
-      <Col>
-        <OutputPanel totals={data.totals} />
-        <YieldPanel plants={data.rows} totals={data.totals} />
-        <RegionPanel grow />
-      </Col>
-
-      <Col>
-        <MapPanel plants={data.rows} abnormalCount={data.abnormalCount} grow />
-        <AggregationCard plants={data.rows} />
-      </Col>
-
-      <Col>
-        <AiPanel plants={data.rows} grow />
-      </Col>
-
-      <Col>
-        <FaultPanel plants={data.rows} abnormalCount={data.abnormalCount} collection={data.collection.byId} grow />
-      </Col>
-    </div>
-  );
-}

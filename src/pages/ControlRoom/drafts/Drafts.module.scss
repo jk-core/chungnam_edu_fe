@@ -43,11 +43,6 @@
   grid-template-columns: 300px 440px minmax(0, 1fr);
 }
 
-/* 시안 E — 네 단. 장애 현황을 제 열로 떼어 내 다른 판에 밀리지 않게 한다. */
-.quad {
-  grid-template-columns: 296px minmax(0, 1fr) 400px 320px;
-}
-
 /* ── 색 ─────────────────────────────────────────────────────────────────
    판의 생김새는 `ControlRoom.module.scss` 가 쥐고 있고 그 클래스 이름은 해시라 여기서
    부를 수 없다. 대신 토큰(`--brand` 따위)을 이 자리에서 다시 매어 **아래로 흘려보낸다** —
@@ -75,14 +70,4 @@
     background: var(--surface);
     box-shadow: none;
   }
-}
-
-/** 볕 — 남색 자리에 금색을 앉힌다. 지도는 제 색을 지켜 대비가 생긴다. */
-.sunlit {
-  --brand: var(--solar-deep);
-  --brand-hover: var(--solar-deep);
-  --brand-active: var(--solar-text);
-  --brand-soft: var(--solar-soft);
-  --brand-soft-border: var(--solar-line);
-  --brand-contrast: var(--solar-text);
 }
