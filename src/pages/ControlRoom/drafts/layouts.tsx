@@ -84,6 +84,35 @@ export function MapFirst({ data }: LayoutProps) {
 }
 
 /**
+ * 시안 E — 사이버네틱.
+ *
+ * 배치는 `/control` 과 똑같이 둔다 — 이 시안이 묻는 것은 **어디에 서는가** 가 아니라
+ * **무슨 결로 보이는가** 하나뿐이라, 자리가 함께 달라지면 무엇 때문에 다르게 읽히는지 갈린다.
+ * 색·글꼴·판의 질감만 갈아 끼우고 나머지는 손대지 않는다.
+ */
+export function Cyber({ data }: LayoutProps) {
+  return (
+    <div className={`${styles.board} ${styles.stack}`}>
+      <Col>
+        <OutputPanel totals={data.totals} />
+        <YieldPanel plants={data.rows} totals={data.totals} />
+        <RegionPanel grow />
+      </Col>
+
+      <Col>
+        <MapPanel plants={data.rows} abnormalCount={data.abnormalCount} grow />
+        <AggregationCard plants={data.rows} />
+      </Col>
+
+      <Col>
+        <AiPanel plants={data.rows} grow />
+        <FaultPanel plants={data.rows} abnormalCount={data.abnormalCount} collection={data.collection.byId} />
+      </Col>
+    </div>
+  );
+}
+
+/**
  * 시안 D — AI 가운데.
  *
  * 「먼저 봐야 할 것」 을 화면 한가운데 세운다. 지도는 오른쪽으로 물러나 여전히 제일 넓은 자리를

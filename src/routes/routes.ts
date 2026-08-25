@@ -31,6 +31,7 @@ export const PATH = {
   CONTROL_B: '/control/b',
   CONTROL_C: '/control/c',
   CONTROL_D: '/control/d',
+  CONTROL_E: '/control/e',
   /** 마이페이지 (SFR-024) */
   MY: '/my',
 

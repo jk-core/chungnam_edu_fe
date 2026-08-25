@@ -60,6 +60,7 @@ export const routes: RouteObject[] = [
       { path: PATH.CONTROL_B, element: <ControlRoomDraftPage draft="b" /> },
       { path: PATH.CONTROL_C, element: <ControlRoomDraftPage draft="c" /> },
       { path: PATH.CONTROL_D, element: <ControlRoomDraftPage draft="d" /> },
+      { path: PATH.CONTROL_E, element: <ControlRoomDraftPage draft="e" /> },
       {
         path: PATH.HOME,
         element: <RootLayout />,
