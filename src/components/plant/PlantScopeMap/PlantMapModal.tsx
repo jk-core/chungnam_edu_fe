@@ -131,7 +131,7 @@ export function PlantMapModal({ isOpen, onClose, plants, selectedId, onSelect }:
             <aside className={styles.preview} aria-label={`${preview.name} 상세`}>
               <div className={styles.preview__body}>
                 <PlantDetailPanel plant={preview} />
-                <PlantPhotos plantId={preview.id} limit={2} className={styles.preview__photos} />
+                <PlantPhotos plantId={preview.id} className={styles.preview__photos} />
               </div>
 
               <Button onClick={confirm} isFullWidth>이 발전소로 조회</Button>
