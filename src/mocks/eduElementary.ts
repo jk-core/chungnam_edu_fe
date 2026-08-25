@@ -130,7 +130,7 @@ const IMPACT: ElementaryImpact = {
     {
       id: 'tree',
       title: '소나무를 이만큼 심은 것과 같은 효과예요',
-      line: '우리가 만든 만큼 화력발전소가 덜 돌아서, 그만큼 탄소가 덜 나왔어요.',
+      line: '우리가 만든 만큼 석탄과 가스를 덜 태워서, 그만큼 탄소가 덜 나왔어요.',
       at: { x: 52, y: 6, tail: 'bottom', tailAt: 125 },
       readout: (stats) => ({
         label: '소나무를 심은 효과',
@@ -232,7 +232,7 @@ export const ELEMENTARY_CONTENT: ElementaryContent = {
         note: () => '해가 가장 셀 때만 골라서 발전했다면 이만큼 걸렸을 시간이에요',
       },
       co2: {
-        note: () => '우리가 만든 만큼 화력발전소가 덜 돌아서 줄어든 양이에요',
+        note: () => '우리가 만든 만큼 석탄과 가스를 덜 태워서 줄어든 양이에요',
       },
       irradiance: {
         note: () => '맑은 날 한낮이 100점이에요',

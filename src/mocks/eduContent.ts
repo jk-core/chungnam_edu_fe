@@ -157,7 +157,7 @@ export const IMPACT_DEFS: Record<ImpactId, ImpactDef> = {
     unit: 'kg CO₂',
     basis: `배출계수 ${CO2_PER_KWH}kgCO₂/kWh 기준`,
     fractionDigits: 0,
-    line: '여기서 만든 만큼 화력발전소가 덜 돌아가고, 그만큼 석탄과 가스를 태우지 않아도 된다',
+    line: '여기서 생산한 만큼 화석연료 발전을 대체해, 그만큼 석탄과 가스를 태우지 않아도 된다',
   },
   tree: {
     label: '소나무로 환산하면',
@@ -426,7 +426,7 @@ const HIGH: HighContent = {
         id: 'effect',
         title: '무엇이 달라지는가',
         body:
-          '여기서 생산한 만큼 화력발전소의 가동이 줄어든다. 태우지 않은 연료가 곧 줄어든 온실가스이고, '
+          '여기서 생산한 만큼 화력발전소의 발전량이 줄어든다. 태우지 않은 연료가 곧 줄어든 온실가스이고, '
           + '그루 수는 그 양을 소나무가 1년 동안 흡수하는 양으로 환산한 값이다.',
       },
     ],

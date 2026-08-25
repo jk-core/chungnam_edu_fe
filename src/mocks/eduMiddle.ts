@@ -74,7 +74,7 @@ export const MIDDLE_CONTENT: MiddleContent = {
         note: () => '발전량을 설비용량으로 나눈 값이다. 용량이 달라도 비교가 가능한 지표이다',
       },
       co2: {
-        note: () => '여기서 만든 만큼 화력발전이 덜 돌아 줄어든 양이다',
+        note: () => '여기서 만든 만큼 화석연료 발전이 줄어들어 감축된 양이다',
       },
       irradiance: {
         note: (stats) => `맑은 날 정오를 100 으로 본 값이다 (${formatNumber(stats.irradianceNow)} W/m²)`,
@@ -146,7 +146,7 @@ export const MIDDLE_CONTENT: MiddleContent = {
   benefit: {
     head: '그래서 무엇이 좋아지는가',
     note: '오늘 발전량이 어느 정도인지 환산해 보자',
-    caption: '여기서 만든 만큼 화력발전이 줄어든다. 그루 수는 줄어든 탄소를 소나무가 흡수하는 양으로 바꾼 값이다.',
+    caption: '여기서 만든 만큼 화석연료 발전이 줄어든다. 그루 수는 줄어든 탄소를 소나무가 흡수하는 양으로 바꾼 값이다.',
     itemIds: ['co2', 'tree', 'household', 'led'],
   },
   facts: [
