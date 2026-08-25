@@ -10,7 +10,7 @@
 */
 .board {
   display: grid;
-  grid-template-rows: auto minmax(0, 1fr) auto minmax(190px, 0.7fr);
+  grid-template-rows: auto minmax(0, 1fr) auto minmax(240px, 0.7fr);
   gap: s.$space-3;
   height: 100%;
   min-height: 0;
@@ -32,12 +32,6 @@
     @include t.title-md;
 
     color: var(--text-strong);
-  }
-
-  &__note {
-    @include t.body-sm;
-
-    color: var(--text-muted);
   }
 }
 
@@ -224,6 +218,7 @@
   }
 }
 
+/* 테두리와 모서리를 가진 상자라, 안의 것이 그 위로 삐져나오지 않게 여기서 잘라 낸다 */
 .curve,
 .facts {
   display: flex;
@@ -235,6 +230,7 @@
   border-radius: s.$radius-lg;
   background-color: var(--surface);
   box-shadow: var(--shadow-sm);
+  overflow: hidden;
 }
 
 .curve {

@@ -52,17 +52,6 @@ export const InverterIcon = (props: IconProps) => (
   </Base>
 );
 
-/** 계통 연계 — 송전탑 */
-export const GridIcon = (props: IconProps) => (
-  <Base {...props}>
-    <path d="M8 21 12 3.2 16 21" />
-    <path d="M6.2 21h11.6" />
-    <path d="M9.3 14.4h5.4M9.9 11.2h4.2M10.4 8.6h3.2" />
-    <path d="M9.3 14.4 13.2 11.2M14.7 14.4 10.8 11.2" strokeWidth="1.1" />
-    <path d="M6.4 6.6h11.2M7.8 9.6h8.4" />
-  </Base>
-);
-
 /** 광전효과 — 빛알이 부딪치면 전자가 튀어나온다 */
 export const PhotonIcon = (props: IconProps) => (
   <Base {...props}>
@@ -235,7 +224,7 @@ export const JOURNEY_ICONS: Record<string, ReactNode> = {
   sun: <SunIcon />,
   panel: <SolarPanelIcon />,
   inverter: <InverterIcon />,
-  load: <GridIcon />,
+  load: <SchoolIcon />,
 };
 
 /** 원리 카드 */

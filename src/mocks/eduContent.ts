@@ -1,5 +1,5 @@
 import { CO2_PER_KWH, CO2_PER_TREE_YEAR, kwhToHouseholdDays } from '@/utils/eco';
-import { formatNumber, formatPercent } from '@/utils/format';
+import { formatNumber } from '@/utils/format';
 import type { AnalysisStage } from '@/interface/diagnosis';
 import type { EduLevel } from '@/interface/edu';
 import type { School, SchoolLevel } from '@/interface/energy';
@@ -101,14 +101,14 @@ export const STAT_DEFS: Record<StatId, StatDef> = {
     value: (stats) => stats.equivalentHours,
     unit: '시간',
     fractionDigits: 1,
-    note: () => '발전량을 설비용량으로 나눈 값이다. 설비 크기가 달라도 서로 비교할 수 있다',
+    note: () => '발전량을 설비용량으로 나눈 값이다. 용량이 달라도 비교가 가능한 지표이다',
   },
   co2: {
     label: '탄소 저감량',
     value: (stats) => stats.todayKwh * CO2_PER_KWH,
     unit: 'kg',
     fractionDigits: 0,
-    note: () => `배출계수 ${CO2_PER_KWH}kgCO₂/kWh 를 적용했다`,
+    note: () => '같은 양의 전기를 화석연료로 생산할 때 대비, 이만큼의 온실가스를 감축했다',
   },
   /*
     설비용량.
@@ -120,7 +120,7 @@ export const STAT_DEFS: Record<StatId, StatDef> = {
     value: (stats) => stats.capacityKw,
     unit: 'kW',
     fractionDigits: 1,
-    note: () => '설치된 모듈이 한꺼번에 낼 수 있는 최대 출력이다',
+    note: () => '최적의 조건이 갖춰졌을 때 낼 수 있는 최대 출력이다',
   },
 };
 
@@ -155,16 +155,16 @@ export const IMPACT_DEFS: Record<ImpactId, ImpactDef> = {
     label: '탄소 저감량',
     perKwh: CO2_PER_KWH,
     unit: 'kg CO₂',
-    basis: `전기 1kWh 를 만들 때 평균 ${CO2_PER_KWH}kg 의 탄소가 나온다고 보고 계산했다`,
+    basis: `배출계수 ${CO2_PER_KWH}kgCO₂/kWh 기준`,
     fractionDigits: 0,
-    line: '여기서 만든 만큼 화력발전소가 덜 돌아가고, 그만큼 석탄과 가스를 태우지 않아도 된다',
+    line: '여기서 생산한 만큼 화석연료 발전을 대체해, 그만큼 석탄과 가스를 태우지 않아도 된다',
   },
   tree: {
     label: '소나무로 환산하면',
     // 줄인 CO₂ 를 소나무가 1년 동안 마시는 양으로 나눈다. 계수는 utils/eco 와 한 곳을 본다.
     perKwh: CO2_PER_KWH / CO2_PER_TREE_YEAR,
     unit: '그루',
-    basis: `소나무 한 그루가 1년에 ${CO2_PER_TREE_YEAR}kg 을 흡수한다고 보고 계산했다`,
+    basis: `탄소흡수량 연간 ${CO2_PER_TREE_YEAR}kg 기준`,
     fractionDigits: 0,
     line: '줄인 탄소를 소나무가 1년에 흡수하는 양으로 나눈 값이다. 소나무를 몇 그루 심은 것과 같은 효과인지 보여 준다',
   },
@@ -172,7 +172,7 @@ export const IMPACT_DEFS: Record<ImpactId, ImpactDef> = {
     label: '4인 가구 사용일수',
     perKwh: 1 / (350 / 30),
     unit: '일',
-    basis: '4인 가구 한 곳이 하루에 11.7kWh 를 쓴다고 보고 계산했다',
+    basis: '4인 가구 일 11.7kWh 기준',
     fractionDigits: 1,
     line: '4인 가구 한 곳이 며칠 동안 쓸 수 있는 양인지 계산한 값이다',
   },
@@ -180,7 +180,7 @@ export const IMPACT_DEFS: Record<ImpactId, ImpactDef> = {
     label: '교실 조명 점등 시간',
     perKwh: 25,
     unit: '시간',
-    basis: '40W 짜리 조명 하나를 계속 켜 둔다고 보고 계산했다',
+    basis: '40W 조명 기준',
     fractionDigits: 0,
     line: '교실 조명 하나를 쉬지 않고 켜 둘 수 있는 시간이다',
   },
@@ -266,7 +266,7 @@ export const PLANT_SPOT_LABEL: Record<PlantSpot, string> = {
   cell: '태양전지 셀',
   module: '모듈 · 스트링',
   inverter: '인버터',
-  grid: '학교 · 전기망',
+  grid: '학교',
 };
 
 /**
@@ -356,12 +356,12 @@ const HIGH: HighContent = {
   headline: {
     mainLabel: '실시간 출력',
     mainNote: (stats) =>
-      `설비용량 ${formatNumber(stats.capacityKw)}kW 로 낼 수 있는 최대치의 ${formatPercent(stats.loadRatio)} 를 내고 있다`,
+      `설비용량 ${formatNumber(stats.capacityKw)}kW 로 낼 수 있는 최대치 대비 현재의 출력을 나타낸다`,
     statIds: ['today', 'insolation', 'co2', 'irradiance', 'capacity'],
     // 기본 문구가 이미 서술체이자 표준 용어라 덮어쓸 것이 없다.
   },
   sunPath: {
-    head: '태양의 하루 경로',
+    head: '태양의 하루 고도',
     note: '햇빛이 들어오는 각도는 시각마다 달라진다',
     notes: [
       {
@@ -387,16 +387,16 @@ const HIGH: HighContent = {
     notes: [
       {
         id: 'shape',
-        term: '곡선의 모양은 태양 경로를 따라간다',
+        term: '곡선의 모양은 태양의 고도와 같다',
         body:
-          '차트가 가장 높은 시각이 태양이 가장 높이 뜬 때다. 옆 그림의 태양 고도 변화가 그대로 차트 모양이 된다. '
-          + '발전량을 정하는 것은 설비 성능이 아니라 그 시각에 들어온 햇빛의 양이다.',
+          '차트가 가장 높은 시각이 태양이 가장 높이 뜬 때다. 태양 고도 그래프의 변화가 그대로 차트 모양이 된다. '
+          + '발전량을 정하는 것은 설비 성능이 아니라 그 시각에 들어온 태양복사에너지의 양이다.',
       },
       {
         id: 'cloud',
-        term: '두 선이 같이 내려갔다면 날씨 때문이다',
+        term: '두 그래프가 같이 떨어졌다면 날씨 때문이다',
         body:
-          '차트가 잠깐 뚝 떨어진 구간은 대개 구름이 해를 잠시 가린 순간이다. 일사량 선까지 같이 내려갔다면 '
+          '차트가 잠깐 뚝 떨어진 구간은 대개 구름이 해를 잠시 가린 순간이다. 일사량 그래프까지 같이 내려갔다면 '
           + '날씨 때문이고, 일사량은 그대로인데 발전량만 떨어졌다면 표면 오염·그늘·고장을 살펴야 한다.',
       },
     ],
@@ -405,7 +405,7 @@ const HIGH: HighContent = {
     head: '환산해 본 의미',
     // 대상 이름의 받침에 따라 조사가 달라지지 않도록 "에서" 로 받는다
     note: (scopeLabel, stats) =>
-      `${scopeLabel}에서 오늘 만든 ${formatNumber(stats.dayKwh)}kWh 가 어느 정도인지 익숙한 단위로 바꾸면 이만큼이다`,
+      `${scopeLabel}에서 오늘 만든 ${formatNumber(stats.dayKwh)}kWh 가 어느 정도인지 일상지표로 바꾸면 다음과 같다`,
     caption: '발전시간이 길었던 날일수록 이 값들도 함께 커진다',
     // 가운데 열을 AI 판단에 내주면서 이 칸이 좁아졌다 — 넉 장은 눌려 읽히지 않아 석 장으로 줄인다.
     itemIds: ['co2', 'tree', 'led'],
@@ -426,14 +426,14 @@ const HIGH: HighContent = {
         id: 'effect',
         title: '무엇이 달라지는가',
         body:
-          '여기서 생산한 만큼 화력발전소의 가동이 줄어든다. 태우지 않은 연료가 곧 줄어든 온실가스이고, '
-          + '오른쪽 그루 수는 그 양을 소나무가 1년 동안 흡수하는 양으로 환산한 값이다.',
+          '여기서 생산한 만큼 화력발전소의 발전량이 줄어든다. 태우지 않은 연료가 곧 줄어든 온실가스이고, '
+          + '그루 수는 그 양을 소나무가 1년 동안 흡수하는 양으로 환산한 값이다.',
       },
     ],
   },
   ai: {
     head: '햇빛이 전기가 되기까지, 단계마다 무슨 일이 일어나는가',
-    note: '태양전지 셀에서 학교 전기망까지, 전기가 만들어져 흘러가는 네 자리를 차례로 살펴본다',
+    note: '태양전지 셀에서 학교까지, 전기가 만들어져 흘러가는 네 자리를 차례로 살펴본다',
     stages: {
       scan: {
         label: '계측값 수집',
@@ -473,8 +473,8 @@ const HIGH: HighContent = {
         teach: '무엇을 근거로 그렇게 판단했는지가 남아야 사람이 확인할 수 있다.',
         spot: 'grid',
         physics:
-          '생산한 전력은 학교가 우선 소비한다. 수용가에서 바로 생산하므로 송전 손실이 없고, '
-          + '남은 전력은 계통으로 역송되어 다른 곳에서 쓰인다.',
+          '생산한 전력은 학교가 그대로 소비한다. 쓰는 곳에서 바로 생산하므로 송전 손실이 없고, '
+          + '그만큼 밖에서 끌어다 쓰는 전력이 줄어든다.',
         diagnosis:
           '판정과 함께 근거를 문장으로 남긴다. 근거 없이 경보만 울리면 사람이 신뢰하지 않고, '
           + '사람이 믿지 못하는 진단은 실제 조치로 이어지지 않는다.',
@@ -484,10 +484,10 @@ const HIGH: HighContent = {
   },
   facts: [
     '태양전지는 온도가 높을수록 효율이 떨어진다. 일사량이 가장 큰 한여름에 오히려 효율이 떨어지는 이유다.',
-    '모듈 표면에 먼지가 쌓이면 발전량이 몇 % 씩 줄어든다. 비가 한 번 내리면 그만큼 회복된다.',
+    '모듈에 먼지가 쌓이면 발전량이 일정 비율 감소하고, 비가 내리면 다시 회복된다.',
     '직렬로 이은 모듈 하나에만 그늘이 져도 스트링 전체의 출력이 그 모듈에 맞춰 함께 떨어진다.',
     '모듈에 든 바이패스 다이오드는 음영이 진 셀 구간을 우회해 전류를 흘려보낸다.',
-    'kW 는 순간의 출력, kWh 는 그 출력으로 쌓은 양이다. 속도와 거리의 관계와 같다.',
+    'kW는 순간적인 전력을, kWh는 일정시간동안 누적된 전력량을 의미한다. 속도-거리의 관계와 같다.',
   ],
 };
 

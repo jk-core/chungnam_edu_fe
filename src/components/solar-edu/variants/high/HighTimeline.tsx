@@ -6,7 +6,8 @@ import { clockOf, formatNumber, formatPercent } from '@/utils/format';
 import type { AnalysisStage } from '@/interface/diagnosis';
 import type { HighContent, PlantSpot } from '@/mocks/eduContent';
 import type { EduStats } from '@/mocks/solarEdu';
-import { AngleIcon, ConversionIcon, GridIcon, InverterIcon, IrradianceIcon, JunctionIcon, PhotonIcon, SolarPanelIcon } from '../../EduIcons';
+import { SchoolIcon } from '@/components/common/Icon';
+import { AngleIcon, ConversionIcon, InverterIcon, IrradianceIcon, JunctionIcon, PhotonIcon, SolarPanelIcon } from '../../EduIcons';
 import styles from './HighTimeline.module.scss';
 import type { ReactNode } from 'react';
 
@@ -40,7 +41,7 @@ const STAGES: { spot: PlantSpot; stage: AnalysisStage; name: string; icon: React
   { spot: 'cell', stage: 'scan', name: '태양전지 셀', icon: <PhotonIcon /> },
   { spot: 'module', stage: 'classify', name: '모듈 · 스트링', icon: <SolarPanelIcon /> },
   { spot: 'inverter', stage: 'reason', name: '인버터', icon: <InverterIcon /> },
-  { spot: 'grid', stage: 'done', name: '계통 연계', icon: <GridIcon /> },
+  { spot: 'grid', stage: 'done', name: '학교', icon: <SchoolIcon /> },
 ];
 
 interface Factor {
@@ -163,7 +164,7 @@ export function HighTimeline({ scopeLabel, stats, content }: HighTimelineProps) 
         <div>
           <h2 className={styles.head__title}>햇빛이 전기가 되는 과정과, 그 양을 정하는 요인</h2>
           <p className={styles.head__note}>
-            {scopeLabel} · 위 곡선은 오늘의 결과이고, 아래 두 판은 그 곡선이 왜 이런 모양인지를 설명한다
+            {scopeLabel} · 오늘의 발전 곡선과, 그 모양을 만든 요인
           </p>
         </div>
 
@@ -264,7 +265,7 @@ export function HighTimeline({ scopeLabel, stats, content }: HighTimelineProps) 
         <section className={styles.panel} aria-label="발전량을 좌우하는 것">
           <header className={styles.panel__head}>
             <h3 className={styles.panel__title}>발전량을 좌우하는 것</h3>
-            <p className={styles.panel__note}>설비가 같아도 이 다섯 가지 때문에 날마다 발전량이 달라진다</p>
+            <p className={styles.panel__note}>설비 상태와 무관하게 영향력이 큰 5가지 요인</p>
           </header>
 
           <ul className={styles.factors}>

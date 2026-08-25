@@ -35,9 +35,9 @@ export function ElementaryPoster({ stats, content, nowHour }: ElementaryPosterPr
     적어야 벽보가 설명이 된다 — 걸어 두는 화면의 목적이 태양광을 설명하는 것이기 때문이다.
   */
   const IMPACTS = [
-    { id: 'tree', art: 'tree' as const, label: '소나무로 환산하면', unit: '그루', value: (v: typeof stats) => kwhToTrees(v.dayKwh) },
+    { id: 'tree', art: 'tree' as const, label: '소나무를 심은 효과', unit: '그루', value: (v: typeof stats) => kwhToTrees(v.dayKwh) },
     { id: 'aircon', art: 'aircon' as const, label: '에어컨 가동 시간', unit: '시간', value: (v: typeof stats) => (v.dayKwh * 1000) / AIRCON_WATT },
-    { id: 'house', art: 'house' as const, label: '4인 가구 사용일수', unit: '일', value: (v: typeof stats) => kwhToHouseholdDays(v.dayKwh) },
+    { id: 'house', art: 'house' as const, label: '4인 가족이 쓸 수 있는 날', unit: '일', value: (v: typeof stats) => kwhToHouseholdDays(v.dayKwh) },
   ];
 
   const marks = [
@@ -46,28 +46,28 @@ export function ElementaryPoster({ stats, content, nowHour }: ElementaryPosterPr
       label: '햇빛',
       value: `${formatNumber((stats.irradianceNow / 1000) * 100)}점`,
       note: '일사강도',
-      why: '해가 높이 뜰수록 빛이 판에 똑바로 닿아 더 많이 만들어요',
+      why: '해가 높이 뜰수록 빛이 패널에 똑바로 닿아 더 많이 만들어요',
     },
     {
       id: 'panel',
       label: '태양전지',
       value: `${formatNumber(stats.capacityKw, 1)}kW`,
       note: '설비용량',
-      why: '햇빛을 받으면 판 안에서 전기가 한 방향으로 흐르기 시작해요',
+      why: '햇빛을 받으면 패널 안에서 전기가 한 방향으로 흐르기 시작해요',
     },
     {
       id: 'inverter',
       label: '인버터',
       value: `${formatNumber(stats.outputKw, 1)}kW`,
       note: '실시간 출력',
-      why: '판이 만든 전기를 교실 콘센트에서 쓸 수 있게 바꿔 줘요',
+      why: '패널이 만든 전기를 교실 콘센트에서 쓸 수 있게 바꿔 줘요',
     },
     {
       id: 'school',
       label: '교실',
       value: `${formatNumber(stats.todayKwh, 0)}kWh`,
       note: '금일 발전량',
-      why: '불을 켜고 선풍기를 돌리고, 남으면 바깥으로 보내요',
+      why: '우리 학교가 그대로 써서 불을 켜고 선풍기를 돌려요',
     },
   ];
 
@@ -75,7 +75,7 @@ export function ElementaryPoster({ stats, content, nowHour }: ElementaryPosterPr
     <div className={styles.poster}>
       {/* 위 — 전기가 오는 길. 네 마디가 처음부터 전부 켜져 있다 */}
       <section className={styles.stage} aria-label="햇빛이 전기가 되어 교실에 오기까지">
-        <h2 className={styles.stage__title}>햇빛이 교실까지 오는 길</h2>
+        <h2 className={styles.stage__title}>햇빛이 전기가 되기까지</h2>
 
         <div className={styles.stage__canvas}>
           <JourneyScene step={ALL_STEPS} nowHour={nowHour} loadRatio={stats.loadRatio} />
@@ -128,7 +128,7 @@ export function ElementaryPoster({ stats, content, nowHour }: ElementaryPosterPr
 
         {/* 오른쪽 아래 — 태양광이 왜 좋은가. 넷을 한 번에 세우고 이름만 붙인다 */}
         <section className={styles.benefits} aria-label="태양광의 좋은 점">
-          <h2 className={styles.stage__title}>태양광이 좋은 까닭</h2>
+          <h2 className={styles.stage__title}>태양광이 왜 좋을까요</h2>
 
           <div className={styles.benefits__canvas}>
             {/*

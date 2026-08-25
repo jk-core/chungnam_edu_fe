@@ -61,7 +61,7 @@ export function HighConsole({ scopeLabel, stats, content }: HighConsoleProps) {
         자체는 특징량 네 줄로만 스친다. 걸어 두는 화면의 목적이 태양광 설명이라면 진단은
         그 위에 얹히는 이야기여야지 그것을 밀어내서는 안 된다.
       */}
-      <PrincipleStrip stats={stats} level="high" heading="진단하는 대상 — 햇빛이 전기가 되는 길" />
+      <PrincipleStrip stats={stats} level="high" heading="진단하는 대상 — 햇빛이 전기가 되는 과정" />
 
       <div className={styles.console}>
         {/* 왼쪽 — 무엇을 입력받는가 */}
@@ -107,24 +107,29 @@ export function HighConsole({ scopeLabel, stats, content }: HighConsoleProps) {
             진행 로그.
             단계 이름만 바뀌는 게이지로는 AI 가 무엇을 보고 있는지 알 수 없다. 단계마다
             "그 자리에서 무슨 일이 일어나는가" 와 "AI 는 거기서 무엇을 보는가" 를 나란히 적는다.
-          */}
-          <ol className={styles.log}>
-            {STAGE_ORDER.map((key, index) => {
-              const item = content.ai.stages[key];
-              const passed = STAGE_ORDER.indexOf(stage) >= index;
 
-              return (
-                <li key={key} className={styles.log__row} data-on={passed ? '' : undefined}>
-                  <span className={styles.log__key}>{String(index + 1).padStart(2, '0')}</span>
-                  <div>
-                    <strong>{item.label}</strong>
-                    <p className={styles.log__physics}>{item.physics}</p>
-                    <p className={styles.log__diagnosis}>{item.diagnosis}</p>
-                  </div>
-                </li>
-              );
-            })}
+            넷을 한꺼번에 늘어놓으면 칸을 넘겨 안쪽에 스크롤이 생긴다. 진단이 이미 스스로 단계를
+            넘기고 있으므로, 지금 단계만 펴고 나머지는 위 차례표에 이름으로만 남긴다.
+          */}
+          <ol className={styles.trail}>
+            {STAGE_ORDER.map((key, index) => (
+              <li
+                key={key}
+                className={styles.trail__step}
+                data-on={STAGE_ORDER.indexOf(stage) >= index ? '' : undefined}
+              >
+                <span>{String(index + 1).padStart(2, '0')}</span>
+                {content.ai.stages[key].label}
+              </li>
+            ))}
           </ol>
+
+          {/* 단계가 갈릴 때 요소가 새로 만들어지도록 `key` 를 단계로 둔다 */}
+          <div key={stage} className={styles.log} role="status">
+            <strong className={styles.log__term}>{content.ai.stages[stage].label}</strong>
+            <p className={styles.log__physics}>{content.ai.stages[stage].physics}</p>
+            <p className={styles.log__diagnosis}>{content.ai.stages[stage].diagnosis}</p>
+          </div>
 
           <div className={styles.progress} role="img" aria-label={`진단 ${scan.percent}퍼센트`}>
             <span style={{ inlineSize: `${scan.percent}%` }} />

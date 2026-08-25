@@ -1,4 +1,5 @@
 import { FULL_SUN_WM2 } from '@/mocks/solarEdu';
+import { useAutoPager } from '@/hooks/useAutoPager';
 import { formatNumber } from '@/utils/format';
 import type { MiddleContent } from '@/mocks/eduContent';
 import type { EduStats } from '@/mocks/solarEdu';
@@ -16,6 +17,9 @@ const STATION = [140, 420, 700, 980];
 
 /** 땅금이 지나는 높이 */
 const GROUND = 262;
+
+/** 원리 한 단계가 머무는 시간 */
+const STEP_MS = 11_000;
 
 interface MiddleFlowProps {
   stats: EduStats;
@@ -41,6 +45,12 @@ export function MiddleFlow({ stats, content }: MiddleFlowProps) {
   const sunKw = (stats.irradianceNow * stats.moduleArea) / 1000;
   // 빛이 전기가 되는 비율. 계측값끼리 나눈 값이라 날씨에 따라 오르내린다.
   const efficiency = sunKw > 0 ? (stats.outputKw / sunKw) * 100 : 0;
+  /*
+    원리 네 단계는 한 번에 하나만 편다.
+    넷을 늘어놓으면 칸을 넘겨 안쪽에 스크롤이 생기는데, 걸어 두는 화면에는 그것을 굴려 줄 사람이 없다.
+  */
+  const pager = useAutoPager({ total: content.principle.stages.length, perPage: 1, intervalMs: STEP_MS });
+  const stage = content.principle.stages[pager.page];
 
   const nodes = [
     {
@@ -222,19 +232,32 @@ export function MiddleFlow({ stats, content }: MiddleFlowProps) {
             흩어진다는 사실이야말로 태양광을 이해하는 데 빠질 수 없는 대목이다.
           */}
           <p className={styles.loss}>
-            판이 받은 빛 가운데 전기가 되는 몫은 <strong>{formatNumber(efficiency, 1)}%</strong> 예요.
-            나머지는 대부분 열이 되어 흩어지고, 일부는 표면에서 되튕겨 나가요.
-            그래서 판이 뜨거워지면 오히려 효율이 조금 떨어져요.
+            패널이 받은 빛 가운데 전기가 되는 몫은 <strong>{formatNumber(efficiency, 1)}%</strong> 이다.
+            나머지는 대부분 열이 되어 흩어지고, 일부는 표면에서 되튕겨 나간다.
+            이와 별개로 패널이 뜨거워지면 전압이 낮아져, 같은 빛을 받아도 효율이 떨어진다.
           </p>
 
-          <ol className={styles.steps__list}>
-            {content.principle.stages.map((stage) => (
-              <li key={stage.id}>
-                <span className={styles.steps__no}>{stage.step}</span>
-                <div>
-                  <strong>{stage.term}</strong>
-                  <p>{stage.body}</p>
-                </div>
+          {/* 글이 갈릴 때 요소가 새로 만들어지도록 `key` 를 단계로 둔다 */}
+          <div key={stage.id} className={styles.steps__body} role="status">
+            <p className={styles.steps__term}>
+              <span className={styles.steps__no}>{stage.step}</span>
+              {stage.term}
+            </p>
+            <p className={styles.steps__text}>{stage.body}</p>
+          </div>
+
+          {/* 지나간 단계로 되돌아갈 수 있게 이름을 늘어놓는다 */}
+          <ol className={styles.tabs}>
+            {content.principle.stages.map((item, index) => (
+              <li key={item.id}>
+                <button
+                  type="button"
+                  className={index === pager.page ? styles['tab--active'] : styles.tab}
+                  onClick={() => pager.goTo(index)}
+                  aria-current={index === pager.page ? 'true' : undefined}
+                >
+                  {item.term}
+                </button>
               </li>
             ))}
           </ol>

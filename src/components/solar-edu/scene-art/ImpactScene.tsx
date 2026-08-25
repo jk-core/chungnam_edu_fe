@@ -58,7 +58,7 @@ export function ImpactScene({ focus, bubbleAt, bubble }: ImpactSceneProps) {
           </g>
         ))}
 
-        <SceneLabel x={177} y={348} label="소나무로 환산하면" />
+        <SceneLabel x={177} y={348} label="소나무를 심은 효과" />
       </g>
 
       {/* ── 에어컨 ───────────────────────────────────────── */}
@@ -105,7 +105,7 @@ export function ImpactScene({ focus, bubbleAt, bubble }: ImpactSceneProps) {
           <circle cx="120" cy="68" r="2.6" fill="var(--solar)" />
         </House>
 
-        <SceneLabel x={736} y={348} label="4인 가구 사용일수" />
+        <SceneLabel x={736} y={348} label="4인 가족이 쓸 수 있는 날" />
       </g>
 
       {bubble && bubbleAt ? (

@@ -24,7 +24,7 @@ interface JourneyOverviewArtProps {
  *
  * 단계별 삽화가 "그 자리에서 무슨 일이 일어나는가" 를 보여 준다면, 이 그림은
  * "전체가 어떻게 이어지는가" 를 답한다. 지붕의 판에서 시작한 전기가 인버터를 거쳐
- * 학교와 계통으로 빠져나가기까지가 굵은 케이블 한 줄로 이어진다.
+ * 학교에 닿기까지가 굵은 케이블 한 줄로 이어진다.
  *
  * 케이블 위에는 지금 이 순간의 값을 얹었다 — 그림이 도식이 아니라 계측 화면이 되도록.
  */
@@ -141,7 +141,7 @@ export function JourneyOverviewArt({ stats, focus }: JourneyOverviewArtProps) {
       </g>
 
       {/*
-        ── 4. 학교·계통 ──────────────────────────────────
+        ── 4. 학교 ───────────────────────────────────────
         단계별 삽화의 학교를 그대로 줄여 옮겼다 — 가로로 긴 몸통에 교실 창이 4열 2층,
         지붕에 모듈 석 장, 게양대와 현관 차양까지. 두 그림의 학교가 같아야 같은 건물로 읽힌다.
       */}
@@ -181,17 +181,6 @@ export function JourneyOverviewArt({ stats, focus }: JourneyOverviewArtProps) {
         {/* 현관 차양과 출입구 */}
         <path d="M315.8 179.2 321.9 182.3 321.9 184.4 315.8 181.4Z" fill="var(--border-strong)" />
         <path d="M316.9 181.1 321.2 183.3 321.2 196.1 316.9 193.9Z" fill="var(--brand)" fillOpacity="0.4" stroke="var(--border-strong)" strokeWidth="0.8" />
-
-        {/* 전신주 — 남는 전기가 여기로 빠져나간다 */}
-        <g stroke="var(--text-faint)" strokeWidth="1.7" strokeLinecap="round">
-          <path d="M352 196 357 140 362 196" />
-          <path d="M354 176h6M355 160h4" />
-          <path d="M348 152h18M350 160h14" />
-        </g>
-        <path d="M333 166q11 -4 16 -12" stroke="var(--ok)" strokeWidth="2.4" strokeLinecap="round" />
-        <g fill="var(--ok)">
-          <circle className={styles.overviewGrid} r="2.6" />
-        </g>
       </g>
 
       {/* ── 단계 이름 ───────────────────────────────────── */}
@@ -199,7 +188,7 @@ export function JourneyOverviewArt({ stats, focus }: JourneyOverviewArtProps) {
         <g className={tone(1)}><StageTag x={44} y={78} step="1" label="햇빛" /></g>
         <g className={tone(2)}><StageTag x={66} y={219} step="2" label="태양전지" /></g>
         <g className={tone(3)}><StageTag x={214} y={62} step="3" label="인버터" /></g>
-        <g className={tone(4)}><StageTag x={306} y={216} step="4" label="학교·전기망" /></g>
+        <g className={tone(4)}><StageTag x={306} y={216} step="4" label="학교" /></g>
       </g>
     </svg>
   );

@@ -199,7 +199,7 @@ export function buildEduClasses(stats: EduStats): EduClass[] {
     },
     {
       id: 'dust',
-      label: '판 오염',
+      label: '패널 오염',
       note: '표면이 오염되면 일사량만큼 발전하지 못한다',
       score: 0.05 + short * 2,
     },
@@ -256,7 +256,7 @@ export function buildEduInsight(stats: EduStats, scopeLabel: string): EduInsight
     + `동일 일사 조건의 기대 발전량 ${formatNumber(stats.expectedKwh)}kWh 대비 ${formatPercent(achieved)} 수준이다.`,
     `일간 적산 일사량은 ${formatNumber(stats.insolation, 2)}kWh/m², 현재 일사강도는 ${score}점이다. `
     + '기대 발전량이 날씨를 이미 반영한 값이므로, 흐린 날이라고 해서 이 비율이 낮아지지는 않는다.',
-    `설비용량으로 나누면 ${formatNumber(stats.equivalentHours, 1)}시간분이고, `
+    `설비용량으로 나누면 ${formatNumber(stats.equivalentHours, 1)}시간이고, `
     + `하루 내내 최대 출력으로 돌렸을 경우와 비교하면 ${formatPercent(stats.capacityFactor)} 수준이다.`,
   ];
 

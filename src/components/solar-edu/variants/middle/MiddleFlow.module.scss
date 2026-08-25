@@ -302,43 +302,39 @@
 }
 
 .steps {
-  &__list {
+  /* 단계가 넘어갈 때 글이 통째로 갈리므로, 새 글이 들어오는 것이 보이도록 살짝 떠오르게 한다 */
+  &__body {
     display: flex;
     flex: 1;
     flex-direction: column;
     gap: s.$space-2;
     min-height: 0;
-    overflow-y: auto;
-    overscroll-behavior: contain;
+    padding: s.$space-3;
+    border-radius: s.$radius-sm;
+    background-color: var(--surface-sunken);
+    animation: flow-step-in 0.4s ease both;
+  }
 
-    li {
-      display: grid;
-      grid-template-columns: auto minmax(0, 1fr);
-      gap: s.$space-3;
-      padding: s.$space-2;
-      border-radius: s.$radius-sm;
-      background-color: var(--surface-sunken);
-    }
+  &__term {
+    @include t.label-md;
 
-    strong {
-      @include t.label-md;
+    display: flex;
+    align-items: center;
+    gap: s.$space-3;
+    color: var(--text-strong);
+  }
 
-      display: block;
-      margin-bottom: 2px;
-      color: var(--text-strong);
-    }
+  &__text {
+    @include t.body-md;
 
-    p {
-      @include t.caption;
-
-      color: var(--text-muted);
-    }
+    color: var(--text-muted);
   }
 
   &__no {
     @include t.label-sm;
 
     display: flex;
+    flex-shrink: 0;
     align-items: center;
     justify-content: center;
     width: 24px;
@@ -347,6 +343,48 @@
     background-color: var(--brand);
     color: var(--text-on-brand);
     font-family: var(--font-data);
+  }
+}
+
+@keyframes flow-step-in {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/* 지나간 단계로 되돌아갈 수 있게 이름을 늘어놓는다 */
+.tabs {
+  display: flex;
+  flex: none;
+  flex-wrap: wrap;
+  gap: s.$space-2;
+  list-style: none;
+}
+
+.tab {
+  &--active {
+    border-color: var(--brand);
+    background-color: var(--brand-soft);
+    color: var(--brand);
+  }
+
+  &,
+  &--active {
+    @include t.label-sm;
+
+    padding: 4px s.$space-3;
+    border: 1px solid var(--border);
+    border-radius: s.$radius-full;
+    background-color: transparent;
+    color: var(--text-muted);
+    cursor: pointer;
+    transition: color 0.3s ease, border-color 0.3s ease, background-color 0.3s ease;
   }
 }
 
@@ -377,6 +415,10 @@
   }
 }
 
+/*
+  움직임을 줄여 달라고 한 사람에게도 단계는 계속 넘어간다 —
+  멈추면 네 단계 가운데 하나만 읽고 마는 셈이라 화면이 제 몫을 못 한다 (SFR-005-08).
+*/
 @include media.reduced-motion {
   .sunGlow,
   .sunRays,
@@ -384,7 +426,13 @@
   .dc,
   .ac,
   .blink,
-  .window {
+  .window,
+  .steps__body {
     animation: none;
+  }
+
+  .tab,
+  .tab--active {
+    transition: none;
   }
 }

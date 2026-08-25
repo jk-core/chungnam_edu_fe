@@ -50,7 +50,7 @@ const SCENES: EduScene[] = [
   {
     id: 'sun',
     title: '해가 떴어요',
-    line: '해가 높이 뜰수록 햇빛이 판에 똑바로 내리쬐어서, 전기를 더 많이 만들어요.',
+    line: '해가 높이 뜰수록 햇빛이 패널에 똑바로 내리쬐어서, 전기를 더 많이 만들어요.',
     at: { x: 300, y: 24, tail: 'left' },
     readout: (stats) => ({
       label: '일사강도',
@@ -61,8 +61,8 @@ const SCENES: EduScene[] = [
   },
   {
     id: 'panel',
-    title: '판이 햇빛을 받아요',
-    line: '햇빛이 판에 닿으면 판 안에서 전기가 한 방향으로 흐르기 시작해요.',
+    title: '패널이 햇빛을 받아요',
+    line: '햇빛이 패널에 닿으면 패널 안에서 전기가 한 방향으로 흐르기 시작해요.',
     at: { x: 280, y: 70, tail: 'bottom', tailAt: 30 },
     readout: (stats) => ({
       label: '실시간 출력',
@@ -74,7 +74,7 @@ const SCENES: EduScene[] = [
   {
     id: 'inverter',
     title: '쓸 수 있게 바꿔요',
-    line: '판이 만든 전기는 교실에서 그대로 쓸 수 없어요. 인버터가 쓸 수 있는 형태로 바꿔 줘요.',
+    line: '패널이 만든 전기는 교실에서 그대로 쓸 수 없어요. 인버터가 쓸 수 있는 형태로 바꿔 줘요.',
     at: { x: 346, y: 46, tail: 'bottom', tailAt: 150 },
     readout: (stats) => ({
       label: '금일 발전량',
@@ -86,12 +86,12 @@ const SCENES: EduScene[] = [
   {
     id: 'school',
     title: '교실에 불이 켜져요',
-    line: '우리가 만든 전기로 불을 켜고 선풍기를 돌려요. 남으면 바깥 전기망으로 보내요.',
+    line: '우리가 만든 전기로 불을 켜고 선풍기를 돌려요. 만든 전기는 우리 학교가 그대로 써요.',
     at: { x: 584, y: 10, tail: 'bottom', tailAt: 150 },
     readout: (stats) => ({
-      label: '4인 가구로 치면',
+      label: '4인 가족으로 치면',
       value: kwhToHouseholdDays(stats.todayKwh),
-      unit: '가구가 하루 쓸 양',
+      unit: '집이 하루 쓸 양',
       fractionDigits: 0,
     }),
   },
@@ -130,10 +130,10 @@ const IMPACT: ElementaryImpact = {
     {
       id: 'tree',
       title: '소나무를 이만큼 심은 것과 같은 효과예요',
-      line: '우리가 만든 만큼 화력발전소가 덜 돌아서, 그만큼 탄소가 덜 나왔어요.',
+      line: '우리가 만든 만큼 석탄과 가스를 덜 태워서, 그만큼 탄소가 덜 나왔어요.',
       at: { x: 52, y: 6, tail: 'bottom', tailAt: 125 },
       readout: (stats) => ({
-        label: '소나무로 환산하면',
+        label: '소나무를 심은 효과',
         value: kwhToTrees(stats.dayKwh),
         unit: '그루',
         fractionDigits: 0,
@@ -154,11 +154,11 @@ const IMPACT: ElementaryImpact = {
     },
     {
       id: 'house',
-      title: '한 가구가 이만큼 쓸 수 있어요',
-      line: '4인 가구 한 곳이 하루에 쓰는 양으로 나눠 봤어요.',
+      title: '한 집이 이만큼 쓸 수 있어요',
+      line: '4인 가족 한 집이 하루에 쓰는 양으로 나눠 봤어요.',
       at: { x: 611, y: 24, tail: 'bottom', tailAt: 125 },
       readout: (stats) => ({
-        label: '4인 가구 사용일수',
+        label: '4인 가족이 쓸 수 있는 날',
         value: kwhToHouseholdDays(stats.dayKwh),
         unit: '일',
         fractionDigits: 0,
@@ -187,7 +187,7 @@ const BENEFITS: EduBenefit[] = [
     art: 'free',
     at: { x: 4, y: 4, tail: 'bottom', tailAt: 110 },
     title: '연료가 들지 않아요',
-    line: '석탄이나 가스를 사 오지 않아도 돼요. 햇빛은 아침마다 저절로 찾아오니까요.',
+    line: '석탄이나 가스를 사 오지 않아도 돼요. 해는 아침마다 뜨니까요.',
   },
   {
     id: 'clean',
@@ -226,13 +226,13 @@ export const ELEMENTARY_CONTENT: ElementaryContent = {
     statIds: ['today', 'insolation', 'co2', 'irradiance', 'capacity'],
     copy: {
       today: {
-        note: (stats) => `4인 가구 ${formatNumber(kwhToHouseholdDays(stats.todayKwh))}가구가 하루 쓸 양이에요`,
+        note: (stats) => `4인 가족 ${formatNumber(kwhToHouseholdDays(stats.todayKwh))}집이 하루 쓸 양이에요`,
       },
       insolation: {
         note: () => '해가 가장 셀 때만 골라서 발전했다면 이만큼 걸렸을 시간이에요',
       },
       co2: {
-        note: () => '우리가 만든 만큼 화력발전소가 덜 돌아서 줄어든 양이에요',
+        note: () => '우리가 만든 만큼 석탄과 가스를 덜 태워서 줄어든 양이에요',
       },
       irradiance: {
         note: () => '맑은 날 한낮이 100점이에요',
@@ -243,7 +243,7 @@ export const ELEMENTARY_CONTENT: ElementaryContent = {
     },
   },
   chapters: [
-    { id: 'journey', label: '전기가 오는 길' },
+    { id: 'journey', label: '햇빛이 전기가 되기까지' },
     { id: 'impact', label: '무엇이 좋아졌나' },
     { id: 'benefit', label: '태양광의 좋은 점' },
   ],
