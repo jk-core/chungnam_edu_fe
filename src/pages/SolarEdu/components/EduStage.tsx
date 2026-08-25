@@ -26,7 +26,7 @@ export function EduStage({ variant, scopeLabel, stats, content, nowHour }: EduSt
 
   if (content.level === 'elementary') return <ElementaryStage stats={stats} content={content} />;
 
-  if (content.level === 'middle') return <MiddleBoard scopeLabel={scopeLabel} stats={stats} content={content} />;
+  if (content.level === 'middle') return <MiddleBoard stats={stats} content={content} />;
 
   return <HighBoard scopeLabel={scopeLabel} stats={stats} content={content} />;
 }

@@ -31,39 +31,69 @@
     맨 위 칸은 경보로 물드는 자리다. 두 마디가 같은 색인 그러데이션은 곧 한 겹의 단색 판이라,
     바탕 그림을 다시 적지 않고 그 위에 색만 한 겹 얹을 수 있다. 경보가 없으면 투명이다.
   */
-  --grid-line: rgb(from var(--brand) r g b / 7%);
-  --grid-line-strong: rgb(from var(--brand) r g b / 12%);
+
+  /*
+    눈금 한 칸과 큰 눈금.
+    큰 눈금은 잔 눈금의 정확히 다섯 배다 — 배수가 아니면 두 격자가 서로 어긋난 자리에서 만나
+    같은 간격이 두 종류로 보인다.
+  */
+  --grid-unit: 24px;
+  --grid-major: calc(var(--grid-unit) * 5);
+
+  /*
+    선 색은 바탕이 어떻든 같은 굵기로 읽혀야 한다.
+    7% 로 두었더니 왼쪽 위 따뜻한 자리에서는 잔 눈금이 통째로 묻혀, 그 구간만 큰 눈금 간격으로
+    보이고 번짐이 끝나는 자리부터 줄이 갑자기 늘어나는 것처럼 보였다.
+  */
+  --grid-line: rgb(from var(--brand) r g b / 10%);
+  --grid-line-strong: rgb(from var(--brand) r g b / 16%);
   --grid-mark: rgb(from var(--brand) r g b / 22%);
 
+  /*
+    격자는 큰 눈금 한 칸(120px)짜리 타일 하나로 그린다.
+
+    겹마다 제 간격으로 판을 통째로 채우게 두면 겹끼리 셈이 갈린다. 네 겹을 같은 크기의 타일에
+    담으면 셈이 하나로 묶인다 — 타일 안에서 잔 눈금은 정확히 다섯 번 반복하고, 큰 눈금은 타일
+    경계에 선다. 어느 칸을 재도 24px 정사각형이다.
+
+    타일은 판의 왼쪽 위 모서리에서 시작한다. 가운데 맞춤은 쓰지 않는다 — `center` 는 첫 타일을
+    (판 너비 − 타일 너비) / 2 에 놓으므로, 판이 타일의 배수여도 그 몫이 타일의 배수가 아니면
+    격자가 반 칸 밀린다. 720px 판에서 (720−120)/2 = 300 이라 60px 밀렸고, 그래서 양쪽 끝에
+    반쪽짜리 칸이 생겼다. 모서리에 못 박으면 0·24·48… 로 떨어져 셈이 어긋날 자리가 없다.
+
+    시작 자리는 안쪽 여백이 아니라 판의 모서리다(border-box). 여백 값을 손대도 격자가 밀리지 않는다.
+  */
   background:
     /* 경보 물듦 — 상시 점멸이 되어 걷어냈다(2026-08-21 회의). 되살릴 때는 이 줄만 풀면 된다.
        linear-gradient(var(--room-wash, transparent), var(--room-wash, transparent)), */
 
-    /* 큰 눈금이 만나는 자리의 점 — 도면의 기준점처럼 좌표를 짚어 준다 */
-    radial-gradient(circle at 0 0, var(--grid-mark) 0 1.5px, transparent 1.6px),
+    /* 큰 눈금 — 타일 경계에 한 줄씩 */
+    linear-gradient(90deg, var(--grid-line-strong) 0 1px, transparent 1px),
+    linear-gradient(180deg, var(--grid-line-strong) 0 1px, transparent 1px),
 
-    /* 큰 눈금 */
-    repeating-linear-gradient(90deg, var(--grid-line-strong) 0 1px, transparent 1px 120px),
-    repeating-linear-gradient(0deg, var(--grid-line-strong) 0 1px, transparent 1px 120px),
+    /* 잔 눈금 — 타일 안에서 다섯 번 */
+    repeating-linear-gradient(90deg, var(--grid-line) 0 1px, transparent 1px var(--grid-unit)),
+    repeating-linear-gradient(180deg, var(--grid-line) 0 1px, transparent 1px var(--grid-unit)),
 
-    /* 잔 눈금 */
-    repeating-linear-gradient(90deg, var(--grid-line) 0 1px, transparent 1px 24px),
-    repeating-linear-gradient(0deg, var(--grid-line) 0 1px, transparent 1px 24px),
-
-    /* 오른쪽 위에서 퍼지는 동심원 — 계측 장비의 눈금판처럼 결을 준다 */
-    repeating-radial-gradient(circle at 88% 6%, var(--grid-line) 0 1px, transparent 1px 96px),
-
-    radial-gradient(60% 40% at 12% 0%, var(--sky-glow) 0%, transparent 62%),
+    /*
+      왼쪽 위에서 퍼지던 따뜻한 번짐은 걷어냈다.
+      격자 아래에서 바탕만 물들이는 것이 아니라 그 자리의 옅은 선까지 함께 지워, 판의 한쪽만
+      눈금 간격이 다른 것처럼 보이게 했다. 위아래로만 도는 결은 그대로 둔다 — 가로줄 전체가
+      같은 자리에서 같은 만큼 옅어지므로 간격이 달라 보이지 않는다.
+    */
     linear-gradient(180deg, var(--sky-top) 0%, var(--paper) 46%);
+  background-origin: border-box;
+  background-position:
+    0 0,
+    0 0,
+    0 0,
+    0 0,
+    0 0;
   background-size:
-    auto,
-    120px 120px,
-    auto,
-    auto,
-    auto,
-    auto,
-    auto,
-    auto,
+    var(--grid-major) var(--grid-major),
+    var(--grid-major) var(--grid-major),
+    var(--grid-major) var(--grid-major),
+    var(--grid-major) var(--grid-major),
     auto;
 
   /*
@@ -74,11 +104,13 @@
     한 획씩 여덟 겹을 깐다 — 한 겹으로 그리려 하면 변까지 이어져 액자가 된다.
   */
   &::before {
-    --corner: 26px;
+    --corner: var(--grid-unit);
 
     content: "";
     position: absolute;
-    inset: s.$space-3;
+
+    /* 격자 한 칸만큼 들여 세운다 — 꺾쇠가 첫 잔 눈금 위에 앉아 따로 노는 선이 되지 않는다 */
+    inset: var(--grid-unit);
     background:
       linear-gradient(var(--grid-mark), var(--grid-mark)) 0 0 / var(--corner) 1px no-repeat,
       linear-gradient(var(--grid-mark), var(--grid-mark)) 0 0 / 1px var(--corner) no-repeat,
@@ -93,8 +125,8 @@
 
   /* 어두운 바탕에서는 같은 투명도로는 선이 묻힌다 */
   [data-theme="dark"] & {
-    --grid-line: rgb(from var(--brand) r g b / 9%);
-    --grid-line-strong: rgb(from var(--brand) r g b / 15%);
+    --grid-line: rgb(from var(--brand) r g b / 13%);
+    --grid-line-strong: rgb(from var(--brand) r g b / 20%);
     --grid-mark: rgb(from var(--brand) r g b / 26%);
   }
 

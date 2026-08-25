@@ -40,7 +40,12 @@ export interface MiddleProductionContent {
 
 export interface MiddleBenefitContent {
   head: string;
-  note: (scopeLabel: string, stats: EduStats) => string;
+  /*
+    소제목에는 수치를 적지 않는다.
+    바로 아래 넉 장이 저마다 값을 크게 들고 있어, 같은 값을 소제목에서 한 번 더 읽으면
+    무엇을 보라는 말인지가 흐려진다. 여기서는 무엇을 할 차례인지만 말한다.
+  */
+  note: string;
   caption: string;
   itemIds: ImpactId[];
   copy?: Partial<Record<ImpactId, ImpactCopy>>;
@@ -141,8 +146,7 @@ export const MIDDLE_CONTENT: MiddleContent = {
   },
   benefit: {
     head: '그래서 무엇이 좋아지는가',
-    note: (scopeLabel, stats) =>
-      `${scopeLabel}에서 오늘 만든 ${formatNumber(stats.dayKwh)}kWh 가 어느 정도인지 익숙한 단위로 바꾸면 이만큼이다`,
+    note: '오늘 발전량이 어느 정도인지 환산해 보자',
     caption: '여기서 만든 만큼 화력발전이 줄어든다. 그루 수는 줄어든 탄소를 소나무가 흡수하는 양으로 바꾼 값이다.',
     itemIds: ['co2', 'tree', 'household', 'led'],
   },

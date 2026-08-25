@@ -21,7 +21,6 @@ const ART_OF: Record<ImpactId, ImpactArtId> = {
 };
 
 interface MiddleBenefitCardProps {
-  scopeLabel: string;
   stats: EduStats;
   content: MiddleBenefitContent;
 }
@@ -37,12 +36,12 @@ interface MiddleBenefitCardProps {
  * 쓰던 것을 그대로 가져와, 두 판을 오가며 보는 아이가 같은 것을 말하고 있다는 걸 알아본다.
  * 값 아래 한 줄이 붙어야 표가 아니라 설명이 된다.
  */
-export function MiddleBenefitCard({ scopeLabel, stats, content }: MiddleBenefitCardProps) {
+export function MiddleBenefitCard({ stats, content }: MiddleBenefitCardProps) {
   return (
     <section className={styles.card}>
       <p className={styles.card__head}>
         {content.head}
-        <span className={styles.card__note}>{content.note(scopeLabel, stats)}</span>
+        <span className={styles.card__note}>{content.note}</span>
       </p>
 
       <ul className={styles.benefit}>

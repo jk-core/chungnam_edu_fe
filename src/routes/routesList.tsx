@@ -18,9 +18,7 @@ const MyPage = lazy(() => import('@/pages/MyPage'));
 const LoginPage = lazy(() => import('@/pages/Login'));
 const SolarEduPage = lazy(() => import('@/pages/SolarEdu'));
 const ControlRoomPage = lazy(() => import('@/pages/ControlRoom'));
-const WarRoomPage = lazy(() => import('@/pages/ControlRoom/variants/WarRoom'));
-const TriagePage = lazy(() => import('@/pages/ControlRoom/variants/Triage'));
-const DataWallPage = lazy(() => import('@/pages/ControlRoom/variants/DataWall'));
+const ControlRoomDraftPage = lazy(() => import('@/pages/ControlRoom/drafts'));
 const AdminLayout = lazy(() => import('@/layouts/AdminLayout'));
 const AdminPage = lazy(() => import('@/pages/Admin'));
 
@@ -58,10 +56,11 @@ export const routes: RouteObject[] = [
     children: [
       // 통합관제 상황판은 운영자용이라 로그인은 받되, 헤더·LNB 없이 화면을 다 쓴다.
       { path: PATH.CONTROL, element: <ControlRoomPage /> },
-      // 비교용 시안. 값은 같고 늘어놓는 방식만 다르다.
-      { path: PATH.CONTROL_B, element: <WarRoomPage /> },
-      { path: PATH.CONTROL_C, element: <TriagePage /> },
-      { path: PATH.CONTROL_D, element: <DataWallPage /> },
+      // 배치 시안. 보여 주는 값과 판은 같고 어디에 세우는지·무슨 색인지만 다르다.
+      { path: PATH.CONTROL_B, element: <ControlRoomDraftPage draft="b" /> },
+      { path: PATH.CONTROL_C, element: <ControlRoomDraftPage draft="c" /> },
+      { path: PATH.CONTROL_D, element: <ControlRoomDraftPage draft="d" /> },
+      { path: PATH.CONTROL_E, element: <ControlRoomDraftPage draft="e" /> },
       {
         path: PATH.HOME,
         element: <RootLayout />,

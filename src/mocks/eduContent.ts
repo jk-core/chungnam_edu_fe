@@ -256,6 +256,20 @@ export interface JourneyContent {
 export type PlantSpot = 'cell' | 'module' | 'inverter' | 'grid';
 
 /**
+ * 전기가 만들어져 흘러가는 차례.
+ * 그림에 늘어놓는 순서이자 단계별 설명을 읽는 순서다 — 두 곳이 같은 배열을 봐야 어긋나지 않는다.
+ */
+export const PLANT_SPOTS: PlantSpot[] = ['cell', 'module', 'inverter', 'grid'];
+
+/** 자리마다의 이름. 그림의 겨냥 표시와 단계 차례표가 같은 말을 쓴다. */
+export const PLANT_SPOT_LABEL: Record<PlantSpot, string> = {
+  cell: '태양전지 셀',
+  module: '모듈 · 스트링',
+  inverter: '인버터',
+  grid: '학교 · 전기망',
+};
+
+/**
  * 단계 하나가 담는 것.
  *
  * 같은 자리를 두고 두 가지를 나란히 말한다 — 여기서 **무슨 일이 일어나는가**(태양광 원리)와,
@@ -419,7 +433,7 @@ const HIGH: HighContent = {
   },
   ai: {
     head: '햇빛이 전기가 되기까지, 단계마다 무슨 일이 일어나는가',
-    note: '태양전지 셀에서 계통까지 네 단계를 차례로 살펴본다. 각 단계에서 AI 가 무엇을 보는지도 함께 적었다',
+    note: '태양전지 셀에서 학교 전기망까지, 전기가 만들어져 흘러가는 네 자리를 차례로 살펴본다',
     stages: {
       scan: {
         label: '계측값 수집',

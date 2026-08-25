@@ -4,27 +4,25 @@
 /*
   고등 판 배치.
 
-  걸어 두는 모니터가 1920 이면 세 열이 나란히 서서 "데이터 → 판단 → 의미" 가 한 줄로 읽힌다.
-  그보다 좁은 화면에서는 왼쪽 두 덩이를 위아래로 접고 AI 열만 오른쪽에 세로로 남긴다 —
-  세 열을 억지로 유지하면 곡선과 계통도가 읽을 수 없을 만큼 눌린다.
+  걸어 두는 모니터(1600 이상)에서는 세 열이 나란히 서서 "데이터 → 원리 → 의미" 가 한 줄로 읽히고,
+  판 높이가 화면 하나에 맞는다. 그보다 좁으면 세 열이 들어가지 않는데, 두 열로 접어 각 열에 두 칸씩
+  넣으면 다섯 칸이 화면 높이를 나눠 갖게 되어 어느 칸도 제 높이를 못 받는다 — 계통 칸이 54px 로
+  주저앉았던 것이 그 때문이다.
+
+  그래서 좁은 화면에서는 높이를 화면에 맞추는 것을 포기한다. 한 열로 세우고 칸마다 제 높이를 주면
+  굴려서 봐야 하지만 잘리는 곳은 없다. 벽에 걸어 두는 화면이 아니라 앉아서 보는 화면이므로
+  굴리는 편이 낫다.
 */
 .grid {
   display: grid;
-  grid-template-columns: minmax(0, 1.35fr) minmax(0, 1fr);
-  grid-template-rows: minmax(0, 1fr) minmax(0, 1fr);
+  grid-template-columns: minmax(0, 1fr);
   gap: s.$space-4;
-  height: 100%;
   min-height: 0;
 
   @include media.kiosk {
     grid-template-columns: minmax(0, 1.35fr) minmax(0, 1fr) minmax(0, 1fr);
     grid-template-rows: minmax(0, 1fr);
-  }
-
-  @include media.tablet {
-    grid-template-columns: 1fr;
-    grid-template-rows: none;
-    height: auto;
+    height: 100%;
   }
 }
 
@@ -35,68 +33,65 @@
   min-height: 0;
 
   /*
-    한 열에 놓인 두 칸이 자리를 나눠 갖는 몫을 못 박는다.
-    그러지 않으면 내용이 긴 칸이 자리를 다 차지하고 다른 칸이 한 줄로 눌린다.
+    좁은 화면에서는 칸마다 제 높이를 쓴다.
+
+    바닥 높이를 함께 준다. 칸 속의 그림과 차트는 `flex: 1` 로 남는 자리를 받게 되어 있어서,
+    바깥 높이가 내용에 따라 정해지면 받을 자리가 0 이 되어 도리어 눌린다 — 곡선 칸이 140px 로
+    주저앉았던 것이 그 때문이다. 바닥을 정해 두면 그 안에서 제 몫을 받는다.
   */
   > * {
-    flex: 1 1 0;
-    min-height: 0;
-  }
-
-  &:first-child {
-    grid-column: 1;
-    grid-row: 1;
-  }
-
-  &:last-child {
-    grid-column: 1;
-    grid-row: 2;
+    flex: 0 0 auto;
+    min-height: 340px;
   }
 
   @include media.kiosk {
+    /*
+      한 열에 놓인 두 칸이 자리를 나눠 갖는 몫을 못 박는다.
+      그러지 않으면 내용이 긴 칸이 자리를 다 차지하고 다른 칸이 한 줄로 눌린다.
+    */
+    > * {
+      flex: 1 1 0;
+      min-height: 0;
+    }
+
     &:first-child {
       grid-column: 1;
     }
 
+
+
     &:last-child {
       grid-column: 3;
-      grid-row: 1;
-    }
-  }
-
-  @include media.tablet {
-    &:first-child,
-    &:last-child {
-      grid-column: auto;
-      grid-row: auto;
-    }
-  }
-
-  &--story {
-    > *:first-child {
-      flex: 0.75 1 0;
     }
 
-    > *:last-child {
-      flex: 1.25 1 0;
+    /*
+      오른쪽 열의 두 칸이 자리를 나눠 갖는 방식.
+
+      비율로 나누지 않는다. 두 칸이 필요한 높이를 더하면 열 높이를 넘기 때문에, 몇 대 몇으로
+      가르든 한쪽은 잘린다. 성격이 다르므로 다르게 준다 —
+
+      환산 칸은 카드 석 장과 근거 줄이 바닥 높이를 정해 놓아 줄일 여지가 없다. 제 높이를 그대로 쓴다.
+      아래 계통 칸은 그림이 늘고 줄 수 있어, 남는 자리를 받아 그림 크기로 맞춘다. 글은 줄지 않는다.
+    */
+    &--story > *:first-child {
+      flex: 0 0 auto;
+    }
+
+    &--story > *:last-child {
+      flex: 1 1 0;
+      min-height: 0;
     }
   }
 }
 
-/* AI 열은 두 행을 다 써 세로로 길게 선다 — 게이지·단계·소견이 위에서 아래로 이어져야 읽힌다 */
+/* 가운데 열 — 그림이 커야 자리를 짚어 주므로 세로로 길게 선다 */
 .center {
   display: flex;
-  grid-column: 2;
-  grid-row: 1 / -1;
-  min-height: 0;
+  min-height: 560px;
 
   @include media.kiosk {
+    grid-column: 2;
     grid-row: 1;
-  }
-
-  @include media.tablet {
-    grid-column: auto;
-    grid-row: auto;
-    min-height: 560px;
+    min-height: 0;
   }
 }
