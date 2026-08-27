@@ -9,6 +9,17 @@ export const KIND_LABEL: Record<BoardKind, string> = { notice: '공지사항', i
 /** 공지사항은 교육청이 알리는 자리라 아무나 쓰지 못한다 (SFR-025-01) */
 export const WRITE_ROLE: Record<BoardKind, 'admin' | null> = { notice: 'admin', inquiry: null };
 
+/**
+ * 이 글을 고치거나 지울 수 있는가 (SFR-025-01/04).
+ * 관리자는 게시판을 관리하는 자리라 남의 글도 손댈 수 있고, 그 밖에는 제가 쓴 글만이다.
+ */
+export function canManagePost(post: BoardPost, user: { role: string; orgName: string } | null): boolean {
+  if (!user) return false;
+  if (user.role === 'admin') return true;
+
+  return WRITE_ROLE[post.kind] === null && post.author === user.orgName;
+}
+
 export interface BoardNeighbors {
   /** 목록에서 한 칸 위 — 없으면 맨 앞 글이다 */
   previous: BoardPost | null;

@@ -96,6 +96,7 @@ export const routes: RouteObject[] = [
                 `write` 를 먼저 두어 글 번호로 읽히지 않게 한다 (SFR-025).
               */
               { path: 'guide/:tab/write', element: <GuidePage depth="write" /> },
+              { path: 'guide/:tab/:postId/edit', element: <GuidePage depth="edit" /> },
               { path: 'guide/:tab/:postId', element: <GuidePage depth="detail" /> },
             ],
           },

@@ -3,7 +3,9 @@ import { Navigate, useNavigate, useParams } from 'react-router-dom';
 import { Badge } from '@/components/common/Badge';
 import { Button } from '@/components/common/Button';
 import { Card } from '@/components/common/Card';
+import { ConfirmDialog } from '@/components/common/ConfirmDialog';
 import { BoardIcon, ChevronLeftIcon, ChevronRightIcon, FileIcon } from '@/components/common/Icon';
+import { MSG } from '@/configs/messages';
 import { Reveal } from '@/components/common/Reveal';
 import { TextField } from '@/components/common/Form';
 import { buildPath } from '@/routes/buildPath';
@@ -14,7 +16,7 @@ import { useAuthUser } from '@/stores/authStore';
 import useBoardStore from '@/stores/boardStore';
 import type { BoardKind, BoardPost } from '@/interface/board';
 import styles from '../Guide.module.scss';
-import { KIND_LABEL, useBoardPosts } from '../hooks/useBoardPosts';
+import { canManagePost, KIND_LABEL, useBoardPosts } from '../hooks/useBoardPosts';
 
 /**
  * 글 하나 (SFR-025-04/05/06).
@@ -28,8 +30,10 @@ export function PostView({ kind }: { kind: BoardKind }) {
   const user = useAuthUser();
   const patch = useBoardStore((state) => state.patch);
   const comment = useBoardStore((state) => state.comment);
+  const remove = useBoardStore((state) => state.remove);
   const { find, neighborsOf } = useBoardPosts(kind);
   const [commentBody, setCommentBody] = useState('');
+  const [removing, setRemoving] = useState(false);
 
   const post = find(postId);
   const { previous, next } = neighborsOf(postId);
@@ -52,6 +56,7 @@ export function PostView({ kind }: { kind: BoardKind }) {
 
   const images = post.attachments.filter((file) => file.kind === 'image' && file.url);
   const files = post.attachments.filter((file) => file.kind !== 'image' || !file.url);
+  const canManage = canManagePost(post, user);
 
   const addComment = () => {
     if (!commentBody.trim()) return;
@@ -73,7 +78,22 @@ export function PostView({ kind }: { kind: BoardKind }) {
           eyebrow={KIND_LABEL[kind]}
           title={post.title}
           description={`${post.author} · ${post.at} · 조회 ${formatNumber(post.views)}`}
-          action={post.popup ? <Badge tone="caution">메인 팝업</Badge> : undefined}
+          action={(
+            <div className={styles.postActions}>
+              {post.popup ? <Badge tone="caution">메인 팝업</Badge> : null}
+              {/* 남의 글에는 단추 자체를 두지 않는다 — 눌러 보고 막히는 것보다 낫다 (SFR-025-01/04) */}
+              {canManage ? (
+                <>
+                  <Button variant="secondary" size="sm" onClick={() => navigate(buildPath.boardEdit(kind, post.id))}>
+                    수정
+                  </Button>
+                  <Button variant="ghost" size="sm" onClick={() => setRemoving(true)}>
+                    삭제
+                  </Button>
+                </>
+              ) : null}
+            </div>
+          )}
         >
           <div className={styles.post}>
             <p className={styles.post__body}>{post.body}</p>
@@ -157,6 +177,20 @@ export function PostView({ kind }: { kind: BoardKind }) {
 
         <PagerLink kind={kind} post={next} direction="next" />
       </nav>
+
+      <ConfirmDialog
+        isOpen={removing}
+        tone="danger"
+        title={MSG.deleteConfirm(KIND_LABEL[kind])}
+        description={post.comments.length > 0 ? `달린 댓글 ${post.comments.length}개도 함께 사라집니다.` : undefined}
+        confirmLabel="삭제"
+        onConfirm={() => {
+          remove(post.id);
+          toast.success(MSG.deleteSuccess(KIND_LABEL[kind]));
+          navigate(buildPath.board(kind), { replace: true });
+        }}
+        onClose={() => setRemoving(false)}
+      />
     </div>
   );
 }

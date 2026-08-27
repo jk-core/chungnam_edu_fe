@@ -20,7 +20,7 @@ const LISTS: Record<BoardKind, () => React.JSX.Element> = {
   inquiry: InquiryPage,
 };
 
-type Depth = 'list' | 'detail' | 'write';
+type Depth = 'list' | 'detail' | 'write' | 'edit';
 
 interface GuidePageProps {
   /** 목록 아래로 한 단 더 들어간 자리. 주소에 `:postId` 나 `write` 가 붙는다. */
@@ -35,7 +35,7 @@ function GuidePage({ depth = 'list' }: GuidePageProps) {
   const kind = tab as BoardKind;
 
   if (depth === 'detail') return <DetailPage kind={kind} />;
-  if (depth === 'write') return <WritePage kind={kind} />;
+  if (depth === 'write' || depth === 'edit') return <WritePage kind={kind} />;
 
   const List = LISTS[kind];
 

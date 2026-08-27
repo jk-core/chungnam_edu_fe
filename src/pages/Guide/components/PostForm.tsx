@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Navigate, useNavigate } from 'react-router-dom';
+import { Navigate, useNavigate, useParams } from 'react-router-dom';
 import { Button } from '@/components/common/Button';
 import { Card } from '@/components/common/Card';
 import { ConfirmDialog } from '@/components/common/ConfirmDialog';
@@ -14,7 +14,7 @@ import useBoardStore from '@/stores/boardStore';
 import type { BoardAttachment, BoardKind, BoardPost } from '@/interface/board';
 import type { UploadFile } from '@/components/common/Form';
 import styles from '../Guide.module.scss';
-import { KIND_LABEL, WRITE_ROLE } from '../hooks/useBoardPosts';
+import { canManagePost, KIND_LABEL, useBoardPosts, WRITE_ROLE } from '../hooks/useBoardPosts';
 
 /** 게시판 첨부로 받는 갈래 (SFR-025-06) — 이미지와 문서를 함께 받는다. */
 const ATTACH_ACCEPT = [
@@ -42,30 +42,41 @@ function toAttachment(file: UploadFile): BoardAttachment {
 }
 
 /**
- * 글쓰기 (SFR-025-01/06).
+ * 글쓰기·글수정 (SFR-025-01/04/06).
  *
  * 게시판마다 제 주소를 가진 화면이라 무엇을 쓰는지는 들어온 주소가 정한다. 모달로 띄우고
- * 안에서 구분을 고르게 두면, Q&A 목록에서 쓴 글이 공지로 가 목록에서 사라지는 일이 생긴다.
+ * 안에서 구분을 고르게 두면, 문의 목록에서 쓴 글이 공지로 가 목록에서 사라지는 일이 생긴다.
+ * 주소에 `:postId` 가 붙으면 그 글을 고치는 자리다 — 쓰는 것과 고치는 것은 채울 칸이 같다.
  */
 export function PostForm({ kind }: { kind: BoardKind }) {
   const navigate = useNavigate();
+  const { postId } = useParams<{ postId: string }>();
   const user = useAuthUser();
   const write = useBoardStore((state) => state.write);
   const nextId = useBoardStore((state) => state.nextId);
+  const { find } = useBoardPosts(kind);
+
+  const target = postId ? find(postId) : null;
+  const isEdit = Boolean(postId);
 
   const [confirming, setConfirming] = useState(false);
   const [error, setError] = useState<string | undefined>(undefined);
   const [draft, setDraft] = useState({
-    title: '',
-    body: '',
-    usePopup: 'no' as 'yes' | 'no',
-    popupEnd: daysAhead(14),
+    title: target?.title ?? '',
+    body: target?.body ?? '',
+    usePopup: (target?.popup ? 'yes' : 'no') as 'yes' | 'no',
+    popupEnd: target?.popup?.end ?? daysAhead(14),
     /** 첨부파일 — 이미지·문서·엑셀을 함께 받는다 (SFR-025-06) */
     files: [] as UploadFile[],
   });
 
   // 공지사항은 교육청이 알리는 자리다. 단추를 감춰 두었어도 주소로 들어올 수 있어 여기서도 막는다.
   if (WRITE_ROLE[kind] && user?.role !== WRITE_ROLE[kind]) {
+    return <Navigate to={buildPath.board(kind)} replace />;
+  }
+
+  // 고칠 글이 없거나 남의 글이면 목록으로 돌려보낸다 — 주소를 직접 쳐서 들어와도 같다.
+  if (isEdit && (!target || !canManagePost(target, user))) {
     return <Navigate to={buildPath.board(kind)} replace />;
   }
 
@@ -88,25 +99,27 @@ export function PostForm({ kind }: { kind: BoardKind }) {
 
   const commit = () => {
     const post: BoardPost = {
-      id: nextId(),
+      id: target?.id ?? nextId(),
       kind,
       title: draft.title.trim(),
       body: draft.body.trim(),
-      author: user?.orgName ?? '작성자',
-      at: NOW.format('YYYY-MM-DD HH:mm'),
-      pinned: false,
-      views: 0,
-      attachments: draft.files.map(toAttachment),
-      comments: [],
+      author: target?.author ?? user?.orgName ?? '작성자',
+      // 고칠 때는 작성일시를 그대로 둔다 — 고쳤다고 목록 맨 위로 올라오면 새 글처럼 읽힌다.
+      at: target?.at ?? NOW.format('YYYY-MM-DD HH:mm'),
+      pinned: target?.pinned ?? false,
+      views: target?.views ?? 0,
+      // 새로 올린 파일이 없으면 붙어 있던 첨부를 그대로 지킨다.
+      attachments: draft.files.length > 0 ? draft.files.map(toAttachment) : target?.attachments ?? [],
+      comments: target?.comments ?? [],
       // 공지만 메인 화면 팝업으로 띄울 수 있다 (SFR-025-02/03).
       popup:
         kind === 'notice' && draft.usePopup === 'yes'
-          ? { start: TODAY.format('YYYY-MM-DD'), end: draft.popupEnd }
+          ? { start: target?.popup?.start ?? TODAY.format('YYYY-MM-DD'), end: draft.popupEnd }
           : null,
     };
 
     write(post);
-    toast.success(MSG.createSuccess(KIND_LABEL[kind]));
+    toast.success(isEdit ? MSG.updateSuccess(KIND_LABEL[kind]) : MSG.createSuccess(KIND_LABEL[kind]));
     // 쓴 글을 바로 펼쳐 준다 — 목록으로 돌려보내면 방금 쓴 것을 다시 찾아 눌러야 한다.
     navigate(buildPath.boardDetail(kind, post.id), { replace: true });
   };
@@ -115,7 +128,7 @@ export function PostForm({ kind }: { kind: BoardKind }) {
     <div className={styles.tab}>
       <Reveal>
         <Card
-          title={`${KIND_LABEL[kind]} 글쓰기`}
+          title={`${KIND_LABEL[kind]} ${isEdit ? '글수정' : '글쓰기'}`}
           description={
             kind === 'notice'
               ? '올린 글은 공지사항 목록에 실립니다. 메인 화면 팝업으로도 띄울 수 있습니다.'
@@ -151,7 +164,9 @@ export function PostForm({ kind }: { kind: BoardKind }) {
                 accept={ATTACH_ACCEPT}
                 maxCount={5}
                 maxSizeMb={10}
-                hint="이미지·PDF·한글·엑셀 문서를 5개까지, 파일마다 10MB 까지 올릴 수 있습니다."
+                hint={isEdit && (target?.attachments.length ?? 0) > 0
+                  ? `지금 붙어 있는 파일 ${target?.attachments.length}개는 그대로 둡니다. 새로 올리면 통째로 바뀝니다.`
+                  : '이미지·PDF·한글·엑셀 문서를 5개까지, 파일마다 10MB 까지 올릴 수 있습니다.'}
                 onError={(message) => toast.error(message)}
               />
             </FormSection>
@@ -182,10 +197,13 @@ export function PostForm({ kind }: { kind: BoardKind }) {
             ) : null}
 
             <div className={styles.formActions}>
-              <Button variant="secondary" onClick={() => navigate(buildPath.board(kind))}>
+              <Button
+                variant="secondary"
+                onClick={() => navigate(isEdit && target ? buildPath.boardDetail(kind, target.id) : buildPath.board(kind))}
+              >
                 취소
               </Button>
-              <Button onClick={submit}>등록</Button>
+              <Button onClick={submit}>{isEdit ? '수정' : '등록'}</Button>
             </div>
           </div>
         </Card>
@@ -193,13 +211,13 @@ export function PostForm({ kind }: { kind: BoardKind }) {
 
       <ConfirmDialog
         isOpen={confirming}
-        title={MSG.createConfirm(KIND_LABEL[kind])}
+        title={isEdit ? MSG.updateConfirm(KIND_LABEL[kind]) : MSG.createConfirm(KIND_LABEL[kind])}
         description={
           kind === 'notice' && draft.usePopup === 'yes'
-            ? `등록하면 ${draft.popupEnd} 까지 메인 화면에 팝업으로 뜹니다.`
+            ? `${isEdit ? '수정' : '등록'}하면 ${draft.popupEnd} 까지 메인 화면에 팝업으로 뜹니다.`
             : undefined
         }
-        confirmLabel="등록"
+        confirmLabel={isEdit ? '수정' : '등록'}
         onConfirm={commit}
         onClose={() => setConfirming(false)}
       />
