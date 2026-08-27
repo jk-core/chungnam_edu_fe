@@ -1,4 +1,4 @@
-export type BoardKind = 'notice' | 'qna';
+export type BoardKind = 'notice' | 'inquiry';
 
 /**
  * 글에 붙은 파일.

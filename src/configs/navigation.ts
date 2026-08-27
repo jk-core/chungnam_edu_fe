@@ -124,8 +124,8 @@ export const NAVIGATION: NavSection[] = [
         requirements: ['SFR-025-01', 'SFR-025-02', 'SFR-025-06'],
       },
       {
-        label: 'Q&A',
-        path: PATH.GUIDE_QNA,
+        label: '문의하기',
+        path: PATH.GUIDE_INQUIRY,
         description: '궁금한 점을 남기고 답변을 받습니다.',
         requirements: ['SFR-025-04', 'SFR-025-05'],
       },

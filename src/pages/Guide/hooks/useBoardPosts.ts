@@ -4,10 +4,10 @@ import useBoardStore from '@/stores/boardStore';
 import type { BoardKind, BoardPost } from '@/interface/board';
 
 /** 게시판 이름 — 화면 글귀와 확인 문구가 같은 말을 쓰게 한다 */
-export const KIND_LABEL: Record<BoardKind, string> = { notice: '공지사항', qna: 'Q&A' };
+export const KIND_LABEL: Record<BoardKind, string> = { notice: '공지사항', inquiry: '문의하기' };
 
 /** 공지사항은 교육청이 알리는 자리라 아무나 쓰지 못한다 (SFR-025-01) */
-export const WRITE_ROLE: Record<BoardKind, 'admin' | null> = { notice: 'admin', qna: null };
+export const WRITE_ROLE: Record<BoardKind, 'admin' | null> = { notice: 'admin', inquiry: null };
 
 export interface BoardNeighbors {
   /** 목록에서 한 칸 위 — 없으면 맨 앞 글이다 */

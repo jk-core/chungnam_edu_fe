@@ -52,7 +52,7 @@ export const PATH = {
   /** 이용안내 (SFR-025) */
   GUIDE: '/guide',
   GUIDE_NOTICE: '/guide/notice',
-  GUIDE_QNA: '/guide/qna',
+  GUIDE_INQUIRY: '/guide/inquiry',
 
   /** 관리자 콘솔 — 내부망 전용 (SER-001-18) */
   ADMIN: '/admin',
