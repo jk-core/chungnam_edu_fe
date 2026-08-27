@@ -1,4 +1,5 @@
-import { Badge, SEVERITY_LABEL, SEVERITY_TONE } from '@/components/common/Badge';
+import { Badge } from '@/components/common/Badge';
+import { OPERATION_LABEL, OPERATION_TONE } from '@/mocks/status';
 import { Button } from '@/components/common/Button';
 import { ClockIcon } from '@/components/common/Icon';
 import { alertDurationMinutes } from '@/mocks/alerts';
@@ -39,8 +40,8 @@ export function PendingRow({ alert, snoozedUntil, onOpen, onSnooze, onWake }: Pe
 
         <span className={styles.pending__body}>
           <span className={styles.pending__head}>
-            <Badge tone={SEVERITY_TONE[alert.severity]} withDot>
-              {SEVERITY_LABEL[alert.severity]}
+            <Badge tone={OPERATION_TONE[alert.status]} withDot>
+              {OPERATION_LABEL[alert.status]}
             </Badge>
             {alert.faultCode ? <Badge tone="brand">{alert.faultCode}</Badge> : null}
           </span>

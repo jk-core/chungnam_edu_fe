@@ -1,4 +1,5 @@
-import { Badge, SEVERITY_LABEL, SEVERITY_TONE } from '@/components/common/Badge';
+import { Badge } from '@/components/common/Badge';
+import { OPERATION_LABEL, OPERATION_TONE } from '@/mocks/status';
 import { Modal } from '@/components/common/Modal';
 import { alertDurationMinutes } from '@/mocks/alerts';
 import { formatDuration } from '@/utils/format';
@@ -25,8 +26,8 @@ export function AlertDetailModal({ alert, onClose }: AlertDetailModalProps) {
       {alert ? (
         <div className={styles.detail}>
           <div className={styles.detail__badges}>
-            <Badge tone={SEVERITY_TONE[alert.severity]} withDot>
-              {SEVERITY_LABEL[alert.severity]}
+            <Badge tone={OPERATION_TONE[alert.status]} withDot>
+              {OPERATION_LABEL[alert.status]}
             </Badge>
             <Badge tone={alert.handled ? 'ok' : 'critical'} withDot>
               {alert.handled ? '조치 완료' : '미조치'}

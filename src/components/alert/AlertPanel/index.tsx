@@ -4,7 +4,8 @@ import { AnimatePresence, motion } from 'motion/react';
 import { Link } from 'react-router-dom';
 import { useDismissable } from '@/hooks/useDismissable';
 import { ALERT_RECORDS, alertDurationMinutes } from '@/mocks/alerts';
-import { Badge, SEVERITY_LABEL, SEVERITY_TONE } from '@/components/common/Badge';
+import { Badge } from '@/components/common/Badge';
+import { OPERATION_LABEL, OPERATION_TONE } from '@/mocks/status';
 import { CloseIcon } from '@/components/common/Icon';
 import { EmptyState } from '@/components/common/EmptyState';
 import { NOW } from '@/mocks/today';
@@ -86,8 +87,8 @@ export function AlertPanel({ isOpen, onClose }: AlertPanelProps) {
                       onClick={onClose}
                     >
                       <span className={styles.item__head}>
-                        <Badge tone={SEVERITY_TONE[alert.severity]} withDot>
-                          {SEVERITY_LABEL[alert.severity]}
+                        <Badge tone={OPERATION_TONE[alert.status]} withDot>
+                          {OPERATION_LABEL[alert.status]}
                         </Badge>
                         <span className={styles.item__at}>
                           {alert.handled ? '조치 완료' : `${formatDuration(alertDurationMinutes(alert, NOW))} 경과`}

@@ -8,15 +8,16 @@ import { SegmentedControl } from '@/components/common/SegmentedControl';
 import { Select } from '@/components/common/Select';
 import { useAlertRange } from '@/stores/filterStore';
 import type { Granularity } from '@/utils/date';
-import type { Severity } from '@/interface/energy';
+import type { OperationStatus } from '@/interface/status';
 import styles from '../../Alerts.module.scss';
 import type { AlertFilterState } from '../../hooks/useAlertFilters';
 
-const SEVERITY_OPTIONS = [
-  { value: 'all', label: '전체 심각도' },
-  { value: 'critical', label: '긴급' },
-  { value: 'caution', label: '주의' },
-  { value: 'info', label: '참고' },
+/* 알림 구분은 설비 운전 상태와 같은 축이다. 정상은 알림이 되지 않으므로 세 가지만 선다. */
+const STATUS_OPTIONS = [
+  { value: 'all', label: '전체 구분' },
+  { value: 'degraded', label: '주의' },
+  { value: 'fault', label: '경고' },
+  { value: 'commLost', label: '통신단절' },
 ];
 
 const HANDLED_OPTIONS = [
@@ -76,11 +77,11 @@ export function AlertFilterCard({ filters, onChange, isDirty, onReset }: AlertFi
           />
           <DatePicker value={anchor} onChange={(value) => applyPeriod(unit, value)} granularity={unit} label="기준일" />
           <Select
-            label="심각도"
+            label="구분"
             hideLabel
-            value={filters.severity}
-            options={SEVERITY_OPTIONS}
-            onChange={(value) => onChange({ severity: value as Severity | 'all' })}
+            value={filters.status}
+            options={STATUS_OPTIONS}
+            onChange={(value) => onChange({ status: value as OperationStatus | 'all' })}
           />
           <Select
             label="조치 여부"

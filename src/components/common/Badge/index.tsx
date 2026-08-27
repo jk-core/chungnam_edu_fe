@@ -22,8 +22,8 @@ export function Badge({ tone = 'neutral', withDot = false, children, className }
   );
 }
 
-// 설비 상태 라벨·색은 mocks/status.ts 가 단일 출처로 갖는다.
-// 여기서 또 정의하면 상태가 늘 때 두 곳을 고쳐야 한다.
+// 설비 상태·알림 구분의 라벨·색은 mocks/status.ts 가 단일 출처로 갖는다.
+// 여기 있는 것은 진단 고장코드 사전의 심각도뿐이다 — 축이 다르다.
 
 export const SEVERITY_LABEL: Record<Severity, string> = {
   critical: '긴급',

@@ -1,5 +1,6 @@
 import { useState } from 'react';
-import { Badge, SEVERITY_LABEL, SEVERITY_TONE } from '@/components/common/Badge';
+import { Badge } from '@/components/common/Badge';
+import { OPERATION_LABEL, OPERATION_TONE } from '@/mocks/status';
 import { Button } from '@/components/common/Button';
 import { Card } from '@/components/common/Card';
 import { DownloadIcon } from '@/components/common/Icon';
@@ -61,8 +62,8 @@ export function AlertHistoryCard({ rows, stats }: AlertHistoryCardProps) {
       header: '심각도',
       width: '88px',
       render: (row) => (
-        <Badge tone={SEVERITY_TONE[row.severity]} withDot>
-          {SEVERITY_LABEL[row.severity]}
+        <Badge tone={OPERATION_TONE[row.status]} withDot>
+          {OPERATION_LABEL[row.status]}
         </Badge>
       ),
     },

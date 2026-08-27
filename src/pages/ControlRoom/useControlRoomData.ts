@@ -33,7 +33,7 @@ export type AlertTone = 'critical' | 'caution' | 'offline';
 export function toneOfAlert(alert: AlertRecord): AlertTone {
   if (alert.status === 'commLost') return 'offline';
 
-  return alert.severity === 'critical' ? 'critical' : 'caution';
+  return alert.status === 'fault' ? 'critical' : 'caution';
 }
 
 export interface ControlRoomData {
@@ -127,11 +127,10 @@ export function useControlRoomData(): ControlRoomData {
 
   /*
     아직 손대지 않은 경보. 조치하기 전에는 사라지지 않으므로 알림창과 테두리 등이 함께 본다.
-    정보성(info) 알림은 지켜보는 사람을 부르는 성격이 아니라 뺀다 — 다만 통신단절은
-    값 자체가 끊긴 것이라 심각도와 무관하게 챙긴다.
+    정상 알림은 지켜보는 사람을 부르는 성격이 아니라 뺀다.
   */
   const openAlerts = useMemo(() => ALERT_RECORDS
-    .filter((alert) => !alert.handled && !alert.resolvedAt && (alert.severity !== 'info' || alert.status === 'commLost'))
+    .filter((alert) => !alert.handled && !alert.resolvedAt && isAbnormal(alert.status))
     .sort((a, b) => (a.occurredAt < b.occurredAt ? 1 : -1)), []);
 
   // 테두리는 가장 급한 결 하나만 따른다. 여러 색이 겹치면 무엇이 급한지 흐려진다.

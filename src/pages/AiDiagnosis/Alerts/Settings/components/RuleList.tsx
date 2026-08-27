@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { ALERT_RULES } from '@/mocks/alerts';
-import { Badge, SEVERITY_LABEL, SEVERITY_TONE } from '@/components/common/Badge';
+import { Badge } from '@/components/common/Badge';
+import { OPERATION_LABEL, OPERATION_TONE } from '@/mocks/status';
 import { Card } from '@/components/common/Card';
 import { cn } from '@/utils/cn';
 import { Reveal } from '@/components/common/Reveal';
@@ -35,8 +36,8 @@ export function RuleList() {
               <div className={styles.rule__main}>
                 <div className={styles.rule__head}>
                   <span className={styles.rule__label}>{rule.label}</span>
-                  <Badge tone={SEVERITY_TONE[rule.severity]} withDot>
-                    {SEVERITY_LABEL[rule.severity]}
+                  <Badge tone={OPERATION_TONE[rule.status]} withDot>
+                    {OPERATION_LABEL[rule.status]}
                   </Badge>
                 </div>
                 <p className={styles.rule__description}>{rule.description}</p>

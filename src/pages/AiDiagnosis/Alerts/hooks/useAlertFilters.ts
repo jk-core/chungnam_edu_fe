@@ -4,22 +4,22 @@ import { isWithinRange } from '@/utils/date';
 import { useAlertRange } from '@/stores/filterStore';
 import { usePlantScope } from '@/hooks/usePlantScope';
 import type { AlertRecord } from '@/interface/alert';
-import type { Severity } from '@/interface/energy';
+import type { OperationStatus } from '@/interface/status';
 
 export type HandledFilter = 'all' | 'handled' | 'pending';
 export type SortKey = 'recent' | 'oldest' | 'longest';
 
 export interface AlertFilterState {
-  severity: Severity | 'all';
+  status: OperationStatus | 'all';
   handled: HandledFilter;
   sort: SortKey;
 }
 
-const INITIAL: AlertFilterState = { severity: 'all', handled: 'all', sort: 'recent' };
+const INITIAL: AlertFilterState = { status: 'all', handled: 'all', sort: 'recent' };
 
 /**
  * 알림 목록 필터. 발전소 선택과 조회 기간은 전역 값을 따르고,
- * 심각도·조치여부·정렬만 화면 안에서 관리한다.
+ * 구분·조치여부·정렬만 화면 안에서 관리한다.
  */
 export function useAlertFilters(options: { forcePending?: boolean } = {}) {
   const { plant } = usePlantScope();
@@ -34,7 +34,7 @@ export function useAlertFilters(options: { forcePending?: boolean } = {}) {
     const filtered = ALERT_RECORDS.filter((alert) => {
       if (plant && alert.schoolId !== plant.id) return false;
       if (!isWithinRange(alert.occurredAt, range.start, range.end)) return false;
-      if (filters.severity !== 'all' && alert.severity !== filters.severity) return false;
+      if (filters.status !== 'all' && alert.status !== filters.status) return false;
       if (handled === 'handled' && !alert.handled) return false;
       if (handled === 'pending' && alert.handled) return false;
 
@@ -49,7 +49,7 @@ export function useAlertFilters(options: { forcePending?: boolean } = {}) {
     });
   }, [plant, range.start, range.end, filters, options.forcePending]);
 
-  const isDirty = filters.severity !== 'all' || filters.handled !== 'all';
+  const isDirty = filters.status !== 'all' || filters.handled !== 'all';
 
   return {
     range,
@@ -75,7 +75,7 @@ export function summarize(alerts: AlertRecord[]) {
   return {
     total: alerts.length,
     pending: pending.length,
-    pendingCritical: pending.filter((alert) => alert.severity === 'critical').length,
+    pendingCritical: pending.filter((alert) => alert.status === 'fault').length,
     handledRate: alerts.length > 0 ? handled.length / alerts.length : 0,
     averageMinutes,
     manualCount: manual.length,

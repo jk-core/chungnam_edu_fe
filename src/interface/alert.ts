@@ -1,6 +1,8 @@
 import type { DiagnosisFaultCode } from './equipment';
-import type { Severity } from './energy';
 import type { OperationStatus } from './status';
+
+/** 알림이 실어 오는 구분 — 운전 상태 중 알릴 값만 추린다 */
+export type AlarmStatus = Extract<OperationStatus, 'degraded' | 'fault' | 'commLost'>;
 
 /** 알림 한 건 */
 export interface AlertRecord {
@@ -9,9 +11,8 @@ export interface AlertRecord {
   schoolName: string;
   regionName: string;
   deviceName: string;
-  /** 이 알림이 가리키는 운전 상태. 통신단절은 값 자체가 끊긴 것이라 발전 이상과 갈린다. */
-  status: OperationStatus;
-  severity: Severity;
+  /** 알림 구분. 설비 운전 상태와 같은 축을 쓰되 주의·경고·통신단절 셋만 온다. */
+  status: AlarmStatus;
   /** 연결된 고장코드. 없을 수도 있다. */
   faultCode: DiagnosisFaultCode | null;
   title: string;
@@ -32,7 +33,8 @@ export interface AlertRule {
   id: string;
   label: string;
   description: string;
-  severity: Severity;
+  /** 이 규칙이 발생시키는 알림 구분 */
+  status: AlarmStatus;
   /** 임계값 표기 (예: '15분') */
   threshold: string;
   enabled: boolean;
