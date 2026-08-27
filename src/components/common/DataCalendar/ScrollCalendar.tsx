@@ -4,7 +4,7 @@ import { TODAY } from '@/mocks/today';
 import { WEATHER_META } from '@/mocks/weather';
 import { buildMonthGrid, CALENDAR_MAX, CALENDAR_MIN, DAY_CALENDAR_MIN, WEEKDAY_LABELS } from '@/utils/date';
 import { cn } from '@/utils/cn';
-import { formatCurrency, formatEnergy, formatNumber } from '@/utils/format';
+import { formatNumber } from '@/utils/format';
 import type { DayWeather, MonthWeather } from '@/interface/weather';
 import type { Granularity } from '@/utils/date';
 import styles from './DataCalendar.module.scss';
@@ -220,7 +220,7 @@ export function ScrollCalendar({ granularity, selected, onSelect, getDays, getMo
   );
 }
 
-/** 한 달치 날짜 칸. 날씨와 함께 그 날 발전량·발전시간·절감액을 얹는다. */
+/** 한 달치 날짜 칸. 일 단위 조회는 그 날 날씨만 얹는다. */
 function MonthGrid({
   year,
   month,
@@ -269,8 +269,6 @@ function MonthGrid({
 
               const key = cell.format('YYYY-MM-DD');
               const data = byDate.get(key);
-              const energy = data ? formatEnergy(data.generationKwh) : null;
-              const saving = data ? formatCurrency(data.savingWon) : null;
 
               return (
                 <td key={dayIndex} className={styles.cellWrap}>
@@ -283,7 +281,7 @@ function MonthGrid({
                     onClick={() => onSelect(key)}
                     aria-current={key === selected ? 'date' : undefined}
                     aria-label={data
-                      ? `${cell.format('M월 D일')}, ${WEATHER_META[data.kind].label}, 발전량 ${energy?.value}${energy?.unit}, 발전시간 ${data.generationHours}시간, 절감액 ${saving?.value}${saving?.unit}`
+                      ? `${cell.format('M월 D일')}, ${WEATHER_META[data.kind].label}`
                       : cell.format('M월 D일')}
                   >
                     <span className={styles.cell__top}>
@@ -303,14 +301,6 @@ function MonthGrid({
                         />
                       ) : null}
                     </span>
-
-                    <span className={styles.cell__power}>
-                      {energy?.value ?? '-'}
-                      <span className={styles.cell__unit}>{energy?.unit}</span>
-                    </span>
-                    <span className={styles.cell__sub}>
-                      {data ? `${formatNumber(data.generationHours, 1)}h · ${saving?.value}${saving?.unit}` : '-'}
-                    </span>
                   </button>
                 </td>
               );
@@ -322,7 +312,7 @@ function MonthGrid({
   );
 }
 
-/** 한 해치 월 칸. 대표 날씨와 함께 그 달 발전량·발전시간·절감액을 얹는다. */
+/** 한 해치 월 칸. 월 단위 조회는 그 달 발전시간만 얹는다. */
 function MonthCells({
   year,
   months,
@@ -336,32 +326,23 @@ function MonthCells({
 }) {
   return (
     <div className={styles.yearGrid} role="group" aria-label={`${year}년 월별 발전시간`}>
-      {months.map((item, index) => {
-        const energy = formatEnergy(item.generationKwh);
-        const saving = formatCurrency(item.savingWon);
-
-        return (
-          <button
-            key={item.month}
-            type="button"
-            className={cn(styles.monthCell, { [styles['monthCell--selected']]: item.month === selected })}
-            onClick={() => onSelect(item.month)}
-            aria-label={`${year}년 ${index + 1}월, ${WEATHER_META[item.kind].label}, 발전량 ${energy.value}${energy.unit}, 발전시간 ${item.generationHours}시간, 절감액 ${saving.value}${saving.unit}`}
-          >
-            <span className={styles.monthCell__top}>
-              <span className={styles.monthCell__label}>{index + 1}월</span>
-              <WeatherIcon kind={item.kind} size={18} className={styles.monthCell__weather} />
-            </span>
-            <span className={styles.monthCell__hours}>
-              {energy.value}
-              <span className={styles.monthCell__unit}>{energy.unit}</span>
-            </span>
-            <span className={styles.monthCell__sub}>
-              {item.generationHours.toFixed(1)}h · {saving.value}{saving.unit}
-            </span>
-          </button>
-        );
-      })}
+      {months.map((item, index) => (
+        <button
+          key={item.month}
+          type="button"
+          className={cn(styles.monthCell, { [styles['monthCell--selected']]: item.month === selected })}
+          onClick={() => onSelect(item.month)}
+          aria-label={`${year}년 ${index + 1}월, 발전시간 ${item.generationHours}시간`}
+        >
+          <span className={styles.monthCell__top}>
+            <span className={styles.monthCell__label}>{index + 1}월</span>
+          </span>
+          <span className={styles.monthCell__hours}>
+            {item.generationHours.toFixed(1)}
+            <span className={styles.monthCell__unit}>시간</span>
+          </span>
+        </button>
+      ))}
     </div>
   );
 }
