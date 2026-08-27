@@ -1,6 +1,5 @@
 import dayjs from 'dayjs';
 import { useState } from 'react';
-import { ALERT_TYPES } from '@/mocks/alerts';
 import { Button } from '@/components/common/Button';
 import { Card } from '@/components/common/Card';
 import { DatePicker } from '@/components/common/DatePicker';
@@ -8,16 +7,10 @@ import { Reveal } from '@/components/common/Reveal';
 import { SegmentedControl } from '@/components/common/SegmentedControl';
 import { Select } from '@/components/common/Select';
 import { useAlertRange } from '@/stores/filterStore';
-import type { AlertType } from '@/interface/alert';
 import type { Granularity } from '@/utils/date';
 import type { Severity } from '@/interface/energy';
 import styles from '../../Alerts.module.scss';
 import type { AlertFilterState } from '../../hooks/useAlertFilters';
-
-const TYPE_OPTIONS = [
-  { value: 'all', label: '전체 유형' },
-  ...ALERT_TYPES.map((type) => ({ value: type, label: type })),
-];
 
 const SEVERITY_OPTIONS = [
   { value: 'all', label: '전체 심각도' },
@@ -82,13 +75,6 @@ export function AlertFilterCard({ filters, onChange, isDirty, onReset }: AlertFi
             onChange={(value) => applyPeriod(value, anchor)}
           />
           <DatePicker value={anchor} onChange={(value) => applyPeriod(unit, value)} granularity={unit} label="기준일" />
-          <Select
-            label="유형"
-            hideLabel
-            value={filters.type}
-            options={TYPE_OPTIONS}
-            onChange={(value) => onChange({ type: value as AlertType | 'all' })}
-          />
           <Select
             label="심각도"
             hideLabel

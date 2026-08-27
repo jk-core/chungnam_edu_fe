@@ -95,13 +95,6 @@ export function AlertHistoryCard({ rows, stats }: AlertHistoryCardProps) {
       ),
     },
     {
-      key: 'type',
-      header: '유형',
-      width: '72px',
-      hideOnTablet: true,
-      render: (row) => <Badge tone="neutral">{row.type}</Badge>,
-    },
-    {
       key: 'duration',
       header: '지속 시간',
       align: 'right',
@@ -173,7 +166,7 @@ export function AlertHistoryCard({ rows, stats }: AlertHistoryCardProps) {
           ) : (
             <>
               <Table
-                caption="알림 이력 표. 심각도, 발생 일시, 내용, 발전소와 설비, 유형, 지속 시간, 조치 여부 순으로 구성됩니다."
+                caption="알림 이력 표. 심각도, 발생 일시, 내용, 발전소와 설비, 지속 시간, 조치 여부 순으로 구성됩니다."
                 columns={columns}
                 rows={visible}
                 getRowKey={(row) => row.id}

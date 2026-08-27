@@ -42,7 +42,6 @@ export function PendingRow({ alert, snoozedUntil, onOpen, onSnooze, onWake }: Pe
             <Badge tone={SEVERITY_TONE[alert.severity]} withDot>
               {SEVERITY_LABEL[alert.severity]}
             </Badge>
-            <Badge tone="neutral">{alert.type}</Badge>
             {alert.faultCode ? <Badge tone="brand">{alert.faultCode}</Badge> : null}
           </span>
           <span className={styles.pending__title}>{alert.title}</span>

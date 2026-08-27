@@ -12,7 +12,6 @@ const CSV_COLUMNS: CsvColumn<AlertRecord>[] = [
   { header: '알림시간', value: (row) => row.occurredAt },
   { header: '발전소', value: (row) => row.schoolName },
   { header: '설비명', value: (row) => row.deviceName },
-  { header: '유형', value: (row) => row.type },
   { header: '심각도', value: (row) => SEVERITY_LABEL[row.severity] },
   { header: '알림원인', value: (row) => row.title },
   { header: '고장코드', value: (row) => row.faultCode ?? '' },

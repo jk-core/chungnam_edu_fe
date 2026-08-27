@@ -1,7 +1,6 @@
 import type { DiagnosisFaultCode } from './equipment';
 import type { Severity } from './energy';
-
-export type AlertType = '통신' | '발전' | '설비' | '환경';
+import type { OperationStatus } from './status';
 
 /** 알림 한 건 */
 export interface AlertRecord {
@@ -10,7 +9,8 @@ export interface AlertRecord {
   schoolName: string;
   regionName: string;
   deviceName: string;
-  type: AlertType;
+  /** 이 알림이 가리키는 운전 상태. 통신단절은 값 자체가 끊긴 것이라 발전 이상과 갈린다. */
+  status: OperationStatus;
   severity: Severity;
   /** 연결된 고장코드. 없을 수도 있다. */
   faultCode: DiagnosisFaultCode | null;
@@ -32,7 +32,6 @@ export interface AlertRule {
   id: string;
   label: string;
   description: string;
-  type: AlertType;
   severity: Severity;
   /** 임계값 표기 (예: '15분') */
   threshold: string;

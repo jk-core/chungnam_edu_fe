@@ -69,7 +69,7 @@
   align-items: flex-start;
   gap: 2px;
   width: 100%;
-  min-height: 74px;
+  min-height: 92px;
   padding: s.$space-2;
   border: 1px solid var(--border-subtle);
   border-radius: s.$radius-sm;
@@ -84,12 +84,12 @@
   }
 
   @include media.mobile {
-    min-height: 58px;
+    min-height: 76px;
     padding: s.$space-1 + 2px;
   }
 
   &--empty {
-    min-height: 74px;
+    min-height: 92px;
     border: 1px dashed var(--border-subtle);
     background-color: transparent;
     cursor: default;
@@ -101,7 +101,7 @@
     }
 
     @include media.mobile {
-      min-height: 58px;
+      min-height: 76px;
     }
   }
 
@@ -141,6 +141,28 @@
   &__weather {
     flex-shrink: 0;
     color: var(--text-muted);
+  }
+
+  &__power {
+    @include t.data-sm;
+
+    margin-top: auto;
+    color: var(--text-strong);
+    font-variant-numeric: tabular-nums;
+  }
+
+  &__unit {
+    @include t.caption;
+
+    margin-left: 2px;
+    color: var(--text-muted);
+  }
+
+  &__sub {
+    @include t.caption;
+
+    color: var(--text-faint);
+    font-variant-numeric: tabular-nums;
   }
 }
 
@@ -267,6 +289,18 @@
 
     margin-left: 2px;
     color: var(--text-muted);
+  }
+
+  &__weather {
+    flex-shrink: 0;
+    color: var(--text-muted);
+  }
+
+  &__sub {
+    @include t.caption;
+
+    color: var(--text-faint);
+    font-variant-numeric: tabular-nums;
   }
 }
 

@@ -31,7 +31,6 @@ export function AlertDetailModal({ alert, onClose }: AlertDetailModalProps) {
             <Badge tone={alert.handled ? 'ok' : 'critical'} withDot>
               {alert.handled ? '조치 완료' : '미조치'}
             </Badge>
-            <Badge tone="neutral">{alert.type}</Badge>
             {alert.faultCode ? <Badge tone="brand">{alert.faultCode}</Badge> : null}
           </div>
 

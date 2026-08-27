@@ -38,7 +38,6 @@ export function RuleList() {
                   <Badge tone={SEVERITY_TONE[rule.severity]} withDot>
                     {SEVERITY_LABEL[rule.severity]}
                   </Badge>
-                  <Badge tone="neutral">{rule.type}</Badge>
                 </div>
                 <p className={styles.rule__description}>{rule.description}</p>
                 <p className={styles.rule__threshold}>기준 · {rule.threshold}</p>
