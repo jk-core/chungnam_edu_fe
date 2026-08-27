@@ -13,7 +13,6 @@ interface PendingRowProps {
   /** 재워 둔 건이면 조치 예정일, 아니면 undefined */
   snoozedUntil?: string;
   onOpen: () => void;
-  onSnooze: () => void;
   onWake: () => void;
 }
 
@@ -26,7 +25,7 @@ function urgencyOf(minutes: number) {
 }
 
 /** 미조치 알림 한 건 (SFR-022-05) */
-export function PendingRow({ alert, snoozedUntil, onOpen, onSnooze, onWake }: PendingRowProps) {
+export function PendingRow({ alert, snoozedUntil, onOpen, onWake }: PendingRowProps) {
   const minutes = alertDurationMinutes(alert);
   const asleep = snoozedUntil !== undefined;
 
@@ -54,17 +53,17 @@ export function PendingRow({ alert, snoozedUntil, onOpen, onSnooze, onWake }: Pe
         <span className={styles.pending__more}>상세 보기</span>
       </button>
 
+      {/* 예정일을 잡는 것은 상세 창의 조치 폼이 한다. 여기는 재워 둔 것을 되돌리는 자리만 남긴다. */}
       <div className={styles.snooze}>
         {asleep ? (
           <>
-            <span className={styles.snooze__note}>조치 예정 {snoozedUntil}</span>
+            <span className={styles.snooze__note}>
+              <ClockIcon width={13} height={13} aria-hidden />
+              조치 예정 {snoozedUntil}
+            </span>
             <Button size="sm" variant="ghost" onClick={onWake}>다시 알림</Button>
           </>
-        ) : (
-          <Button size="sm" variant="secondary" iconLeft={<ClockIcon />} onClick={onSnooze}>
-            조치 예정일
-          </Button>
-        )}
+        ) : null}
       </div>
     </div>
   );

@@ -12,11 +12,13 @@ import { Table } from '@/components/common/Table';
 import { alertDurationMinutes } from '@/mocks/alerts';
 import { formatDuration, formatNumber, formatPercent } from '@/utils/format';
 import { useAlertRange } from '@/stores/filterStore';
+import { useSnoozeMap } from '@/stores/faultActionStore';
 import { usePlantScope } from '@/hooks/usePlantScope';
 import type { AlertRecord } from '@/interface/alert';
 import type { Column } from '@/components/common/Table';
 import styles from '../../Alerts.module.scss';
 import { AlertDetailModal } from '../../components/AlertDetailModal';
+import { detailOfAlert } from '../../components/alarmDetail';
 import { FaultTimeline } from '../../components/FaultTimeline';
 import { useAlertDetail } from '../hooks/useAlertDetail';
 import { downloadAlerts } from './alertCsv';
@@ -41,6 +43,7 @@ export function AlertHistoryCard({ rows, stats }: AlertHistoryCardProps) {
   const { plantLabel: label } = usePlantScope();
   const [range] = useAlertRange();
   const detail = useAlertDetail();
+  const snoozedUntil = useSnoozeMap();
 
   const [view, setView] = useState<ViewMode>('table');
   const [page, setPage] = useState(1);
@@ -186,7 +189,10 @@ export function AlertHistoryCard({ rows, stats }: AlertHistoryCardProps) {
         </Card>
       </Reveal>
 
-      <AlertDetailModal alert={detail.detail} onClose={detail.close} />
+      <AlertDetailModal
+        alarm={detail.detail ? detailOfAlert(detail.detail, snoozedUntil[detail.detail.id] ?? null) : null}
+        onClose={detail.close}
+      />
     </>
   );
 }

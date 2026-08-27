@@ -28,6 +28,29 @@ export interface AlertRecord {
   actionNote: string | null;
 }
 
+/**
+ * 상세 창이 받는 알림 한 건.
+ * 표에서 누른 알림과 간트에서 누른 구간이 같은 모양으로 들어온다 — 보는 것이 같으니 창도 하나다.
+ */
+export interface AlarmDetail {
+  id: string;
+  plantName: string;
+  deviceName: string;
+  status: AlarmStatus;
+  faultCode: DiagnosisFaultCode | null;
+  title: string;
+  message: string;
+  occurredAt: string;
+  /** 아직 진행 중이면 null */
+  resolvedAt: string | null;
+  handled: boolean;
+  manual: boolean;
+  handler: string | null;
+  actionNote: string | null;
+  /** 조치 예정일. 이 날까지 알림을 접어 둔다 (SFR-022-05) */
+  plannedAt: string | null;
+}
+
 /** 알림 발생 조건 설정 */
 export interface AlertRule {
   id: string;
