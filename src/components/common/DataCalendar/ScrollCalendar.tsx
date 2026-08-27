@@ -5,7 +5,7 @@ import { WEATHER_META } from '@/mocks/weather';
 import { buildMonthGrid, CALENDAR_MAX, CALENDAR_MIN, DAY_CALENDAR_MIN, WEEKDAY_LABELS } from '@/utils/date';
 import { cn } from '@/utils/cn';
 import { formatNumber } from '@/utils/format';
-import type { DayWeather, MonthWeather } from '@/interface/weather';
+import type { DayWeather, MonthPower } from '@/interface/weather';
 import type { Granularity } from '@/utils/date';
 import styles from './DataCalendar.module.scss';
 import { WeatherIcon } from './WeatherIcon';
@@ -27,7 +27,7 @@ interface ScrollCalendarProps {
   selected: Date;
   onSelect: (value: Date) => void;
   getDays: (year: number, month: number) => DayWeather[];
-  getMonths: (year: number) => MonthWeather[];
+  getMonths: (year: number) => MonthPower[];
 }
 
 /** 화면에 깔 구간 하나. 일 단위는 달, 월·연 단위는 해가 한 구간이다. */
@@ -320,7 +320,7 @@ function MonthCells({
   onSelect,
 }: {
   year: number;
-  months: MonthWeather[];
+  months: MonthPower[];
   selected: string;
   onSelect: (key: string) => void;
 }) {
@@ -334,9 +334,7 @@ function MonthCells({
           onClick={() => onSelect(item.month)}
           aria-label={`${year}년 ${index + 1}월, 발전시간 ${item.generationHours}시간`}
         >
-          <span className={styles.monthCell__top}>
-            <span className={styles.monthCell__label}>{index + 1}월</span>
-          </span>
+          <span className={styles.monthCell__label}>{index + 1}월</span>
           <span className={styles.monthCell__hours}>
             {item.generationHours.toFixed(1)}
             <span className={styles.monthCell__unit}>시간</span>

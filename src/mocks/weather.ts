@@ -1,5 +1,5 @@
 import dayjs from 'dayjs';
-import type { DayWeather, MonthWeather, WeatherKind } from '@/interface/weather';
+import type { DayWeather, MonthPower, WeatherKind } from '@/interface/weather';
 import { MONTH_FACTOR } from './generation';
 import { REGION_TOTAL } from './regions';
 import { getSchoolById } from './schools';
@@ -79,22 +79,13 @@ export function getMonthDays(schoolId: string | null, year: number, month: numbe
 }
 
 /** 열두 달치 — 연 달력에 쓴다. */
-export function getYearMonths(schoolId: string | null, year: number): MonthWeather[] {
+export function getYearMonths(schoolId: string | null, year: number): MonthPower[] {
   return Array.from({ length: 12 }, (_, month) => {
     const days = getMonthDays(schoolId, year, month);
-    const counts = days.reduce<Partial<Record<WeatherKind, number>>>(
-      (acc, day) => ({ ...acc, [day.kind]: (acc[day.kind] ?? 0) + 1 }),
-      {},
-    );
-    const kind = (Object.keys(counts) as WeatherKind[]).reduce(
-      (best, item) => ((counts[item] ?? 0) > (counts[best] ?? 0) ? item : best),
-      'clear' as WeatherKind,
-    );
 
     return {
       month: `${year}-${String(month + 1).padStart(2, '0')}`,
       generationHours: Math.round(days.reduce((sum, day) => sum + day.generationHours, 0) * 10) / 10,
-      kind,
     };
   });
 }
