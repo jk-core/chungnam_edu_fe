@@ -207,10 +207,11 @@ function DetailBody({ alarm, onClose }: { alarm: AlarmDetail; onClose: () => voi
                     { value: 'yes', label: '예정일까지 접어 둠', tone: 'brand' },
                   ]}
                 />
-                <FormField
-                  label="예정일"
-                  hint={usePlan === 'yes' ? '이 날짜가 지나면 다시 위로 올라옵니다.' : undefined}
-                >
+                {/*
+                  안내 문구를 고른 값에 따라 넣었다 뺐다 하지 않는다 — 한 줄이 생겼다 사라지면서
+                  창 높이가 바뀌고, 가운데 정렬이라 라디오를 누를 때마다 머리글과 바닥글이 함께 튄다.
+                */}
+                <FormField label="예정일" hint="이 날짜가 지나면 다시 위로 올라옵니다.">
                   <DateControl value={plannedAt} onChange={setPlannedAt} disabled={usePlan === 'no'} />
                 </FormField>
               </FormRow>
