@@ -238,7 +238,7 @@ interface StringChartProps {
 }
 
 /**
- * 스트링·접속반 효율 (SFR-020-02).
+ * 스트링 효율 (SFR-020-02).
  * 정상 범위는 88~104% 로 고정이라 `markArea` 대신 같은 값을 쌓아 띠로 만든다.
  */
 export function StringEfficiencyChart({ units, days, height = CHART_HEIGHT }: StringChartProps) {

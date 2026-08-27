@@ -187,13 +187,11 @@
     font-size: 0.6875rem;
   }
 
-  &--inverter .row__name,
-&--junctionBox .row__name {
+  &--inverter .row__name {
     @include t.body-sm;
   }
 
-  &--string .row__name,
-&--channel .row__name {
+  &--string .row__name {
     @include t.caption;
   }
 }

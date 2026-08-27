@@ -1,5 +1,5 @@
 import dayjs from 'dayjs';
-import type { Inverter, JunctionBox, PerformancePoint, StringUnit } from '@/interface/equipment';
+import type { Inverter, PerformancePoint, StringUnit } from '@/interface/equipment';
 import type { OperationStatus, RtuStatus } from '@/interface/status';
 import { FAULT_BY_STATUS } from './faultCodes';
 import { REGION_TOTAL } from './regions';
@@ -10,7 +10,7 @@ import { createRandom, hashSeed, pickNumber } from './random';
 export { FAULT_CODES, FAULT_LABELS, getFaultCode } from './faultCodes';
 
 /**
- * 부모 설비 아래 형제 단위(스트링 또는 채널)를 만든다.
+ * 인버터 아래 스트링을 만든다.
  * 부모가 정상이 아니면 그 아래 첫 단위가 원인인 것으로 본다.
  */
 function buildUnits(
@@ -48,36 +48,6 @@ function buildUnits(
   });
 }
 
-/** 센트럴형 인버터 아래 접속반과 그 채널 */
-function buildJunctionBoxes(
-  next: () => number,
-  inverterId: string,
-  count: number,
-  parentStatus: OperationStatus,
-  parentCapacityKw: number,
-): JunctionBox[] {
-  const share = Math.round((parentCapacityKw / count) * 10) / 10;
-
-  return Array.from({ length: count }, (_, index) => {
-    const status: OperationStatus = !isProducing(parentStatus)
-      ? parentStatus
-      : isAbnormal(parentStatus) && index === 0
-        ? parentStatus
-        : next() > 0.9
-          ? 'degraded'
-          : 'running';
-    const id = `${inverterId}-jb-${index + 1}`;
-
-    return {
-      id,
-      name: `접속반 ${String.fromCharCode(65 + index)}`,
-      status,
-      capacityKw: share,
-      channels: buildUnits(next, id, 'ch', 'CH', 2 + Math.floor(next() * 3), status, share),
-    };
-  });
-}
-
 function buildInverters(): Inverter[] {
   const inverters: Inverter[] = [];
 
@@ -111,9 +81,9 @@ function buildInverters(): Inverter[] {
           : pickNumber(next, 0.58, 0.79, 3);
       // 하루 발전시간은 건전도에 비례한다 — 맑은 날 정상 설비가 4시간 안팎이 되도록 잡았다.
       const todayHours = Math.round(healthFactor * 4.6 * 10) / 10;
-      // 셋 중 하나쯤은 접속반을 거쳐 채널이 물리는 센트럴형으로 둔다.
-      // 용량으로 가르면 목업 분포상 한쪽으로 쏠려 계층이 한 종류만 나온다.
-      const type: Inverter['type'] = next() > 0.68 ? 'central' : 'string';
+      // 옛 인버터 종류 추첨이 쓰던 자리. 값은 버리되 호출은 남긴다 —
+      // 빼면 시드 난수가 한 칸씩 밀려 아래 모든 설비의 상태·발전량이 통째로 달라진다.
+      next();
       // 계통 연계는 용량으로 갈린다 — 20kW 아래는 단상, 그 위는 삼상으로 둔다.
       const phase: Inverter['phase'] = capacityKw < 20 ? 'single' : 'three';
 
@@ -121,7 +91,6 @@ function buildInverters(): Inverter[] {
         id,
         schoolId: school.id,
         name: `인버터 #${index + 1}`,
-        type,
         phase,
         capacityKw,
         status,
@@ -136,12 +105,7 @@ function buildInverters(): Inverter[] {
         hoursTrend: Array.from({ length: 7 }, (_, day) => (todayHours === 0
           ? 0
           : Math.max(0, Math.round((todayHours + (day - 6) * 0.04 + pickNumber(next, -0.1, 0.1, 2)) * 10) / 10))),
-        strings: type === 'string'
-          ? buildUnits(next, id, 'str', 'String', 2 + Math.floor(next() * 3), status, capacityKw)
-          : [],
-        junctionBoxes: type === 'central'
-          ? buildJunctionBoxes(next, id, 2 + Math.floor(next() * 2), status, capacityKw)
-          : [],
+        strings: buildUnits(next, id, 'str', 'String', 2 + Math.floor(next() * 3), status, capacityKw),
       });
     }
   });
@@ -210,38 +174,15 @@ export function getDiagEfficiencySeries(id: string, status: OperationStatus, day
   });
 }
 
-/**
- * 진단 판정 대상. 인버터 타입에 따라 최말단이 다르다.
- * - 스트링형: 스트링까지
- * - 센트럴형: 접속반까지 (채널은 계측값 조회용이라 판정 대상이 아니다)
- */
+/** 진단 판정 대상 — 최말단은 스트링이다. */
 export function getDiagnosisUnits(inverter: Inverter): { id: string; name: string; status: OperationStatus; capacityKw: number }[] {
-  return inverter.type === 'central'
-    ? inverter.junctionBoxes.map(({ id, name, status, capacityKw }) => ({ id, name, status, capacityKw }))
-    : inverter.strings.map(({ id, name, status, capacityKw }) => ({ id, name, status, capacityKw }));
+  return inverter.strings.map(({ id, name, status, capacityKw }) => ({ id, name, status, capacityKw }));
 }
-
-/** 인버터 타입 표기 */
-export const INVERTER_TYPE_LABEL: Record<Inverter['type'], string> = {
-  string: '스트링형',
-  central: '센트럴형',
-};
 
 export const INVERTER_PHASE_LABEL: Record<Inverter['phase'], string> = {
   single: '단상 220V',
   three: '삼상 380V',
 };
-
-/** 인버터 아래 최말단 단위(스트링 또는 접속반 채널)를 모두 모은다. */
-export function leafUnitsOf(inverter: Inverter): StringUnit[] {
-  return inverter.type === 'central'
-    ? inverter.junctionBoxes.flatMap((box) => box.channels)
-    : inverter.strings;
-}
-
-export function countStringStatus(inverters: Inverter[]): Record<OperationStatus, number> {
-  return countOperation(inverters.flatMap(leafUnitsOf));
-}
 
 const performanceCache = new Map<string, PerformancePoint[]>();
 

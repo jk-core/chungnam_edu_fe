@@ -35,7 +35,7 @@ export function DeepDiagnosisModal({ node, date, onClose }: DeepDiagnosisModalPr
 
   /*
    * 예측 모델은 인버터 단위로 돌아간다 (SFR-014-01).
-   * 인버터보다 위(발전소)를 고르면 그 발전소의 첫 인버터를, 아래(스트링·접속반)를 고르면
+   * 인버터보다 위(발전소)를 고르면 그 발전소의 첫 인버터를, 아래(스트링)를 고르면
    * 소속 인버터를 기준으로 삼는다 — 어느 인버터를 보고 있는지는 제목에 적는다.
    */
   const inverterId = useMemo(() => {

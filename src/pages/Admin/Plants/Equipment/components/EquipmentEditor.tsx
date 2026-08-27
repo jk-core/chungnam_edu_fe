@@ -94,7 +94,7 @@ export function EquipmentEditor({ cid }: EquipmentEditorProps) {
   const module = modules.find((item) => item.id === moduleProductId);
   const inverter = inverters.find((item) => item.id === inverterProductId);
   const plant = plants.find((item) => item.plantId === plantId);
-  // 스트링 구조는 스트링 인버터에만 있다 — 센트럴은 접속반·채널로 나뉜다.
+  // 스트링 구조는 스트링 기종에만 있다.
   const hasStrings = inverterKind === 'string';
   const rowsError = methods.getFieldState('rows', methods.formState).error;
 

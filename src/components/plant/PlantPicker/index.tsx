@@ -30,7 +30,7 @@ interface PlantPickerProps {
 
 /**
  * 발전소 선택기. 128개를 드롭다운에 담기 어려워 검색·필터가 있는 모달로 펼친다.
- * 발전소 아래 인버터·접속반·스트링·채널은 좌측 설비 구조 트리에서 고른다.
+ * 발전소 아래 인버터·스트링은 좌측 설비 구조 트리에서 고른다.
  */
 export function PlantPicker({ variant = 'inline' }: PlantPickerProps) {
   const { node, plant } = usePlantScope();

@@ -89,7 +89,7 @@ export interface TemplateRevision {
  */
 export interface InspectedDevice {
   id: string;
-  /** 인버터 · RTU · 접속반처럼 설비 갈래 */
+  /** 인버터 · RTU · 모듈 어레이처럼 설비 갈래 */
   kind: string;
   name: string;
   /** 이 설비에서 본 특이사항 */

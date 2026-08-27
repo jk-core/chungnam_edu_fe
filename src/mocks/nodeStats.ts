@@ -45,7 +45,7 @@ function healthOfNode(node: ScopeNode): number {
  * 정상 인버터에 물린 스트링 하나가 죽어 있을 수 있어, 부모 건전도만으로는 그게 드러나지 않는다.
  */
 function penaltyOfNode(node: ScopeNode): number {
-  if (node.kind !== 'string' && node.kind !== 'channel' && node.kind !== 'junctionBox') return 1;
+  if (node.kind !== 'string') return 1;
 
   return OPERATION_PENALTY[node.status];
 }

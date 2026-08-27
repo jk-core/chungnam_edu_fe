@@ -15,7 +15,7 @@ import { stampAgo } from './today';
 /*
   설비 마스터 시드 (SFR-016-01, SFR-017-04~06).
 
-  접속반·스트링은 지금까지 인버터 아래 중첩 데이터로만 있었고 편집 대상이 아니었다.
+  스트링은 지금까지 인버터 아래 중첩 데이터로만 있었고 편집 대상이 아니었다.
   등록·수정을 붙이려면 각자 id 로 집히는 줄이어야 해서, 운영 데이터에서 한 겹 펼쳐 온다.
   펼쳐 오는 값은 이름과 구성뿐이다 — 상태·출력은 운영 쪽이 계속 계산한다.
 */
@@ -77,7 +77,8 @@ export const SEED_EQUIPMENT: EquipmentMaster[] = INVERTERS.map((inverter, index)
   const panelCount = Math.max(1, Math.round((inverter.capacityKw * 1000) / watt));
   const { series, parallel } = splitArray(next, panelCount);
   const installedAt = asset?.installedAt ?? '2021-03';
-  const kind: InverterKind = inverter.type === 'central' ? 'central' : 'string';
+  // 운영 설비는 전부 스트링 직결이다. 카탈로그의 센트럴·마이크로 기종은 제품 관리 화면에만 남는다.
+  const kind: InverterKind = 'string';
 
   return {
     inverterId: inverter.id,

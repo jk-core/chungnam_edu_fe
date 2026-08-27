@@ -6,9 +6,9 @@ import type { InverterKind } from '@/interface/deviceMaster';
 /**
  * 아래 장비를 물릴 수 있는 설비. 지운 발전소의 설비는 고를 수 없다 (SFR-016-05).
  *
- * `kind` 를 주면 그 인버터 타입의 설비만 남긴다 — 스트링은 스트링 인버터에만, 접속반은 센트럴
- * 인버터에만 달린다([vocabulary.md]). 가리지 않으면 스트링 목록에 스트링을 가질 수 없는
- * 센트럴 설비가 0조인 채로 줄줄이 서서, 등록할 수 없는 줄을 눌러 보게 된다.
+ * `kind` 를 주면 그 기종의 설비만 남긴다 — 스트링은 스트링 인버터에만 달린다.
+ * 가리지 않으면 스트링 목록에 스트링을 가질 수 없는 설비가 0조인 채로 줄줄이 서서,
+ * 등록할 수 없는 줄을 눌러 보게 된다.
  */
 export function useSelectableEquipment(kind?: InverterKind) {
   const equipmentCreated = useEquipmentStore((state) => state.equipmentCreated);

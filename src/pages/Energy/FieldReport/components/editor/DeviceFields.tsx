@@ -5,7 +5,7 @@ import type { InspectedDevice } from '@/interface/fieldReport';
 import styles from '../../FieldReport.module.scss';
 
 /** 점검 설비로 고를 수 있는 갈래 (SFR-021-06) */
-const DEVICE_KINDS = ['인버터', 'RTU', '접속반', '모듈 어레이', '일사량계', '기타'];
+const DEVICE_KINDS = ['인버터', 'RTU', '모듈 어레이', '일사량계', '기타'];
 
 interface DeviceFieldsProps {
   devices: InspectedDevice[];

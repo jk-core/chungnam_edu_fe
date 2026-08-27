@@ -147,7 +147,7 @@ function seedDevices(targetKind: ReportTemplate['targetKind'], order: number): I
 
   return [
     { id: `dev-${order}-1`, kind: '모듈 어레이', name: '옥상 어레이 A', note: '' },
-    { id: `dev-${order}-2`, kind: '접속반', name: '접속반 #1', note: '' },
+    { id: `dev-${order}-2`, kind: '모듈 어레이', name: '모듈 어레이 A동', note: '' },
     { id: `dev-${order}-3`, kind: '인버터', name: '인버터 #1', note: '' },
   ];
 }
