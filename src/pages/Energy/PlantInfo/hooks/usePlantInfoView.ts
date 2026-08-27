@@ -6,7 +6,7 @@ import { SEED_MODULES } from '@/mocks/moduleProducts';
 import { SEED_PYRANOMETERS } from '@/mocks/pyranometers';
 import { useManagedUsers, usePlantAssets } from '@/hooks/usePlantAssets';
 import { usePlantScope } from '@/hooks/usePlantScope';
-import type { EquipmentMaster } from '@/interface/deviceMaster';
+import type { EquipmentMaster, InverterProduct, ModuleProduct } from '@/interface/deviceMaster';
 import type { Inverter } from '@/interface/equipment';
 
 /**
@@ -19,13 +19,11 @@ import type { Inverter } from '@/interface/equipment';
 export interface InverterRow {
   inverter: Inverter;
   master: EquipmentMaster | null;
-  /** 인버터 제품 표기 — 업체와 모델을 한 줄에 담는다 */
-  productLabel: string;
-  moduleLabel: string;
+  /** 카탈로그에서 지워졌으면 null — 그때는 모델명 칸만 비운다 */
+  product: InverterProduct | null;
+  module: ModuleProduct | null;
   /** 이 인버터가 물고 있는 모듈 장수. MPPT 1·2번을 합한다 */
   panelCount: number;
-  /** 아래 달린 스트링 또는 접속반 채널 수 */
-  unitCount: number;
 }
 
 /**
@@ -54,10 +52,9 @@ export function usePlantInfoView() {
       return {
         inverter,
         master,
-        productLabel: product ? `${product.maker} ${product.name}` : '',
-        moduleLabel: module ? `${module.maker} ${module.name}` : '',
+        product: product ?? null,
+        module: module ?? null,
         panelCount: master ? master.series1 * master.parallel1 + master.series2 * master.parallel2 : 0,
-        unitCount: inverter.type === 'central' ? inverter.junctionBoxes.length : inverter.strings.length,
       };
     });
   }, [plant]);
