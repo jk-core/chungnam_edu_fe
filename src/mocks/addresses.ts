@@ -1,5 +1,5 @@
 import type { AddressResult } from '@/interface/address';
-import { regionCodeOf } from './manageCodes';
+import { regionCodeOf } from '@/configs/regions';
 import { SCHOOLS } from './schools';
 
 /*

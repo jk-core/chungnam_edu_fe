@@ -5,7 +5,7 @@ import { CheckIcon, SchoolIcon, SearchIcon } from '@/components/common/Icon';
 import { EmptyState } from '@/components/common/EmptyState';
 import { KIND_LABEL } from '@/mocks/tree';
 import { Modal } from '@/components/common/Modal';
-import { REGIONS } from '@/mocks/regions';
+import { CHUNGNAM_REGIONS } from '@/configs/regions';
 import { SCHOOLS } from '@/mocks/schools';
 import { Select } from '@/components/common/Select';
 import { cn } from '@/utils/cn';
@@ -17,7 +17,7 @@ import styles from './PlantPicker.module.scss';
 
 const REGION_OPTIONS = [
   { value: 'all', label: '전체 지역' },
-  ...REGIONS.map((region) => ({ value: region.code, label: region.name })),
+  ...CHUNGNAM_REGIONS.map((region) => ({ value: region.code, label: region.name })),
 ];
 
 interface PlantPickerProps {

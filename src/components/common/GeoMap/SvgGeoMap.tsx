@@ -2,7 +2,7 @@ import { useCallback, useMemo, useRef, useState } from 'react';
 import Chungcheongnamdo from '@/assets/geo/provinces/Chungcheongnamdo';
 import { CloseIcon, ExpandIcon, MinusIcon, PlusIcon } from '@/components/common/Icon';
 import { isAbnormal, OPERATION_LABEL, OPERATION_TONE } from '@/mocks/status';
-import { REGIONS } from '@/mocks/regions';
+import { CHUNGNAM_REGIONS } from '@/configs/regions';
 import { cn } from '@/utils/cn';
 import { useDismissable } from '@/hooks/useDismissable';
 import type { OperationStatus } from '@/interface/status';
@@ -71,7 +71,7 @@ export function SvgGeoMap({ plants, renderPopup, selectedId, onSelect, height = 
     [markers, zoom],
   );
   const regionPoints = useMemo(
-    () => REGIONS.map((region) => ({ code: region.code, name: region.name, ...projectPoint(region.center) })),
+    () => CHUNGNAM_REGIONS.map((region) => ({ code: region.code, name: region.name, ...projectPoint(region.center) })),
     [],
   );
 
@@ -122,6 +122,13 @@ export function SvgGeoMap({ plants, renderPopup, selectedId, onSelect, height = 
 
   // 마커는 확대해도 화면상 크기를 지킨다 — 맞춤 배율과 확대 배율을 함께 되돌린다 (SFR-007-09).
   const markerScale = 1 / (MAP_FIT.scale * zoom);
+
+  /*
+    테두리 굵기도 글자와 같은 배율로 되돌린다.
+    CSS 에 stroke-width 를 두면 그 값은 로컬 좌표 단위라 맞춤·확대 배율을 그대로 얻어맞는다 —
+    글자만 배율을 되돌리고 테두리는 두면 테두리가 글자보다 굵어져 획을 통째로 삼킨다.
+  */
+  const labelStyle = { fontSize: `${11 * markerScale}px`, strokeWidth: 2.5 * markerScale };
 
   /** 원본 좌표를 화면 비율로 옮긴다. 팝업을 마커 위에 얹을 때 쓴다. */
   const toRatio = (value: number, axis: 'x' | 'y') => {
@@ -182,13 +189,29 @@ export function SvgGeoMap({ plants, renderPopup, selectedId, onSelect, height = 
                   <Chungcheongnamdo fill="var(--map-scale-2)" stroke="var(--surface)" />
                 </g>
 
+                {/*
+                  라벨은 두 번 그린다 — 테두리를 전부 깔고 그 위에 글자를 얹는다.
+                  paint-order 로 한 번에 그리면 테두리와 채움이 글리프마다 번갈아 칠해져,
+                  뒷 글자의 흰 테두리가 앞 글자를 덮는다. 글자 폭이 꽉 찬 한글에서 특히 심하다.
+                */}
+                {regionPoints.map((region) => (
+                  <text
+                    key={region.code}
+                    className={styles.region__halo}
+                    x={region.x}
+                    y={region.y - 8 * markerScale}
+                    style={labelStyle}
+                  >
+                    {region.name}
+                  </text>
+                ))}
                 {regionPoints.map((region) => (
                   <text
                     key={region.code}
                     className={styles.region__label}
                     x={region.x}
                     y={region.y - 8 * markerScale}
-                    style={{ fontSize: `${11 * markerScale}px` }}
+                    style={labelStyle}
                   >
                     {region.name}
                   </text>

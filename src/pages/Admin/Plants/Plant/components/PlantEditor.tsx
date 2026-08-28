@@ -14,7 +14,7 @@ import { MSG } from '@/configs/messages';
 import { plantFormSchema } from '@/service/plant/type';
 import { SCHOOL_LEVELS, SCHOOLS } from '@/mocks/schools';
 import { RecordPicker } from '@/components/common/RecordPicker';
-import { regionNameOfCode } from '@/mocks/manageCodes';
+import { regionNameOfCode } from '@/configs/regions';
 import { toast } from '@/stores/toastStore';
 import { useManagedUsers, usePlantAssets } from '@/hooks/usePlantAssets';
 import { usePyranometerRows } from '@/pages/Admin/Plants/Pyranometer/hooks/usePyranometerRows';

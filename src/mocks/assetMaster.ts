@@ -1,8 +1,8 @@
 import type { AssetChange, PlantAsset } from '@/interface/asset';
+import { regionCodeOf } from '@/configs/regions';
 import { SCHOOLS } from './schools';
 import { SEED_USERS } from './accounts';
 import { createRandom, hashSeed, pickOne } from './random';
-import { regionCodeOf } from './manageCodes';
 import { stampAgo } from './today';
 
 const BUILDERS = [

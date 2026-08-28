@@ -1,6 +1,6 @@
 import { NOW } from '@/mocks/today';
 import { SCHOOL_LEVELS } from '@/mocks/schools';
-import { REGION_CODES } from '@/mocks/manageCodes';
+import { CHUNGNAM_REGIONS } from '@/configs/regions';
 import type { PlantFormValues } from '@/service/plant/type';
 import type { ManagedUser } from '@/interface/account';
 import type { PlantAsset } from '@/interface/asset';
@@ -9,7 +9,7 @@ import type { Pyranometer } from '@/interface/deviceMaster';
 export const EMPTY_VALUES: PlantFormValues = {
   plantName: '',
   plantType: SCHOOL_LEVELS[0],
-  regionCode: REGION_CODES[0].regionCode,
+  regionCode: CHUNGNAM_REGIONS[0].regionCode,
   address: '',
   addressDetail: '',
   installedAt: NOW.format('YYYY-MM'),
