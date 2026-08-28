@@ -117,7 +117,7 @@ export function StatSummary({ view }: { view: StatisticsView }) {
               </p>
               <p className={styles.compare}>
                 <span className={styles.compare__label}>
-                  소나무 {formatNumber(eco.pineTrees)}그루·년 · 가구 {formatNumber(eco.households)}가구·년
+                  소나무 {formatNumber(eco.pineTrees)}그루·년 · 가구 {formatNumber(eco.households)}가구·월
                 </span>
               </p>
             </div>
