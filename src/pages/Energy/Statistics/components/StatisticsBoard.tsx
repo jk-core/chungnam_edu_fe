@@ -11,7 +11,7 @@ import { TrendSection } from './TrendSection';
 /**
  * 발전통계 본문 (SFR-007, SFR-008).
  *
- * 조회 한 벌을 판 다섯이 나눠 쓴다 — 집계표·요약·하위 설비·추이가 모두 같은 기간과 같은 계층에서
+ * 조회 한 벌을 판 넷이 나눠 쓴다 — 요약·하위 설비·추이가 모두 같은 기간과 같은 계층에서
  * 나온 값이라야 한다. 판마다 따로 조회하면 같은 화면 안에서 합계가 갈린다.
  *
  * 뎁스에 따라 갈리는 것은 「하위 설비」 한 칸뿐이다. 인버터가 조회 단위의 끝이라 그 아래는
@@ -19,7 +19,22 @@ import { TrendSection } from './TrendSection';
  */
 export function StatisticsBoard() {
   const view = useStatisticsView();
-  const { node, path, childKind } = view;
+  const { basis, node, path, childKind } = view;
+
+  /*
+    지역별·교육청별은 도 전체를 한 표로 묶어 보는 축이라 아래 판들을 세우지 않는다.
+    요약도 하위 설비도 추이도 고른 발전소 하나의 값인데, 집계표는 그 대상과 아무 상관이 없다 —
+    함께 세우면 도 전체 표 아래에 발전소 하나의 실적이 잇대어 서서 같은 값으로 읽힌다.
+  */
+  if (basis !== 'device') {
+    return (
+      <div className={styles.tab}>
+        <StatisticsToolbar view={view} />
+        <BasisTable view={view} />
+      </div>
+    );
+  }
+
   const Depth = node.kind === 'inverter' ? InverterDepth : PowerPlantDepth;
 
   return (
@@ -29,8 +44,6 @@ export function StatisticsBoard() {
         날짜를 고르는 자리와 그 날 실적을 보는 자리가 같아야 두 번 찾지 않는다.
       */}
       <StatisticsToolbar view={view} />
-
-      <BasisTable view={view} />
 
       <ScopePath path={path} currentId={node.id} />
 
