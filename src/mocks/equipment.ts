@@ -151,13 +151,6 @@ export function countRtuStatus(inverters: Inverter[]): Record<RtuStatus, number>
   );
 }
 
-/**
- * 진단 효율 = 실측 DC 전력 / 모델 예측 DC 전력.
- * 발전량은 날씨에 따라 크게 흔들려 추이 판단이 어려워, 진단에서는 이 값을 본다.
- */
-export const DIAG_EFFICIENCY_WARN = 85;
-export const DIAG_EFFICIENCY_CRITICAL = 50;
-
 /** 설비 하나의 최근 진단 효율 추이(%) */
 export function getDiagEfficiencySeries(id: string, status: OperationStatus, days = 7): number[] {
   const next = createRandom(hashSeed(`${id}-diag`));

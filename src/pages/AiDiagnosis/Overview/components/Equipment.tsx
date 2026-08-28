@@ -3,7 +3,7 @@ import { motion } from 'motion/react';
 import { AlertIcon, CheckIcon, ChevronRightIcon, MonitorIcon } from '@/components/common/Icon';
 import { Badge } from '@/components/common/Badge';
 import { Card } from '@/components/common/Card';
-import { DIAG_EFFICIENCY_CRITICAL, DIAG_EFFICIENCY_WARN } from '@/mocks/equipment';
+import { DIAG_EFFICIENCY_CRITICAL, DIAG_EFFICIENCY_WARN } from '@/configs/diagnosis';
 import { EmptyState } from '@/components/common/EmptyState';
 import { getChildNodes, getNodePath } from '@/mocks/tree';
 import { getDiagEfficiencyPoints } from '@/mocks/prediction';

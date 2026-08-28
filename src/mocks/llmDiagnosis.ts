@@ -2,10 +2,9 @@ import dayjs from 'dayjs';
 import type { AnalysisStage, DiagnosisFinding, DiagnosisReport } from '@/interface/diagnosis';
 import type { OperationStatus } from '@/interface/status';
 import { withParticle } from '@/utils/korean';
+import { DIAG_EFFICIENCY_CRITICAL, DIAG_EFFICIENCY_WARN } from '@/configs/diagnosis';
 import { getChildNodes, getNode } from './tree';
 import {
-  DIAG_EFFICIENCY_CRITICAL,
-  DIAG_EFFICIENCY_WARN,
   getDiagEfficiencySeries,
   getFaultCode,
   getInverterById,
