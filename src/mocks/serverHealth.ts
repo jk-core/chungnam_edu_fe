@@ -1,4 +1,5 @@
 import type { DbHealth, ResourceIncident, ResourceLevel, ServerNode, ServerRole } from '@/interface/serverHealth';
+import { RESOURCE_CRITICAL, RESOURCE_WARNING } from '@/configs/serverHealth';
 import { createRandom, hashSeed, pickNumber } from './random';
 import { NOW, stampAgo } from './today';
 
@@ -9,13 +10,6 @@ export const SERVER_ROLE_LABEL: Record<ServerRole, string> = {
   ai: 'AI 분석 서버',
   collector: '수집 서버',
 };
-
-/**
- * 자원 사용률 임계선 (ECR-002-20/21).
- * 주의에서 미리 알리고, 위험에서 즉시 조치하도록 두 단으로 나눈다.
- */
-export const RESOURCE_WARNING = 75;
-export const RESOURCE_CRITICAL = 90;
 
 export function resourceLevel(value: number): ResourceLevel {
   if (value >= RESOURCE_CRITICAL) return 'critical';
