@@ -16,13 +16,18 @@ interface SplitBoardProps {
  *
  * 화면을 가로로 한 번 자른다. 위에서는 **오늘 무슨 일이 있었나** 를 답하고
  * (왼쪽에 큰 곡선, 오른쪽에 환산 석 장), 아래 전폭에서는 **왜 그렇게 되나** 를 답한다
- * (계통도 한 장과 네 단계).
+ * (왼쪽에 계통도, 오른쪽에 네 단계).
  *
  * 값과 원리를 세로로 가른 것은, 값은 날마다 바뀌지만 원리는 늘 같기 때문이다. 매일 달라지는
  * 것을 위에 두면 지나가며 보는 사람이 먼저 보고, 어제와 무엇이 다른지가 한눈에 잡힌다.
  *
  * 네 단계는 넷을 한꺼번에 보인다. 스스로 넘어가는 판(시안 A)은 걸린 순간의 한 단계만
  * 읽히지만, 넷이 함께 서 있으면 어디에서 걸려도 앞뒤가 같이 읽힌다.
+ *
+ * 아래 단 안에서 계통도와 네 단계를 좌우로 가른 것은, 계통도가 세로가 있는 그림이기
+ * 때문이다 (2026-08-31). 그 앞에는 가로 전폭의 납작한 띠 위에 얹혀 있었는데, 높이에 맞춰
+ * 줄어드는 바람에 149px 폭의 실루엣만 남았다. 좌우로 가르면 그림이 아래 단의 세로를
+ * 통째로 받아 제 크기(395×239)로 선다.
  */
 export function SplitBoard({ stats }: SplitBoardProps) {
   const script = EDU_ROOMY.high;
@@ -82,28 +87,30 @@ export function SplitBoard({ stats }: SplitBoardProps) {
         </ul>
       </section>
 
-      {/* 아래 전폭 — 왜 그렇게 되나. 계통도 한 장 위에 네 단계가 나란히 선다 */}
+      {/* 아래 전폭 — 왜 그렇게 되나. 왼쪽에 계통도, 오른쪽에 네 단계 */}
       <section className={styles.panel}>
         <p className={styles.panel__head}>
           {script.principle.head}
           <span className={styles.panel__note}>{script.principle.note}</span>
         </p>
 
-        <div className={styles.line}>
-          <JourneyOverviewArt stats={stats} />
-        </div>
+        <div className={styles.principle}>
+          <div className={styles.line}>
+            <JourneyOverviewArt stats={stats} />
+          </div>
 
-        <ol className={styles.stages}>
-          {script.principle.stages.map((stage) => (
-            <li key={stage.id} className={styles.stage} data-tone={STAGE_TONE[stage.id]}>
-              <p className={styles.stage__term}>
-                <span className={styles.stage__no}>{stage.step}</span>
-                {stage.term}
-              </p>
-              <p className={styles.stage__body}>{stage.body}</p>
-            </li>
-          ))}
-        </ol>
+          <ol className={styles.stages}>
+            {script.principle.stages.map((stage) => (
+              <li key={stage.id} className={styles.stage} data-tone={STAGE_TONE[stage.id]}>
+                <p className={styles.stage__term}>
+                  <span className={styles.stage__no}>{stage.step}</span>
+                  {stage.term}
+                </p>
+                <p className={styles.stage__body}>{stage.body}</p>
+              </li>
+            ))}
+          </ol>
+        </div>
       </section>
     </div>
   );
