@@ -53,15 +53,13 @@ function Compare({ period, previous, current, digits, unit }: {
  * 머릿속에서 이어 붙여야 했다. 같은 카드 안에서 바로 잇는다 (회의 결정).
  */
 export function StatSummary({ view }: { view: StatisticsView }) {
-  const { node, label, period, date, meta, stat, previous, detail, eco } = view;
+  const { node, label, period, date, meta, stat, previous, eco } = view;
 
   const totalUnit = pickEnergyUnit(stat.generationKwh);
   const capacity = formatCapacity(node.capacityKw);
   const carbon = formatCarbon(eco.co2SavedKg);
   // 발전효율 = 같은 일사량에서 기대되는 발전량 대비 실측 (SFR-007-04)
   const efficiency = stat.expectedKwh > 0 ? stat.generationKwh / stat.expectedKwh : 0;
-  // 발전량이 왜 많고 적었는지는 그날 들어온 햇빛의 양이 답한다.
-  const totalIrradiance = detail.reduce((sum, point) => sum + point.irradiance, 0);
 
   return (
     <Reveal>
@@ -133,10 +131,6 @@ export function StatSummary({ view }: { view: StatisticsView }) {
           <div>
             <dt>발전효율</dt>
             <dd>{formatPercent(efficiency, 1)}</dd>
-          </div>
-          <div>
-            <dt>일사량</dt>
-            <dd>{formatNumber(totalIrradiance, 2)}kWh/m²</dd>
           </div>
           <div>
             <dt>조회 계층</dt>

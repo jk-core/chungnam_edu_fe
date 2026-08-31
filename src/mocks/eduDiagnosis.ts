@@ -148,7 +148,7 @@ export function buildEduLogs(stats: EduStats): EduScanLog[] {
   return [
     { id: 'load', text: `계측 채널 연결 · 발전량 ${stats.hourly.length}칸, 일사 ${stats.irradianceSeries.length}칸` },
     { id: 'gap', text: '결측값 0건 · 범위를 벗어난 값 0건' },
-    { id: 'sun', text: `일조 시간 ${daylight}시간 · 적산 일사량 ${formatNumber(stats.insolation, 2)}kWh/m²` },
+    { id: 'sun', text: `일조 시간 ${daylight}시간 · 현재 일사강도 ${formatNumber(stats.irradianceNow)}W/m²` },
     { id: 'corr', text: `햇빛–발전량 상관 ${formatNumber(correlation, 2)} · 두 값이 같은 모양으로 움직였다` },
     { id: 'model', text: `기대 발전량 모델 적용 · ${formatNumber(stats.expectedKwh)}kWh` },
   ];
@@ -254,7 +254,7 @@ export function buildEduInsight(stats: EduStats, scopeLabel: string): EduInsight
   const lines = [
     `${scopeLabel}의 금일 발전량은 ${formatNumber(stats.dayKwh)}kWh 이다. `
     + `동일 일사 조건의 기대 발전량 ${formatNumber(stats.expectedKwh)}kWh 대비 ${formatPercent(achieved)} 수준이다.`,
-    `일간 적산 일사량은 ${formatNumber(stats.insolation, 2)}kWh/m², 현재 일사강도는 ${score}점이다. `
+    `현재 일사강도는 ${formatNumber(stats.irradianceNow)}W/m² 로 ${score}점이다. `
     + '기대 발전량이 날씨를 이미 반영한 값이므로, 흐린 날이라고 해서 이 비율이 낮아지지는 않는다.',
     `설비용량으로 나누면 ${formatNumber(stats.equivalentHours, 1)}시간이고, `
     + `하루 내내 최대 출력으로 돌렸을 경우와 비교하면 ${formatPercent(stats.capacityFactor)} 수준이다.`,

@@ -55,7 +55,7 @@ export function StatisticsToolbar({ view }: { view: StatisticsView }) {
     const columns: CsvColumn<number>[] = [
       { header: DETAIL_UNIT[period], value: (_, index) => detail[index]?.label ?? '' },
       { header: '발전량(kWh)', value: (value) => Math.round(value) },
-      { header: '일사량(kWh/m²)', value: (_, index) => detail[index]?.irradiance ?? '' },
+      { header: '일사강도(W/m²)', value: (_, index) => detail[index]?.irradiance ?? '' },
     ];
     const filename = `발전현황_${label}_${describeDetail(period, date)}`;
 

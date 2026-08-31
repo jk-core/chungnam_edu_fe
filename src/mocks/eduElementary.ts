@@ -223,12 +223,12 @@ export const ELEMENTARY_CONTENT: ElementaryContent = {
   headline: {
     mainLabel: '실시간 출력',
     mainNote: () => '우리 학교가 한 번에 만들 수 있는 최대치의 이만큼을 지금 만들고 있어요',
-    statIds: ['today', 'insolation', 'co2', 'irradiance', 'capacity'],
+    statIds: ['today', 'powerTime', 'co2', 'irradiance', 'capacity'],
     copy: {
       today: {
         note: (stats) => `4인 가족 ${formatNumber(kwhToHouseholdDays(stats.todayKwh))}집이 하루 쓸 양이에요`,
       },
-      insolation: {
+      powerTime: {
         note: () => '해가 가장 셀 때만 골라서 발전했다면 이만큼 걸렸을 시간이에요',
       },
       co2: {

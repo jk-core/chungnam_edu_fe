@@ -65,12 +65,12 @@ export const MIDDLE_CONTENT: MiddleContent = {
     mainLabel: '실시간 출력',
     mainNote: (stats) =>
       `설비용량 ${formatNumber(stats.capacityKw)}kW 로 낼 수 있는 최대치 대비 현재의 출력을 나타낸다`,
-    statIds: ['today', 'insolation', 'co2', 'irradiance', 'capacity'],
+    statIds: ['today', 'powerTime', 'co2', 'irradiance', 'capacity'],
     copy: {
       today: {
         note: (stats) => `4인 가구 ${formatNumber(kwhToHouseholdDays(stats.todayKwh))}가구가 하루에 쓰는 양이다`,
       },
-      insolation: {
+      powerTime: {
         note: () => '발전량을 설비용량으로 나눈 값이다. 용량이 달라도 비교가 가능한 지표이다',
       },
       co2: {
