@@ -1,6 +1,6 @@
 import { FULL_SUN_WM2 } from '@/mocks/solarEdu';
 import { useAutoPager } from '@/hooks/useAutoPager';
-import { formatNumber } from '@/utils/format';
+import { formatNumber, formatSi } from '@/utils/format';
 import type { MiddleContent } from '@/mocks/eduContent';
 import type { EduStats } from '@/mocks/solarEdu';
 import { CastShadow, SceneDefs } from '../../scene-art/SceneDefs';
@@ -66,8 +66,7 @@ export function MiddleFlow({ stats, content }: MiddleFlowProps) {
       id: 'cell',
       step: 2,
       label: '태양전지',
-      value: formatNumber(sunKw, 1),
-      unit: 'kW',
+      ...formatSi(sunKw, 'W'),
       note: '패널 앞면에 들어오는 햇빛의 세기',
       tone: 'solar',
     },
@@ -75,8 +74,7 @@ export function MiddleFlow({ stats, content }: MiddleFlowProps) {
       id: 'inverter',
       step: 3,
       label: '인버터',
-      value: formatNumber(stats.outputKw, 1),
-      unit: 'kW',
+      ...formatSi(stats.outputKw, 'W'),
       note: `들어온 빛의 ${formatNumber(efficiency, 1)}% 가 전기로 · 직류를 교류로`,
       tone: 'brand',
     },
@@ -84,8 +82,7 @@ export function MiddleFlow({ stats, content }: MiddleFlowProps) {
       id: 'school',
       step: 4,
       label: '학교',
-      value: formatNumber(stats.todayKwh, 0),
-      unit: 'kWh',
+      ...formatSi(stats.todayKwh, 'Wh'),
       note: '금일 지금까지 쌓인 발전량',
       tone: 'ok',
     },

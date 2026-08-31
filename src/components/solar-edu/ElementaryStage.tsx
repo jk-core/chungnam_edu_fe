@@ -181,7 +181,7 @@ function SceneBubble({ story, stats }: { story: BubbleStory; stats: EduStats }) 
         <p className={styles.bubble__readout}>
           <span className={styles.bubble__label}>{readout.label}</span>
           <span className={styles.bubble__value}>
-            <CountUp value={readout.value} fractionDigits={readout.fractionDigits} startOnView={false} />
+            <CountUp value={readout.amount} fractionDigits={readout.fractionDigits} startOnView={false} />
             <span className={styles.bubble__unit}>{readout.unit}</span>
           </span>
         </p>

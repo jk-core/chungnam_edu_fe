@@ -7,6 +7,9 @@ export type { NodeKind, ScopeNode };
 
 export const ROOT_ID = 'all';
 
+/** 뿌리 노드의 이름. 조회 대상이 도 전체인지 이름으로 가려야 하는 곳이 쓴다. */
+export const ROOT_LABEL = '충청남도 전체';
+
 export const KIND_LABEL: Record<NodeKind, string> = {
   root: '전체',
   plant: '발전소',
@@ -22,8 +25,8 @@ function buildNodes(): Map<string, ScopeNode> {
   nodes.set(ROOT_ID, {
     id: ROOT_ID,
     kind: 'root',
-    name: '충청남도 전체',
-    fullName: '충청남도 전체',
+    name: ROOT_LABEL,
+    fullName: ROOT_LABEL,
     capacityKw: REGION_TOTAL.capacityKw,
     status: 'running',
     parentId: null,

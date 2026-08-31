@@ -1,8 +1,9 @@
 import { CO2_PER_KWH, CO2_PER_TREE_YEAR, kwhToHouseholdDays } from '@/utils/eco';
-import { formatNumber } from '@/utils/format';
+import { formatCapacity, formatEnergy, formatNumber, scaleCarbon, scaleSi } from '@/utils/format';
 import type { AnalysisStage } from '@/interface/diagnosis';
 import type { EduLevel } from '@/interface/edu';
 import type { School, SchoolLevel } from '@/interface/energy';
+import type { SiScale } from '@/utils/format';
 import { ELEMENTARY_CONTENT } from './eduElementary';
 import { FULL_SUN_WM2 } from './solarEdu';
 import { MIDDLE_CONTENT } from './eduMiddle';
@@ -66,10 +67,32 @@ export type StatId = 'today' | 'insolation' | 'co2' | 'irradiance' | 'capacity';
 export interface StatDef {
   label: string;
   value: (stats: EduStats) => number;
+  /**
+   * 자릿수가 커지면 단위를 올려 보일 값인지.
+   *
+   * 도 전체를 합치면 kW·kWh 로는 다섯 자리를 넘겨 칸 밖으로 나간다. 여기에 종류만 적어 두면
+   * 그리는 쪽이 `statFigure` 로 M·G·t 까지 올려 준다. 발전시간(시간)·일사강도(점)처럼
+   * SI 가 아닌 값은 적지 않는다.
+   */
+  scale?: 'W' | 'Wh' | 'carbon';
+  /** `scale` 이 없을 때 그대로 붙는 단위 */
   unit: string;
   fractionDigits: number;
   /** 단위를 몰라도 크기를 가늠할 수 있게 하는 한 줄 */
   note: (stats: EduStats) => string;
+}
+
+/**
+ * 지표 한 칸에 실제로 그릴 숫자와 단위.
+ * 숫자를 굴려 올리는 곳도 그대로 쓸 수 있게 문자열이 아니라 값으로 돌려준다.
+ */
+export function statFigure(def: StatDef, stats: EduStats): SiScale {
+  const raw = def.value(stats);
+
+  if (def.scale === 'carbon') return scaleCarbon(raw);
+  if (def.scale) return scaleSi(raw, def.scale);
+
+  return { amount: raw, unit: def.unit, fractionDigits: def.fractionDigits };
 }
 
 /*
@@ -85,6 +108,7 @@ export const STAT_DEFS: Record<StatId, StatDef> = {
   today: {
     label: '금일 발전량',
     value: (stats) => stats.todayKwh,
+    scale: 'Wh',
     unit: 'kWh',
     fractionDigits: 0,
     note: (stats) => `4인 가구 ${formatNumber(kwhToHouseholdDays(stats.todayKwh))}가구가 하루에 쓰는 양이다`,
@@ -106,6 +130,7 @@ export const STAT_DEFS: Record<StatId, StatDef> = {
   co2: {
     label: '탄소 저감량',
     value: (stats) => stats.todayKwh * CO2_PER_KWH,
+    scale: 'carbon',
     unit: 'kg',
     fractionDigits: 0,
     note: () => '화석연료로 만들었을 때와 견주어 줄어든 양이다',
@@ -118,11 +143,31 @@ export const STAT_DEFS: Record<StatId, StatDef> = {
   capacity: {
     label: '설비용량',
     value: (stats) => stats.capacityKw,
+    scale: 'W',
     unit: 'kW',
     fractionDigits: 1,
     note: () => '한꺼번에 낼 수 있는 가장 큰 출력이다',
   },
 };
+
+/*
+  문장 안에 수치를 넣을 때 쓰는 표기.
+  큰 숫자만 M·G 로 올리고 문장 속 수치는 kW 로 두면, 같은 화면에서 같은 값이 두 단위로 읽힌다.
+*/
+
+/** 설비용량을 문장에 넣을 때 — 「18.8MW」 */
+export function capacityText(stats: EduStats): string {
+  const { value, unit } = formatCapacity(stats.capacityKw);
+
+  return `${value}${unit}`;
+}
+
+/** 발전량을 문장에 넣을 때 — 「74.2MWh」 */
+export function energyText(kwh: number): string {
+  const { value, unit } = formatEnergy(kwh);
+
+  return `${value}${unit}`;
+}
 
 /** 수준이 덮어쓸 수 있는 부분만 */
 export interface StatCopy {
@@ -138,6 +183,8 @@ export interface ImpactDef {
   label: string;
   /** 1kWh 당 환산값 */
   perKwh: number;
+  /** 자릿수가 커지면 단위를 올려 보일 값인지 — 그루·일·시간처럼 SI 가 아닌 값은 적지 않는다 */
+  scale?: 'carbon';
   unit: string;
   basis: string;
   fractionDigits: number;
@@ -154,6 +201,7 @@ export const IMPACT_DEFS: Record<ImpactId, ImpactDef> = {
   co2: {
     label: '탄소 저감량',
     perKwh: CO2_PER_KWH,
+    scale: 'carbon',
     unit: 'kg CO₂',
     basis: `전기 1kWh 를 화석연료로 만들 때 나오는 ${CO2_PER_KWH}kg 기준`,
     fractionDigits: 0,
@@ -190,6 +238,22 @@ export const IMPACT_DEFS: Record<ImpactId, ImpactDef> = {
 export interface ImpactCopy {
   label?: string;
   line?: string;
+}
+
+/**
+ * 환산 카드 한 장에 실제로 그릴 숫자와 단위.
+ * 탄소는 도 전체를 합치면 t 이 되므로 「kg CO₂」 의 앞머리만 갈아 끼운다.
+ */
+export function impactFigure(def: ImpactDef, dayKwh: number): SiScale {
+  const raw = dayKwh * def.perKwh;
+
+  if (def.scale === 'carbon') {
+    const scaled = scaleCarbon(raw);
+
+    return { ...scaled, unit: `${scaled.unit} CO₂` };
+  }
+
+  return { amount: raw, unit: def.unit, fractionDigits: def.fractionDigits };
 }
 
 // ── 조각 타입 ──────────────────────────────────────────────
@@ -366,7 +430,7 @@ const HIGH: HighContent = {
   headline: {
     mainLabel: '실시간 출력',
     mainNote: (stats) =>
-      `설비용량 ${formatNumber(stats.capacityKw)}kW 로 낼 수 있는 최대치 가운데 지금 내고 있는 출력이다`,
+      `설비용량 ${capacityText(stats)} 로 낼 수 있는 최대치 가운데 지금 내고 있는 출력이다`,
     statIds: ['today', 'insolation', 'co2', 'irradiance', 'capacity'],
     // 기본 문구가 이미 이 눈높이에 맞춰져 있어 덮어쓸 것이 없다.
   },
@@ -388,7 +452,7 @@ const HIGH: HighContent = {
   },
   day: {
     head: '금일 시간대별 발전량',
-    note: (stats) => `하루 합계 ${formatNumber(stats.dayKwh)}kWh. 색이 칠해진 면적이 발전량이다`,
+    note: (stats) => `하루 합계 ${energyText(stats.dayKwh)}. 색이 칠해진 면적이 발전량이다`,
     showIrradiance: true,
     notes: [
       {
@@ -407,7 +471,7 @@ const HIGH: HighContent = {
     head: '환산해 본 의미',
     // 대상 이름의 받침에 따라 조사가 달라지지 않도록 "에서" 로 받는다
     note: (scopeLabel, stats) =>
-      `${scopeLabel}에서 오늘 만든 ${formatNumber(stats.dayKwh)}kWh 가 어느 정도인지 아는 것으로 바꿔 보면 이렇다`,
+      `${scopeLabel}에서 오늘 만든 ${energyText(stats.dayKwh)} 가 어느 정도인지 아는 것으로 바꿔 보면 이렇다`,
     caption: '발전시간이 길었던 날일수록 이 값들도 함께 커진다',
     // 가운데 열을 AI 판단에 내주면서 이 칸이 좁아졌다 — 넉 장은 눌려 읽히지 않아 석 장으로 줄인다.
     itemIds: ['co2', 'tree', 'led'],
@@ -498,6 +562,7 @@ const HIGH: HighContent = {
     '직렬로 이은 모듈 하나에만 그늘이 져도 그 줄 전체의 출력이 함께 떨어진다.',
     '지붕에 설치하면 따로 땅이 들지 않고, 여름에는 지붕에 그늘을 만들어 건물 온도도 낮춰 준다.',
     'kW 는 지금 이 순간의 힘, kWh 는 그 힘으로 일정 시간 동안 만든 전기의 양이다. 속도와 거리의 관계와 같다.',
+    '1,000kW 는 1MW, 1,000MW 는 1GW 다. 여러 학교를 합쳐 보면 단위가 이렇게 올라간다.',
   ],
 };
 

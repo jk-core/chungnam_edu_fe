@@ -1,6 +1,7 @@
 import { SUNRISE_HOUR, SUNSET_HOUR } from '@/mocks/generation';
 import { FULL_SUN_WM2 } from '@/mocks/solarEdu';
-import { formatNumber } from '@/utils/format';
+import { formatCapacity, formatNumber, scaleSi } from '@/utils/format';
+import { ROOT_LABEL } from '@/mocks/tree';
 import type { MiddleContent } from '@/mocks/eduContent';
 import type { EduStats } from '@/mocks/solarEdu';
 import { DayCurve } from '../shared/DayCurve';
@@ -37,6 +38,11 @@ interface Duel {
   variable: string;
   left: { label: string; value: number };
   right: { label: string; value: number };
+  /**
+   * 자릿수가 커지면 단위를 올려 보일 값인지.
+   * 두 기둥은 반드시 **같은 자**를 써야 하므로, 큰 쪽에서 단위를 정해 양쪽에 함께 적용한다.
+   */
+  scale?: 'W' | 'Wh';
   unit: string;
   digits: number;
   tone: 'solar' | 'brand' | 'ok';
@@ -53,6 +59,16 @@ interface Duel {
  * 짝마다 "무엇을 달리했나" 와 "무엇이 달라서 이만큼 갈렸나" 를 못 박는 것이 요점이다.
  */
 export function MiddleCompare({ scopeLabel, stats, content }: MiddleCompareProps) {
+  // 도 전체를 합치면 kW 로는 자릿수가 커져 값이 칸을 넘는다
+  const capacity = formatCapacity(stats.capacityKw);
+  /*
+    왼쪽 기둥의 이름표.
+
+    기둥 칸이 96px 라 학교 이름은 거의 다 「(가칭)아산…」 처럼 잘려, 정작 어느 쪽인지 읽히지 않는다.
+    이름은 화면 맨 위에 이미 서 있으므로 여기서는 어느 쪽인지만 가리킨다. 도 전체일 때만 그대로
+    두어, 학교 하나를 볼 때와 도 전체를 볼 때가 헷갈리지 않게 한다.
+  */
+  const hereLabel = scopeLabel === ROOT_LABEL ? scopeLabel : '우리 학교';
   const duels: Duel[] = [
     {
       id: 'day',
@@ -61,6 +77,7 @@ export function MiddleCompare({ scopeLabel, stats, content }: MiddleCompareProps
       because: '설비는 어제와 똑같다. 달라진 것은 날씨뿐이니, 이 차이는 햇빛의 차이다.',
       left: { label: '오늘', value: stats.dayKwh },
       right: { label: '어제', value: stats.dayKwh * YESTERDAY_RATIO },
+      scale: 'Wh',
       unit: 'kWh',
       digits: 0,
       tone: 'solar',
@@ -72,6 +89,7 @@ export function MiddleCompare({ scopeLabel, stats, content }: MiddleCompareProps
       because: '구름이 해를 가리면 패널에 닿는 햇빛이 줄어든다.',
       left: { label: '맑은 날', value: stats.dayKwh },
       right: { label: '흐린 날', value: stats.dayKwh * CLOUDY_RATIO },
+      scale: 'Wh',
       unit: 'kWh',
       digits: 0,
       tone: 'brand',
@@ -81,7 +99,7 @@ export function MiddleCompare({ scopeLabel, stats, content }: MiddleCompareProps
       question: '다른 학교와 비교하면 어떨까?',
       variable: '용량 차이를 지움',
       because: '설비 크기가 달라도 견주도록 1kW 당 발전시간으로 바꿨다.',
-      left: { label: scopeLabel, value: stats.equivalentHours },
+      left: { label: hereLabel, value: stats.equivalentHours },
       right: { label: '관내 평균', value: stats.equivalentHours * PEER_RATIO },
       unit: '시간',
       digits: 1,
@@ -134,7 +152,7 @@ export function MiddleCompare({ scopeLabel, stats, content }: MiddleCompareProps
           </header>
 
           <dl className={styles.facts__list}>
-            <Fact label="설비용량" value={`${formatNumber(stats.capacityKw)}kW`} />
+            <Fact label="설비용량" value={`${capacity.value}${capacity.unit}`} />
             <Fact label="일사강도" value={`${Math.round((stats.irradianceNow / FULL_SUN_WM2) * 100)}점`} />
             <Fact label="일조 시간" value={`${formatNumber(SUNSET_HOUR - SUNRISE_HOUR, 1)}시간`} />
             <Fact label="발전시간" value={`${formatNumber(stats.equivalentHours, 1)}시간`} />
@@ -155,6 +173,14 @@ export function MiddleCompare({ scopeLabel, stats, content }: MiddleCompareProps
 function DuelCard({ duel }: { duel: Duel }) {
   const max = Math.max(duel.left.value, duel.right.value, 1);
   const gap = duel.right.value > 0 ? ((duel.left.value - duel.right.value) / duel.right.value) * 100 : 0;
+  /*
+    적을 단위와 나눌 배수. 큰 쪽에서 한 번만 정해 두 기둥에 똑같이 적용한다 —
+    쪽마다 따로 올리면 5MWh 옆에 900kWh 가 서서, 견주라고 세운 두 기둥을 눈으로 견줄 수 없다.
+  */
+  const scaled = duel.scale ? scaleSi(max, duel.scale) : null;
+  const divisor = scaled ? max / scaled.amount : 1;
+  const unit = scaled ? scaled.unit : duel.unit;
+  const digits = scaled ? scaled.fractionDigits : duel.digits;
 
   return (
     <section className={styles.duel} data-tone={duel.tone}>
@@ -167,8 +193,8 @@ function DuelCard({ duel }: { duel: Duel }) {
         {[duel.left, duel.right].map((side, index) => (
           <div key={side.label} className={styles.col} data-side={index === 0 ? 'main' : 'other'}>
             <p className={styles.col__value}>
-              {formatNumber(side.value, duel.digits)}
-              <em>{duel.unit}</em>
+              {formatNumber(side.value / divisor, digits)}
+              <em>{unit}</em>
             </p>
 
             <div className={styles.col__track}>

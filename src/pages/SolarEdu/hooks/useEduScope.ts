@@ -1,12 +1,19 @@
 import { useMemo } from 'react';
 import { useParams, useSearchParams } from 'react-router-dom';
 import { buildEduStats } from '@/mocks/solarEdu';
-import { formatNumber } from '@/utils/format';
+import { formatCapacity, formatNumber } from '@/utils/format';
 import { getDayWeather } from '@/mocks/weather';
 import { getEduContent, resolveEduLevel } from '@/mocks/eduContent';
 import { getNode } from '@/mocks/tree';
 import { getSchoolById, SCHOOLS } from '@/mocks/schools';
 import { TODAY } from '@/mocks/today';
+
+/** 설비용량을 머리줄에 적을 때 — 자릿수가 커지면 MW 로 올린다 */
+function capacityText(kw: number) {
+  const { value, unit } = formatCapacity(kw);
+
+  return `${value}${unit}`;
+}
 
 /**
  * 무엇을, 누구 눈높이로 보여 줄지 (SFR-005-04).
@@ -33,7 +40,7 @@ export function useEduScope(nowHour: number) {
     weather,
     content,
     scopeInfo: plant
-      ? `설비용량 ${formatNumber(plant.capacityKw, 1)}kW · 인버터 ${plant.inverterCount}대 · ${plant.installedAt} 설치`
+      ? `설비용량 ${capacityText(plant.capacityKw)} · 인버터 ${plant.inverterCount}대 · ${plant.installedAt} 설치`
       : `관내 ${formatNumber(SCHOOLS.length)}개 학교를 합쳐서 봅니다`,
   };
 }

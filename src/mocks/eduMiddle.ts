@@ -1,5 +1,6 @@
 import { formatNumber } from '@/utils/format';
 import { kwhToHouseholdDays } from '@/utils/eco';
+import { capacityText, energyText } from './eduContent';
 import type { EduNote, ImpactCopy, ImpactId, MiddleContent } from './eduContent';
 import type { EduStats } from './solarEdu';
 
@@ -69,7 +70,7 @@ export const MIDDLE_CONTENT: MiddleContent = {
   headline: {
     mainLabel: '실시간 출력',
     mainNote: (stats) =>
-      `한 번에 만들 수 있는 최대치 ${formatNumber(stats.capacityKw)}kW 가운데 지금 만들고 있는 양이다`,
+      `한 번에 만들 수 있는 최대치 ${capacityText(stats)} 가운데 지금 만들고 있는 양이다`,
     statIds: ['today', 'insolation', 'co2', 'irradiance', 'capacity'],
     copy: {
       today: {
@@ -129,7 +130,7 @@ export const MIDDLE_CONTENT: MiddleContent = {
   },
   production: {
     head: '금일 시간대별 발전량',
-    note: (stats) => `하루 합계 ${formatNumber(stats.dayKwh)}kWh. 색이 칠해진 면적이 오늘 만든 전기다`,
+    note: (stats) => `하루 합계 ${energyText(stats.dayKwh)}. 색이 칠해진 면적이 오늘 만든 전기다`,
     notes: [
       {
         id: 'shape',
@@ -169,5 +170,6 @@ export const MIDDLE_CONTENT: MiddleContent = {
     '한 줄로 이은 패널 가운데 하나만 그늘이 져도 그 줄 전체가 함께 힘을 잃는다.',
     '흐린 날에도 전기는 만들어진다. 다만 맑은 날보다 훨씬 적다.',
     'kW 는 지금 이 순간의 힘, kWh 는 그 힘으로 한동안 만든 전기의 양이다. 속도와 거리의 관계와 같다.',
+    '1,000kW 는 1MW, 1,000MW 는 1GW 다. 여러 학교를 합쳐 보면 단위가 이렇게 올라간다.',
   ],
 };

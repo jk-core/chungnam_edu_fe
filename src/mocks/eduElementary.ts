@@ -1,5 +1,5 @@
 import { kwhToHouseholdDays, kwhToTrees } from '@/utils/eco';
-import { formatNumber } from '@/utils/format';
+import { formatNumber, scaleSi } from '@/utils/format';
 import { FULL_SUN_WM2 } from './solarEdu';
 import type { ElementaryContent } from './eduContent';
 import type { EduStats } from './solarEdu';
@@ -19,10 +19,15 @@ import type { EduStats } from './solarEdu';
 
 // ── 1장. 전기가 만들어지는 순서 ────────────────────────────
 
-/** 걸음 한 칸 곁에 붙는 수치 하나 */
+/**
+ * 걸음 한 칸 곁에 붙는 수치 하나.
+ *
+ * 값의 이름은 `SiScale` 과 같은 `amount` 다 — kW·kWh 처럼 자릿수가 커지는 값은
+ * `scaleSi` 가 돌려준 것을 그대로 펼쳐 넣으므로, 두 이름을 따로 두면 옮겨 담는 일만 생긴다.
+ */
 export interface SceneReadout {
   label: string;
-  value: number;
+  amount: number;
   unit: string;
   fractionDigits: number;
 }
@@ -54,7 +59,7 @@ const SCENES: EduScene[] = [
     at: { x: 300, y: 24, tail: 'left' },
     readout: (stats) => ({
       label: '일사강도',
-      value: (stats.irradianceNow / FULL_SUN_WM2) * 100,
+      amount: (stats.irradianceNow / FULL_SUN_WM2) * 100,
       unit: '점',
       fractionDigits: 0,
     }),
@@ -64,24 +69,15 @@ const SCENES: EduScene[] = [
     title: '패널이 햇빛을 받아요',
     line: '햇빛이 패널에 닿으면 패널 안에서 전기가 한 방향으로 흐르기 시작해요.',
     at: { x: 280, y: 70, tail: 'bottom', tailAt: 30 },
-    readout: (stats) => ({
-      label: '실시간 출력',
-      value: stats.outputKw,
-      unit: 'kW',
-      fractionDigits: 1,
-    }),
+    // 도 전체를 합치면 kW 로는 자릿수가 커져 말풍선을 넘는다 — 단위를 올려 적는다
+    readout: (stats) => ({ label: '실시간 출력', ...scaleSi(stats.outputKw, 'W') }),
   },
   {
     id: 'inverter',
     title: '쓸 수 있게 바꿔요',
     line: '패널이 만든 전기는 교실에서 그대로 쓸 수 없어요. 인버터가 쓸 수 있는 형태로 바꿔 줘요.',
     at: { x: 346, y: 46, tail: 'bottom', tailAt: 150 },
-    readout: (stats) => ({
-      label: '금일 발전량',
-      value: stats.todayKwh,
-      unit: 'kWh',
-      fractionDigits: 0,
-    }),
+    readout: (stats) => ({ label: '금일 발전량', ...scaleSi(stats.todayKwh, 'Wh') }),
   },
   {
     id: 'school',
@@ -90,7 +86,7 @@ const SCENES: EduScene[] = [
     at: { x: 584, y: 10, tail: 'bottom', tailAt: 150 },
     readout: (stats) => ({
       label: '4인 가족으로 치면',
-      value: kwhToHouseholdDays(stats.todayKwh),
+      amount: kwhToHouseholdDays(stats.todayKwh),
       unit: '집이 하루 쓸 양',
       fractionDigits: 0,
     }),
@@ -134,7 +130,7 @@ const IMPACT: ElementaryImpact = {
       at: { x: 52, y: 6, tail: 'bottom', tailAt: 125 },
       readout: (stats) => ({
         label: '소나무를 심은 효과',
-        value: kwhToTrees(stats.dayKwh),
+        amount: kwhToTrees(stats.dayKwh),
         unit: '그루',
         fractionDigits: 0,
       }),
@@ -147,7 +143,7 @@ const IMPACT: ElementaryImpact = {
       readout: (stats) => ({
         label: '에어컨 가동 시간',
         // 에어컨 하나로 견준다. 여러 물건을 늘어놓으면 숫자가 셋이 되어 크기를 가늠하기 어렵다.
-        value: (stats.dayKwh * 1000) / AIRCON_WATT,
+        amount: (stats.dayKwh * 1000) / AIRCON_WATT,
         unit: '시간',
         fractionDigits: 0,
       }),
@@ -159,7 +155,7 @@ const IMPACT: ElementaryImpact = {
       at: { x: 611, y: 24, tail: 'bottom', tailAt: 125 },
       readout: (stats) => ({
         label: '4인 가족이 쓸 수 있는 날',
-        value: kwhToHouseholdDays(stats.dayKwh),
+        amount: kwhToHouseholdDays(stats.dayKwh),
         unit: '일',
         fractionDigits: 0,
       }),

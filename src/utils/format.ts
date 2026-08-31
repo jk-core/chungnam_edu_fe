@@ -60,11 +60,21 @@ export function formatCapacity(kw: number): ScaledValue {
   return formatSi(kw, 'W');
 }
 
-/** CO₂ 저감량(kg)을 t 단위로 바꾼다. */
-export function formatCarbon(kg: number): { value: string; unit: string } {
-  if (kg >= 1_000) return { value: formatNumber(kg / 1_000, 1), unit: 't' };
+/**
+ * CO₂ 저감량(kg)을 자릿수에 맞춰 t 으로 끌어올린다.
+ * `scaleSi` 와 같은 형태로 돌려주어, 숫자를 굴려 올리는 곳이 같은 방식으로 쓸 수 있다.
+ */
+export function scaleCarbon(kg: number): SiScale {
+  if (Math.abs(kg) >= 1_000) return { amount: kg / 1_000, unit: 't', fractionDigits: 1 };
 
-  return { value: formatNumber(kg, 0), unit: 'kg' };
+  return { amount: kg, unit: 'kg', fractionDigits: 0 };
+}
+
+/** CO₂ 저감량(kg)을 t 단위로 바꾼다. */
+export function formatCarbon(kg: number): ScaledValue {
+  const scaled = scaleCarbon(kg);
+
+  return { value: formatNumber(scaled.amount, scaled.fractionDigits), unit: scaled.unit };
 }
 
 /** 금액(원)을 만원·억원으로 줄인다. 달력 칸처럼 좁은 곳에 쓴다. */

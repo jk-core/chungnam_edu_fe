@@ -1,5 +1,5 @@
 import { cn } from '@/utils/cn';
-import { formatNumber } from '@/utils/format';
+import { formatCapacity, formatNumber } from '@/utils/format';
 import type { EduStats } from '@/mocks/solarEdu';
 import styles from './SolarEdu.module.scss';
 import type { CSSProperties } from 'react';
@@ -29,6 +29,8 @@ interface JourneyOverviewArtProps {
  * 케이블 위에는 지금 이 순간의 값을 얹었다 — 그림이 도식이 아니라 계측 화면이 되도록.
  */
 export function JourneyOverviewArt({ stats, focus }: JourneyOverviewArtProps) {
+  // 도 전체를 합치면 kW 로는 배지를 넘는다 — 자릿수에 맞춰 올린다
+  const output = formatCapacity(stats.outputKw);
   // 짚고 있는 단계가 아니면 뒤로 물러난다. 지우지 않고 흐리게만 두어 전체가 이어져 있음은 남긴다.
   const tone = (stage: JourneyStage) =>
     cn(styles.overviewStage, { [styles['overviewStage--dim']]: focus !== undefined && focus !== stage });
@@ -137,7 +139,7 @@ export function JourneyOverviewArt({ stats, focus }: JourneyOverviewArtProps) {
         <text x="244" y="134" fill="var(--ok-text)" fontSize="10" fontFamily="Space Grotesk, sans-serif">
           AC
         </text>
-        <Badge x={302} y={116} tone="ok" title="교류 60Hz · 실시간 출력" value={`${formatNumber(stats.outputKw, 1)} kW`} />
+        <Badge x={302} y={116} tone="ok" title="교류 60Hz · 실시간 출력" value={`${output.value} ${output.unit}`} />
       </g>
 
       {/*

@@ -1,8 +1,20 @@
-import { formatNumber, formatPercent } from '@/utils/format';
+import { formatEnergy, formatNumber, formatPercent } from '@/utils/format';
+
 import { withParticle } from '@/utils/korean';
 import type { AnalysisStage } from '@/interface/diagnosis';
 import { FULL_SUN_WM2 } from './solarEdu';
 import type { EduStats } from './solarEdu';
+
+/*
+  발전량을 문장에 넣을 때의 표기.
+  도 전체를 합치면 kWh 로는 다섯 자리를 넘겨 칸을 넘으므로 자릿수에 맞춰 M·G 로 올린다.
+  적산 일사량(kWh/m²)은 넓이당 값이라 올리지 않는다 — 자릿수가 커지지 않는다.
+*/
+const energyText = (kwh: number) => {
+  const { value, unit } = formatEnergy(kwh);
+
+  return `${value}${unit}`;
+};
 
 /*
   교육용 AI 진단 (SFR-005-02/07/10).
@@ -150,7 +162,7 @@ export function buildEduLogs(stats: EduStats): EduScanLog[] {
     { id: 'gap', text: '결측값 0건 · 범위를 벗어난 값 0건' },
     { id: 'sun', text: `일조 시간 ${daylight}시간 · 적산 일사량 ${formatNumber(stats.insolation, 2)}kWh/m²` },
     { id: 'corr', text: `햇빛–발전량 상관 ${formatNumber(correlation, 2)} · 두 값이 같은 모양으로 움직였다` },
-    { id: 'model', text: `기대 발전량 모델 적용 · ${formatNumber(stats.expectedKwh)}kWh` },
+    { id: 'model', text: `기대 발전량 모델 적용 · ${energyText(stats.expectedKwh)}` },
   ];
 }
 
@@ -252,8 +264,8 @@ export function buildEduInsight(stats: EduStats, scopeLabel: string): EduInsight
   const cloudHour = findCloudHour(stats.irradianceSeries);
 
   const lines = [
-    `${scopeLabel}의 금일 발전량은 ${formatNumber(stats.dayKwh)}kWh 이다. `
-    + `동일 일사 조건의 기대 발전량 ${formatNumber(stats.expectedKwh)}kWh 대비 ${formatPercent(achieved)} 수준이다.`,
+    `${scopeLabel}의 금일 발전량은 ${energyText(stats.dayKwh)} 이다. `
+    + `동일 일사 조건의 기대 발전량 ${energyText(stats.expectedKwh)} 대비 ${formatPercent(achieved)} 수준이다.`,
     `일간 적산 일사량은 ${formatNumber(stats.insolation, 2)}kWh/m², 현재 일사강도는 ${score}점이다. `
     + '기대 발전량이 날씨를 이미 반영한 값이므로, 흐린 날이라고 해서 이 비율이 낮아지지는 않는다.',
     `설비용량으로 나누면 ${formatNumber(stats.equivalentHours, 1)}시간이고, `
@@ -281,7 +293,7 @@ export function buildEduInsight(stats: EduStats, scopeLabel: string): EduInsight
     lines,
     detail: {
       scan: `발전량 ${stats.hourly.length}칸 · 일사량 ${stats.irradianceSeries.length}칸 수신`,
-      classify: `기대 ${formatNumber(stats.expectedKwh)}kWh 대비 ${formatPercent(achieved)}`,
+      classify: `기대 ${energyText(stats.expectedKwh)} 대비 ${formatPercent(achieved)}`,
       reason: `소견 ${lines.length}줄 작성 중`,
       done: BAND_LABEL[band],
     },

@@ -1,5 +1,5 @@
 import { CountUp } from '@/components/common/CountUp';
-import { impactOf } from '@/mocks/eduContent';
+import { impactFigure, impactOf } from '@/mocks/eduContent';
 import type { ImpactId } from '@/mocks/eduContent';
 import type { EduStats } from '@/mocks/solarEdu';
 import type { MiddleBenefitContent } from '@/mocks/eduMiddle';
@@ -47,6 +47,7 @@ export function MiddleBenefitCard({ stats, content }: MiddleBenefitCardProps) {
       <ul className={styles.benefit}>
         {content.itemIds.map((id) => {
           const item = impactOf(id, content.copy?.[id]);
+          const figure = impactFigure(item, stats.dayKwh);
 
           return (
             <li key={id} className={styles.impact}>
@@ -58,11 +59,11 @@ export function MiddleBenefitCard({ stats, content }: MiddleBenefitCardProps) {
                 <p className={styles.impact__label}>{item.label}</p>
                 <p className={styles.impact__value}>
                   <CountUp
-                    value={stats.dayKwh * item.perKwh}
-                    fractionDigits={item.fractionDigits}
+                    value={figure.amount}
+                    fractionDigits={figure.fractionDigits}
                     startOnView={false}
                   />
-                  <span>{item.unit}</span>
+                  <span>{figure.unit}</span>
                 </p>
                 <p className={styles.impact__line}>{item.line}</p>
               </div>

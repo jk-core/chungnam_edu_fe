@@ -2,7 +2,7 @@ import { useMemo } from 'react';
 import { buildEduInsight } from '@/mocks/eduDiagnosis';
 import { SUNRISE_HOUR, SUNSET_HOUR } from '@/mocks/generation';
 import { FULL_SUN_WM2 } from '@/mocks/solarEdu';
-import { clockOf, formatNumber, formatPercent } from '@/utils/format';
+import { clockOf, formatNumber, formatPercent, formatSi } from '@/utils/format';
 import type { AnalysisStage } from '@/interface/diagnosis';
 import type { HighContent, PlantSpot } from '@/mocks/eduContent';
 import type { EduStats } from '@/mocks/solarEdu';
@@ -96,6 +96,18 @@ const FACTORS: Factor[] = [
 ];
 
 /**
+ * 값과 단위를 한 덩이로 적는다.
+ *
+ * 도 전체를 합치면 kW·kWh 로는 자릿수가 커져 칸을 넘으므로 자릿수에 맞춰 M·G 로 올린다.
+ * 자리마다의 계측값은 숫자와 단위 사이를 띄우고, 문장 안에 들어갈 때는 붙인다.
+ */
+function siText(kilo: number, suffix: 'W' | 'Wh', tight = false) {
+  const { value, unit } = formatSi(kilo, suffix);
+
+  return tight ? `${value}${unit}` : `${value} ${unit}`;
+}
+
+/**
  * 문장 하나만 떼어 낸다.
  *
  * 자리마다 적힌 물리 설명은 여러 문장인데 이 시안은 한 줄만 세울 자리다. 같은 말을 짧게 다시
@@ -148,9 +160,9 @@ export function HighTimeline({ scopeLabel, stats, content }: HighTimelineProps) 
    */
   const readingOf: Record<PlantSpot, string> = {
     cell: `${formatNumber(stats.irradianceNow)} W/m²`,
-    module: `${formatNumber(sunKw, 1)} kW`,
-    inverter: `${formatNumber(stats.outputKw, 1)} kW`,
-    grid: `${formatNumber(stats.todayKwh)} kWh`,
+    module: siText(sunKw, 'W'),
+    inverter: siText(stats.outputKw, 'W'),
+    grid: siText(stats.todayKwh, 'Wh'),
   };
 
   const xOf = (hour: number) => (hour / 23) * VIEW.width;
@@ -330,7 +342,7 @@ function buildMoments(stats: EduStats): Moment[] {
       hour: peakHour,
       kind: 'peak',
       label: '최대 출력',
-      saw: `태양 고도가 가장 높은 시각. ${formatNumber(maxOutput)}kWh 로 하루 중 최대였다.`,
+      saw: `태양 고도가 가장 높은 시각. ${siText(maxOutput, 'Wh', true)} 로 하루 중 최대였다.`,
     },
   ];
 
@@ -347,14 +359,14 @@ function buildMoments(stats: EduStats): Moment[] {
     hour: stats.nowHour,
     kind: 'now',
     label: '지금',
-    saw: `일사강도 ${formatNumber(stats.irradianceNow)}W/m², 출력 ${formatNumber(stats.outputKw, 1)}kW (STC 대비 ${formatPercent(stats.irradianceNow / FULL_SUN_WM2)}).`,
+    saw: `일사강도 ${formatNumber(stats.irradianceNow)}W/m², 출력 ${siText(stats.outputKw, 'W', true)} (맑은 날 정오 대비 ${formatPercent(stats.irradianceNow / FULL_SUN_WM2)}).`,
   });
 
   moments.push({
     hour: SUNSET_HOUR,
     kind: 'sunset',
     label: '발전 종료',
-    saw: `일몰 ${clockOf(SUNSET_HOUR)} 에 발전이 멎는다. 하루 합계 ${formatNumber(stats.dayKwh)}kWh 예상.`,
+    saw: `일몰 ${clockOf(SUNSET_HOUR)} 에 발전이 멎는다. 하루 합계 ${siText(stats.dayKwh, 'Wh', true)} 예상.`,
   });
 
   return moments.sort((a, b) => a.hour - b.hour);

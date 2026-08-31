@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { EChart } from '@/components/common/EChart';
 import { LEGEND_GRID_TOP, topLegend } from '@/utils/chart';
-import { formatNumber } from '@/utils/format';
+import { energyText } from '@/mocks/eduContent';
 import { useChartPalette } from '@/hooks/useChartPalette';
 import type { EduStats } from '@/mocks/solarEdu';
 import styles from './DayCurve.module.scss';
@@ -136,7 +136,7 @@ export function DayCurve({ stats, showIrradiance = false, showNow = true }: DayC
         className={styles.canvas}
         option={option}
         height={height}
-        summary={`시간대별 발전량. 금일 합계 ${formatNumber(stats.dayKwh)}kWh.`}
+        summary={`시간대별 발전량. 금일 합계 ${energyText(stats.dayKwh)}.`}
       />
     </div>
   );

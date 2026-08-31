@@ -1,7 +1,7 @@
 import { SUNRISE_HOUR, SUNSET_HOUR } from '@/mocks/generation';
 import { AIRCON_WATT } from '@/mocks/eduElementary';
 import { kwhToHouseholdDays, kwhToTrees } from '@/utils/eco';
-import { formatNumber } from '@/utils/format';
+import { formatCapacity, formatEnergy, formatNumber } from '@/utils/format';
 import type { ElementaryContent } from '@/mocks/eduContent';
 import type { EduStats } from '@/mocks/solarEdu';
 import { CastShadow, SceneDefs } from '../../scene-art/SceneDefs';
@@ -135,6 +135,9 @@ export function ElementaryClock({ stats, content, nowHour }: ElementaryClockProp
   // 하루의 어디쯤인지 — 해의 높이 설명을 고르는 자다.
   const progress = (nowHour - SUNRISE_HOUR) / (SUNSET_HOUR - SUNRISE_HOUR);
   const lesson = HEIGHT_LESSON.find((item) => progress < item.until) ?? HEIGHT_LESSON[HEIGHT_LESSON.length - 1];
+  // 도 전체를 합치면 kW·kWh 로는 시계 한가운데와 카드를 넘는다 — 자릿수에 맞춰 올린다
+  const today = formatEnergy(stats.todayKwh);
+  const output = formatCapacity(stats.outputKw);
 
   return (
     <div className={styles.board}>
@@ -241,10 +244,10 @@ export function ElementaryClock({ stats, content, nowHour }: ElementaryClockProp
             {isDay ? '금일 발전량' : '해가 지고 없어요'}
           </text>
           <text className={styles.core__value} x={CENTER} y={CENTER + 20} textAnchor="middle">
-            {formatNumber(stats.todayKwh, 0)}
+            {today.value}
           </text>
           <text className={styles.core__unit} x={CENTER} y={CENTER + 46} textAnchor="middle">
-            kWh
+            {today.unit}
           </text>
 
           {/*
@@ -304,8 +307,8 @@ export function ElementaryClock({ stats, content, nowHour }: ElementaryClockProp
       <div className={styles.side}>
         <Card
           label="우리 학교가 전기를 이만큼 만드는 중이에요"
-          value={formatNumber(stats.outputKw, 1)}
-          unit="kW"
+          value={output.value}
+          unit={output.unit}
           note={`천장 에어컨 ${formatNumber((stats.outputKw * 1000) / AIRCON_WATT)}대를 켤 수 있어요`}
           tone="solar"
           art={<SunArt />}

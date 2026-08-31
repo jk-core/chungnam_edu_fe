@@ -1,12 +1,19 @@
 import { AIRCON_WATT } from '@/mocks/eduElementary';
 import { kwhToHouseholdDays, kwhToTrees } from '@/utils/eco';
-import { formatNumber } from '@/utils/format';
+import { formatNumber, formatSi } from '@/utils/format';
 import type { ElementaryContent } from '@/mocks/eduContent';
 import type { EduStats } from '@/mocks/solarEdu';
 import { BenefitScene } from '../../scene-art/BenefitScene';
 import { ImpactArt } from '../../scene-art/ImpactArt';
 import { JourneyScene } from '../../scene-art/JourneyScene';
 import styles from './ElementaryPoster.module.scss';
+
+/** 값과 단위를 한 덩이로. 도 전체를 합치면 kW·kWh 로는 칸을 넘어 M·G 로 올린다. */
+function siText(kilo: number, suffix: 'W' | 'Wh') {
+  const { value, unit } = formatSi(kilo, suffix);
+
+  return `${value}${unit}`;
+}
 
 /** 걸음을 이 값으로 못 박아 그림의 네 마디를 처음부터 모두 켠다 */
 const ALL_STEPS = 3;
@@ -51,21 +58,21 @@ export function ElementaryPoster({ stats, content, nowHour }: ElementaryPosterPr
     {
       id: 'panel',
       label: '태양전지',
-      value: `${formatNumber(stats.capacityKw, 1)}kW`,
+      value: siText(stats.capacityKw, 'W'),
       note: '설비용량',
       why: '햇빛을 받으면 패널 안에서 전기가 한 방향으로 흐르기 시작해요',
     },
     {
       id: 'inverter',
       label: '인버터',
-      value: `${formatNumber(stats.outputKw, 1)}kW`,
+      value: siText(stats.outputKw, 'W'),
       note: '실시간 출력',
       why: '패널이 만든 전기를 교실 콘센트에서 쓸 수 있게 바꿔 줘요',
     },
     {
       id: 'school',
       label: '교실',
-      value: `${formatNumber(stats.todayKwh, 0)}kWh`,
+      value: siText(stats.todayKwh, 'Wh'),
       note: '금일 발전량',
       why: '우리 학교가 그대로 써서 불을 켜고 선풍기를 돌려요',
     },

@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { EChart } from '@/components/common/EChart';
-import { formatNumber } from '@/utils/format';
+import { energyText } from '@/mocks/eduContent';
 import { useChartPalette } from '@/hooks/useChartPalette';
 import type { EduStats } from '@/mocks/solarEdu';
 import type { MiddleProductionContent } from '@/mocks/eduMiddle';
@@ -119,7 +119,7 @@ export function MiddleProductionCard({ stats, content }: MiddleProductionCardPro
             className={styles.production__canvas}
             option={option}
             height={chartHeight}
-            summary={`시간대별 발전량. 금일 합계 ${formatNumber(stats.dayKwh)}kWh.`}
+            summary={`시간대별 발전량. 금일 합계 ${energyText(stats.dayKwh)}.`}
           />
         </div>
 

@@ -1,8 +1,8 @@
 import { useEffect, useRef, useState } from 'react';
 import { EChart } from '@/components/common/EChart';
 import { LEGEND_GRID_TOP, topLegend } from '@/utils/chart';
-import { formatNumber } from '@/utils/format';
 import { useChartPalette } from '@/hooks/useChartPalette';
+import { energyText } from '@/mocks/eduContent';
 import type { DayContent } from '@/mocks/eduContent';
 import type { EduStats } from '@/mocks/solarEdu';
 import styles from './SolarEdu.module.scss';
@@ -142,7 +142,7 @@ export function DayCurvePanel({ stats, content }: DayCurvePanelProps) {
             className={styles.split__canvas}
             option={option}
             height={chartHeight}
-            summary={`시간대별 발전량과 일사강도. 금일 합계 ${formatNumber(stats.dayKwh)}kWh.`}
+            summary={`시간대별 발전량과 일사강도. 금일 합계 ${energyText(stats.dayKwh)}.`}
           />
         </div>
 

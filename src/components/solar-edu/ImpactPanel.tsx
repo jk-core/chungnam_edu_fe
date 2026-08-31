@@ -1,5 +1,5 @@
 import { CountUp } from '@/components/common/CountUp';
-import { impactOf } from '@/mocks/eduContent';
+import { impactFigure, impactOf } from '@/mocks/eduContent';
 import { growthStage, kwhToTrees } from '@/utils/eco';
 import type { ImpactContent } from '@/mocks/eduContent';
 import type { EduStats } from '@/mocks/solarEdu';
@@ -40,6 +40,7 @@ export function ImpactPanel({ scopeLabel, stats, content }: ImpactPanelProps) {
         <div className={styles.impact__grid}>
           {content.itemIds.map((id) => {
             const item = impactOf(id, content.copy?.[id]);
+            const figure = impactFigure(item, stats.dayKwh);
 
             return (
               <div key={id} className={styles.impactCard}>
@@ -47,11 +48,11 @@ export function ImpactPanel({ scopeLabel, stats, content }: ImpactPanelProps) {
                 <p className={styles.impactCard__label}>{item.label}</p>
                 <p className={styles.impactCard__value}>
                   <CountUp
-                    value={stats.dayKwh * item.perKwh}
-                    fractionDigits={item.fractionDigits}
+                    value={figure.amount}
+                    fractionDigits={figure.fractionDigits}
                     startOnView={false}
                   />
-                  <span className={styles.impactCard__unit}>{item.unit}</span>
+                  <span className={styles.impactCard__unit}>{figure.unit}</span>
                 </p>
                 {content.showBasis ? <p className={styles.impactCard__basis}>{item.basis}</p> : null}
               </div>

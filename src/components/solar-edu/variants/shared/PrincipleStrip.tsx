@@ -1,4 +1,4 @@
-import { formatNumber } from '@/utils/format';
+import { formatNumber, formatSi } from '@/utils/format';
 import type { EduLevel } from '@/interface/edu';
 import type { EduStats } from '@/mocks/solarEdu';
 import { SceneDefs } from '../../scene-art/SceneDefs';
@@ -81,24 +81,10 @@ export function PrincipleStrip({ stats, level, heading }: PrincipleStripProps) {
       unit: 'W/m²',
       tone: 'solar',
     },
-    {
-      id: 'cell' as const,
-      value: formatNumber(sunKw, 1),
-      unit: 'kW',
-      tone: 'solar',
-    },
-    {
-      id: 'inverter' as const,
-      value: formatNumber(stats.outputKw, 1),
-      unit: 'kW',
-      tone: 'brand',
-    },
-    {
-      id: 'school' as const,
-      value: formatNumber(stats.todayKwh, 0),
-      unit: 'kWh',
-      tone: 'ok',
-    },
+    // 도 전체를 합치면 kW·kWh 로는 자릿수가 커져 마디를 넘는다 — 자릿수에 맞춰 M·G 로 올린다
+    { id: 'cell' as const, ...formatSi(sunKw, 'W'), tone: 'solar' },
+    { id: 'inverter' as const, ...formatSi(stats.outputKw, 'W'), tone: 'brand' },
+    { id: 'school' as const, ...formatSi(stats.todayKwh, 'Wh'), tone: 'ok' },
   ];
 
   return (
