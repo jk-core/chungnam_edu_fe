@@ -3,7 +3,6 @@ import { EDU_DECK } from '@/mocks/eduCards';
 import { cn } from '@/utils/cn';
 import { useAutoPager } from '@/hooks/useAutoPager';
 import type { CardScene } from '@/mocks/eduCards';
-import type { EduContent } from '@/mocks/eduContent';
 import type { EduStats } from '@/mocks/solarEdu';
 import { BenefitScene } from '../../scene-art/BenefitScene';
 import { DayCurve } from '../shared/DayCurve';
@@ -20,25 +19,23 @@ const CARD_MS = 9_000;
 
 interface CardDeckProps {
   stats: EduStats;
-  content: EduContent;
   nowHour: number;
 }
 
 /**
- * 시안 C 본문 — 한 장씩 넘겨 읽는 판 (SFR-005-01/02/03/05/07/08).
+ * 시안 C 의 초등 본문 — 한 장씩 넘겨 읽는 판 (SFR-005-01/03/05/07/08).
  *
- * 시안 A·B·D 가 여러 칸을 한 화면에 늘어놓는다면, 이 판은 **한 번에 한 장만** 세운다.
- * 왼쪽에 그림 한 장, 오른쪽에 큰 글씨. 걸어 두고 멀리서 보는 화면에서 읽을 곳이 하나면
- * 눈이 어디부터 볼지 고르지 않아도 된다 — 지나가며 보는 사람도 한 장은 읽고 간다.
+ * 한 번에 한 장만 세운다. 왼쪽에 그림 한 장, 오른쪽에 큰 글씨. 걸어 두고 멀리서 보는 화면에서
+ * 읽을 곳이 하나면 눈이 어디부터 볼지 고르지 않아도 된다 — 지나가며 보는 아이도 한 장은 읽고 간다.
  *
  * 글을 그림 **밖에** 두는 것이 시안 A 와 갈리는 지점이다. A 는 말풍선으로 그림 안에서 가리키고,
  * 여기서는 그림과 글이 좌우로 나뉜다. 그래서 글씨를 그림 크기와 무관하게 키울 수 있다.
  *
- * 세 눈높이가 같은 골격을 쓴다. 갈리는 것은 넘기는 장 수와 그 장에 적힌 말이다 —
- * 학교급이 달라도 화면 읽는 법을 다시 익히지 않아도 된다는 것이 이 시안의 주장이다.
+ * 중·고등은 이렇게 넘기지 않는다 — 그 나이에는 곡선과 환산을 나란히 놓고 견주는 편이 낫다
+ * (`RoomyBoard`).
  */
-export function CardDeck({ stats, content, nowHour }: CardDeckProps) {
-  const deck = EDU_DECK[content.level].cards;
+export function CardDeck({ stats, nowHour }: CardDeckProps) {
+  const deck = EDU_DECK.cards;
   const pager = useAutoPager({ total: deck.length, perPage: 1, intervalMs: CARD_MS });
   const card = deck[Math.min(pager.page, deck.length - 1)];
   const readout = card.readout?.(stats);

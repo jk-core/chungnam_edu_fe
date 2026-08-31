@@ -1,4 +1,4 @@
-import { scaleSi } from '@/utils/format';
+import { formatEnergy, scaleSi } from '@/utils/format';
 import type { EduLevel } from '@/interface/edu';
 import type { ImpactArtId } from '@/components/solar-edu/scene-art/ImpactArt';
 import { ELEMENTARY_CONTENT } from './eduElementary';
@@ -8,13 +8,10 @@ import { MIDDLE_CONTENT } from './eduMiddle';
 import type { BenefitArt, ImpactItemId, SceneReadout } from './eduElementary';
 import type { EduStats } from './solarEdu';
 import type { HeadlineContent, ImpactId } from './eduContent';
+import type { MiddlePrincipleContent } from './eduMiddle';
 
 /*
-  시안 C 대본 — 한 장씩 넘겨 읽는 판.
-
-  시안 A·B·D 가 여러 칸을 한 화면에 늘어놓는다면, 이 판은 **한 번에 한 장만** 세운다.
-  왼쪽에 그림 한 장, 오른쪽에 큰 글씨 한 줄과 설명 한 줄, 그리고 수치 하나. 그 한 벌이
-  스스로 넘어간다. 멀리서 보는 화면에서 읽을 곳이 하나면 눈이 헤매지 않는다.
+  시안 C 대본.
 
   눈높이는 다른 시안보다 한 칸씩 낮다 (2026-08-31 지시).
   초등은 지금과 같고, 중등은 지금보다 한 겹 더 쉬우며, 고등은 지금 중등 수준이다.
@@ -22,6 +19,16 @@ import type { HeadlineContent, ImpactId } from './eduContent';
   그래서 대본을 새로 한 벌 다 쓰지 않는다 — 초등은 초등 대본을, 고등은 중등 대본을 그대로
   읽고, 여기서 새로 적는 것은 가운데 한 칸(중등)뿐이다. 문구를 두 벌로 두면 다음에 말을
   고칠 때 두 곳을 고쳐야 하는데, 실제로 갈려야 하는 자리는 하나다.
+
+  판은 학교급에 따라 둘로 갈린다.
+
+  **초등은 한 장씩 넘겨 읽는다.** 한 번에 한 장만 세운다 — 왼쪽에 그림, 오른쪽에 큰 글씨
+  한 줄과 수치 하나. 읽을 곳이 하나면 눈이 헤매지 않는다.
+
+  **중·고등은 여러 칸을 한 화면에 둔다.** 초등처럼 한 장씩 넘기면 앞뒤를 견줄 수 없고,
+  이 나이에는 곡선과 환산을 나란히 놓고 보는 편이 낫다 (2026-08-31 지시). 시안 A 와 같은
+  구성을 쓰되 **칸을 덜어내고 남은 칸을 키운다** — 여섯 칸을 세 칸으로 줄이고, 읽는 법을
+  둘에서 하나로, 환산을 넉 장에서 석 장으로 줄인 자리에 글씨와 그림이 들어선다.
 */
 
 /** 카드 한 장에 세우는 그림 */
@@ -175,33 +182,78 @@ const MIDDLE_HEADLINE: HeadlineContent = {
   },
 };
 
-// ── 고등 — 지금 중등 판과 같은 눈높이 ──────────────────────
-/*
-  중등 대본을 그대로 읽는다. 네 단계는 계통 그림 위에서 한 자리씩 짚고,
-  발전량은 곡선 한 장, 이점은 환산 그림 한 장씩이다.
-*/
-const HIGH_CARDS: EduCard[] = [
-  ...MIDDLE_CONTENT.principle.stages.map((stage): EduCard => ({
-    id: stage.id,
-    scene: { kind: 'journey', step: stage.step - 1 },
-    title: stage.term,
-    line: stage.body,
-    readout: STAGE_READOUT[stage.id],
-  })),
-  {
-    id: 'curve',
-    scene: { kind: 'curve' },
-    title: MIDDLE_CONTENT.production.head,
-    line: MIDDLE_CONTENT.production.notes[0].body,
-    readout: (stats) => ({ label: '하루 합계', ...scaleSi(stats.dayKwh, 'Wh') }),
-  },
-  impactCard('co2', 'co2', '화석연료를 그만큼 덜 태웠다', '여기서 만든 만큼 석탄과 가스를 덜 태워서, 그만큼 탄소가 덜 나왔다.'),
-  impactCard('tree', 'tree', '소나무로 환산하면', '소나무 한 그루가 1년에 흡수하는 양으로 나눈 값이다.'),
-  impactCard('led', 'lamp', '교실 조명 점등 시간', '교실 조명 하나를 쉬지 않고 켜 둘 수 있는 시간이다.'),
-];
+// ── 중·고등 — 여러 칸을 한 화면에, 다만 넓게 ────────────────
 
-export const EDU_DECK: Record<EduLevel, EduDeck> = {
-  elementary: { headline: ELEMENTARY_CONTENT.headline, cards: ELEMENTARY_CARDS },
-  middle: { headline: MIDDLE_HEADLINE, cards: MIDDLE_CARDS },
-  high: { headline: MIDDLE_CONTENT.headline, cards: HIGH_CARDS },
+/** 넓게 편 세 칸 */
+export interface RoomyScript {
+  headline: HeadlineContent;
+  /** 왼쪽 위 — 계통 네 단계. 한 단계씩 스스로 넘어간다 */
+  principle: MiddlePrincipleContent;
+  /** 왼쪽 아래 — 오늘의 곡선. 읽는 법은 **한 줄만** 붙인다 */
+  production: { head: string; note: (stats: EduStats) => string; read: string };
+  /** 오른쪽 — 환산 석 장 */
+  benefit: { head: string; note: string; itemIds: ImpactId[]; arts: ImpactArtId[] };
+}
+
+/*
+  중등 — 지금 중등보다 한 겹 더 쉽게.
+  네 단계는 위 카드 대본과 같은 말을 쓴다. 한 시안 안에서 눈높이가 같은데 말이 갈리면
+  화면을 옮길 때마다 다시 읽어야 한다.
+*/
+const MIDDLE_ROOMY: RoomyScript = {
+  headline: MIDDLE_HEADLINE,
+  principle: {
+    head: '햇빛이 전기가 되기까지',
+    note: '네 단계를 차례로 살펴본다',
+    stages: MIDDLE_CARDS.slice(0, 4).map((card, index) => ({
+      id: card.id,
+      step: (index + 1) as 1 | 2 | 3 | 4,
+      term: card.title,
+      body: card.line,
+    })),
+  },
+  production: {
+    head: '오늘은 이렇게 만들었다',
+    note: (stats) => `하루 합계 ${formatEnergy(stats.dayKwh).value}${formatEnergy(stats.dayKwh).unit}`,
+    read: '해가 높이 뜬 한낮에 가장 많이 만든다. 색이 칠해진 면적이 오늘 만든 전기다.',
+  },
+  benefit: {
+    head: '그래서 무엇이 좋아지는가',
+    note: '오늘 만든 전기가 어느 정도인지 바꿔 보자',
+    itemIds: ['tree', 'household', 'led'],
+    arts: ['tree', 'house', 'lamp'],
+  },
+};
+
+/* 고등 — 지금 중등 대본을 그대로 읽는다 */
+const HIGH_ROOMY: RoomyScript = {
+  headline: MIDDLE_CONTENT.headline,
+  principle: MIDDLE_CONTENT.principle,
+  production: {
+    head: MIDDLE_CONTENT.production.head,
+    note: MIDDLE_CONTENT.production.note,
+    read: MIDDLE_CONTENT.production.notes[0].body,
+  },
+  benefit: {
+    head: MIDDLE_CONTENT.benefit.head,
+    note: MIDDLE_CONTENT.benefit.note,
+    itemIds: ['co2', 'tree', 'led'],
+    arts: ['co2', 'tree', 'lamp'],
+  },
+};
+
+/** 초등이 읽는 카드 덱 */
+export const EDU_DECK: EduDeck = { headline: ELEMENTARY_CONTENT.headline, cards: ELEMENTARY_CARDS };
+
+/** 중·고등이 읽는 세 칸 */
+export const EDU_ROOMY: Record<'middle' | 'high', RoomyScript> = {
+  middle: MIDDLE_ROOMY,
+  high: HIGH_ROOMY,
+};
+
+/** 위쪽 요약 띠 — 이 시안의 눈높이를 따른다 */
+export const EDU_HEADLINE: Record<EduLevel, HeadlineContent> = {
+  elementary: ELEMENTARY_CONTENT.headline,
+  middle: MIDDLE_HEADLINE,
+  high: MIDDLE_CONTENT.headline,
 };

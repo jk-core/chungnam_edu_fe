@@ -2,6 +2,7 @@ import type { EduLevel } from '@/interface/edu';
 import type { EduContent } from '@/mocks/eduContent';
 import type { EduStats } from '@/mocks/solarEdu';
 import { CardDeck } from './c/CardDeck';
+import { RoomyBoard } from './c/RoomyBoard';
 import { ElementaryClock } from './elementary/ElementaryClock';
 import { ElementaryPoster } from './elementary/ElementaryPoster';
 import { MiddleCompare } from './middle/MiddleCompare';
@@ -25,13 +26,13 @@ export const EDU_VARIANT_LABEL: Record<EduVariant, Record<EduLevel, string>> = {
     high: '시안 B · AI 콘솔',
   },
   /*
-    시안 C 는 세 눈높이가 같은 골격을 쓴다 — 갈리는 것은 넘기는 장 수와 그 장에 적힌 말뿐이라,
-    이름표도 하나면 된다. 학교급이 달라도 화면 읽는 법이 같다는 것이 이 시안의 주장이다.
+    시안 C 는 학교급에 따라 판이 둘로 갈린다 — 초등은 한 장씩 넘겨 읽고,
+    중·고등은 여러 칸을 한 화면에 두되 시안 A 보다 넓게 편다.
   */
   c: {
     elementary: '시안 C · 한 장씩',
-    middle: '시안 C · 한 장씩',
-    high: '시안 C · 한 장씩',
+    middle: '시안 C · 넓게 세 칸',
+    high: '시안 C · 넓게 세 칸',
   },
   d: {
     elementary: '시안 D · 한 장 그림',
@@ -56,8 +57,15 @@ interface EduBoardProps {
  * 고르고 난 뒤에는 이 파일과 variants 폴더만 지우면 원래대로 돌아온다.
  */
 export function EduBoard({ variant, scopeLabel, stats, content, nowHour }: EduBoardProps) {
-  // 시안 C 만 눈높이로 갈리지 않는다 — 한 골격이 세 눈높이를 다 받고, 대본만 갈아 끼운다.
-  if (variant === 'c') return <CardDeck stats={stats} content={content} nowHour={nowHour} />;
+  /*
+    시안 C 는 초등만 한 장씩 넘긴다.
+    중·고등은 앞뒤를 견줘야 하는 나이라 여러 칸을 한 화면에 둔다 — 다만 시안 A 보다 칸이 적고 넓다.
+  */
+  if (variant === 'c') {
+    if (content.level === 'elementary') return <CardDeck stats={stats} nowHour={nowHour} />;
+
+    return <RoomyBoard stats={stats} level={content.level} />;
+  }
 
   if (content.level === 'elementary') {
     if (variant === 'b') return <ElementaryClock stats={stats} content={content} nowHour={nowHour} />;

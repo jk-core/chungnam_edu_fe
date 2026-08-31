@@ -1,4 +1,4 @@
-import { EDU_DECK } from '@/mocks/eduCards';
+import { EDU_HEADLINE } from '@/mocks/eduCards';
 import { EDU_VARIANT_LABEL } from '@/components/solar-edu/variants/EduBoard';
 import { HeadlineStrip } from '@/components/solar-edu/HeadlineStrip';
 import { SkyBackdrop } from '@/components/solar-edu/SkyBackdrop';
@@ -45,7 +45,7 @@ export function SolarEduScreen({ variant }: { variant?: EduVariant }) {
     시안 C 는 눈높이가 다른 시안보다 한 칸씩 낮은데, 띠만 현행 문구를 쓰면 본문은 쉬운 말인데
     위 다섯 줄만 어려운 화면이 된다. 다른 시안은 지금 대본을 그대로 쓴다.
   */
-  const headline = variant === 'c' ? EDU_DECK[content.level].headline : content.headline;
+  const headline = variant === 'c' ? EDU_HEADLINE[content.level] : content.headline;
 
   return (
     <SolarEduLayout
