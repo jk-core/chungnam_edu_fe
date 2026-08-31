@@ -20,6 +20,7 @@ export const PATH = {
     같은 학교의 같은 값을 초·중·고 각각 네 가지로 볼 수 있다. 고르고 나면 이긴 하나만 남긴다.
   */
   SOLAR_EDU_B: '/solar-edu/b',
+  SOLAR_EDU_C: '/solar-edu/c',
   SOLAR_EDU_D: '/solar-edu/d',
   /** 통합관제 전체화면 상황판 (SFR-004) */
   CONTROL: '/control',

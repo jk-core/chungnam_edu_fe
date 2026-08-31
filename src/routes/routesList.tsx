@@ -44,6 +44,8 @@ export const routes: RouteObject[] = [
   */
   { path: PATH.SOLAR_EDU_B, element: <SolarEduPage variant="b" /> },
   { path: `${PATH.SOLAR_EDU_B}/:orgId`, element: <SolarEduPage variant="b" /> },
+  { path: PATH.SOLAR_EDU_C, element: <SolarEduPage variant="c" /> },
+  { path: `${PATH.SOLAR_EDU_C}/:orgId`, element: <SolarEduPage variant="c" /> },
   { path: PATH.SOLAR_EDU_D, element: <SolarEduPage variant="d" /> },
   { path: `${PATH.SOLAR_EDU_D}/:orgId`, element: <SolarEduPage variant="d" /> },
   { path: `${PATH.SOLAR_EDU}/:orgId`, element: <SolarEduPage /> },

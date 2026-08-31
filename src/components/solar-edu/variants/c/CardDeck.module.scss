@@ -1,0 +1,182 @@
+@use "@/styles/tokens/spacing" as s;
+@use "@/styles/tokens/typography" as t;
+@use "@/styles/utils/media" as media;
+@use "@/styles/utils/mixins" as mx;
+
+/*
+  한 장씩 넘겨 읽는 판.
+
+  왼쪽이 그림, 오른쪽이 글, 아래가 몇 번째인지다. 글을 그림 밖에 두었으므로 글씨 크기가
+  그림 크기에 매이지 않는다 — 이 판이 다른 시안과 갈리는 지점이자, 멀리서 읽히는 이유다.
+
+  그림 쪽을 더 넓게 가져간다. 글은 세 줄 남짓이라 넓어져도 남는 자리가 여백이 될 뿐이지만,
+  그림은 넓어진 만큼 커진다.
+*/
+.deck {
+  display: grid;
+  grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr);
+  grid-template-rows: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: s.$space-4 s.$space-8;
+  height: 100%;
+  min-height: 0;
+  padding: s.$space-4 s.$space-6;
+  border: 1px solid var(--border-subtle);
+  border-radius: s.$radius-lg;
+  background-color: var(--surface);
+  box-shadow: var(--shadow-sm);
+
+  @include media.tablet {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: none;
+    height: auto;
+  }
+
+  &__art {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 0;
+    min-height: 0;
+    height: 100%;
+
+    > svg {
+      width: 100%;
+      height: 100%;
+      max-height: 100%;
+    }
+
+    @include media.tablet {
+      min-height: 260px;
+    }
+  }
+
+  /* 장이 넘어갈 때 아래에서 밀려 올라온다 — 바뀐 것이 눈에 걸려야 다시 읽는다 */
+  &__text {
+    display: flex;
+    flex-direction: column;
+    gap: s.$space-2;
+    min-width: 0;
+    animation: card-in 0.45s ease both;
+
+    @include media.reduced-motion {
+      animation: none;
+    }
+  }
+
+  &__count {
+    @include t.eyebrow;
+
+    color: var(--brand-contrast);
+
+    span {
+      color: var(--text-faint);
+    }
+  }
+
+  &__title {
+    @include t.title-lg;
+
+    color: var(--text-strong);
+  }
+
+  &__line {
+    @include t.body-lg;
+
+    color: var(--text-muted);
+  }
+}
+
+/* 그 장에서 읽히는 수치 하나. 글 아래에 상자로 못 박아 값이 문장에 묻히지 않게 한다 */
+.readout {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: s.$space-4;
+  margin-top: s.$space-2;
+  padding: s.$space-3 s.$space-4;
+  border-left: 3px solid var(--brand);
+  border-radius: s.$radius-sm;
+  background-color: var(--surface-sunken);
+
+  &__label {
+    @include t.label-md;
+
+    color: var(--text-muted);
+  }
+
+  &__value {
+    @include t.data-lg;
+
+    display: flex;
+    align-items: baseline;
+    gap: s.$space-1;
+    color: var(--text-strong);
+  }
+
+  &__unit {
+    @include t.label-md;
+
+    color: var(--text-muted);
+  }
+}
+
+/* 환산 그림 하나만 세울 때 — 장면과 달리 원래 크기가 작아 가운데에 키워 놓는다 */
+.icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+  max-height: 280px;
+
+  svg {
+    width: auto;
+    height: 100%;
+    max-width: 100%;
+  }
+}
+
+.dots {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: s.$space-2;
+  grid-column: 1 / -1;
+  list-style: none;
+}
+
+.dot {
+  @include mx.press;
+
+  display: block;
+  width: 8px;
+  height: 8px;
+  padding: 0;
+  border: 0;
+  border-radius: s.$radius-full;
+  background-color: var(--border-strong);
+  cursor: pointer;
+  transition: background-color 0.3s ease, width 0.3s ease;
+
+  &:hover {
+    background-color: var(--brand-soft);
+  }
+
+  &--on {
+    width: 26px;
+    background-color: var(--brand);
+  }
+}
+
+@keyframes card-in {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
