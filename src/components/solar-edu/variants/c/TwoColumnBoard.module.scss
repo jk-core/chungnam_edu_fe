@@ -3,33 +3,46 @@
 @use "@/styles/utils/media" as media;
 
 /*
-  위에서 아래로 읽는 세 단.
+  왼쪽은 원리, 오른쪽은 오늘.
 
-  세 단이 모두 가로 전폭이다. 칸을 좌우로 나눠 놓으면 어디부터 읽을지 눈이 한 번 고르는데,
-  세로로 쌓으면 고를 것이 없다 — 읽는 순서가 곧 이야기 순서가 된다.
+  세 단을 위에서 아래로 쌓았더니 단마다 높이가 얕아져 곡선이 제 크기를 못 받고 잘렸다.
+  그림과 곡선은 세로가 있어야 읽히는 것이라, 좌우로 가르고 세로를 통째로 내준다.
 
-  아래로 갈수록 단이 얕아진다. 위가 설명이고 아래로 갈수록 값이라, 필요한 높이가 줄어든다.
+  왼쪽 한 칸이 위아래를 다 쓴다. 오른쪽은 위가 곡선, 아래가 환산이다 —
+  왼쪽이 늘 같은 것이고 오른쪽이 날마다 바뀌는 것이라, 어느 쪽을 다시 볼지 고르기 쉽다.
 */
-.stack {
+.board {
   display: grid;
-  grid-template-rows: minmax(0, 1.35fr) minmax(0, 1fr) auto;
-  gap: s.$space-2;
+  grid-template-columns: minmax(0, 1.05fr) minmax(0, 1fr);
+  grid-template-rows: minmax(0, 1fr) minmax(0, 1.1fr);
+  gap: s.$space-3;
   height: 100%;
   min-height: 0;
 
+  /* 원리 칸이 왼쪽에서 두 줄을 다 쓴다 */
+  > :first-child {
+    grid-column: 1;
+    grid-row: 1 / -1;
+  }
+
   @include media.tablet {
+    grid-template-columns: 1fr;
     grid-template-rows: none;
     height: auto;
+
+    > :first-child {
+      grid-column: auto;
+      grid-row: auto;
+    }
   }
 }
 
 /*
-  단 하나가 곧 카드다.
-
+  칸 하나.
   뒤에 배경이 깔려 있으므로 바탕을 조금 비친다 — 완전히 덮으면 배경을 깐 뜻이 없고,
-  너무 비치면 글이 배경 무늬와 겹쳐 읽힌다. 그 사이를 흐림(`backdrop-filter`)이 메운다.
+  너무 비치면 글이 배경 무늬와 겹쳐 읽힌다. 그 사이를 흐림이 메운다.
 */
-.band {
+.card {
   display: flex;
   flex-direction: column;
   gap: s.$space-3;
@@ -60,41 +73,32 @@
   }
 }
 
-// ── 1단 · 어떻게 만들어지나 ────────────────────────────────
-
-/*
-  그림 한 장 옆에 네 단계가 둘씩 두 줄로 선다.
-  넷을 가로로 늘어놓으면 한 칸이 좁아 설명이 다섯 줄로 접히고, 둘씩 접으면 두 줄에서 끝난다.
-*/
+// ── 왼쪽 · 늘 같은 것 ──────────────────────────────────────
 .flow {
-  display: grid;
-  grid-template-columns: minmax(0, 0.85fr) minmax(0, 1.15fr);
-  align-items: center;
-  gap: s.$space-5;
-  flex: 1;
-  min-height: 0;
-
-  @include media.tablet {
-    grid-template-columns: 1fr;
-  }
-
+  /*
+    계통도가 세로를 통째로 받는다.
+    아래 네 단계가 제 높이를 먼저 가져가고 남는 자리가 모두 그림 몫이라, 폭이 좁아져 글이
+    한 줄씩 더 접히면 그림이 그만큼 내려앉는다 — 잘린 글보다는 작아진 그림이 낫다.
+  */
   &__art {
+    flex: 1;
     min-height: 120px;
-    height: 100%;
     border-radius: s.$radius-md;
     background: linear-gradient(180deg, var(--sky-top) 0%, var(--surface-sunken) 100%);
-  }
 
-  &__steps {
-    display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: s.$space-3 s.$space-5;
-    list-style: none;
-
-    @include media.tablet {
-      grid-template-columns: 1fr;
+    > svg {
+      width: 100%;
+      height: 100%;
     }
   }
+}
+
+.steps {
+  display: flex;
+  flex-direction: column;
+  gap: s.$space-3;
+  flex: none;
+  list-style: none;
 }
 
 .stage {
@@ -148,55 +152,41 @@
   }
 }
 
-// ── 2단 · 오늘 얼마나 만들었나 ─────────────────────────────
-.today {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) 320px;
-  align-items: center;
-  gap: s.$space-5;
+// ── 오른쪽 위 · 오늘의 곡선 ────────────────────────────────
+.curve {
+  display: flex;
   flex: 1;
   min-height: 0;
-
-  @include media.tablet {
-    grid-template-columns: 1fr;
-  }
-
-  &__curve {
-    display: flex;
-    min-height: 0;
-    height: 100%;
-    border-radius: s.$radius-md;
-    background-color: var(--surface-sunken);
-  }
-
-  /* 곡선을 읽는 법 — 한 줄만 붙인다. 곡선 옆에 세워 두면 그림과 글이 마주 본다 */
-  &__read {
-    @include t.body-lg;
-
-    padding-left: s.$space-3;
-    border-left: 3px solid var(--solar);
-    color: var(--text-muted);
-  }
+  border-radius: s.$radius-md;
+  background-color: var(--surface-sunken);
 }
 
-// ── 3단 · 그래서 뭐가 좋아졌나 ─────────────────────────────
+/* 곡선을 읽는 법 — 시안 A 는 두 덩이를 붙이는데 여기서는 한 줄만 남긴다 */
+.read {
+  @include t.body-lg;
+
+  flex: none;
+  padding-left: s.$space-3;
+  border-left: 3px solid var(--solar);
+  color: var(--text-muted);
+}
+
+// ── 오른쪽 아래 · 환산 석 장 ───────────────────────────────
 .gains {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: s.$space-3;
-  flex: none;
+  grid-auto-rows: minmax(min-content, 1fr);
+  gap: s.$space-2;
+  flex: 1;
+  min-height: 0;
   list-style: none;
-
-  @include media.tablet {
-    grid-template-columns: 1fr;
-  }
 }
 
 .gain {
   display: grid;
-  grid-template-columns: 52px minmax(0, 1fr);
+  grid-template-columns: 56px minmax(0, 1fr);
   align-items: center;
   gap: s.$space-3;
+  min-height: 0;
   padding: s.$space-2 s.$space-4;
   border-radius: s.$radius-md;
   background-color: var(--surface-sunken);

@@ -3,7 +3,7 @@ import type { EduContent } from '@/mocks/eduContent';
 import type { EduStats } from '@/mocks/solarEdu';
 import { CardDeck } from './c/CardDeck';
 import { SplitBoard } from './c/SplitBoard';
-import { StackBoard } from './c/StackBoard';
+import { TwoColumnBoard } from './c/TwoColumnBoard';
 import { ElementaryClock } from './elementary/ElementaryClock';
 import { ElementaryPoster } from './elementary/ElementaryPoster';
 import { MiddleCompare } from './middle/MiddleCompare';
@@ -28,12 +28,12 @@ export const EDU_VARIANT_LABEL: Record<EduVariant, Record<EduLevel, string>> = {
   },
   /*
     시안 C 는 학교급마다 골격이 다르다.
-    초등은 한 장씩 넘겨 읽고, 중등은 위에서 아래로 세 단을 읽으며,
-    고등은 화면을 가로로 갈라 위에 오늘의 값을 아래에 원리를 둔다.
+    초등은 한 장씩 넘겨 읽고, 중등은 화면을 좌우로 갈라 왼쪽에 원리를 오른쪽에 오늘을 두며,
+    고등은 가로로 갈라 위에 오늘의 값을 아래에 원리를 둔다.
   */
   c: {
     elementary: '시안 C · 한 장씩',
-    middle: '시안 C · 위에서 아래로',
+    middle: '시안 C · 왼쪽 원리 오른쪽 오늘',
     high: '시안 C · 위는 오늘 아래는 원리',
   },
   d: {
@@ -65,7 +65,7 @@ export function EduBoard({ variant, scopeLabel, stats, content, nowHour }: EduBo
   */
   if (variant === 'c') {
     if (content.level === 'elementary') return <CardDeck stats={stats} nowHour={nowHour} />;
-    if (content.level === 'middle') return <StackBoard stats={stats} />;
+    if (content.level === 'middle') return <TwoColumnBoard stats={stats} />;
 
     return <SplitBoard stats={stats} />;
   }
