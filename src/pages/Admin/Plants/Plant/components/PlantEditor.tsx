@@ -3,6 +3,7 @@ import { useForm, useWatch } from 'react-hook-form';
 import { useNavigate } from 'react-router-dom';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { AddressSearchModal } from '@/components/common/AddressSearch';
+import { geocode } from '@/mocks/addresses';
 import { Button } from '@/components/common/Button';
 import { ConfirmDialog } from '@/components/common/ConfirmDialog';
 import { createForm, FormRow, FormSection } from '@/components/common/Form';
@@ -87,6 +88,8 @@ export function PlantEditor({ powerPlantId }: { powerPlantId: number | null }) {
       regionCode: values.regionCode,
       address: values.address,
       addressDetail: values.addressDetail.trim(),
+      latitude: Number(values.latitude),
+      longitude: Number(values.longitude),
       installedAt: values.installedAt.trim(),
       rtuEntName: values.rtuEntName,
       builder: { name: values.builderName.trim(), phone: values.builderPhone.trim() },
@@ -115,6 +118,8 @@ export function PlantEditor({ powerPlantId }: { powerPlantId: number | null }) {
       regionCode: values.regionCode,
       address: values.address,
       addressDetail: values.addressDetail.trim(),
+      latitude: Number(values.latitude),
+      longitude: Number(values.longitude),
       installedAt: values.installedAt.trim(),
       rtuEntName: values.rtuEntName,
       builder: { name: values.builderName.trim(), phone: values.builderPhone.trim() },
@@ -212,17 +217,29 @@ export function PlantEditor({ powerPlantId }: { powerPlantId: number | null }) {
                   <AddressSearchModal
                     isOpen
                     onClose={onClose}
-                    onSelect={(picked) => onSelect({
-                      address: picked.roadAddress,
-                      regionCode: picked.sigunguCode,
-                    })}
+                    onSelect={(picked) => {
+                      // 우편번호 서비스는 좌표를 주지 않는다 — 고른 주소로 한 번 더 찍는다.
+                      const point = geocode(picked.roadAddress);
+
+                      onSelect({
+                        address: picked.roadAddress,
+                        regionCode: picked.sigunguCode,
+                        latitude: point ? String(point.lat) : '',
+                        longitude: point ? String(point.lng) : '',
+                      });
+                    }}
                   />
                 )}
               />
               <Form.Text label="상세주소" name="addressDetail" placeholder="예: 본관 옥상" optional />
             </FormRow>
             <FormRow cols={2}>
-              <Form.Text label="설치 시기" name="installedAt" hint="YYYY-MM" ime="numeric" />
+              {/* 주소를 고르면 채워진다. 옥상이 아닌 부지는 지도에서 어긋나므로 손으로 보정한다. */}
+              <Form.Text label="위도" name="latitude" hint="지도 마커가 서는 자리" ime="numeric" required />
+              <Form.Text label="경도" name="longitude" hint="주소를 고르면 채워집니다" ime="numeric" required />
+            </FormRow>
+            <FormRow cols={2}>
+              <Form.Text label="설치 시기" name="installedAt" hint="YYYY-MM-DD" ime="numeric" />
             </FormRow>
           </FormSection>
 

@@ -21,6 +21,9 @@ export interface PlantAsset {
   address: string;
   /** 상세 주소 (addressDetail) */
   addressDetail: string;
+  /** 지도 마커가 서는 자리 — 주소를 고르면 채워지고 손으로 고칠 수 있다 */
+  latitude: number;
+  longitude: number;
   installedAt: string;
   /** RTU 업체 (rtuEntName) */
   rtuEntName: string;

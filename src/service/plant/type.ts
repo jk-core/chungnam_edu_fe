@@ -33,6 +33,9 @@ export const plantDetailResponseSchema = z.object({
   regionCode: z.string(),
   address: z.string(),
   addressDetail: z.string(),
+  /** 지도 마커가 서는 자리 */
+  latitude: z.number(),
+  longitude: z.number(),
   installedAt: z.string(),
   /** RTU 업체 (rtuEntName) */
   rtuEntName: z.string(),
@@ -82,6 +85,12 @@ export const plantFormSchema = z.object({
   regionCode: z.string(),
   address: z.string().trim().min(1, MSG.requiredField('주소')),
   addressDetail: z.string(),
+  /*
+    주소를 고르면 지오코더가 채우고, 옥상이 아닌 부지는 손으로 보정한다. 지도 마커가 이 값으로
+    서므로 비우면 그 발전소는 지도에서 사라진다 — 그래서 규칙을 건다.
+  */
+  latitude: z.string().trim().min(1, MSG.requiredField('위도')),
+  longitude: z.string().trim().min(1, MSG.requiredField('경도')),
   installedAt: z.string(),
   rtuEntName: z.string().trim().min(1, MSG.requiredField('RTU업체')).max(120, MSG.tooLong('RTU업체', 120)),
   builderName: z.string().max(120, MSG.tooLong('시공업체', 120)),

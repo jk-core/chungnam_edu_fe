@@ -31,6 +31,8 @@ function buildAsset(schoolIndex: number): PlantAsset {
     regionCode: regionCodeOf(school.regionCode),
     address: school.address,
     addressDetail: pickOne(next, ADDRESS_DETAILS),
+    latitude: school.location.lat,
+    longitude: school.location.lng,
     installedAt: school.installedAt,
     rtuEntName: pickOne(next, RTU_MAKERS),
     builder: pickOne(next, BUILDERS),
