@@ -1,6 +1,5 @@
 import { SUNRISE_HOUR, SUNSET_HOUR } from '@/mocks/generation';
 import { FULL_SUN_WM2 } from '@/mocks/solarEdu';
-import { IMPACT_DEFS } from '@/mocks/eduContent';
 import { formatNumber } from '@/utils/format';
 import type { MiddleContent } from '@/mocks/eduContent';
 import type { EduStats } from '@/mocks/solarEdu';
@@ -59,7 +58,7 @@ export function MiddleCompare({ scopeLabel, stats, content }: MiddleCompareProps
       id: 'day',
       question: '오늘과 어제, 무엇이 달랐을까?',
       variable: '날씨만 다름',
-      because: '설비는 어제와 똑같다. 달라진 것은 날씨뿐이므로, 이 차이는 일사량의 차이이다.',
+      because: '설비는 어제와 똑같다. 달라진 것은 날씨뿐이니, 이 차이는 햇빛의 차이다.',
       left: { label: '오늘', value: stats.dayKwh },
       right: { label: '어제', value: stats.dayKwh * YESTERDAY_RATIO },
       unit: 'kWh',
@@ -70,7 +69,7 @@ export function MiddleCompare({ scopeLabel, stats, content }: MiddleCompareProps
       id: 'weather',
       question: '맑은 날과 흐린 날은 얼마나 차이 날까?',
       variable: '구름만 다름',
-      because: '구름이 해를 가리면, 패널에 도달하는 에너지가 줄어든다.',
+      because: '구름이 해를 가리면 패널에 닿는 햇빛이 줄어든다.',
       left: { label: '맑은 날', value: stats.dayKwh },
       right: { label: '흐린 날', value: stats.dayKwh * CLOUDY_RATIO },
       unit: 'kWh',
@@ -79,9 +78,9 @@ export function MiddleCompare({ scopeLabel, stats, content }: MiddleCompareProps
     },
     {
       id: 'peer',
-      question: '우리 학교는 다른 학교와 비교하면 어떨까?',
-      variable: '설비용량 차이를 지움',
-      because: '설비용량이 다르면 총 발전량만으로는 비교할 수 없다. 1kW 당 몇 시간을 발전했는지로 바꿔서 봐야 한다.',
+      question: '다른 학교와 비교하면 어떨까?',
+      variable: '용량 차이를 지움',
+      because: '설비 크기가 달라도 견주도록 1kW 당 발전시간으로 바꿨다.',
       left: { label: scopeLabel, value: stats.equivalentHours },
       right: { label: '관내 평균', value: stats.equivalentHours * PEER_RATIO },
       unit: '시간',
@@ -89,8 +88,6 @@ export function MiddleCompare({ scopeLabel, stats, content }: MiddleCompareProps
       tone: 'ok',
     },
   ];
-
-  const impact = IMPACT_DEFS[content.benefit.itemIds[0] ?? 'co2'];
 
   return (
     <div className={styles.board}>
@@ -141,10 +138,6 @@ export function MiddleCompare({ scopeLabel, stats, content }: MiddleCompareProps
             <Fact label="일사강도" value={`${Math.round((stats.irradianceNow / FULL_SUN_WM2) * 100)}점`} />
             <Fact label="일조 시간" value={`${formatNumber(SUNSET_HOUR - SUNRISE_HOUR, 1)}시간`} />
             <Fact label="발전시간" value={`${formatNumber(stats.equivalentHours, 1)}시간`} />
-            <Fact
-              label={impact.label}
-              value={`${formatNumber(stats.dayKwh * impact.perKwh, impact.fractionDigits)}${impact.unit}`}
-            />
           </dl>
         </section>
       </div>

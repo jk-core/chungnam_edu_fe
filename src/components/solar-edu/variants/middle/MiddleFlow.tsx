@@ -68,7 +68,7 @@ export function MiddleFlow({ stats, content }: MiddleFlowProps) {
       label: '태양전지',
       value: formatNumber(sunKw, 1),
       unit: 'kW',
-      note: '모듈 전면에 들어오는 빛의 세기',
+      note: '패널 앞면에 들어오는 햇빛의 세기',
       tone: 'solar',
     },
     {

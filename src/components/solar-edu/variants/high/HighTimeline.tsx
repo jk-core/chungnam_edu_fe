@@ -48,56 +48,65 @@ interface Factor {
   id: string;
   icon: ReactNode;
   name: string;
-  /** 왜 발전량을 좌우하는가 */
+  /** 왜 발전량을 좌우하는가 — 한 줄 */
   why: string;
-  /** 오늘 곡선에서 이것을 어떻게 읽는가 */
-  read: string;
 }
 
 /*
   발전량을 좌우하는 것.
 
   크기를 %로 적지 않는다. 요인마다 몇 할을 좌우하는지는 이 화면이 받아 보는 값에 없어 지어내야
-  하는데, 학생이 보는 화면에서 지어낸 수를 실측인 척 내놓아서는 안 된다. 대신 **오늘 곡선에서
-  그것을 어떻게 알아보는가** 를 적는다 — 눈앞의 그림에서 확인되는 쪽이 수보다 오래 남는다.
+  하는데, 학생이 보는 화면에서 지어낸 수를 실측인 척 내놓아서는 안 된다.
+
+  요인마다 「오늘 곡선에서 이것을 어떻게 알아보는가」 를 한 줄 더 붙여 두었는데 걷어냈다
+  (2026-08-31 검토 의견). 글씨를 키우고 나니 다섯이 한 화면에 서지 못해 절반이 잘렸고,
+  잘린 줄은 쓰지 않은 줄과 같다. 남긴 한 줄은 「왜 그런가」 다.
 */
 const FACTORS: Factor[] = [
   {
     id: 'irradiance',
     icon: <IrradianceIcon />,
     name: '일사강도',
-    why: '모듈에 들어오는 복사 에너지의 세기다. 발전량은 이 값에 거의 비례하고, 나머지 요인은 모두 이 값을 깎는 쪽으로 작용한다.',
-    read: '점선(일사량)과 실선(발전량)이 같은 모양으로 오르내렸다면, 오늘 발전량을 정한 것은 날씨다.',
+    why: '모듈에 들어오는 햇빛의 세기다. 발전량은 이 값에 거의 비례한다.',
   },
   {
     id: 'angle',
     icon: <AngleIcon />,
     name: '태양 고도 · 설치 각도',
-    why: '빛이 모듈 면에 수직으로 들어올수록 단위 면적이 받는 에너지가 커진다. 설치할 때 방위각과 경사각을 정해 두는 것도 이 입사각을 확보하기 위해서다.',
-    read: '차트에서 가장 높은 지점이 정오 무렵에 있다면, 모듈이 향한 방향과 기울기가 제대로 맞춰져 있다는 뜻이다.',
+    why: '빛이 모듈에 수직으로 들어올수록 1m² 가 받는 에너지가 커진다.',
   },
   {
     id: 'temp',
     icon: <ConversionIcon />,
     name: '모듈 온도',
-    why: '모듈 온도가 오르면 개방전압이 낮아져 변환 효율이 떨어진다. 일사량이 가장 큰 한여름에 오히려 효율이 떨어지는 이유다.',
-    read: '한여름 정오보다 일사가 좋은 봄·가을에 발전시간이 더 길게 나오는 이유가 이것이다.',
+    why: '모듈이 뜨거워지면 같은 햇빛에도 전기로 바꾸는 몫이 줄어든다.',
   },
   {
     id: 'shade',
     icon: <JunctionIcon />,
     name: '음영',
-    why: '모듈을 직렬로 이어 전압을 올리는 구조여서, 한 장만 그늘이 져도 스트링 전체의 전류가 그 모듈에 맞춰 함께 떨어진다.',
-    read: '일사량은 그대로인데 특정 시각에만 발전량이 뚝 떨어졌다면 그늘을 의심해야 한다. 며칠 동안 같은 시각에 똑같이 떨어진다면 주변 건물이나 나무의 그림자일 가능성이 크다.',
+    why: '직렬로 이어져 있어 한 장만 그늘이 져도 그 줄 전체의 출력이 떨어진다.',
   },
   {
     id: 'soil',
     icon: <SolarPanelIcon />,
     name: '표면 오염',
-    why: '먼지·황사·낙엽이 유리면을 덮으면 셀에 도달하는 빛 자체가 줄어든다. 특정 시각에만 작용하는 음영과 달리 하루 내내 고르게 작용한다.',
-    read: '차트 모양은 평소와 같은데 하루 종일 높이만 낮다면 표면 오염일 가능성이 크다. 비가 온 뒤에 다시 올라오는지 확인하면 구분할 수 있다.',
+    why: '먼지·황사·낙엽이 유리면을 덮으면 닿는 빛 자체가 줄어든다.',
   },
 ];
+
+/**
+ * 문장 하나만 떼어 낸다.
+ *
+ * 자리마다 적힌 물리 설명은 여러 문장인데 이 시안은 한 줄만 세울 자리다. 같은 말을 짧게 다시
+ * 적어 두면 한쪽만 고쳐 놓고 두 화면이 다른 말을 하게 되므로, 첫 문장을 그대로 떼어 쓴다 —
+ * 그래서 `eduContent` 의 첫 문장은 홀로 서도 말이 되게 적혀 있다.
+ */
+function firstSentence(text: string) {
+  const end = text.indexOf('. ');
+
+  return end < 0 ? text : text.slice(0, end + 1);
+}
 
 interface HighTimelineProps {
   scopeLabel: string;
@@ -115,8 +124,9 @@ interface HighTimelineProps {
  * 왼쪽은 **설비를 지나며 무엇이 얼마가 되는가**(셀 → 모듈 → 인버터 → 계통), 오른쪽은
  * **무엇이 그 양을 좌우하는가**(일사·각도·온도·음영·오염)다. 앞이 경로라면 뒤는 변수다.
  *
- * 두 판 모두 끝에 "오늘 곡선에서 이것을 어떻게 읽는가" 를 붙인다. 위의 곡선이 예시가 되어야
- * 원리가 남의 이야기로 끝나지 않는다.
+ * 두 판 모두 한 항목에 한 줄만 적는다. 처음에는 "오늘 곡선에서 이것을 어떻게 읽는가" 를 한 줄
+ * 더 붙였는데, 글씨를 키우고 나니 아홉 항목이 한 화면에 서지 못해 절반이 잘렸다 —
+ * 잘린 글은 쓰지 않은 글과 같으므로, 남길 한 줄을 고르는 쪽을 택했다 (2026-08-31 검토 의견).
  */
 export function HighTimeline({ scopeLabel, stats, content }: HighTimelineProps) {
   const insight = useMemo(() => buildEduInsight(stats, scopeLabel), [scopeLabel, stats]);
@@ -128,26 +138,19 @@ export function HighTimeline({ scopeLabel, stats, content }: HighTimelineProps) 
 
   // 모듈 전면에 들어오는 빛의 세기(kW). 모듈 면적은 어림값이라 수로는 적지 않는다.
   const sunKw = (stats.irradianceNow * stats.moduleArea) / 1000;
-  const efficiency = sunKw > 0 ? (stats.outputKw / sunKw) * 100 : 0;
 
-  /** 자리마다 지금 이 학교에서 실제로 읽히는 값 */
-  const readingOf: Record<PlantSpot, { value: string; note: string }> = {
-    cell: {
-      value: `${formatNumber(stats.irradianceNow)} W/m²`,
-      note: `맑은 날 정오(${formatNumber(FULL_SUN_WM2)})의 ${Math.round((stats.irradianceNow / FULL_SUN_WM2) * 100)}%`,
-    },
-    module: {
-      value: `${formatNumber(sunKw, 1)} kW`,
-      note: '모듈 전면에 들어오는 빛의 세기',
-    },
-    inverter: {
-      value: `${formatNumber(stats.outputKw, 1)} kW`,
-      note: `들어온 빛의 ${formatNumber(efficiency, 1)}% 가 전기로 · 직류를 교류로`,
-    },
-    grid: {
-      value: `${formatNumber(stats.todayKwh)} kWh`,
-      note: '금일 지금까지 쌓인 발전량',
-    },
+  /**
+   * 자리마다 지금 이 학교에서 실제로 읽히는 값.
+   *
+   * 값이 무엇인지 풀어 주는 한 줄을 함께 두었는데, 자리마다 두 줄을 세울 높이가 없어 걷어냈다
+   * (2026-08-31 검토 의견). 한 줄만 남긴다면 값을 되풀이하는 쪽이 아니라 그 자리에서
+   * 무슨 일이 일어나는지를 남긴다.
+   */
+  const readingOf: Record<PlantSpot, string> = {
+    cell: `${formatNumber(stats.irradianceNow)} W/m²`,
+    module: `${formatNumber(sunKw, 1)} kW`,
+    inverter: `${formatNumber(stats.outputKw, 1)} kW`,
+    grid: `${formatNumber(stats.todayKwh)} kWh`,
   };
 
   const xOf = (hour: number) => (hour / 23) * VIEW.width;
@@ -251,10 +254,9 @@ export function HighTimeline({ scopeLabel, stats, content }: HighTimelineProps) 
                 <div className={styles.stage__body}>
                   <p className={styles.stage__head}>
                     <span className={styles.stage__name}>{name}</span>
-                    <span className={styles.stage__value}>{readingOf[spot].value}</span>
+                    <span className={styles.stage__value}>{readingOf[spot]}</span>
                   </p>
-                  <p className={styles.stage__reading}>{readingOf[spot].note}</p>
-                  <p className={styles.stage__text}>{content.ai.stages[stage].physics}</p>
+                  <p className={styles.stage__text}>{firstSentence(content.ai.stages[stage].physics)}</p>
                 </div>
               </li>
             ))}
@@ -276,8 +278,6 @@ export function HighTimeline({ scopeLabel, stats, content }: HighTimelineProps) 
                 <div className={styles.factor__body}>
                   <p className={styles.factor__name}>{factor.name}</p>
                   <p className={styles.factor__why}>{factor.why}</p>
-                  {/* 원리를 위 곡선에 붙들어 맨다 — 눈앞에서 확인되는 쪽이 오래 남는다 */}
-                  <p className={styles.factor__read}>{factor.read}</p>
                 </div>
               </li>
             ))}

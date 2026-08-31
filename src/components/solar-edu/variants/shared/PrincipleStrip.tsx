@@ -1,4 +1,3 @@
-import { FULL_SUN_WM2 } from '@/mocks/solarEdu';
 import { formatNumber } from '@/utils/format';
 import type { EduLevel } from '@/interface/edu';
 import type { EduStats } from '@/mocks/solarEdu';
@@ -12,8 +11,11 @@ type StepId = 'sun' | 'cell' | 'inverter' | 'school';
 /**
  * 눈높이마다 다른 말.
  *
- * 값을 만드는 셈은 같고 부르는 이름과 설명만 갈린다 — 초등에게 "광전효과" 라고 적을 수 없고,
+ * 값을 만드는 셈은 같고 부르는 이름과 설명만 갈린다 — 초등에게 "직류" 라고 적을 수 없고,
  * 고등에게 "판이 전기를 만들어요" 라고만 적으면 배울 것이 없다. 같은 그림 위에 말만 바꿔 얹는다.
+ *
+ * 세 줄의 눈높이를 한 칸씩 내렸다 (2026-08-31 검토 의견). 고등 줄이 전문 용어(PN 접합·MPPT·수용가)로
+ * 적혀 있어 읽히지 않았고, 중등 줄이 그대로 남으면 두 줄이 같은 말이 되기 때문이다.
  */
 const COPY: Record<EduLevel, Record<StepId, { label: string; line: string }>> = {
   elementary: {
@@ -23,16 +25,16 @@ const COPY: Record<EduLevel, Record<StepId, { label: string; line: string }>> = 
     school: { label: '교실', line: '불을 켜고 선풍기를 돌리는 데 써요' },
   },
   middle: {
+    sun: { label: '일사강도', line: '해가 높이 뜰수록 지붕이 받는 햇빛이 세진다' },
+    cell: { label: '태양전지', line: '햇빛을 받으면 전기가 한 방향으로 흐른다' },
+    inverter: { label: '인버터', line: '교실에서 쓸 수 있는 전기로 바꾼다' },
+    school: { label: '학교', line: '만든 전기는 학교가 그대로 쓴다' },
+  },
+  high: {
     sun: { label: '일사강도', line: '해가 높을수록 패널 1m² 가 받는 에너지가 커진다' },
     cell: { label: '태양전지', line: '햇빛을 받은 전자가 한 방향으로 흘러 직류가 된다' },
     inverter: { label: '인버터', line: '한 방향으로만 흐르는 직류를 교류로 바꾼다' },
     school: { label: '학교', line: '만든 전기는 학교가 그대로 쓴다' },
-  },
-  high: {
-    sun: { label: '일사강도', line: '수평면 도달 복사 에너지. STC 기준 1,000W/m²' },
-    cell: { label: '태양전지', line: 'PN 접합의 광기전력 효과로 직류를 만든다' },
-    inverter: { label: '인버터', line: 'MPPT 로 최대 전력점을 좇으며 DC 를 AC 로 바꾼다' },
-    school: { label: '학교', line: '생산 전력을 수용가에서 전량 자가소비한다' },
   },
 };
 
@@ -64,37 +66,37 @@ export function PrincipleStrip({ stats, level, heading }: PrincipleStripProps) {
     실제로 재어 온 값처럼 읽힌다. 여기서는 다음 마디(출력)와 견주기 위한 밑값으로만 쓴다.
   */
   const sunKw = (stats.irradianceNow * stats.moduleArea) / 1000;
-  // 빛이 전기가 되는 비율. 계측값끼리 나눈 값이라 날씨에 따라 오르내린다.
-  const efficiency = sunKw > 0 ? (stats.outputKw / sunKw) * 100 : 0;
   const copy = COPY[level];
 
+  /*
+    마디마다 값 아래에 「맑은 날 정오의 몇 %」 같은 참조 줄을 하나 더 두었는데 걷어냈다
+    (2026-08-31 검토 의견). 글씨를 키우고 나니 그 한 줄이 네 마디를 통째로 키워, 이 띠가
+    아래 본문에서 가져가는 높이가 곧 잘리는 글이 되었다. 값은 바로 위에 크게 서 있고
+    무엇을 뜻하는지는 눈높이 문구가 이미 말한다.
+  */
   const steps = [
     {
       id: 'sun' as const,
       value: formatNumber(stats.irradianceNow),
       unit: 'W/m²',
-      foot: `맑은 날 정오(${formatNumber(FULL_SUN_WM2)})의 ${Math.round((stats.irradianceNow / FULL_SUN_WM2) * 100)}%`,
       tone: 'solar',
     },
     {
       id: 'cell' as const,
       value: formatNumber(sunKw, 1),
       unit: 'kW',
-      foot: '모듈 전면에 들어오는 빛의 세기',
       tone: 'solar',
     },
     {
       id: 'inverter' as const,
       value: formatNumber(stats.outputKw, 1),
       unit: 'kW',
-      foot: `들어온 빛의 ${formatNumber(efficiency, 1)}% 가 전기로`,
       tone: 'brand',
     },
     {
       id: 'school' as const,
       value: formatNumber(stats.todayKwh, 0),
       unit: 'kWh',
-      foot: '금일 지금까지 쌓인 발전량',
       tone: 'ok',
     },
   ];
@@ -120,7 +122,6 @@ export function PrincipleStrip({ stats, level, heading }: PrincipleStripProps) {
                 <span>{step.unit}</span>
               </p>
               <p className={styles.step__line}>{copy[step.id].line}</p>
-              <p className={styles.step__foot}>{step.foot}</p>
             </div>
 
             {/*

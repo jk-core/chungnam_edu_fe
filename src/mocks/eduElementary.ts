@@ -229,16 +229,16 @@ export const ELEMENTARY_CONTENT: ElementaryContent = {
         note: (stats) => `4인 가족 ${formatNumber(kwhToHouseholdDays(stats.todayKwh))}집이 하루 쓸 양이에요`,
       },
       insolation: {
-        note: () => '해가 가장 셀 때만 골라서 발전했다면 이만큼 걸렸을 시간이에요',
+        note: () => '가장 센 힘으로 만들면 이만큼 걸려요',
       },
       co2: {
-        note: () => '우리가 만든 만큼 석탄과 가스를 덜 태워서 줄어든 양이에요',
+        note: () => '석탄과 가스를 덜 태워서 줄어든 양이에요',
       },
       irradiance: {
         note: () => '맑은 날 한낮이 100점이에요',
       },
       capacity: {
-        note: () => '우리 학교 설비가 한 번에 만들 수 있는 가장 많은 양이에요',
+        note: () => '한 번에 만들 수 있는 가장 많은 양이에요',
       },
     },
   },
