@@ -4,6 +4,7 @@ import { Button } from '@/components/common/Button';
 import { Card } from '@/components/common/Card';
 import { ConfirmDialog } from '@/components/common/ConfirmDialog';
 import { FileUpload, FormRow, FormSection, RadioGroup, TextArea, TextField } from '@/components/common/Form';
+import { ATTACH_ACCEPT } from '@/configs/upload';
 import { MSG } from '@/configs/messages';
 import { Reveal } from '@/components/common/Reveal';
 import { buildPath } from '@/routes/buildPath';
@@ -15,22 +16,6 @@ import type { BoardAttachment, BoardKind, BoardPost } from '@/interface/board';
 import type { UploadFile } from '@/components/common/Form';
 import styles from '../Guide.module.scss';
 import { canManagePost, KIND_LABEL, useBoardPosts, WRITE_ROLE } from '../hooks/useBoardPosts';
-
-/** 게시판 첨부로 받는 갈래 (SFR-025-06) — 이미지와 문서를 함께 받는다. */
-const ATTACH_ACCEPT = [
-  'image/*',
-  '.pdf',
-  '.hwp',
-  '.hwpx',
-  '.doc',
-  '.docx',
-  '.xls',
-  '.xlsx',
-  '.csv',
-  '.ppt',
-  '.pptx',
-  '.zip',
-].join(',');
 
 /** 올린 파일을 글에 붙일 모양으로 옮긴다 — 사진은 자리까지 안고 가야 글에서 펼쳐진다 */
 function toAttachment(file: UploadFile): BoardAttachment {

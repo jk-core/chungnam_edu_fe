@@ -2,6 +2,7 @@ import { useEffect, useId, useState } from 'react';
 import { CloseIcon, FileIcon, UploadIcon } from '@/components/common/Icon';
 import { MSG } from '@/configs/messages';
 import { Modal } from '@/components/common/Modal';
+import { PHOTO_ACCEPT } from '@/configs/upload';
 import { formatNumber } from '@/utils/format';
 import styles from './Form.module.scss';
 
@@ -35,7 +36,7 @@ export function FileUpload({
   label,
   value,
   onChange,
-  accept = 'image/*',
+  accept = PHOTO_ACCEPT,
   maxCount = 8,
   maxSizeMb = 5,
   onError,
