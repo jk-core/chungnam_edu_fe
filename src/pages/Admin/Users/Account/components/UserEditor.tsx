@@ -12,7 +12,7 @@ import { MSG } from '@/configs/messages';
 import { EMAIL_MAX, NAME_MAX, PASSWORD_HINT, userFormSchema } from '@/service/user/type';
 import { ROLE_LABEL, ROLE_SCOPE_NOTE, SELECTABLE_ROLES } from '@/mocks/accounts';
 import { toast } from '@/stores/toastStore';
-import { useManagedUsers } from '@/pages/Admin/Plants/Equipment/hooks/useEquipmentPickers';
+import { useManagedUsers } from '@/hooks/usePlantAssets';
 import useAssetStore from '@/stores/assetStore';
 import type { UserFormValues } from '@/service/user/type';
 import type { ManagedUser, Role, UserChange } from '@/interface/account';

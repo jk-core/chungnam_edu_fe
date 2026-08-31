@@ -62,6 +62,20 @@ export const NAVIGATION: NavSection[] = [
           'SFR-021-16', 'SFR-021-17', 'SFR-021-18', 'SFR-021-19',
         ],
       },
+      /*
+        등록·수정은 관리자 콘솔이 맡고 여기는 보는 쪽만 맡는다.
+        매일 보는 통계·이력·보고서 뒤에 두는 것은 제원이 가끔 확인하는 값이기 때문이다.
+      */
+      {
+        label: '발전소 정보',
+        path: PATH.ENERGY_PLANT_INFO,
+        description: '고른 발전소의 등록 제원과 설비 구성을 봅니다. 등록·수정은 관리자 콘솔에서 합니다.',
+        needsScope: true,
+        requirements: [
+          'SFR-016-01', 'SFR-016-02',
+          'SFR-017-01', 'SFR-017-02', 'SFR-017-04', 'SFR-017-05', 'SFR-017-06',
+        ],
+      },
     ],
   },
   {

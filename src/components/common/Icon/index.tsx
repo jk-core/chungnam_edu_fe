@@ -102,6 +102,14 @@ export const PulseIcon = (props: IconProps) => (
   </Base>
 );
 
+export const PhotoIcon = (props: IconProps) => (
+  <Base {...props}>
+    <rect x="3" y="5" width="18" height="14" rx="2" />
+    <circle cx="8.5" cy="10" r="1.6" />
+    <path d="M3.5 17.5 9 12.5l3.5 3L16 12l4.5 4.5" />
+  </Base>
+);
+
 export const SchoolIcon = (props: IconProps) => (
   <Base {...props}>
     <path d="M12 3 3 7.5 12 12l9-4.5L12 3Z" />

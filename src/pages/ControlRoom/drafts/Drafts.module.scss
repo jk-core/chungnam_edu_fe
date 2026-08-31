@@ -43,6 +43,15 @@
   grid-template-columns: 300px 440px minmax(0, 1fr);
 }
 
+/* 시안 E — `/control` 과 같은 열 폭. 자리를 그대로 두어야 결의 차이만 눈에 걸린다. */
+.stack {
+  grid-template-columns: 300px minmax(0, 1fr) 420px;
+
+  @include media.kiosk {
+    grid-template-columns: 340px minmax(0, 1fr) 460px;
+  }
+}
+
 /* ── 색 ─────────────────────────────────────────────────────────────────
    판의 생김새는 `ControlRoom.module.scss` 가 쥐고 있고 그 클래스 이름은 해시라 여기서
    부를 수 없다. 대신 토큰(`--brand` 따위)을 이 자리에서 다시 매어 **아래로 흘려보낸다** —

@@ -107,7 +107,6 @@ export function useControlRoomData(): ControlRoomData {
       filters.region !== ALL ? REGIONS.find((item) => item.code === filters.region)?.name ?? null : null,
       filters.level !== ALL ? filters.level : null,
       filters.status !== ALL ? OPERATION_LABEL[filters.status as OperationStatus] : null,
-      filters.org !== ALL ? (filters.org === 'moe' ? '교육부' : '충청남도교육청') : null,
     ].filter((chip): chip is string => Boolean(chip));
 
     if (chips.length === 0) return undefined;

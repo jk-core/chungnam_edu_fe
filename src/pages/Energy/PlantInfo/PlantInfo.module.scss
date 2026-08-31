@@ -1,0 +1,188 @@
+@use "@/styles/tokens/spacing" as s;
+@use "@/styles/tokens/typography" as t;
+@use "@/styles/utils/media" as media;
+@use "@/styles/utils/mixins" as mx;
+
+.tab {
+  display: flex;
+  flex-direction: column;
+  gap: s.$space-4;
+}
+
+/*
+  설명 패널은 폭이 정해져 있고(스파크라인이 248px 로 그려진다) 지도는 남는 자리를 다 쓴다.
+  좁아지면 지도가 아래로 내려가 가로폭을 온전히 받는다 — 눌러 놓으면 어느 동네인지가 안 읽힌다.
+*/
+.summary {
+  display: grid;
+  grid-template-columns: 280px minmax(0, 1fr);
+  gap: s.$space-4;
+
+  @include media.tablet {
+    grid-template-columns: 1fr;
+  }
+
+  &__map {
+    min-width: 0;
+  }
+}
+
+/* 이름과 값이 한 줄에서 마주 본다. 좁아지면 이름 위, 값 아래로 접힌다 */
+.facts {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: s.$space-2 s.$space-4;
+
+  @include media.tablet {
+    grid-template-columns: 1fr;
+  }
+}
+
+.fact {
+  display: grid;
+  grid-template-columns: 96px minmax(0, 1fr);
+  gap: s.$space-3;
+  align-items: baseline;
+  padding-bottom: s.$space-2;
+  border-bottom: 1px solid var(--border-subtle);
+
+  dt {
+    @include t.label-sm;
+
+    color: var(--text-muted);
+  }
+
+  dd {
+    @include t.body-sm;
+
+    color: var(--text-strong);
+    overflow-wrap: anywhere;
+  }
+
+  /* 주소·비고처럼 긴 값은 두 칸을 다 쓴다 — 96px 이름 칸 옆에 눌리면 서너 줄로 접힌다 */
+  &--wide {
+    grid-column: 1 / -1;
+  }
+}
+
+/*
+  설비 카드 판.
+
+  칸 폭을 260px 아래로 내리지 않는다 — 모델명이 그보다 좁아지면 두 줄로 접히고, 접힌 카드와
+  안 접힌 카드가 섞이면 높이가 들쭉날쭉해진다. 넓어지면 칸이 늘어 한 줄에 서너 대가 선다.
+*/
+.units {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: s.$space-3;
+  list-style: none;
+}
+
+.unit {
+  display: flex;
+  flex-direction: column;
+  gap: s.$space-3;
+  height: 100%;
+  padding: s.$space-3;
+  border: 1px solid var(--border-subtle);
+  border-radius: s.$radius-md;
+  background-color: var(--surface-sunken);
+
+  &__head {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    gap: 2px s.$space-2;
+    align-items: center;
+  }
+
+  &__name {
+    @include t.label-md;
+    @include mx.truncate;
+
+    color: var(--text-strong);
+  }
+
+  /* 용량은 이름 아래 두 칸을 가로질러 크게 — 카드에서 눈이 가장 먼저 닿아야 할 값이다 */
+  &__capacity {
+    @include t.data-md;
+
+    grid-column: 1 / -1;
+    color: var(--text-strong);
+
+    span {
+      @include t.label-sm;
+
+      margin-left: 2px;
+      color: var(--text-muted);
+    }
+  }
+
+  &__specs {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: s.$space-2 s.$space-3;
+    padding-top: s.$space-3;
+    border-top: 1px solid var(--border-subtle);
+  }
+}
+
+.spec {
+  min-width: 0;
+
+  dt {
+    @include t.caption;
+
+    color: var(--text-faint);
+  }
+
+  dd {
+    @include t.body-sm;
+
+    color: var(--text-strong);
+    overflow-wrap: anywhere;
+  }
+
+  /* 수신 시각처럼 날짜와 시각이 함께 붙는 값은 두 칸을 다 쓴다 — 반 칸에서는 반드시 접힌다 */
+  &--wide {
+    grid-column: 1 / -1;
+  }
+}
+
+.sensors {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: s.$space-4;
+
+  @include media.tablet {
+    grid-template-columns: 1fr;
+  }
+}
+
+.sensor {
+  display: flex;
+  flex-direction: column;
+  gap: s.$space-3;
+  min-width: 0;
+
+  &__title {
+    @include t.label-md;
+
+    display: flex;
+    align-items: center;
+    gap: s.$space-2;
+    color: var(--text-strong);
+  }
+
+  /* 계측 설비 칸은 한 열로만 세운다 — 두 묶음이 이미 좌우로 갈려 있어 또 나누면 이름 칸이 눌린다 */
+  .facts {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* 표 셀·팝업의 둘째 줄 — 제품명 아래 업체, 이름 아래 주소처럼 곁들이는 값 */
+.sub {
+  @include t.caption;
+
+  display: block;
+  color: var(--text-faint);
+}

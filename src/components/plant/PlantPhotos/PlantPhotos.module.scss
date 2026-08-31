@@ -1,0 +1,182 @@
+@use "@/styles/tokens/spacing" as s;
+@use "@/styles/tokens/typography" as t;
+@use "@/styles/utils/media" as media;
+@use "@/styles/utils/mixins" as mx;
+
+.gallery {
+  display: flex;
+  flex-direction: column;
+  gap: s.$space-2;
+  min-width: 0;
+}
+
+/*
+  사진이 들어앉는 칸.
+
+  장수가 몇이든 칸은 늘 같은 크기·같은 비율이다 — 늘어놓던 때는 한 장인 발전소와 세 장인
+  발전소의 사진 크기가 딴판이어서 같은 자리로 안 읽혔다.
+  테두리와 모서리를 가진 상자라 넘침은 여기서 잘라 낸다. 스크롤은 안쪽 띠가 맡는다.
+*/
+.frame {
+  position: relative;
+  aspect-ratio: 16 / 10;
+  border: 1px solid var(--border-subtle);
+  border-radius: s.$radius-sm;
+
+  /* 사진이 제 비율을 지키면 위아래나 좌우가 남는다. 그 자리는 바탕처럼 가라앉혀 둔다 */
+  background-color: var(--surface-sunken);
+  overflow: hidden;
+}
+
+.track {
+  display: flex;
+  width: 100%;
+  height: 100%;
+  overflow: auto hidden;
+  scroll-snap-type: x mandatory;
+
+  /*
+    미끄러지는 연출은 두지 않는다.
+
+    문서 전체에 `scroll-behavior: smooth` 가 걸려 있어 그대로 두면 이 칸도 물려받는데,
+    브라우저·설정에 따라 그 부드러운 이동이 아예 실행되지 않는 환경이 있다 — 그때는 점을
+    눌러도 사진이 제자리에 서 있다. 자리를 못 가는 것보다 곧바로 가는 편이 낫다.
+  */
+  scroll-behavior: auto;
+
+  /* 세로는 페이지에 넘긴다 — 손가락으로 위아래 훑을 때 사진 칸이 붙잡지 않게 */
+  touch-action: pan-y;
+  scrollbar-width: none;
+
+  /*
+    끌 수 있는 칸이라 안쪽 글자는 잡히지 않게 한다.
+    막지 않으면 옆으로 끄는 동안 자리표시자 문구가 파랗게 잡혀, 사진이 아니라 글을 긁는
+    것처럼 보인다. 캡션과 카운터는 이 칸 밖이라 그대로 고를 수 있다.
+  */
+  user-select: none;
+
+  &::-webkit-scrollbar {
+    display: none;
+  }
+
+  /* 넘길 것이 있을 때만 끌 수 있는 손을 보인다 — 한 장뿐인데 손이 뜨면 눌러도 안 움직인다 */
+  &[data-many] {
+    cursor: grab;
+  }
+
+  /* 끄는 동안에는 스냅을 끈다. 켜 둔 채로는 매 프레임 가까운 칸으로 되돌아가 손을 못 따라온다 */
+  &[data-dragging] {
+    scroll-snap-type: none;
+    cursor: grabbing;
+  }
+}
+
+.slide {
+  display: flex;
+  flex: 0 0 100%;
+  align-items: center;
+  justify-content: center;
+  scroll-snap-align: center;
+  scroll-snap-stop: always;
+}
+
+.image {
+  width: 100%;
+  height: 100%;
+
+  /* 잘라 채우지 않는다 — 지붕 전경은 가장자리가 잘리면 무엇을 찍은 것인지 알 수 없다 */
+  object-fit: contain;
+}
+
+.blank {
+  @include t.caption;
+
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  width: 100%;
+  height: 100%;
+  color: var(--text-faint);
+  text-align: center;
+}
+
+/* 넘기는 단추 — 사진 위에 얹히므로 바탕을 깔아 밝은 사진에서도 보이게 한다 */
+.arrow {
+  position: absolute;
+  top: 50%;
+  z-index: 1;
+  display: grid;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  border-radius: s.$radius-full;
+  background-color: var(--overlay);
+  color: var(--text-inverse);
+  transform: translateY(-50%);
+  transition: background-color 0.16s ease;
+
+  &:hover {
+    background-color: var(--surface-inverse);
+  }
+
+  &--prev {
+    left: s.$space-2;
+  }
+
+  &--next {
+    right: s.$space-2;
+  }
+
+  /* 좁은 칸에서는 손이 아니라 손가락으로 넘긴다 — 단추가 사진의 절반을 덮는다 */
+  @include media.mobile {
+    display: none;
+  }
+}
+
+.counter {
+  @include t.caption;
+
+  position: absolute;
+  right: s.$space-2;
+  bottom: s.$space-2;
+  padding: 1px s.$space-2;
+  border-radius: s.$radius-full;
+  background-color: var(--overlay);
+  color: var(--text-inverse);
+  font-family: var(--font-data);
+}
+
+.caption {
+  @include t.caption;
+  @include mx.truncate;
+
+  color: var(--text-muted);
+}
+
+.dots {
+  display: flex;
+  justify-content: center;
+  gap: 6px;
+}
+
+.dot {
+  width: 7px;
+  height: 7px;
+  border-radius: s.$radius-full;
+  background-color: var(--border-strong);
+  transition: background-color 0.2s ease, width 0.2s ease;
+
+  /* 지금 자리는 색만 바꾸지 않고 길이도 늘린다 — 색만으로 구분되지 않게 (COR-003) */
+  &--on {
+    width: 16px;
+    background-color: var(--brand);
+  }
+}
+
+@include media.reduced-motion {
+  .dot {
+    transition: none;
+  }
+}

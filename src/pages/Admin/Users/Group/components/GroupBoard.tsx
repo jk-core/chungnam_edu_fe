@@ -5,7 +5,7 @@ import { createPath } from '@/pages/Admin/_shared/adminPath';
 import { formatNumber } from '@/utils/format';
 import { PlusIcon } from '@/components/common/Icon';
 import { SearchInput } from '@/components/common/SearchInput';
-import { useManagedUsers } from '@/pages/Admin/Plants/Equipment/hooks/useEquipmentPickers';
+import { useManagedUsers } from '@/hooks/usePlantAssets';
 import styles from '@/pages/Admin/Admin.module.scss';
 import { GroupTable } from './GroupTable';
 

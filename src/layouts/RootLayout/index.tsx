@@ -42,8 +42,16 @@ export default function RootLayout() {
       <Header />
 
       <main id="main" className={styles.main}>
+        {/*
+          진입 연출은 **화면이 바뀔 때만** 돈다.
+
+          `key` 를 전체 경로로 두면 조회 뎁스가 주소에 적히는 순간에도 본문이 통째로 새로
+          만들어져 연출이 다시 돈다 — 발전통계는 맨 주소로 들어오면 보고 있던 발전소를 주소에
+          적어 주므로(`useScopeRoute`), 들어서자마자 두 번 떠올랐다. 인버터를 눌러 한 단
+          파고들 때도 마찬가지였다. 같은 화면 안에서 대상만 좁힌 것은 화면 이동이 아니다.
+        */}
         <motion.div
-          key={pathname}
+          key={screen}
           initial={{ opacity: 0, y: 8 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.24 }}

@@ -8,6 +8,7 @@ import { useKakaoMaps } from '@/hooks/useKakaoMaps';
 import { MapStatusFilter, useStatusFilter } from '@/components/plant/MapStatusFilter';
 import { ChevronLeftIcon, ChevronRightIcon, CloseIcon, PauseIcon, PlayIcon } from '@/components/common/Icon';
 import { PlantDetailPanel } from '@/components/plant/PlantDetailPanel';
+import { PlantPhotos } from '@/components/plant/PlantPhotos';
 import type { School } from '@/interface/energy';
 import styles from './FaultMap.module.scss';
 
@@ -147,17 +148,31 @@ export function FaultMap({ plants, scope = 'faults', height = MAP_HEIGHT, select
         값이 바뀐 것인지 다른 학교로 넘어간 것인지 알 수 없다. 왼쪽으로 밀어내고 오른쪽에서
         밀어 넣어, 넘어갔다는 사실이 움직임으로 읽히게 한다.
       */}
-      <AnimatePresence mode="wait" initial={false}>
-        <motion.div
-          key={openPlant.id}
-          initial={reduceMotion ? false : { opacity: 0, x: 26 }}
-          animate={{ opacity: 1, x: 0 }}
-          exit={reduceMotion ? { opacity: 0 } : { opacity: 0, x: -22 }}
-          transition={{ duration: reduceMotion ? 0.15 : 0.26, ease: [0.22, 0.68, 0.32, 1] }}
-        >
-          <PlantDetailPanel plant={openPlant} />
-        </motion.div>
-      </AnimatePresence>
+      {/*
+        스크롤은 이 안쪽이 맡는다.
+        테두리를 가진 바깥 상자가 스크롤까지 맡으면 미끄러지는 동안 가로로 넘쳐 스크롤바가
+        깜빡 생겼다 사라진다 — 옆으로 밀려난 만큼은 여기서 잘라 낸다.
+      */}
+      <div className={styles.side__scroll}>
+        <AnimatePresence mode="wait" initial={false}>
+          <motion.div
+            key={openPlant.id}
+            initial={reduceMotion ? false : { opacity: 0, x: 26 }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={reduceMotion ? { opacity: 0 } : { opacity: 0, x: -22 }}
+            transition={{ duration: reduceMotion ? 0.15 : 0.26, ease: [0.22, 0.68, 0.32, 1] }}
+          >
+            <PlantDetailPanel plant={openPlant} />
+
+            {/*
+              현장 사진.
+              상황판을 지켜보는 사람은 그 학교에 가 본 적이 없다. 이름과 주소만 들고 현장에
+              전화하면 어디를 말하는지부터 맞춰야 하는데, 사진 몇 장이 그 왕복을 없앤다.
+            */}
+            <PlantPhotos plantId={openPlant.id} className={styles.side__photos} />
+          </motion.div>
+        </AnimatePresence>
+      </div>
     </aside>
   ) : null;
 

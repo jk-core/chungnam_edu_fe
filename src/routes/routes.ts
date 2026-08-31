@@ -31,6 +31,7 @@ export const PATH = {
   CONTROL_B: '/control/b',
   CONTROL_C: '/control/c',
   CONTROL_D: '/control/d',
+  CONTROL_E: '/control/e',
   /** 마이페이지 (SFR-024) */
   MY: '/my',
 
@@ -40,6 +41,7 @@ export const PATH = {
   ENERGY_HISTORY: '/energy/history',
   ENERGY_FIELD_REPORT: '/energy/field-report',
   ENERGY_FIELD_REPORT_NEW: '/energy/field-report/new',
+  ENERGY_PLANT_INFO: '/energy/plant-info',
 
   /** AI진단 (SFR-011, 013~015, 019, 020, 022) */
   AI_DIAGNOSIS: '/ai-diagnosis',

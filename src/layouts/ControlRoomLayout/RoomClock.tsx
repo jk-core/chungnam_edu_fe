@@ -35,7 +35,24 @@ export function RoomClock() {
 
   return (
     <span>
-      <span className={styles.bar__clock}>{timeFormat.format(now)}</span>
+      <span className={styles.bar__clock}>
+        {/*
+          자릿수를 한 칸씩 끊어 세운다.
+
+          글꼴에 따라 숫자 폭이 고르지 않아(Orbitron 은 `1` 과 `0` 이 두 배 넘게 차이 난다)
+          매초 시각이 바뀔 때마다 시계가 옆으로 흔들리고 그 옆 단추까지 밀린다. 자릿수마다
+          같은 폭의 칸을 주고 가운데 세우면, 어떤 글꼴을 얹어도 폭이 움직이지 않는다.
+          콜론은 좁은 글자라 칸을 주지 않는다 — 넣으면 시:분:초 사이가 벌어져 읽기 나쁘다.
+        */}
+        {[...timeFormat.format(now)].map((char, index) => (
+          <span
+            key={`${index}-${char}`}
+            className={char === ':' ? undefined : styles.bar__digit}
+          >
+            {char}
+          </span>
+        ))}
+      </span>
       <span className={styles.bar__date}>
         {dateFormat.format(now)} ({weekdayFormat.format(now)})
       </span>

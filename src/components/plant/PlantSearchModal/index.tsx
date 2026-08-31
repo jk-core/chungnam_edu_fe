@@ -22,7 +22,6 @@ export interface PlantFilters {
   region: string;
   level: string;
   status: string;
-  org: string;
 }
 
 export const EMPTY_FILTERS: PlantFilters = {
@@ -30,19 +29,7 @@ export const EMPTY_FILTERS: PlantFilters = {
   region: ALL,
   level: ALL,
   status: ALL,
-  org: ALL,
 };
-
-/*
- * 기관 필터.
- * 요구사항 원문에는 "기간"으로 적혀 있으나 학교·지역·설비 필터와 함께 묶인 맥락상
- * "기관"의 오타로 보아 이렇게 구현한다 (2026-08-04 회의). 발주처 확인 후 정정 예정.
- */
-const ORG_OPTIONS = [
-  { value: ALL, label: '전체 기관' },
-  { value: 'cne', label: '충청남도교육청' },
-  { value: 'moe', label: '교육부' },
-];
 
 interface PlantSearchModalProps {
   isOpen: boolean;
@@ -77,7 +64,7 @@ export function PlantSearchModal({ isOpen, filters, onClose, onApply, onSelect }
       onClose={onClose}
       size="lg"
       title="발전소 검색"
-      description="학교명·지역·학교급·설비 상태·기관으로 좁혀 봅니다."
+      description="학교명·지역·기관별·설비 상태로 좁혀 봅니다."
       footer={(
         <>
           <Button variant="secondary" onClick={() => setDraft(EMPTY_FILTERS)}>
@@ -103,7 +90,7 @@ export function PlantSearchModal({ isOpen, filters, onClose, onApply, onSelect }
             options={[{ value: ALL, label: '전체 지역' }, ...REGIONS.map((item) => ({ value: item.code, label: item.name }))]}
           />
           <Select
-            label="설비"
+            label="기관별"
             value={draft.level}
             onChange={(value) => setDraft({ ...draft, level: value })}
             options={[{ value: ALL, label: '전체 학교급' }, ...SCHOOL_LEVELS.map((item) => ({ value: item, label: item }))]}
@@ -116,12 +103,6 @@ export function PlantSearchModal({ isOpen, filters, onClose, onApply, onSelect }
             value={draft.status}
             onChange={(value) => setDraft({ ...draft, status: value })}
             options={[{ value: ALL, label: '전체 상태' }, ...OPERATION_ORDER.map((item) => ({ value: item, label: OPERATION_LABEL[item] }))]}
-          />
-          <Select
-            label="기관"
-            value={draft.org}
-            onChange={(value) => setDraft({ ...draft, org: value })}
-            options={ORG_OPTIONS}
           />
         </div>
 
@@ -166,8 +147,6 @@ export function matchPlants(filters: PlantFilters): School[] {
       if (filters.region !== ALL && school.regionCode !== filters.region) return false;
       if (filters.level !== ALL && school.level !== filters.level) return false;
       if (filters.status !== ALL && school.status !== filters.status) return false;
-      // 지금 목업의 발전소는 모두 도교육청 소관이라 교육부를 고르면 결과가 비워진다.
-      if (filters.org === 'moe') return false;
       if (!query) return true;
 
       // 설비명으로도 찾는다 — 인버터 이름만 아는 상태로 오는 경우가 있다 (SFR-004-11).

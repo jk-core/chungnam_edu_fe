@@ -2,6 +2,7 @@ import { Navigate, useParams } from 'react-router-dom';
 import { PATH } from '@/routes/routes';
 import FieldReportPage from './FieldReport';
 import HistoryPage from './History';
+import PlantInfoPage from './PlantInfo';
 import StatisticsPage from './Statistics';
 
 /**
@@ -15,6 +16,7 @@ const TABS = {
   statistics: StatisticsPage,
   history: HistoryPage,
   'field-report': FieldReportPage,
+  'plant-info': PlantInfoPage,
 } as const;
 
 type TabKey = keyof typeof TABS;

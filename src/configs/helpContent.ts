@@ -49,6 +49,16 @@ export const HELP_CONTENT: Record<string, HelpTopic> = {
     ],
     errorCodes: ['FIL-001'],
   },
+  [PATH.ENERGY_PLANT_INFO]: {
+    overview: '고른 발전소의 등록 제원과 설비 구성을 봅니다. 값을 고치는 것은 관리자 콘솔에서 합니다.',
+    steps: [
+      '좌측 조회 대상에서 발전소를 고릅니다.',
+      '등록 정보에서 주소·준공·시공 업체·담당자를 확인합니다.',
+      '설비 구성 표에서 인버터별 제품·모듈 구성·설치 각도를 봅니다.',
+      '값이 올라오지 않으면 계측 설비의 RTU·일사량계 상태를 먼저 확인합니다.',
+    ],
+    errorCodes: ['DAT-002'],
+  },
   [PATH.AI_DIAGNOSIS_OVERVIEW]: {
     overview: '설비별 진단 현황과 일자별 발전 효율을 한 화면에서 봅니다.',
     steps: [

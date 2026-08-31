@@ -28,6 +28,7 @@ export function ControlRoomBoard() {
       alertTone={data.alertTone}
       onSearch={() => setIsSearchOpen(true)}
       searchSummary={data.searchSummary}
+      collectedAt={data.collection.latest}
     >
       <div className={styles.grid}>
         <SummaryColumn plants={data.rows} totals={data.totals} />

@@ -23,6 +23,15 @@ interface ControlRoomLayoutProps {
   onSearch: () => void;
   /** 걸어 둔 조건 요약. 없으면 안내 문구를 대신 띄운다 */
   searchSummary?: string;
+  /** 화면에 깔린 값이 언제 수집된 것인지 (`YYYY-MM-DD HH:mm`) */
+  collectedAt?: string;
+  /**
+   * 화면의 결. 주지 않으면 서비스 기본 색을 쓴다.
+   *
+   * 시안을 견주는 동안에만 쓴다 — 판과 값은 그대로 두고 색·글꼴만 갈아 끼워,
+   * 무엇 때문에 다르게 읽히는지가 그 하나로 좁혀지게 한다.
+   */
+  skin?: 'cyber';
   children: ReactNode;
 }
 
@@ -36,13 +45,15 @@ export function ControlRoomLayout({
   alertTone,
   onSearch,
   searchSummary,
+  collectedAt,
+  skin,
   children,
 }: ControlRoomLayoutProps) {
   const { isFullscreen, toggle: toggleFullscreen } = useFullscreen();
 
   return (
     /* 결을 화면 전체가 물려받는다 — 바탕과 가장자리가 같은 색으로 함께 점등한다 */
-    <div className={styles.room} data-alert={alertTone ?? undefined}>
+    <div className={styles.room} data-alert={alertTone ?? undefined} data-skin={skin}>
       {/* 멀리서도 "지금 뭔가 잘못됐다" 가 읽히도록 화면 가장자리가 맥동한다 */}
       {/*
         가장자리 경보 등 — 상시 점멸이 되어 걷어냈다(2026-08-21 회의). 되살릴 때는 이 줄만 풀면 된다.
@@ -64,13 +75,23 @@ export function ControlRoomLayout({
         </div>
 
         <div className={styles.bar__right}>
-          {/* 조회 조건 (SFR-004-11/12). 최근 수집 시각은 수집 연동 현황 판이 맡는다. */}
+          {/* 조회 조건 (SFR-004-11/12) */}
           <button type="button" className={styles.search} onClick={onSearch}>
             <SearchIcon width={16} height={16} aria-hidden />
             <span className={styles.search__text}>
               {searchSummary ?? '학교·설비 검색'}
             </span>
           </button>
+
+          {/*
+            화면에 깔린 값이 언제 기준인지.
+            벽시계 옆에 붙여 지금 시각과 곧바로 견주게 한다 — 둘이 벌어져 있으면 그 자체가
+            수집이 밀렸다는 신호다 (SFR-004-04/05).
+          */}
+          <span className={styles.collected}>
+            최근 수집
+            <strong>{collectedAt}</strong>
+          </span>
 
           <RoomClock />
 
