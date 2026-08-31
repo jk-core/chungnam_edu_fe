@@ -2,7 +2,7 @@ import { useRef } from 'react';
 import { Button } from '@/components/common/Button';
 import { CHECK_LABEL, REPORT_STATE_LABEL, STATE_ORDER } from '@/mocks/fieldReport';
 import { cn } from '@/utils/cn';
-import { DownloadIcon, PrinterIcon, UserIcon } from '@/components/common/Icon';
+import { DownloadIcon, PrinterIcon } from '@/components/common/Icon';
 import { Modal } from '@/components/common/Modal';
 import { usePrint } from '@/hooks/usePrint';
 import { useReportPdf } from '@/hooks/useReportPdf';
@@ -18,11 +18,10 @@ interface ReportDetailProps {
   onClose: () => void;
   onEdit: (report: FieldReport) => void;
   onReject: (report: FieldReport) => void;
-  onShare: (report: FieldReport) => void;
 }
 
 /** 보고서 한 건 펼쳐 보기 — 상태 흐름, 점검 항목, 사진, 이력 (SFR-021) */
-export function ReportDetail({ report, onClose, onEdit, onReject, onShare }: ReportDetailProps) {
+export function ReportDetail({ report, onClose, onEdit, onReject }: ReportDetailProps) {
   const { permission, templateOf } = useFieldReports();
   const { advance } = useReportWorkflow();
   const print = usePrint();
@@ -54,9 +53,6 @@ export function ReportDetail({ report, onClose, onEdit, onReject, onShare }: Rep
               {busy ? '내려받는 중…' : 'PDF 내려받기'}
             </Button>
             <Button variant="secondary" iconLeft={<PrinterIcon />} onClick={() => print(filename)}>인쇄</Button>
-            {permission.canShare ? (
-              <Button variant="secondary" iconLeft={<UserIcon />} onClick={() => onShare(report)}>관계자 공유</Button>
-            ) : null}
             {permission.canEdit(report) ? (
               <Button variant="secondary" onClick={() => onEdit(report)}>
                 {report.state === 'rejected' ? '수정 후 재기안' : '수정'}

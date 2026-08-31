@@ -13,7 +13,6 @@ export interface FieldPermission {
   canWrite: boolean;
   /** 작성 버튼을 막은 이유 — 버튼 옆에 그대로 적는다 */
   writeBlockedReason?: string;
-  canShare: boolean;
   /** 이 보고서를 다음 단계로 넘길 수 있는지 */
   canAdvance: (report: FieldReport) => boolean;
   /** 이 보고서를 반려로 되돌릴 수 있는지 (SFR-021-08) */
@@ -44,7 +43,6 @@ export function getFieldPermission(user: AuthUser | null): FieldPermission {
     return {
       canWrite: false,
       writeBlockedReason: '작성은 수용가 권한입니다. 제출된 보고서를 검토·확인하거나 반려할 수 있습니다.',
-      canShare: true,
       canAdvance: (report) => report.state !== 'draft' && report.state !== 'rejected' && !isLast(report.state),
       canReject: (report) => REJECTABLE.includes(report.state),
       // 검토자는 남의 보고서 내용을 고치지 않는다 — 되돌려 보내고 현장이 고친다.
@@ -56,7 +54,6 @@ export function getFieldPermission(user: AuthUser | null): FieldPermission {
   if (isScoped) {
     return {
       canWrite: true,
-      canShare: true,
       // 제출까지만 — 검토·확인은 교육청이 판단한다.
       canAdvance: (report) => canRead(report)
         && report.state !== 'rejected'
@@ -70,7 +67,6 @@ export function getFieldPermission(user: AuthUser | null): FieldPermission {
 
   return {
     canWrite: true,
-    canShare: true,
     canAdvance: (report) => report.state !== 'rejected' && !isLast(report.state),
     canReject: (report) => REJECTABLE.includes(report.state),
     canEdit: (report) => report.state !== 'confirmed',

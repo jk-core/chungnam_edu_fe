@@ -10,7 +10,6 @@ import { useFieldReports } from '../hooks/useFieldReports';
 import { useReportWorkflow } from '../hooks/useReportWorkflow';
 import { ReportEditor } from './editor/ReportEditor';
 import { FieldCompareModal } from './FieldCompareModal';
-import { FieldShareModal } from './FieldShareModal';
 import { InspectionSchedule } from './InspectionSchedule';
 import { RejectModal } from './RejectModal';
 import { RepeatNotice } from './RepeatNotice';
@@ -32,7 +31,6 @@ export function FieldReportBoard() {
 
   const [openId, setOpenId] = useState<string | null>(null);
   const [writing, setWriting] = useState<WriteIntent | null>(null);
-  const [sharing, setSharing] = useState<FieldReport | null>(null);
   const [rejecting, setRejecting] = useState<FieldReport | null>(null);
   // 나란히 비교할 두 건 (SFR-021-12)
   const [picked, setPicked] = useState<string[]>([]);
@@ -103,7 +101,6 @@ export function FieldReportBoard() {
           onClose={() => setOpenId(null)}
           onEdit={startEditing}
           onReject={setRejecting}
-          onShare={setSharing}
         />
       ) : null}
 
@@ -125,8 +122,6 @@ export function FieldReportBoard() {
         reports={pickedReports}
         onClose={() => setIsComparing(false)}
       />
-
-      <FieldShareModal report={sharing} onClose={() => setSharing(null)} onShare={workflow.share} />
 
       {/* 점검 일정은 현장 점검과 한 흐름이라 보고서 아래 붙여 둔다 (SFR-021-19). */}
       <InspectionSchedule />
