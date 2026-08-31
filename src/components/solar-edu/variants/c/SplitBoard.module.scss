@@ -1,0 +1,214 @@
+@use "@/styles/tokens/spacing" as s;
+@use "@/styles/tokens/typography" as t;
+@use "@/styles/utils/media" as media;
+
+/*
+  위는 오늘, 아래는 원리.
+
+  화면을 가로로 한 번 자른다 — 위 단은 날마다 바뀌는 값(곡선과 환산), 아래 단은 늘 같은 원리다.
+  매일 달라지는 것을 위에 두면 지나가며 보는 사람이 먼저 보고, 어제와 무엇이 다른지가
+  한눈에 잡힌다.
+
+  아래 단이 가로 전폭인 것은 네 단계가 한 줄로 이어지는 이야기이기 때문이다 —
+  좌우로 접으면 그 이어짐이 끊긴다.
+*/
+.split {
+  display: grid;
+  grid-template-columns: minmax(0, 1.45fr) minmax(0, 1fr);
+  grid-template-rows: minmax(0, 1fr) minmax(0, 1.1fr);
+  gap: s.$space-3;
+  height: 100%;
+  min-height: 0;
+
+  /* 아래 단은 두 열을 다 쓴다 */
+  > :last-child {
+    grid-column: 1 / -1;
+  }
+
+  @include media.tablet {
+    grid-template-columns: 1fr;
+    grid-template-rows: none;
+    height: auto;
+
+    > :last-child {
+      grid-column: auto;
+    }
+  }
+}
+
+.panel {
+  display: flex;
+  flex-direction: column;
+  gap: s.$space-3;
+  min-height: 0;
+  overflow: hidden;
+  padding: s.$space-4 s.$space-5;
+  border: 1px solid var(--border-subtle);
+  border-radius: s.$radius-lg;
+  background-color: var(--surface);
+  box-shadow: var(--shadow-sm);
+
+  &__head {
+    @include t.title-md;
+
+    display: flex;
+    align-items: baseline;
+    gap: s.$space-3;
+    flex-shrink: 0;
+    flex-wrap: wrap;
+    color: var(--text-strong);
+  }
+
+  &__note {
+    @include t.body-md;
+
+    color: var(--text-muted);
+  }
+}
+
+// ── 위 왼쪽 · 오늘의 곡선 ──────────────────────────────────
+.curve {
+  display: flex;
+  flex: 1;
+  min-height: 0;
+  border-radius: s.$radius-md;
+  background-color: var(--surface-sunken);
+}
+
+/* 곡선을 읽는 법 — 시안 A 는 두 덩이를 붙이는데 여기서는 한 줄만 남긴다 */
+.read {
+  @include t.body-lg;
+
+  flex: none;
+  padding-left: s.$space-3;
+  border-left: 3px solid var(--solar);
+  color: var(--text-muted);
+}
+
+// ── 위 오른쪽 · 환산 석 장 ─────────────────────────────────
+.gains {
+  display: grid;
+  grid-auto-rows: minmax(min-content, 1fr);
+  gap: s.$space-2;
+  flex: 1;
+  min-height: 0;
+  list-style: none;
+}
+
+.gain {
+  display: grid;
+  grid-template-columns: 52px minmax(0, 1fr);
+  align-items: center;
+  gap: s.$space-3;
+  min-height: 0;
+  padding: s.$space-2 s.$space-4;
+  border-radius: s.$radius-md;
+  background-color: var(--surface-sunken);
+
+  &__art {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    aspect-ratio: 1;
+    border-radius: 50%;
+    background-color: var(--surface);
+
+    svg {
+      width: 74%;
+      height: 74%;
+    }
+  }
+
+  &__text {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+    min-width: 0;
+  }
+
+  &__label {
+    @include t.label-md;
+
+    color: var(--text-muted);
+  }
+
+  &__value {
+    @include t.data-lg;
+
+    display: flex;
+    align-items: baseline;
+    gap: 4px;
+    color: var(--text-strong);
+
+    span {
+      @include t.label-md;
+
+      color: var(--text-muted);
+    }
+  }
+}
+
+// ── 아래 전폭 · 계통도와 네 단계 ───────────────────────────
+
+/*
+  계통도를 가로로 길게 눕히고 그 아래에 네 단계를 나란히 세운다.
+  그림이 먼저 전체를 보이고, 글이 그 아래에서 자리마다 무슨 일인지를 받는다.
+*/
+.line {
+  flex: 1;
+  min-height: 0;
+  border-radius: s.$radius-md;
+  background: linear-gradient(180deg, var(--sky-top) 0%, var(--surface-sunken) 100%);
+
+  > svg {
+    width: 100%;
+    height: 100%;
+  }
+}
+
+.stages {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: s.$space-4;
+  flex: none;
+  list-style: none;
+
+  @include media.tablet {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+.stage {
+  min-width: 0;
+
+  &__term {
+    @include t.title-sm;
+
+    display: flex;
+    align-items: center;
+    gap: s.$space-2;
+    color: var(--text-strong);
+  }
+
+  &__no {
+    @include t.label-sm;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 24px;
+    height: 24px;
+    flex-shrink: 0;
+    border-radius: s.$radius-full;
+    background-color: var(--brand);
+    color: var(--text-on-brand);
+    font-family: var(--font-data);
+  }
+
+  &__body {
+    @include t.body-md;
+
+    margin-top: 3px;
+    color: var(--text-muted);
+  }
+}

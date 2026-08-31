@@ -1,0 +1,222 @@
+@use "@/styles/tokens/spacing" as s;
+@use "@/styles/tokens/typography" as t;
+@use "@/styles/utils/media" as media;
+
+/*
+  위에서 아래로 읽는 세 단.
+
+  세 단이 모두 가로 전폭이다. 칸을 좌우로 나눠 놓으면 어디부터 읽을지 눈이 한 번 고르는데,
+  세로로 쌓으면 고를 것이 없다 — 읽는 순서가 곧 이야기 순서가 된다.
+
+  아래로 갈수록 단이 얕아진다. 위가 설명이고 아래로 갈수록 값이라, 필요한 높이가 줄어든다.
+*/
+.stack {
+  display: grid;
+  grid-template-rows: minmax(0, 1.35fr) minmax(0, 1fr) auto;
+  gap: s.$space-3;
+  height: 100%;
+  min-height: 0;
+
+  @include media.tablet {
+    grid-template-rows: none;
+    height: auto;
+  }
+}
+
+.band {
+  display: flex;
+  flex-direction: column;
+  gap: s.$space-3;
+  min-height: 0;
+  overflow: hidden;
+  padding: s.$space-4 s.$space-5;
+  border: 1px solid var(--border-subtle);
+  border-radius: s.$radius-lg;
+  background-color: var(--surface);
+  box-shadow: var(--shadow-sm);
+
+  &__head {
+    @include t.title-md;
+
+    display: flex;
+    align-items: baseline;
+    gap: s.$space-3;
+    flex-shrink: 0;
+    flex-wrap: wrap;
+    color: var(--text-strong);
+  }
+
+  &__note {
+    @include t.body-md;
+
+    color: var(--text-muted);
+  }
+}
+
+// ── 1단 · 어떻게 만들어지나 ────────────────────────────────
+
+/*
+  그림 한 장 옆에 네 단계가 둘씩 두 줄로 선다.
+  넷을 가로로 늘어놓으면 한 칸이 좁아 설명이 다섯 줄로 접히고, 둘씩 접으면 두 줄에서 끝난다.
+*/
+.flow {
+  display: grid;
+  grid-template-columns: minmax(0, 0.85fr) minmax(0, 1.15fr);
+  align-items: center;
+  gap: s.$space-5;
+  flex: 1;
+  min-height: 0;
+
+  @include media.tablet {
+    grid-template-columns: 1fr;
+  }
+
+  &__art {
+    min-height: 120px;
+    height: 100%;
+    border-radius: s.$radius-md;
+    background: linear-gradient(180deg, var(--sky-top) 0%, var(--surface-sunken) 100%);
+  }
+
+  &__steps {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: s.$space-3 s.$space-5;
+    list-style: none;
+
+    @include media.tablet {
+      grid-template-columns: 1fr;
+    }
+  }
+}
+
+.stage {
+  min-width: 0;
+
+  &__term {
+    @include t.title-sm;
+
+    display: flex;
+    align-items: center;
+    gap: s.$space-2;
+    color: var(--text-strong);
+  }
+
+  &__no {
+    @include t.label-sm;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 24px;
+    height: 24px;
+    flex-shrink: 0;
+    border-radius: s.$radius-full;
+    background-color: var(--brand);
+    color: var(--text-on-brand);
+    font-family: var(--font-data);
+  }
+
+  &__body {
+    @include t.body-md;
+
+    margin-top: 3px;
+    color: var(--text-muted);
+  }
+}
+
+// ── 2단 · 오늘 얼마나 만들었나 ─────────────────────────────
+.today {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 320px;
+  align-items: center;
+  gap: s.$space-5;
+  flex: 1;
+  min-height: 0;
+
+  @include media.tablet {
+    grid-template-columns: 1fr;
+  }
+
+  &__curve {
+    display: flex;
+    min-height: 0;
+    height: 100%;
+    border-radius: s.$radius-md;
+    background-color: var(--surface-sunken);
+  }
+
+  /* 곡선을 읽는 법 — 한 줄만 붙인다. 곡선 옆에 세워 두면 그림과 글이 마주 본다 */
+  &__read {
+    @include t.body-lg;
+
+    padding-left: s.$space-3;
+    border-left: 3px solid var(--solar);
+    color: var(--text-muted);
+  }
+}
+
+// ── 3단 · 그래서 뭐가 좋아졌나 ─────────────────────────────
+.gains {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: s.$space-3;
+  flex: none;
+  list-style: none;
+
+  @include media.tablet {
+    grid-template-columns: 1fr;
+  }
+}
+
+.gain {
+  display: grid;
+  grid-template-columns: 52px minmax(0, 1fr);
+  align-items: center;
+  gap: s.$space-3;
+  padding: s.$space-2 s.$space-4;
+  border-radius: s.$radius-md;
+  background-color: var(--surface-sunken);
+
+  &__art {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    aspect-ratio: 1;
+    border-radius: 50%;
+    background-color: var(--surface);
+
+    svg {
+      width: 74%;
+      height: 74%;
+    }
+  }
+
+  &__text {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+    min-width: 0;
+  }
+
+  &__label {
+    @include t.label-md;
+
+    color: var(--text-muted);
+  }
+
+  &__value {
+    @include t.data-lg;
+
+    display: flex;
+    align-items: baseline;
+    gap: 4px;
+    color: var(--text-strong);
+
+    span {
+      @include t.label-md;
+
+      color: var(--text-muted);
+    }
+  }
+}
