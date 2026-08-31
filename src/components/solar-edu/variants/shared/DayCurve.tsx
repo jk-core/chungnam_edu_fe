@@ -9,7 +9,11 @@ import type { EChartsOption } from 'echarts';
 
 const AXIS_FONT = { fontSize: 11, fontFamily: 'Space Grotesk, sans-serif' };
 
-/** 좁은 화면에서도 축과 범례가 겹치지 않는 최소 높이 */
+/**
+ * 좁은 화면에서도 축과 범례가 겹치지 않는 최소 높이.
+ * `DayCurve.module.scss` 의 `.slot` 바닥과 같은 값이어야 한다 — 한쪽만 고치면 그림이
+ * 칸 밖으로 나와 아래 글 위에 겹쳐 그려진다.
+ */
 const MIN_HEIGHT = 140;
 
 interface DayCurveProps {

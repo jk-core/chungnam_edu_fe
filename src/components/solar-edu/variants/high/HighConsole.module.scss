@@ -150,7 +150,13 @@
 
 .graph {
   width: 100%;
-  max-height: 160px;
+
+  /*
+    글씨를 키운 뒤로 아래 판정 기록이 밀려 잘렸다 — 그림은 장식이므로 먼저 양보한다.
+    폭이 좁아지면 위 단계 이름표가 두 줄로 접히면서 한 번 더 자리를 가져가므로, 거기까지 버틸
+    만큼 낮춰 둔다.
+  */
+  max-height: 80px;
 
   &__edge {
     stroke: var(--border);
@@ -273,7 +279,9 @@
   flex-direction: column;
   align-items: center;
   gap: 2px;
-  padding: s.$space-4;
+
+  /* 글씨를 키운 뒤로 아래 소견 줄이 밀려 잘렸다 — 이 칸이 먼저 자리를 내준다 */
+  padding: s.$space-3;
   border: 1px solid var(--tone, var(--ai-done));
   border-radius: s.$radius-md;
   background-color: color-mix(in srgb, var(--tone, var(--ai-done)) 12%, transparent);
@@ -297,7 +305,7 @@
   &__value {
     color: var(--text-strong);
     font-family: var(--font-data);
-    font-size: 46px;
+    font-size: 2.25rem;
     font-weight: 700;
     line-height: 1;
     font-variant-numeric: tabular-nums;
@@ -333,7 +341,9 @@
   display: flex;
   flex: 1;
   flex-direction: column;
-  gap: s.$space-2;
+
+  /* 다섯 줄이 굴리지 않고 다 서야 한다 — 글씨를 키운 만큼 사이를 좁힌다 */
+  gap: 4px;
   min-height: 0;
   overflow-y: auto;
   overscroll-behavior: contain;

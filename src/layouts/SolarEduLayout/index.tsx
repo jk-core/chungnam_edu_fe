@@ -5,6 +5,7 @@ import { WeatherIcon } from '@/components/common/DataCalendar/WeatherIcon';
 import { WEATHER_META } from '@/mocks/weather';
 import { PATH } from '@/routes/routes';
 import { useFullscreen } from '@/hooks/useFullscreen';
+import { useRootClass } from '@/hooks/useRootClass';
 import type { WeatherKind } from '@/interface/weather';
 import styles from './SolarEduLayout.module.scss';
 import type { ReactNode } from 'react';
@@ -70,6 +71,13 @@ export function SolarEduLayout({
   children,
 }: SolarEduLayoutProps) {
   const { isFullscreen, toggle: toggleFullscreen } = useFullscreen();
+
+  /*
+    멀리서 읽는 화면이라 글씨 기준을 한 단계 키운다 (SFR-005-04).
+    `rem` 기준은 문서 뿌리에서만 정해지므로 클래스도 뿌리에 붙인다 — 크기 자체는
+    `_global.scss` 의 `html.solar-edu` 한 곳에 있다.
+  */
+  useRootClass('solar-edu');
 
   return (
     <div className={cn(styles.edu, { [styles['edu--backdrop']]: Boolean(backdrop) })}>

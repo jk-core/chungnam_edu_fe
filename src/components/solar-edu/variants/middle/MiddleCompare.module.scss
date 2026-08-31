@@ -7,11 +7,16 @@
 
   가운데 세 짝이 화면의 주인공이라 남는 높이를 그쪽에 몰아주되, 아래 두 칸에 최소 높이를
   **먼저** 떼어 준다 — 짝이 높이를 다 먹으면 아래 칸이 눌려 글자가 서로 겹친다.
+
+  칸 사이는 좁게 잡는다. 글씨를 키운 뒤로는 여백 한 칸이 곧 막대 높이라, 넉넉히 두면
+  정작 견주라고 세운 막대가 사라진다.
 */
 .board {
   display: grid;
-  grid-template-rows: auto minmax(0, 1fr) auto minmax(240px, 0.7fr);
-  gap: s.$space-3;
+
+  /* 아래 칸의 바닥은 곡선이 그려지는 최소 높이(140px)에 제목·설명 줄을 더해 잡는다 */
+  grid-template-rows: auto minmax(0, 1fr) auto minmax(248px, 0.7fr);
+  gap: s.$space-2;
   height: 100%;
   min-height: 0;
 
@@ -144,7 +149,7 @@
   &__value {
     color: var(--text-strong);
     font-family: var(--font-data);
-    font-size: 20px;
+    font-size: 1.25rem;
     font-weight: 700;
     line-height: 1.1;
     font-variant-numeric: tabular-nums;
@@ -243,10 +248,10 @@
 
 .facts {
   /*
-    값 여섯 줄.
+    비교에 쓰인 값들.
 
     두 열로 접어 위쪽에만 붙여 두었더니 칸의 아래 절반이 통째로 비었다. 한 열로 펴서 남는 높이에
-    고르게 벌려 세우면 같은 여섯 줄이 칸을 채우고, 이름과 값이 한 줄에서 좌우로 마주 보게 되어
+    고르게 벌려 세우면 같은 줄들이 칸을 채우고, 이름과 값이 한 줄에서 좌우로 마주 보게 되어
     읽기도 낫다.
   */
   &__list {

@@ -94,11 +94,14 @@
     min-width: 0;
 
     /*
-      한 칸이 174px 밑으로 내려가면 값이 가로로 넘치고 설명이 잘린다 — 가장 긴 값과 라벨을 재어
-      나온 하한이다. 다섯을 한 줄에 세우려면 그만한 폭이 필요하고, 안 되면 줄을 나누는 편이
-      글자가 잘리는 것보다 낫다. 벽걸이 해상도에서는 늘 한 줄이다.
+      한 칸이 220px 밑으로 내려가면 값이 가로로 넘친다 — 가장 긴 값(도 전체의 설비용량
+      18,773.0kW)을 재어 나온 하한이다. 다섯을 한 줄에 세우려면 그만한 폭이 필요하고,
+      안 되면 줄을 나누는 편이 글자가 잘리는 것보다 낫다. 벽걸이 해상도에서는 늘 한 줄이다.
+
+      하한이 174px 에서 올라온 것은 글씨를 1.25배로 키웠기 때문이다 — 칸 수를 정하는 기준은
+      글자 크기에 매여 있으므로, 글씨를 다시 손보면 이 값도 함께 재야 한다.
     */
-    @media (width <= 1240px) {
+    @media (width <= 1480px) {
       grid-template-columns: repeat(3, minmax(0, 1fr));
     }
 
@@ -117,28 +120,28 @@
     }
 
     .headline__value {
-      font-size: 64px;
+      font-size: 4rem;
     }
 
     .headline__label,
     .headline__note {
-      font-size: 15px;
+      font-size: 0.9375rem;
     }
 
     .stat__value {
-      font-size: 30px;
+      font-size: 1.875rem;
     }
 
     .stat__label,
     .stat__note {
-      font-size: 14px;
+      font-size: 0.875rem;
     }
 
     /*
       글씨가 한 단계 크고 왼쪽 수치 칸도 그만큼 넓어, 같은 폭에서 한 칸이 더 좁아진다.
       중·고등이 셋으로 버티는 구간에서 초등은 이미 값이 넘치므로 한 칸 먼저 내려놓는다.
     */
-    @media (width <= 1240px) {
+    @media (width <= 1480px) {
       .headline__list {
         grid-template-columns: repeat(2, minmax(0, 1fr));
       }
@@ -275,7 +278,9 @@
     display: flex;
     flex-direction: column;
     justify-content: center;
-    gap: s.$space-4;
+
+    /* 글씨를 키운 뒤로 두 덩이가 칸 높이에 빠듯하다 — 사이를 좁혀 글이 잘리지 않게 한다 */
+    gap: s.$space-2;
     min-height: 0;
   }
 }
@@ -296,7 +301,12 @@
 
     margin-top: 3px;
     color: var(--text-muted);
-    line-height: 1.65;
+
+    /*
+      글씨를 키우면서 줄 사이를 함께 넓히면 두 덩이가 칸을 넘긴다.
+      키운 것은 글자이고, 줄 사이는 글자가 커진 만큼 이미 벌어져 있다.
+    */
+    line-height: 1.55;
   }
 }
 
@@ -462,10 +472,10 @@
 .journey {
   display: flex;
   flex-direction: column;
-  gap: s.$space-4;
+  gap: 6px;
   min-height: 0;
   overflow: hidden;
-  padding: s.$space-4 s.$space-5;
+  padding: s.$space-2 s.$space-5;
   border: 1px solid var(--border-subtle);
   border-radius: s.$radius-lg;
   background-color: var(--surface);
@@ -494,7 +504,13 @@
   */
   &__art {
     flex: 1 1 auto;
-    min-height: 96px;
+
+    /*
+      그림이 내려앉을 수 있는 바닥.
+      글씨를 키운 뒤로 이 칸의 자리가 줄어, 바닥이 높으면 그림이 자리를 붙들고 아래 글이 잘린다 —
+      잘린 글은 쓰지 않은 글과 같으므로 양보하는 쪽은 그림이다.
+    */
+    min-height: 44px;
 
     /* 굴려 보는 화면에서는 받을 자리가 넉넉해 그림만 끝없이 커진다 — 위쪽을 묶는다 */
     max-height: 240px;
@@ -577,7 +593,7 @@
 .topic {
   flex: 1;
   min-height: 0;
-  padding: s.$space-3 s.$space-4;
+  padding: s.$space-2 s.$space-3;
   border-left: 2px solid var(--brand);
   border-radius: s.$radius-sm;
   background-color: var(--surface-sunken);
