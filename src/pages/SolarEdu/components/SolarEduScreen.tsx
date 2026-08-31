@@ -1,4 +1,5 @@
 import { EDU_HEADLINE } from '@/mocks/eduCards';
+import { QuietBackdrop } from '@/components/solar-edu/variants/c/QuietBackdrop';
 import { EDU_VARIANT_LABEL } from '@/components/solar-edu/variants/EduBoard';
 import { HeadlineStrip } from '@/components/solar-edu/HeadlineStrip';
 import { SkyBackdrop } from '@/components/solar-edu/SkyBackdrop';
@@ -47,13 +48,24 @@ export function SolarEduScreen({ variant }: { variant?: EduVariant }) {
   */
   const headline = variant === 'c' ? EDU_HEADLINE[content.level] : content.headline;
 
+  /*
+    화면 뒤에 까는 그림.
+
+    초등은 어느 시안이든 밝은 하늘을 깐다 — 그림이 주인공인 판이라 그 편이 맞다.
+    시안 C 는 중·고등에도 배경을 깔되 결이 다르다. 카드가 주인공이므로 배경은 뒤로 물러나고,
+    색을 토큰으로만 그려 화면 모드를 그대로 따른다.
+  */
+  const isQuiet = variant === 'c' && !isKid;
+  const backdrop = isKid ? <SkyBackdrop nowHour={nowHour} /> : isQuiet ? <QuietBackdrop nowHour={nowHour} /> : undefined;
+
   return (
     <SolarEduLayout
       scopeLabel={node.fullName}
       variantLabel={variant ? EDU_VARIANT_LABEL[variant][content.level] : undefined}
       scopeInfo={scopeInfo}
       scopePicker={<SchoolPicker plantId={plant?.id ?? null} variant={variant} />}
-      backdrop={isKid ? <SkyBackdrop nowHour={nowHour} /> : undefined}
+      backdrop={backdrop}
+      backdropTone={isQuiet ? 'theme' : 'bright'}
       levelPicker={<LevelPicker />}
       weather={weather}
       isLive={stats.isLive}

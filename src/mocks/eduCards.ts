@@ -78,6 +78,18 @@ function impactCard(id: ImpactId, art: ImpactArtId, title: string, line: string)
   };
 }
 
+/**
+ * 계통 네 자리의 색.
+ * 햇빛에서 학교로 갈수록 색이 옮겨 간다 — 번호를 세지 않아도 어느 대목인지 잡힌다.
+ * 시안 B·D 의 원리 띠가 쓰는 것과 같은 짝이라, 시안을 오가도 같은 자리가 같은 색이다.
+ */
+export const STAGE_TONE: Record<string, 'solar' | 'brand' | 'ok'> = {
+  sun: 'solar',
+  cell: 'solar',
+  inverter: 'brand',
+  school: 'ok',
+};
+
 /** 계통 네 자리에서 그때그때 읽히는 값 */
 const STAGE_READOUT: Record<string, (stats: EduStats) => SceneReadout> = {
   sun: (stats) => ({

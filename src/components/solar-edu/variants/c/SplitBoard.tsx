@@ -1,5 +1,5 @@
 import { CountUp } from '@/components/common/CountUp';
-import { EDU_ROOMY } from '@/mocks/eduCards';
+import { EDU_ROOMY, STAGE_TONE } from '@/mocks/eduCards';
 import { IMPACT_DEFS, impactFigure } from '@/mocks/eduContent';
 import type { EduStats } from '@/mocks/solarEdu';
 import { DayCurve } from '../shared/DayCurve';
@@ -95,7 +95,7 @@ export function SplitBoard({ stats }: SplitBoardProps) {
 
         <ol className={styles.stages}>
           {script.principle.stages.map((stage) => (
-            <li key={stage.id} className={styles.stage}>
+            <li key={stage.id} className={styles.stage} data-tone={STAGE_TONE[stage.id]}>
               <p className={styles.stage__term}>
                 <span className={styles.stage__no}>{stage.step}</span>
                 {stage.term}

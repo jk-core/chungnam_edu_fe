@@ -13,7 +13,7 @@
 .stack {
   display: grid;
   grid-template-rows: minmax(0, 1.35fr) minmax(0, 1fr) auto;
-  gap: s.$space-3;
+  gap: s.$space-2;
   height: 100%;
   min-height: 0;
 
@@ -23,6 +23,12 @@
   }
 }
 
+/*
+  단 하나가 곧 카드다.
+
+  뒤에 배경이 깔려 있으므로 바탕을 조금 비친다 — 완전히 덮으면 배경을 깐 뜻이 없고,
+  너무 비치면 글이 배경 무늬와 겹쳐 읽힌다. 그 사이를 흐림(`backdrop-filter`)이 메운다.
+*/
 .band {
   display: flex;
   flex-direction: column;
@@ -32,8 +38,9 @@
   padding: s.$space-4 s.$space-5;
   border: 1px solid var(--border-subtle);
   border-radius: s.$radius-lg;
-  background-color: var(--surface);
+  background-color: color-mix(in srgb, var(--surface) 84%, transparent);
   box-shadow: var(--shadow-sm);
+  backdrop-filter: blur(8px);
 
   &__head {
     @include t.title-md;
@@ -93,6 +100,18 @@
 .stage {
   min-width: 0;
 
+  &[data-tone="solar"] {
+    --tone: var(--solar-deep);
+  }
+
+  &[data-tone="brand"] {
+    --tone: var(--brand);
+  }
+
+  &[data-tone="ok"] {
+    --tone: var(--ok);
+  }
+
   &__term {
     @include t.title-sm;
 
@@ -102,6 +121,10 @@
     color: var(--text-strong);
   }
 
+  /*
+    단계 번호. 네 자리가 같은 색이면 순서만 남고 어디쯤인지가 안 남는다 —
+    햇빛에서 학교로 갈수록 색이 옮겨 가게 두어, 번호를 세지 않아도 어느 대목인지 잡힌다.
+  */
   &__no {
     @include t.label-sm;
 
@@ -112,7 +135,7 @@
     height: 24px;
     flex-shrink: 0;
     border-radius: s.$radius-full;
-    background-color: var(--brand);
+    background-color: var(--tone, var(--brand));
     color: var(--text-on-brand);
     font-family: var(--font-data);
   }
@@ -183,6 +206,7 @@
     align-items: center;
     justify-content: center;
     aspect-ratio: 1;
+    border: 1px solid var(--border-subtle);
     border-radius: 50%;
     background-color: var(--surface);
 

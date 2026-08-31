@@ -15,7 +15,15 @@
 .split {
   display: grid;
   grid-template-columns: minmax(0, 1.45fr) minmax(0, 1fr);
-  grid-template-rows: minmax(0, 1fr) minmax(0, 1.1fr);
+
+  /*
+    두 단이 거의 같은 몫을 갖는다.
+
+    위 단에는 바닥이 있다 — 곡선은 140px 아래로 그려지지 않고 환산 석 장도 제 높이를 요구한다.
+    아래 단은 계통도가 남는 만큼만 받으므로 늘고 줄 여지가 있는 쪽이지만, 너무 내주면 그림이
+    실루엣만 남는다. 위가 바닥을 넘기는 선에서 나머지를 아래에 준다.
+  */
+  grid-template-rows: minmax(0, 0.95fr) minmax(0, 1fr);
   gap: s.$space-3;
   height: 100%;
   min-height: 0;
@@ -36,17 +44,23 @@
   }
 }
 
+/*
+  칸 하나.
+  뒤에 배경이 깔려 있으므로 바탕을 조금 비친다 — 완전히 덮으면 배경을 깐 뜻이 없고,
+  너무 비치면 글이 배경 무늬와 겹쳐 읽힌다. 그 사이를 흐림이 메운다.
+*/
 .panel {
   display: flex;
   flex-direction: column;
-  gap: s.$space-3;
+  gap: s.$space-2;
   min-height: 0;
   overflow: hidden;
   padding: s.$space-4 s.$space-5;
   border: 1px solid var(--border-subtle);
   border-radius: s.$radius-lg;
-  background-color: var(--surface);
+  background-color: color-mix(in srgb, var(--surface) 84%, transparent);
   box-shadow: var(--shadow-sm);
+  backdrop-filter: blur(8px);
 
   &__head {
     @include t.title-md;
@@ -110,6 +124,7 @@
     align-items: center;
     justify-content: center;
     aspect-ratio: 1;
+    border: 1px solid var(--border-subtle);
     border-radius: 50%;
     background-color: var(--surface);
 
@@ -156,7 +171,13 @@
 */
 .line {
   flex: 1;
-  min-height: 0;
+
+  /*
+    계통도가 내려앉을 수 있는 바닥.
+    폭이 좁아지면 아래 네 단계의 글이 한 줄씩 더 접혀 그만큼을 여기서 가져간다 —
+    잘린 글보다는 작아진 그림이 낫다.
+  */
+  min-height: 72px;
   border-radius: s.$radius-md;
   background: linear-gradient(180deg, var(--sky-top) 0%, var(--surface-sunken) 100%);
 
@@ -181,6 +202,18 @@
 .stage {
   min-width: 0;
 
+  &[data-tone="solar"] {
+    --tone: var(--solar-deep);
+  }
+
+  &[data-tone="brand"] {
+    --tone: var(--brand);
+  }
+
+  &[data-tone="ok"] {
+    --tone: var(--ok);
+  }
+
   &__term {
     @include t.title-sm;
 
@@ -190,6 +223,7 @@
     color: var(--text-strong);
   }
 
+  /* 햇빛에서 학교로 갈수록 색이 옮겨 간다 — 번호를 세지 않아도 어느 대목인지 잡힌다 */
   &__no {
     @include t.label-sm;
 
@@ -200,7 +234,7 @@
     height: 24px;
     flex-shrink: 0;
     border-radius: s.$radius-full;
-    background-color: var(--brand);
+    background-color: var(--tone, var(--brand));
     color: var(--text-on-brand);
     font-family: var(--font-data);
   }

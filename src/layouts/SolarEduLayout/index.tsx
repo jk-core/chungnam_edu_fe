@@ -26,6 +26,14 @@ interface SolarEduLayoutProps {
   levelPicker?: ReactNode;
   /** 화면 뒤에 까는 그림. 초등 판이 하늘을 깐다 (SFR-005-06) */
   backdrop?: ReactNode;
+  /**
+   * 깔린 배경이 어떤 결인지.
+   *
+   * `bright` 는 밝은 하늘을 못 박은 그림이라 그 위 글자색까지 밝은 바탕용으로 고정한다 —
+   * 어두운 테마의 옅은 글씨를 흰 카드 위에 그대로 두면 글자가 사라지기 때문이다.
+   * `theme` 는 배경 자체가 화면 모드를 따르므로 색을 건드리지 않는다.
+   */
+  backdropTone?: 'bright' | 'theme';
   weather: WeatherKind;
   /** 계측값이 들어오고 있는지 (SFR-005-10) */
   isLive: boolean;
@@ -60,6 +68,7 @@ export function SolarEduLayout({
   scopeInfo,
   levelPicker,
   backdrop,
+  backdropTone = 'bright',
   weather,
   isLive,
   clock,
@@ -80,7 +89,12 @@ export function SolarEduLayout({
   useRootClass('solar-edu');
 
   return (
-    <div className={cn(styles.edu, { [styles['edu--backdrop']]: Boolean(backdrop) })}>
+    <div
+      className={cn(styles.edu, {
+        [styles['edu--backdrop']]: Boolean(backdrop) && backdropTone === 'bright',
+        [styles['edu--tinted']]: Boolean(backdrop) && backdropTone === 'theme',
+      })}
+    >
       {backdrop}
 
       <header className={styles.top}>
