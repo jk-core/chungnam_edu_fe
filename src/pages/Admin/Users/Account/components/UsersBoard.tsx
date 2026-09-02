@@ -25,10 +25,11 @@ export function UsersBoard() {
   const users = useMemo(() => {
     /*
       그룹관리자는 맡은 발전소가 본체라 옆 탭에서 따로 다룬다.
-      개발자는 화면에 세우지 않는다 — 서버도 목록에서 빼고 내려준다.
+      교육지원청 위 등급은 이 화면에서 만들지도 고치지도 않으므로 목록에도 세우지 않는다 —
+      폼이 담을 수 있는 등급과 목록이 어긋나면 고치기로 들어간 순간 등급 칸이 빈다.
     */
     const all = mergeUsers(userCreated, userPatched, userDeleted)
-      .filter((user) => user.role !== 'group' && user.role !== 'developer');
+      .filter((user) => user.role === 'institution');
     const trimmed = keyword.trim();
 
     return trimmed

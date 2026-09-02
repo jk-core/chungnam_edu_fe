@@ -1,5 +1,5 @@
 import { MSG } from '@/configs/messages';
-import { SEVERITY_LABEL } from '@/components/common/Badge';
+import { OPERATION_LABEL } from '@/mocks/status';
 import { exportCsv } from '@/utils/export';
 import { formatShort } from '@/utils/date';
 import { toast } from '@/stores/toastStore';
@@ -12,8 +12,7 @@ const CSV_COLUMNS: CsvColumn<AlertRecord>[] = [
   { header: '알림시간', value: (row) => row.occurredAt },
   { header: '발전소', value: (row) => row.schoolName },
   { header: '설비명', value: (row) => row.deviceName },
-  { header: '유형', value: (row) => row.type },
-  { header: '심각도', value: (row) => SEVERITY_LABEL[row.severity] },
+  { header: '심각도', value: (row) => OPERATION_LABEL[row.status] },
   { header: '알림원인', value: (row) => row.title },
   { header: '고장코드', value: (row) => row.faultCode ?? '' },
   { header: '조치여부', value: (row) => (row.handled ? '조치완료' : '미조치') },

@@ -7,27 +7,28 @@ import { PlusIcon } from '@/components/common/Icon';
 import { Reveal } from '@/components/common/Reveal';
 import { buildPath } from '@/routes/buildPath';
 import { formatNumber } from '@/utils/format';
+import { isReviewRole } from '@/mocks/accounts';
 import { useAuthUser } from '@/stores/authStore';
 import type { BoardKind } from '@/interface/board';
 import styles from '../Guide.module.scss';
-import { KIND_LABEL, useBoardPosts, WRITE_ROLE } from '../hooks/useBoardPosts';
+import { KIND_LABEL, useBoardPosts, WRITE_RESTRICTED } from '../hooks/useBoardPosts';
 
 const DESCRIPTION: Record<BoardKind, string> = {
   notice: '교육청이 알리는 글입니다. 고정 글이 위로 오고, 제목을 누르면 본문으로 넘어갑니다.',
-  qna: '궁금한 점을 남기면 담당자가 댓글로 답합니다. 제목을 누르면 본문과 댓글로 넘어갑니다.',
+  inquiry: '궁금한 점을 남기면 담당자가 댓글로 답합니다. 제목을 누르면 본문과 댓글로 넘어갑니다.',
 };
 
 /**
  * 게시판 목록 (SFR-025).
  *
- * 공지사항과 Q&A 는 저마다 제 주소를 가진 화면이다. 한 목록에 섞어 두면 무엇을 보고 있는지가
+ * 공지사항과 문의하기는 저마다 제 주소를 가진 화면이다. 한 목록에 섞어 두면 무엇을 보고 있는지가
  * 필터에 달려 있어, 주소를 주고받아도 같은 화면이 열리지 않는다.
  */
 export function PostList({ kind }: { kind: BoardKind }) {
   const navigate = useNavigate();
   const user = useAuthUser();
   const { posts } = useBoardPosts(kind);
-  const canWrite = WRITE_ROLE[kind] === null || user?.role === WRITE_ROLE[kind];
+  const canWrite = !WRITE_RESTRICTED[kind] || isReviewRole(user?.role);
 
   return (
     <div className={styles.tab}>

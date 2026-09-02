@@ -10,17 +10,11 @@ export interface DayWeather {
   /** 등가 발전시간(h) = 발전량 / 설비용량 */
   generationHours: number;
   generationKwh: number;
-  /** 자가소비로 덜 낸 전기요금(원) */
-  savingWon: number;
 }
 
-/** 월 단위로 접은 값 — 연 달력 한 칸에 쓴다 */
-export interface MonthWeather {
+/** 월 단위로 접은 값 — 연 달력 한 칸에 쓴다. 월·연 칸은 날씨를 얹지 않는다 */
+export interface MonthPower {
   /** YYYY-MM */
   month: string;
   generationHours: number;
-  generationKwh: number;
-  savingWon: number;
-  /** 그 달에 가장 많았던 날씨 */
-  kind: WeatherKind;
 }

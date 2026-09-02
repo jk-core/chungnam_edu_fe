@@ -15,7 +15,7 @@ export const FAULT_CODES: FaultCode[] = [
     category: 'normal',
     severity: 'info',
     defaultStatus: 'running',
-    appliesTo: ['plant', 'inverter', 'junctionBox', 'string', 'channel'],
+    appliesTo: ['plant', 'inverter', 'string'],
     description: [
       '정상 상태, 발전 상태 양호, 이상 징후 없음',
       '전압·전류 측정값이 정상 범위 안에 있어 추가 조치가 필요 없음',
@@ -33,7 +33,7 @@ export const FAULT_CODES: FaultCode[] = [
     category: 'module',
     severity: 'caution',
     defaultStatus: 'degraded',
-    appliesTo: ['string', 'channel'],
+    appliesTo: ['string'],
     description: [
       'PID(Potential Induced Degradation) 현상',
       '태양전지 국부 소손 또는 전극 부식',
@@ -53,7 +53,7 @@ export const FAULT_CODES: FaultCode[] = [
     category: 'module',
     severity: 'caution',
     defaultStatus: 'degraded',
-    appliesTo: ['string', 'channel'],
+    appliesTo: ['string'],
     description: ['바이패스 다이오드 쇼트 고장', '바이패스 다이오드가 동작하는 음영'],
     plan: ['정션박스 안 바이패스 다이오드 상태를 점검하고 교체합니다.', '모듈 음영 요인을 없앱니다.'],
     images: ['/image/FaultCode/faultcode2-1.png', '/image/FaultCode/faultcode2-2.png'],
@@ -65,7 +65,7 @@ export const FAULT_CODES: FaultCode[] = [
     category: 'module',
     severity: 'caution',
     defaultStatus: 'degraded',
-    appliesTo: ['string', 'channel'],
+    appliesTo: ['string'],
     description: [
       '바이패스 다이오드가 동작하지 않은 음영·오염 (또는 모듈 하단부의 음영·오염)',
       '모듈 설치 각도 차이',
@@ -85,7 +85,7 @@ export const FAULT_CODES: FaultCode[] = [
     category: 'module',
     severity: 'caution',
     defaultStatus: 'degraded',
-    appliesTo: ['string', 'channel'],
+    appliesTo: ['string'],
     description: ['수목·구조물 등에 의한 넓은 범위의 음영'],
     plan: [
       '수목을 가지치기하고 구조물을 조정해 음영 요인을 없앱니다.',
@@ -113,7 +113,7 @@ export const FAULT_CODES: FaultCode[] = [
     category: 'thermal',
     severity: 'caution',
     defaultStatus: 'degraded',
-    appliesTo: ['string', 'channel'],
+    appliesTo: ['string'],
     description: ['태양전지 열화로 인한 핫스팟(또는 핫셀)', '태양광 모듈 구성부재 열화'],
     plan: [
       '태양전지 열화 원인을 찾아 없앱니다 (국부 오염·음영 등).',
@@ -128,7 +128,7 @@ export const FAULT_CODES: FaultCode[] = [
     category: 'wiring',
     severity: 'critical',
     defaultStatus: 'fault',
-    appliesTo: ['plant', 'inverter', 'junctionBox', 'string', 'channel'],
+    appliesTo: ['plant', 'inverter', 'string'],
     description: [
       '인버터 정지·고장',
       '스트링 케이블 결선 또는 커넥터 손상',

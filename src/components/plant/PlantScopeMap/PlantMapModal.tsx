@@ -1,7 +1,7 @@
 import { useCallback, useMemo, useState } from 'react';
 import { Button } from '@/components/common/Button';
 import { Modal } from '@/components/common/Modal';
-import { REGIONS } from '@/mocks/regions';
+import { CHUNGNAM_REGIONS } from '@/configs/regions';
 import { MapStatusFilter, useStatusFilter } from '@/components/plant/MapStatusFilter';
 import { KakaoMiniMap } from '@/components/common/GeoMap/KakaoMiniMap';
 import { PlantDetailPanel } from '@/components/plant/PlantDetailPanel';
@@ -92,7 +92,7 @@ export function PlantMapModal({ isOpen, onClose, plants, selectedId, onSelect }:
             value={regionCode}
             options={[
               { value: ALL, label: `전체 (${formatNumber(plants.length)}개소)` },
-              ...REGIONS.map((region) => ({ value: region.code, label: region.name })),
+              ...CHUNGNAM_REGIONS.map((region) => ({ value: region.code, label: region.name })),
             ]}
             onChange={setRegionCode}
           />

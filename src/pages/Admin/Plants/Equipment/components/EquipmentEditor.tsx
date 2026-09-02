@@ -94,7 +94,7 @@ export function EquipmentEditor({ cid }: EquipmentEditorProps) {
   const module = modules.find((item) => item.id === moduleProductId);
   const inverter = inverters.find((item) => item.id === inverterProductId);
   const plant = plants.find((item) => item.plantId === plantId);
-  // 스트링 구조는 스트링 인버터에만 있다 — 센트럴은 접속반·채널로 나뉜다.
+  // 스트링 구조는 스트링 기종에만 있다.
   const hasStrings = inverterKind === 'string';
   const rowsError = methods.getFieldState('rows', methods.formState).error;
 
@@ -120,7 +120,7 @@ export function EquipmentEditor({ cid }: EquipmentEditorProps) {
       asExpiresAt: values.asExpiresAt.trim(),
       note: values.note.trim(),
       installedAt: values.installedAt.trim(),
-      // 운영일시는 운전시작일을 따라간다 — 손으로 고치는 값이 아니다.
+      // 운영일시는 설치일시를 따라간다 — 손으로 고치는 값이 아니다.
       operatedAt: values.operatedAt.trim() || values.installedAt.trim(),
       // 수집기가 채우는 값이라 등록·수정에서 만들지 않는다.
       firstReceivedAt: target?.firstReceivedAt ?? null,
@@ -159,7 +159,7 @@ export function EquipmentEditor({ cid }: EquipmentEditorProps) {
           after: `${formatNumber(saved.equipmentCapacity, 1)}kW`,
         },
         { label: 'AS 만료일', before: target?.asExpiresAt ?? '', after: saved.asExpiresAt },
-        { label: '운전시작일', before: target?.installedAt ?? '', after: saved.installedAt },
+        { label: '설치일시', before: target?.installedAt ?? '', after: saved.installedAt },
         { label: '비고', before: target?.note ?? '', after: saved.note },
       ]);
 
@@ -317,7 +317,7 @@ export function EquipmentEditor({ cid }: EquipmentEditorProps) {
             </FormRow>
             <FormRow cols={2}>
               <Form.Text label="설비 이름" name="name" maxLength={120} required />
-              <Form.Date label="운전시작일" name="installedAt" placeholder="운전을 시작한 날" optional />
+              <Form.Date label="설치일시" name="installedAt" placeholder="설치한 날" />
             </FormRow>
           </FormSection>
 

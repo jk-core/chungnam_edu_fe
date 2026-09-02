@@ -2,11 +2,12 @@ import { useRef } from 'react';
 import { Button } from '@/components/common/Button';
 import { CHECK_LABEL, REPORT_STATE_LABEL, STATE_ORDER } from '@/mocks/fieldReport';
 import { cn } from '@/utils/cn';
-import { DownloadIcon, PrinterIcon, UserIcon } from '@/components/common/Icon';
+import { DownloadIcon, PrinterIcon } from '@/components/common/Icon';
 import { Modal } from '@/components/common/Modal';
+import { ReportStateActions } from '@/components/report/ReportStateActions';
 import { usePrint } from '@/hooks/usePrint';
 import { useReportPdf } from '@/hooks/useReportPdf';
-import type { FieldReport } from '@/interface/fieldReport';
+import type { FieldReport, ReportState } from '@/interface/fieldReport';
 import sheetStyles from '@/components/report/Report.module.scss';
 import styles from '../FieldReport.module.scss';
 import { useFieldReports } from '../hooks/useFieldReports';
@@ -17,21 +18,19 @@ interface ReportDetailProps {
   report: FieldReport;
   onClose: () => void;
   onEdit: (report: FieldReport) => void;
-  onReject: (report: FieldReport) => void;
-  onShare: (report: FieldReport) => void;
+  /** 반려는 사유를 받아야 해서 바깥이 창을 연다 */
+  onManage: (report: FieldReport, state: ReportState) => void;
 }
 
-/** 보고서 한 건 펼쳐 보기 — 상태 흐름, 점검 항목, 사진, 이력 (SFR-021) */
-export function ReportDetail({ report, onClose, onEdit, onReject, onShare }: ReportDetailProps) {
+/** 보고서 한 건 펼쳐 보기 — 상태, 점검 항목, 사진, 이력 (SFR-021) */
+export function ReportDetail({ report, onClose, onEdit, onManage }: ReportDetailProps) {
   const { permission, templateOf } = useFieldReports();
-  const { advance } = useReportWorkflow();
+  const { setState } = useReportWorkflow();
   const print = usePrint();
   const { download, busy } = useReportPdf();
   const sheetRef = useRef<HTMLDivElement>(null);
 
   const filename = `현장보고서_${report.schoolName}_${report.date}`;
-  const current = STATE_ORDER.indexOf(report.state);
-  const nextState = current >= 0 && current < STATE_ORDER.length - 1 ? STATE_ORDER[current + 1] : null;
 
   return (
     <>
@@ -54,33 +53,29 @@ export function ReportDetail({ report, onClose, onEdit, onReject, onShare }: Rep
               {busy ? '내려받는 중…' : 'PDF 내려받기'}
             </Button>
             <Button variant="secondary" iconLeft={<PrinterIcon />} onClick={() => print(filename)}>인쇄</Button>
-            {permission.canShare ? (
-              <Button variant="secondary" iconLeft={<UserIcon />} onClick={() => onShare(report)}>관계자 공유</Button>
-            ) : null}
             {permission.canEdit(report) ? (
               <Button variant="secondary" onClick={() => onEdit(report)}>
                 {report.state === 'rejected' ? '수정 후 재기안' : '수정'}
               </Button>
             ) : null}
-            {permission.canReject(report) ? (
-              <Button variant="ghost" onClick={() => onReject(report)}>반려</Button>
+            {permission.canSubmit(report) ? (
+              <Button onClick={() => setState(report, 'submitted')}>제출</Button>
             ) : null}
-            {permission.canAdvance(report) && nextState ? (
-              <Button onClick={() => advance(report)}>{REPORT_STATE_LABEL[nextState]}로 처리</Button>
+            {permission.canManage(report) ? (
+              <ReportStateActions report={report} onSelect={onManage} />
             ) : null}
           </>
         )}
       >
         <div className={styles.post}>
+          {/*
+            지나온 자취가 아니라 지금 어디인지만 짚는다 — 검토를 거쳐야 확인하는 것이 아니라
+            셋 중 하나를 곧바로 매기므로, 앞 칸을 「지나왔다」 고 칠하면 없던 일을 그린다.
+          */}
           <div className={styles.stateFlow}>
-            {STATE_ORDER.map((state, index) => (
+            {STATE_ORDER.map((state) => (
               <span key={state} className={styles.stateFlow__step}>
-                <span
-                  className={cn({
-                    [styles['stateFlow__step--done']]: index < current,
-                    [styles['stateFlow__step--current']]: index === current,
-                  })}
-                >
+                <span className={cn({ [styles['stateFlow__step--current']]: state === report.state })}>
                   {REPORT_STATE_LABEL[state]}
                 </span>
               </span>
@@ -95,19 +90,6 @@ export function ReportDetail({ report, onClose, onEdit, onReject, onShare }: Rep
           ) : null}
 
           <p className={styles.post__body}>{report.summary}</p>
-
-          {/* 어느 설비를 봤는지 (SFR-021-06) */}
-          {report.devices.length > 0 ? (
-            <div className={styles.checkItem}>
-              <p className={styles.checkItem__label}>점검 설비</p>
-              {report.devices.map((device) => (
-                <p key={device.id} className={styles.post__meta}>
-                  <span>{device.kind} · {device.name}</span>
-                  {device.note ? <span>{device.note}</span> : null}
-                </p>
-              ))}
-            </div>
-          ) : null}
 
           {report.checklist.map((item, index) => (
             <div key={item.id}>

@@ -20,27 +20,23 @@ interface RowProps {
   depth: number;
   selectedId: string;
   expandedIds: string[];
-  /** 이 화면이 다루지 않는 계층 — 흐리게 두고 선택을 막는다. */
-  disabledKinds: NodeKind[];
   /** 이 계층에서 트리를 끊는다. 아래는 아예 그리지 않는다. */
   stopAt?: NodeKind;
   onSelect: (id: string) => void;
   onToggle: (id: string) => void;
 }
 
-function TreeRow({ node, depth, selectedId, expandedIds, disabledKinds, stopAt, onSelect, onToggle }: RowProps) {
+function TreeRow({ node, depth, selectedId, expandedIds, stopAt, onSelect, onToggle }: RowProps) {
   const children = stopAt === node.kind ? [] : getChildNodes(node.id);
   const hasChildren = children.length > 0;
   const isExpanded = expandedIds.includes(node.id);
   const isSelected = selectedId === node.id;
-  const isDisabled = disabledKinds.includes(node.kind);
 
   return (
     <li className={styles.tree__item}>
       <div
         className={cn(styles.row, styles[`row--${node.kind}`], {
           [styles['row--selected']]: isSelected,
-          [styles['row--disabled']]: isDisabled,
         })}
         style={{ paddingLeft: `${depth * 14}px` }}
       >
@@ -64,8 +60,6 @@ function TreeRow({ node, depth, selectedId, expandedIds, disabledKinds, stopAt, 
           type="button"
           className={styles.row__label}
           onClick={() => onSelect(node.id)}
-          disabled={isDisabled}
-          title={isDisabled ? '이 화면에서는 조회할 수 없는 계층입니다.' : undefined}
           aria-current={isSelected ? 'true' : undefined}
         >
           <span className={cn(styles.row__dot, styles[`row__dot--${node.status}`])} aria-hidden="true" />
@@ -92,7 +86,6 @@ function TreeRow({ node, depth, selectedId, expandedIds, disabledKinds, stopAt, 
                 depth={depth + 1}
                 selectedId={selectedId}
                 expandedIds={expandedIds}
-                disabledKinds={disabledKinds}
                 stopAt={stopAt}
                 onSelect={onSelect}
                 onToggle={onToggle}
@@ -107,12 +100,10 @@ function TreeRow({ node, depth, selectedId, expandedIds, disabledKinds, stopAt, 
 
 /**
  * 설비 구조 트리.
- * 발전소 → 인버터 → (스트링 | 접속반 → 채널) 순으로 펼치고, 어느 칸이든 눌러 조회 대상으로 삼는다.
+ * 발전소 → 인버터 → 스트링 순으로 펼치고, 어느 칸이든 눌러 조회 대상으로 삼는다.
  * 발전소 128개를 다 늘어놓으면 읽히지 않으므로 루트는 지금 고른 발전소만 보여 준다.
  */
 interface PlantTreeProps {
-  /** 이 화면이 다루지 않는 계층. 예: AI진단은 채널을 판정 대상으로 삼지 않는다. */
-  disabledKinds?: NodeKind[];
   /**
    * 트리를 끊을 계층. 아래는 흐리게 두는 대신 아예 그리지 않는다.
    * 예: 발전통계는 인버터까지가 조회 단위라 그 아래를 열 일이 없다.
@@ -120,7 +111,7 @@ interface PlantTreeProps {
   stopAt?: NodeKind;
 }
 
-export function PlantTree({ disabledKinds = [], stopAt }: PlantTreeProps) {
+export function PlantTree({ stopAt }: PlantTreeProps) {
   const node = useSelectedNode();
   const selectNode = useSelectNode();
   const expandedIds = useExpandedIds();
@@ -145,7 +136,7 @@ export function PlantTree({ disabledKinds = [], stopAt }: PlantTreeProps) {
       <p className={styles.empty}>
         {stopAt === 'inverter'
           ? '발전소를 고르면 인버터까지 계층으로 펼쳐 볼 수 있습니다.'
-          : '발전소를 고르면 인버터·접속반·스트링까지 계층으로 펼쳐 볼 수 있습니다.'}
+          : '발전소를 고르면 인버터·스트링까지 계층으로 펼쳐 볼 수 있습니다.'}
       </p>
     );
   }
@@ -161,7 +152,6 @@ export function PlantTree({ disabledKinds = [], stopAt }: PlantTreeProps) {
           depth={0}
           selectedId={node.id}
           expandedIds={expandedIds}
-          disabledKinds={disabledKinds}
           stopAt={stopAt}
           onSelect={selectNode}
           onToggle={toggleExpanded}
@@ -170,7 +160,6 @@ export function PlantTree({ disabledKinds = [], stopAt }: PlantTreeProps) {
       <p className={styles.tree__hint}>
         {KIND_LABEL[node.kind]} 기준으로 조회 중입니다.
         {stopAt === 'inverter' ? ' 인버터 아래는 AI진단에서 봅니다.' : ''}
-        {disabledKinds.includes('channel') ? ' 채널은 진단 대상이 아닙니다.' : ''}
       </p>
     </div>
   );

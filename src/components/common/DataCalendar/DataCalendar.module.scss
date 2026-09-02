@@ -240,14 +240,6 @@
     box-shadow: var(--shadow-focus);
   }
 
-  &__top {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: s.$space-2;
-    width: 100%;
-  }
-
   &__label {
     @include t.label-sm;
 

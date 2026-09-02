@@ -72,7 +72,7 @@ export const equipmentDetailResponseSchema = z.object({
   parallel2: z.number().int(),
   asExpiresAt: z.string(),
   etc: z.string(),
-  /** 운전시작일 (meainInstDtm) */
+  /** 설치일시 (meainInstDtm) */
   installedAt: z.string(),
   /** 아래는 폼이 고치지 않고 읽기만 하는 값이다 */
   rtuEntName: z.string(),
@@ -168,7 +168,7 @@ export const equipmentFormSchema = z.object({
   rows: z.array(stringRowSchema),
   takenSeqs: z.array(z.number().int()),
 }).superRefine((values, ctx) => {
-  // 스트링 구조는 스트링 인버터에만 있다 — 센트럴은 접속반·채널로 나뉜다.
+  // 스트링 구조는 스트링 기종에만 있다.
   if (values.inverterKind !== 'string') return;
 
   if (values.rows.length === 0) {

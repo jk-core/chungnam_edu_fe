@@ -1,10 +1,11 @@
 import { useState } from 'react';
 import { EmptyState } from '@/components/common/EmptyState';
 import { formatDuration, formatNumber } from '@/utils/format';
+import { useSnoozeMap } from '@/stores/faultActionStore';
+import { AlertDetailModal } from '../AlertDetailModal';
+import { detailOfTimeline } from '../alarmDetail';
 import styles from './FaultTimeline.module.scss';
-import { ActionModal } from './ActionModal';
 import { FaultGantt } from './FaultGantt';
-import { TimelineDetail } from './TimelineDetail';
 import { useFaultTimelines } from './useFaultTimelines';
 
 /**
@@ -16,13 +17,10 @@ import { useFaultTimelines } from './useFaultTimelines';
  */
 export function FaultTimeline() {
   const { label, timelines, axis, openCount, totalLoss, averageMinutes } = useFaultTimelines();
+  const snoozedUntil = useSnoozeMap();
 
-  // 상세 창에서 조치 기록으로 넘어가므로 무엇을 열어 두었는지만 여기서 쥔다.
   const [detailId, setDetailId] = useState<string | null>(null);
-  const [recordingId, setRecordingId] = useState<string | null>(null);
-
-  const detail = timelines.find((item) => item.id === detailId) ?? null;
-  const recording = timelines.find((item) => item.id === recordingId) ?? null;
+  const selected = timelines.find((item) => item.id === detailId) ?? null;
 
   return (
     <>
@@ -43,21 +41,11 @@ export function FaultTimeline() {
         )}
       </div>
 
-      {detail ? (
-        <TimelineDetail
-          timeline={detail}
-          onClose={() => setDetailId(null)}
-          onRecord={() => {
-            setDetailId(null);
-            setRecordingId(detail.id);
-          }}
-        />
-      ) : null}
-
-      {/* 고른 건이 바뀌면 기록 창을 새로 세운다 — 앞서 적던 조치 내용이 남지 않게 */}
-      {recording ? (
-        <ActionModal key={recording.id} timeline={recording} onClose={() => setRecordingId(null)} />
-      ) : null}
+      {/* 표에서 누른 알림과 같은 창이다 — 보는 것이 같으니 창도 하나다 */}
+      <AlertDetailModal
+        alarm={selected ? detailOfTimeline(selected, snoozedUntil[selected.id] ?? null) : null}
+        onClose={() => setDetailId(null)}
+      />
     </>
   );
 }

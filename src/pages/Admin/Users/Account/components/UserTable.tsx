@@ -7,7 +7,7 @@ import { DEFAULT_PAGE_SIZE, Pagination } from '@/components/common/Pagination';
 import { MaskedText } from '@/components/common/MaskedText';
 import { maskEmail } from '@/utils/mask';
 import { Reveal } from '@/components/common/Reveal';
-import { ROLE_LABEL } from '@/mocks/accounts';
+import { isReviewRole, ROLE_LABEL } from '@/mocks/accounts';
 import { Table } from '@/components/common/Table';
 import type { Column } from '@/components/common/Table';
 import type { ManagedUser } from '@/interface/account';
@@ -50,7 +50,7 @@ export function UserTable({ rows }: { rows: ManagedUser[] }) {
       key: 'role',
       header: '등급',
       width: '120px',
-      render: (row) => <Badge tone={row.role === 'admin' ? 'brand' : 'neutral'}>{ROLE_LABEL[row.role]}</Badge>,
+      render: (row) => <Badge tone={isReviewRole(row.role) ? 'brand' : 'neutral'}>{ROLE_LABEL[row.role]}</Badge>,
     },
     {
       key: 'email',

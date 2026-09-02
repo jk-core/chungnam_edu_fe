@@ -1,5 +1,4 @@
 import { CHECK_LABEL, CHECKLIST_NOTICE, getTemplate, REPORT_STATE_LABEL } from '@/mocks/fieldReport';
-import { formatNumber } from '@/utils/format';
 import type { ChecklistItem, FieldReport } from '@/interface/fieldReport';
 import { ReportPage } from '@/components/report/ReportPage';
 import styles from '@/components/report/Report.module.scss';
@@ -91,56 +90,14 @@ export function FieldReportSheet({ report }: FieldReportSheetProps) {
               </tr>
               <tr>
                 <th>점검 대상</th>
-                <td>{report.targetName}</td>
+                <td>{report.targetType}</td>
                 <th>보고서 상태</th>
                 <td>{REPORT_STATE_LABEL[report.state]}</td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-
-        {/*
-          종이 양식의 머리 표.
-          문항 답만 남으면 「무엇을 봤는가」 는 있고 「어떤 설비를 누가 봤는가」 가 없다.
-        */}
-        <div className={styles.block}>
-          <p className={styles.block__head}>2) 설비 정보</p>
-          <table className={styles.table}>
-            <tbody>
-              <tr>
-                <th>사용자(기관)</th>
-                <td>{report.basics.ownerName}</td>
-                <th>용량</th>
-                <td>{formatNumber(report.basics.capacityKw, 1)}kW</td>
-              </tr>
-              <tr>
-                <th>주소</th>
-                <td colSpan={3}>{report.basics.address || '—'}</td>
-              </tr>
-              <tr>
-                <th>가동여부</th>
-                <td>{report.basics.operation}</td>
-                <th>설치형태</th>
-                <td>
-                  {report.basics.installForm}
-                  {report.basics.installForm === '기타' && report.basics.installFormEtc
-                    ? ` (${report.basics.installFormEtc})`
-                    : ''}
-                </td>
-              </tr>
-              <tr>
-                <th>보급사업 종류</th>
-                <td colSpan={3}>
-                  {report.basics.program}
-                  {report.basics.program === '기타' && report.basics.programEtc
-                    ? ` (${report.basics.programEtc})`
-                    : ''}
-                </td>
               </tr>
               <tr>
                 <th>점검자 구분</th>
                 <td>{report.basics.inspectorRole}</td>
-                <th>연락처</th>
+                <th>점검자 연락처</th>
                 <td>{report.basics.contact || '—'}</td>
               </tr>
             </tbody>
@@ -149,38 +106,7 @@ export function FieldReportSheet({ report }: FieldReportSheetProps) {
 
         <div className={styles.block}>
           <p className={styles.block__head}>
-            3) 점검 설비
-            <span className={styles.block__note}>이 보고서가 다룬 설비와 설비별 특이사항</span>
-          </p>
-          <table className={styles.table}>
-            <thead>
-              <tr>
-                <th style={{ width: '120px' }}>구분</th>
-                <th style={{ width: '200px' }}>설비명</th>
-                <th>특이사항</th>
-              </tr>
-            </thead>
-            <tbody>
-              {report.devices.length === 0 ? (
-                <tr>
-                  <td colSpan={3}>등록된 점검 설비가 없습니다.</td>
-                </tr>
-              ) : (
-                report.devices.map((device) => (
-                  <tr key={device.id}>
-                    <td>{device.kind}</td>
-                    <td>{device.name}</td>
-                    <td>{device.note || '—'}</td>
-                  </tr>
-                ))
-              )}
-            </tbody>
-          </table>
-        </div>
-
-        <div className={styles.block}>
-          <p className={styles.block__head}>
-            4) 점검 요약
+            2) 점검 요약
             <span className={styles.block__note}>미흡 {abnormal.length}건 / 전체 {report.checklist.length}항목</span>
           </p>
           <p className={styles.block__text}>{report.summary}</p>

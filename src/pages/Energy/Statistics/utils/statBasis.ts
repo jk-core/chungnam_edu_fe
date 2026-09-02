@@ -1,4 +1,4 @@
-import { educationOfficeOf, REGIONS } from '@/mocks/regions';
+import { CHUNGNAM_REGIONS, educationOfficeOf } from '@/configs/regions';
 import { SCHOOLS } from '@/mocks/schools';
 import type { PeriodKey } from '@/mocks/generation';
 import type { School } from '@/interface/energy';
@@ -60,7 +60,7 @@ export function aggregateByBasis(basis: StatBasis, period: PeriodKey, date: Date
   SCHOOLS.forEach((school) => {
     const name = basis === 'region'
       ? school.regionName
-      : educationOfficeOf(REGIONS.find((region) => region.name === school.regionName)?.code ?? '');
+      : educationOfficeOf(CHUNGNAM_REGIONS.find((region) => region.name === school.regionName)?.code ?? '');
     const row = buckets.get(name)
       ?? { key: name, name, count: 0, capacityKw: 0, generationKwh: 0, utilization: 0 };
 

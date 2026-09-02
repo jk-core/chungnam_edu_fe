@@ -82,7 +82,7 @@ export const HELP_CONTENT: Record<string, HelpTopic> = {
     steps: ['제목을 누르면 본문이 열립니다.'],
     errorCodes: [],
   },
-  [PATH.GUIDE_QNA]: {
+  [PATH.GUIDE_INQUIRY]: {
     overview: '궁금한 점을 남기고 답변을 받습니다.',
     steps: ['질문을 등록하면 담당자가 답변을 답니다.'],
     errorCodes: [],

@@ -5,7 +5,6 @@ import { getFaultCode } from './faultCodes';
 import { getInvertersOf } from './equipment';
 import { getMonthDays } from './weather';
 import { getSchoolById } from './schools';
-import { INVERTER_TYPE_LABEL } from './equipment';
 import { isAbnormal } from './status';
 import { createRandom, hashSeed, pickNumber, pickOne } from './random';
 
@@ -27,7 +26,6 @@ export interface MonthlyReport {
     inverterStructure: string;
     moduleModel: string;
     moduleStructure: string;
-    installedAt: string;
   };
   /** 전월 대비 금월 일 단위 발전량 (SFR-019-02) */
   dailyCompare: { day: number; current: number; previous: number }[];
@@ -66,12 +64,6 @@ export interface MonthlyReport {
 }
 
 function structureOf(inverter: Inverter): string {
-  if (inverter.type === 'central') {
-    const channels = inverter.junctionBoxes.reduce((sum, box) => sum + box.channels.length, 0);
-
-    return `접속반 ${inverter.junctionBoxes.length}면 · 채널 ${channels}회로`;
-  }
-
   return `스트링 ${inverter.strings.length}회로`;
 }
 
@@ -163,10 +155,8 @@ export function getMonthlyReport(schoolId: string, year: number, month: number):
     };
   });
 
-  const unitDiagnosis = inverters.flatMap((inverter) => {
-    const units = inverter.type === 'central' ? inverter.junctionBoxes : inverter.strings;
-
-    return units.map((unit) => {
+  const unitDiagnosis = inverters.flatMap((inverter) => (
+    inverter.strings.map((unit) => {
       const factor = unit.status === 'fault' ? 0.58 : unit.status === 'degraded' ? 0.82 : 1;
 
       return {
@@ -178,8 +168,8 @@ export function getMonthlyReport(schoolId: string, year: number, month: number):
         actual: Math.round(96 * factor * pickNumber(next, 0.97, 1.02, 3)),
         daily: days.map(() => Math.round(96 * factor * pickNumber(next, 0.94, 1.04, 3))),
       };
-    });
-  });
+    })
+  ));
 
   const abnormal = inverters.filter((inverter) => isAbnormal(inverter.status));
   const recommendations = abnormal.length === 0
@@ -201,11 +191,10 @@ export function getMonthlyReport(schoolId: string, year: number, month: number):
       capacityKw: school.capacityKw,
       inverterModel: pickOne(next, INVERTER_MODELS),
       inverterStructure: inverters.length > 0
-        ? `${INVERTER_TYPE_LABEL[inverters[0].type]} ${inverters.length}대 · ${structureOf(inverters[0])}`
+        ? `${inverters.length}대 · ${structureOf(inverters[0])}`
         : '인버터 정보 없음',
       moduleModel: pickOne(next, MODULE_MODELS),
       moduleStructure: `${Math.round(school.capacityKw / 0.455)}장 · ${Math.max(1, Math.round(school.capacityKw / 24))}직렬`,
-      installedAt: school.installedAt,
     },
     dailyCompare,
     inverterHours,

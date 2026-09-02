@@ -47,7 +47,7 @@ export function DateControl({
         aria-haspopup="dialog"
         aria-expanded={isOpen}
         /*
-          라벨만 걸면 버튼 이름이 「운전시작일」에서 끝나고 고른 날짜는 안 읽힌다.
+          라벨만 걸면 버튼 이름이 「설치일시」에서 끝나고 고른 날짜는 안 읽힌다.
           자기 자신을 함께 가리켜 라벨 뒤에 내용(날짜)을 붙인다.
         */
         aria-labelledby={id ? `${id}-label ${id}` : undefined}

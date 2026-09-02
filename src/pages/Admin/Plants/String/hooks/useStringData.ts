@@ -46,7 +46,7 @@ export function useStringsOf() {
 
 /**
  * 스트링 인버터 설비마다 스트링이 몇 조 달렸는지로 목록을 세운다.
- * 센트럴 인버터는 스트링이 아니라 접속반·채널을 가지므로 여기 서지 않는다.
+ * 스트링 기종이 아닌 인버터는 스트링을 갖지 않으므로 여기 서지 않는다.
  */
 export function useStringOwners(): StringOwner[] {
   const equipment = useSelectableEquipment('string');

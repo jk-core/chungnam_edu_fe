@@ -4,7 +4,7 @@ import { Card } from '@/components/common/Card';
 import { EChart } from '@/components/common/EChart';
 import { EmptyState } from '@/components/common/EmptyState';
 import { faultCodeLabel } from '@/mocks/faultCodes';
-import { getInverterTrend, readTrend, TREND_META } from '@/mocks/diagnosisTrend';
+import { getUnitTrend, readTrend, TREND_META } from '@/mocks/diagnosisTrend';
 import { Reveal } from '@/components/common/Reveal';
 import { SegmentedControl } from '@/components/common/SegmentedControl';
 import { AXIS_NAME_GAP, LEGEND_GRID_TOP, topLegend } from '@/utils/chart';
@@ -39,9 +39,12 @@ const NORMAL_MARGIN = 0.12;
  * 기대값을 벗어났는지 한눈에 보여 준다. 정상 범위를 띠로 깔고 그 위에 측정값을 얹되,
  * AI 가 고장으로 분류한 구간만 붉게 끊어 그려 눈이 그리로 먼저 가게 한다.
  *
- * 인버터까지 좁혔을 때만 나온다 — 계측 추이는 인버터 단위로 나오는 값이라, 발전소 전체를
- * 보고 있을 때는 그릴 것이 없다. 낼지 말지를 이 부품이 스스로 정하므로 부르는 쪽은 조회 대상을
- * 알 필요가 없다.
+ * 인버터나 스트링까지 좁혔을 때만 나온다 — 계측 추이는 그 두 계층에서만 나오는 값이라,
+ * 발전소 전체를 보고 있을 때는 그릴 것이 없다. 낼지 말지를 이 부품이 스스로 정하므로 부르는
+ * 쪽은 조회 대상을 알 필요가 없다.
+ *
+ * 고른 계층 자신의 값을 그린다 — 스트링을 골랐는데 상위 인버터를 그리면, 형제 스트링이
+ * 섞인 값을 그 스트링의 것으로 읽게 된다.
  */
 export function InverterTrendChart() {
   const { target } = useDiagnosisScope();
@@ -50,11 +53,11 @@ export function InverterTrendChart() {
   const [metric, setMetric] = useState<TrendMetric>('power');
   const [density, setDensity] = useState<Density>('summary');
 
-  const inverterId = target.kind === 'inverter' ? target.id : target.inverterId;
+  const unitId = target.kind === 'inverter' || target.kind === 'string' ? target.id : null;
 
   const points = useMemo<DiagTrendPoint[]>(
-    () => (inverterId ? getInverterTrend(inverterId, range.start, range.end) : []),
-    [inverterId, range.start, range.end],
+    () => (unitId ? getUnitTrend(unitId, range.start, range.end) : []),
+    [unitId, range.start, range.end],
   );
 
   /*
@@ -214,8 +217,8 @@ export function InverterTrendChart() {
     ],
   };
 
-  // 인버터까지 좁히지 않았으면 그릴 것이 없다.
-  if (!inverterId) return null;
+  // 인버터·스트링까지 좁히지 않았으면 그릴 것이 없다.
+  if (!unitId) return null;
 
   return (
     <Reveal delay={0.04}>

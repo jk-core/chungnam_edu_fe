@@ -3,7 +3,7 @@ import type { RtuStatus } from './status';
 /*
   설비 마스터 — 관리자 콘솔에서 등록·수정·삭제하는 값들 (SFR-016-01/05, SFR-017-04~06).
 
-  운영 화면이 쓰는 `Inverter`·`StringUnit`·`JunctionBox`(interface/equipment.ts)와 일부러 갈라 둔다.
+  운영 화면이 쓰는 `Inverter`·`StringUnit`(interface/equipment.ts)와 일부러 갈라 둔다.
   그쪽은 발전량·건전도처럼 계산으로 채워지는 필드를 함께 들고 있어, 등록 폼이 건드릴 값과
   시스템이 만들어 내는 값이 한 타입에 섞이면 무엇을 고칠 수 있는지가 흐려진다.
 */
@@ -131,7 +131,7 @@ export interface EquipmentMaster {
   /** AS 만료일 */
   asExpiresAt: string;
   note: string;
-  /** 운전시작일 (meainInstDtm) */
+  /** 설치일시 (meainInstDtm) */
   installedAt: string;
   operatedAt: string;
   /** 수집이 처음·마지막으로 들어온 때. 등록이 아니라 수집기가 채우는 값이라 폼이 만지지 않는다 */

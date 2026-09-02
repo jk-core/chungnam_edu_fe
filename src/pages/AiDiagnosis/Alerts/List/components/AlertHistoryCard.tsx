@@ -1,5 +1,6 @@
 import { useState } from 'react';
-import { Badge, SEVERITY_LABEL, SEVERITY_TONE } from '@/components/common/Badge';
+import { Badge } from '@/components/common/Badge';
+import { OPERATION_LABEL, OPERATION_TONE } from '@/mocks/status';
 import { Button } from '@/components/common/Button';
 import { Card } from '@/components/common/Card';
 import { DownloadIcon } from '@/components/common/Icon';
@@ -11,11 +12,13 @@ import { Table } from '@/components/common/Table';
 import { alertDurationMinutes } from '@/mocks/alerts';
 import { formatDuration, formatNumber, formatPercent } from '@/utils/format';
 import { useAlertRange } from '@/stores/filterStore';
+import { useSnoozeMap } from '@/stores/faultActionStore';
 import { usePlantScope } from '@/hooks/usePlantScope';
 import type { AlertRecord } from '@/interface/alert';
 import type { Column } from '@/components/common/Table';
 import styles from '../../Alerts.module.scss';
 import { AlertDetailModal } from '../../components/AlertDetailModal';
+import { detailOfAlert } from '../../components/alarmDetail';
 import { FaultTimeline } from '../../components/FaultTimeline';
 import { useAlertDetail } from '../hooks/useAlertDetail';
 import { downloadAlerts } from './alertCsv';
@@ -40,6 +43,7 @@ export function AlertHistoryCard({ rows, stats }: AlertHistoryCardProps) {
   const { plantLabel: label } = usePlantScope();
   const [range] = useAlertRange();
   const detail = useAlertDetail();
+  const snoozedUntil = useSnoozeMap();
 
   const [view, setView] = useState<ViewMode>('table');
   const [page, setPage] = useState(1);
@@ -61,8 +65,8 @@ export function AlertHistoryCard({ rows, stats }: AlertHistoryCardProps) {
       header: '심각도',
       width: '88px',
       render: (row) => (
-        <Badge tone={SEVERITY_TONE[row.severity]} withDot>
-          {SEVERITY_LABEL[row.severity]}
+        <Badge tone={OPERATION_TONE[row.status]} withDot>
+          {OPERATION_LABEL[row.status]}
         </Badge>
       ),
     },
@@ -93,13 +97,6 @@ export function AlertHistoryCard({ rows, stats }: AlertHistoryCardProps) {
           <span className={styles.cellSub}>{row.deviceName}</span>
         </span>
       ),
-    },
-    {
-      key: 'type',
-      header: '유형',
-      width: '72px',
-      hideOnTablet: true,
-      render: (row) => <Badge tone="neutral">{row.type}</Badge>,
     },
     {
       key: 'duration',
@@ -173,7 +170,7 @@ export function AlertHistoryCard({ rows, stats }: AlertHistoryCardProps) {
           ) : (
             <>
               <Table
-                caption="알림 이력 표. 심각도, 발생 일시, 내용, 발전소와 설비, 유형, 지속 시간, 조치 여부 순으로 구성됩니다."
+                caption="알림 이력 표. 심각도, 발생 일시, 내용, 발전소와 설비, 지속 시간, 조치 여부 순으로 구성됩니다."
                 columns={columns}
                 rows={visible}
                 getRowKey={(row) => row.id}
@@ -192,7 +189,10 @@ export function AlertHistoryCard({ rows, stats }: AlertHistoryCardProps) {
         </Card>
       </Reveal>
 
-      <AlertDetailModal alert={detail.detail} onClose={detail.close} />
+      <AlertDetailModal
+        alarm={detail.detail ? detailOfAlert(detail.detail, snoozedUntil[detail.detail.id] ?? null) : null}
+        onClose={detail.close}
+      />
     </>
   );
 }

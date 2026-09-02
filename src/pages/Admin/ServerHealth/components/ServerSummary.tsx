@@ -1,4 +1,5 @@
-import { RESOURCE_CRITICAL, RESOURCE_WARNING, SERVERS } from '@/mocks/serverHealth';
+import { RESOURCE_CRITICAL, RESOURCE_WARNING } from '@/configs/serverHealth';
+import { SERVERS } from '@/mocks/serverHealth';
 import { Reveal } from '@/components/common/Reveal';
 import { StatCard } from '@/components/common/StatCard';
 import styles from '../../Admin.module.scss';

@@ -8,7 +8,7 @@
   현장보고서 (SFR-021).
 
   목록·상세·댓글 뼈대는 공지사항과 같으므로 패턴에서 가져오고, 여기서는 점검표·반복이상·
-  결재 흐름·공유·비교처럼 이 화면에만 있는 것만 적는다.
+  결재 흐름·비교처럼 이 화면에만 있는 것만 적는다.
 */
 @include board.skeleton;
 
@@ -89,57 +89,6 @@
       background-color: var(--brand);
       color: var(--text-on-brand);
     }
-  }
-}
-
-.share {
-  display: flex;
-  flex-direction: column;
-  gap: s.$space-4;
-
-  &__note {
-    @include t.body-sm;
-
-    color: var(--text-muted);
-  }
-
-  &__list {
-    display: flex;
-    flex-wrap: wrap;
-    gap: s.$space-2;
-  }
-
-  &__chip {
-    display: inline-flex;
-    align-items: center;
-    gap: s.$space-2;
-    padding: s.$space-2 s.$space-3;
-    border: 1px solid var(--border);
-    border-radius: s.$radius-full;
-    background-color: var(--surface);
-    cursor: pointer;
-    transition: border-color 0.16s ease, background-color 0.16s ease;
-
-    &:hover {
-      border-color: var(--border-strong);
-    }
-
-    &--on {
-      border-color: var(--brand);
-      background-color: var(--brand-soft);
-    }
-  }
-
-  &__name {
-    @include t.label-md;
-
-    color: var(--text);
-  }
-
-  &__org {
-    @include t.caption;
-
-    color: var(--text-muted);
   }
 }
 

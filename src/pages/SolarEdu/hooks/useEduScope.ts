@@ -33,7 +33,7 @@ export function useEduScope(nowHour: number) {
     weather,
     content,
     scopeInfo: plant
-      ? `설비용량 ${formatNumber(plant.capacityKw, 1)}kW · 인버터 ${plant.inverterCount}대 · ${plant.installedAt} 설치`
+      ? `설비용량 ${formatNumber(plant.capacityKw, 1)}kW · 인버터 ${plant.inverterCount}대`
       : `관내 ${formatNumber(SCHOOLS.length)}개 학교를 합쳐서 봅니다`,
   };
 }

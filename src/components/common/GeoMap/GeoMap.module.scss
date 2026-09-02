@@ -122,17 +122,24 @@
 }
 
 .region {
+  &__halo,
   &__label {
-    fill: var(--text-muted);
     font-family: var(--font-sans);
     font-weight: 500;
     text-anchor: middle;
     pointer-events: none;
     user-select: none;
-    paint-order: stroke;
+  }
+
+  // 굵기는 글자와 같은 배율로 되돌려야 해서 컴포넌트가 인라인으로 준다.
+  &__halo {
+    fill: none;
     stroke: var(--surface);
-    stroke-width: 3;
     stroke-linejoin: round;
+  }
+
+  &__label {
+    fill: var(--text-muted);
   }
 }
 

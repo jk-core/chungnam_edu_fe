@@ -33,12 +33,17 @@ export const plantDetailResponseSchema = z.object({
   regionCode: z.string(),
   address: z.string(),
   addressDetail: z.string(),
-  installedAt: z.string(),
+  /** 지도 마커가 서는 자리 */
+  latitude: z.number(),
+  longitude: z.number(),
   /** RTU 업체 (rtuEntName) */
   rtuEntName: z.string(),
   /** 시공 업체 (installerName) */
   installerName: z.string(),
   installerPhone: z.string(),
+  /** 유지보수를 맡은 담당 업체 — 담당자 계정과 다른 것이라 이름을 가른다 */
+  managerEnterpriseName: z.string(),
+  managerEnterprisePhone: z.string(),
   userId: z.number().int().nullable(),
   userName: z.string(),
   irradId: z.number().int().nullable(),
@@ -82,10 +87,17 @@ export const plantFormSchema = z.object({
   regionCode: z.string(),
   address: z.string().trim().min(1, MSG.requiredField('주소')),
   addressDetail: z.string(),
-  installedAt: z.string(),
+  /*
+    주소를 고르면 지오코더가 채우고, 옥상이 아닌 부지는 손으로 보정한다. 지도 마커가 이 값으로
+    서므로 비우면 그 발전소는 지도에서 사라진다 — 그래서 규칙을 건다.
+  */
+  latitude: z.string().trim().min(1, MSG.requiredField('위도')),
+  longitude: z.string().trim().min(1, MSG.requiredField('경도')),
   rtuEntName: z.string().trim().min(1, MSG.requiredField('RTU업체')).max(120, MSG.tooLong('RTU업체', 120)),
   builderName: z.string().max(120, MSG.tooLong('시공업체', 120)),
   builderPhone: z.string(),
+  managerEnterpriseName: z.string().max(120, MSG.tooLong('담당업체', 120)),
+  managerEnterprisePhone: z.string(),
   userId: z.string().min(1, MSG.selectRequired('사용자')),
   /** 보일 이름 — 규칙은 id 가 진다 (참조가 지워지면 이름만 비는데 오류를 보여 줄 자리가 없다) */
   userLabel: z.string(),

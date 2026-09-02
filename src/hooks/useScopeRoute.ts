@@ -9,7 +9,7 @@ type BuildPath = (plantId?: string, inverterId?: string, unitId?: string) => str
 interface ScopeRouteOptions {
   build: BuildPath;
   /**
-   * 인버터보다 깊은 자리(접속반·스트링)도 주소에 남길지.
+   * 인버터보다 깊은 자리(스트링)도 주소에 남길지.
    * 발전통계는 인버터까지만 다루므로 접어 넣고, AI진단은 그 아래까지 판정하므로 남긴다.
    */
   allowUnit?: boolean;

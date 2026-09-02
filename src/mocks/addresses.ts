@@ -1,5 +1,7 @@
 import type { AddressResult } from '@/interface/address';
-import { regionCodeOf } from './manageCodes';
+import type { GeoPoint } from '@/interface/energy';
+import { CHUNGNAM_REGIONS, regionCodeOf } from '@/configs/regions';
+import { createRandom, hashSeed, pickNumber } from './random';
 import { SCHOOLS } from './schools';
 
 /*
@@ -56,6 +58,31 @@ function buildAddresses(): AddressResult[] {
 }
 
 export const SEED_ADDRESSES: AddressResult[] = buildAddresses();
+
+/**
+ * 주소 한 건의 좌표.
+ *
+ * 우편번호 서비스는 좌표를 주지 않는다 — 실제로도 주소를 고른 뒤 지오코더를 한 번 더 부른다.
+ * 붙일 때 이 함수 본문만 카카오 `Geocoder.addressSearch` 로 갈아 끼운다.
+ */
+export function geocode(roadAddress: string): GeoPoint | null {
+  const school = SCHOOLS.find((item) => item.address === roadAddress);
+
+  if (school) return school.location;
+
+  const found = SEED_ADDRESSES.find((item) => item.roadAddress === roadAddress);
+  const region = found && CHUNGNAM_REGIONS.find((item) => item.regionCode === found.sigunguCode);
+
+  if (!region) return null;
+
+  // 시·군 중심에서 조금 흩어 놓는다 — 같은 시·군 주소가 한 점에 겹쳐 서지 않게.
+  const next = createRandom(hashSeed(roadAddress));
+
+  return {
+    lat: Math.round((region.center.lat + pickNumber(next, -0.04, 0.04, 5)) * 100000) / 100000,
+    lng: Math.round((region.center.lng + pickNumber(next, -0.05, 0.05, 5)) * 100000) / 100000,
+  };
+}
 
 /** 도로명·지번·건물명·우편번호를 함께 훑는다 — 실제 서비스도 어느 것으로 찾든 걸린다. */
 export function findAddresses(keyword: string): AddressResult[] {

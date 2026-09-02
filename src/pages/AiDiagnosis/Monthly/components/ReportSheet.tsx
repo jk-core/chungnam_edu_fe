@@ -117,10 +117,6 @@ export function ReportSheet({ report, fieldReports }: ReportSheetProps) {
                 <td>{report.plantSummary.address}</td>
               </tr>
               <tr>
-                <th scope="row">발전 시작일</th>
-                <td>{report.plantSummary.installedAt}</td>
-              </tr>
-              <tr>
                 <th scope="row">담당 기관</th>
                 <td>충청남도교육청 · {report.schoolName}</td>
               </tr>
@@ -391,7 +387,7 @@ export function ReportSheet({ report, fieldReports }: ReportSheetProps) {
               <thead>
                 <tr>
                   <th scope="col">점검일</th>
-                  <th scope="col">점검 설비</th>
+                  <th scope="col">점검 대상</th>
                   <th scope="col">이상</th>
                   <th scope="col">조치 내용</th>
                 </tr>
@@ -400,11 +396,7 @@ export function ReportSheet({ report, fieldReports }: ReportSheetProps) {
                 {fieldReports.map((item) => (
                   <tr key={item.id}>
                     <td>{item.date}</td>
-                    <td>
-                      {item.devices.length > 0
-                        ? item.devices.map((device) => device.name).join(', ')
-                        : item.targetName}
-                    </td>
+                    <td>{item.targetType}</td>
                     <td>{item.checklist.filter((check) => check.result === 'abnormal').length}건</td>
                     <td>{item.actionNote || '별도 조치 없음'}</td>
                   </tr>

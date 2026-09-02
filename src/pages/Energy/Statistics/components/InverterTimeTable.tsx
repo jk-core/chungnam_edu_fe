@@ -7,7 +7,7 @@ interface InverterTimeTableProps {
   labels: string[];
   /** 시점별 발전량(kWh) */
   generation: number[];
-  /** 시점별 일사량(kWh/m²) */
+  /** 시점별 일사강도(W/m²) — 계측은 시점 강도만 하고 적산하지 않는다 */
   irradiance: number[];
   caption: string;
 }
@@ -29,9 +29,9 @@ export function InverterTimeTable({ labels, generation, irradiance, caption }: I
     },
     {
       key: 'irradiance',
-      label: '일사량',
-      unit: 'kWh/m²',
-      values: irradiance.map((value) => formatNumber(value, 2)),
+      label: '일사강도',
+      unit: 'W/m²',
+      values: irradiance.map((value) => formatNumber(value)),
       strong: false,
     },
   ];

@@ -70,13 +70,6 @@ function pickPyranometerStatus(next: () => number, plantStatus: OperationStatus)
   return 'normal';
 }
 
-/** 설치년도만 있는 마스터 값에 월을 붙인다. 태양광 준공은 대체로 봄·가을에 몰린다. */
-function installMonth(next: () => number): string {
-  const months = [3, 4, 5, 9, 10, 11, 12];
-
-  return String(months[Math.floor(next() * months.length)]).padStart(2, '0');
-}
-
 function toSchool(seed: PlantSeed): School {
   const next = createRandom(hashSeed(seed.id));
   const status = pickStatus(next);
@@ -103,7 +96,6 @@ function toSchool(seed: PlantSeed): School {
     yearKwh: Math.round(seed.capacityKw * pickNumber(next, 980, 1420, 1)),
     utilization: Math.round((hours / 24) * 10000) / 10000,
     status,
-    installedAt: `${seed.installedAt}-${installMonth(next)}`,
     location: { lng: seed.lng, lat: seed.lat },
   };
 }

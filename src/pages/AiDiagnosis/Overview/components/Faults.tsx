@@ -4,7 +4,8 @@ import { Card } from '@/components/common/Card';
 import { EChart } from '@/components/common/EChart';
 import { EmptyState } from '@/components/common/EmptyState';
 import { getChildNodes } from '@/mocks/tree';
-import { getDiagEfficiencyPoints, NORMAL_BAND } from '@/mocks/prediction';
+import { getDiagEfficiencyPoints } from '@/mocks/prediction';
+import { NORMAL_BAND } from '@/configs/diagnosis';
 import { Button } from '@/components/common/Button';
 import { FAULT_CODES } from '@/mocks/faultCodes';
 import { InfoIcon } from '@/components/common/Icon';
@@ -96,12 +97,9 @@ export function DiagnosisFaults() {
     });
   }, [target, inverter, range.start, range.end]);
 
-  /**
-   * 한 계층 아래에 무엇이 늘어서는지 — 표 제목과 머리글에 그대로 쓴다.
-   * 센트럴형은 채널이 아니라 접속반 단위로 판정하므로 이름을 그쪽에 맞춘다.
-   */
+  /** 한 계층 아래에 무엇이 늘어서는지 — 표 제목과 머리글에 그대로 쓴다. */
   const unitNoun = target.kind === 'inverter'
-    ? (inverter?.type === 'central' ? '접속반' : '스트링')
+    ? '스트링'
     : target.kind === 'plant' ? '인버터' : '발전소';
 
   const dates = useMemo(() => {
@@ -113,7 +111,7 @@ export function DiagnosisFaults() {
   const dayLabels = useMemo(() => dates.map((date) => dayjs(date).format('M/D')), [dates]);
 
   /**
-   * 표에 얹을 줄 — 인버터 줄을 펼치면 그 아래 판정 단위(스트링·접속반)가 따라 나온다.
+   * 표에 얹을 줄 — 인버터 줄을 펼치면 그 아래 스트링이 따라 나온다.
    * 이미 계산해 둔 units 를 그대로 쓰고, 자식만 트리에서 한 겹 더 읽는다.
    */
   const tableRows = useMemo<DailyEfficiencyRow[]>(() => units.map((unit) => {

@@ -193,7 +193,7 @@
 
 | ID | 요구 내용 | 반영 | 위치 |
 |---|---|---|---|
-| 016-01 | 발전소/설비/스트링/환경센서 신규 등록 | 반영 | 발전소 `PlantsTab.tsx` · 설비 6종 `DevicesTab.tsx`(RTU·인버터·접속반·모듈·스트링·일사량계). 폼 항목은 PPI Solar V2 API 규격을 따른다 — 서버 번호·코드값은 `mocks/manageCodes.ts` |
+| 016-01 | 발전소/설비/스트링/환경센서 신규 등록 | 반영 | 발전소 `PlantsTab.tsx` · 설비 5종 `DevicesTab.tsx`(RTU·인버터·모듈·스트링·일사량계). 폼 항목은 PPI Solar V2 API 규격을 따른다 — 서버 번호·코드값은 `mocks/manageCodes.ts` |
 | 016-02 | 시공·모니터링 업체 연락처 | 반영 | 같은 화면 등록 항목(시공 업체 = `constructEnterprise`, 유지관리 업체 = `manageEnterprise`) |
 | 016-03 | 모듈 정보 입력 시 용량 자동 산출 | 반영 | 발전소 등록 폼 · 인버터 등록 폼(`computeInverterCapacity`) |
 | 016-04 | 수용가 개인정보 마스킹 | 반영 | 마스킹 + 관리자 토글 |

@@ -55,7 +55,17 @@
     border: 1px solid var(--border-subtle);
     border-radius: s.$radius-xl;
     box-shadow: var(--shadow-lg);
-    overflow: hidden;
+
+    /*
+      hidden 이 아니라 clip 이다.
+
+      hidden 은 스크롤 컨테이너를 만든다 — 스크롤바만 감출 뿐 브라우저는 여전히 밀 수 있다.
+      본문 안에서 포커스가 아래 칸으로 옮겨가면 브라우저가 그 칸을 보이게 하려고 판 자체를
+      밀어 올려, 머리글이 위로 잘려 나가고 바닥글 아래에 빈 자리가 남았다. 스크롤바가 없으니
+      되돌릴 방법도 없다. clip 은 스크롤 컨테이너를 만들지 않아 밀리지 않는다.
+      스크롤은 본문(`&__body`) 하나만 맡는다.
+    */
+    overflow: clip;
 
     @include media.mobile {
       max-height: 88dvh;
@@ -105,6 +115,7 @@
     display: flex;
     align-items: flex-start;
     justify-content: space-between;
+    flex-shrink: 0;
     gap: s.$space-4;
     padding: s.$space-6 s.$space-6 s.$space-4;
     border-bottom: 1px solid var(--border-subtle);
@@ -167,6 +178,7 @@
   }
 
   &__footer {
+    flex-shrink: 0;
     padding: s.$space-4 s.$space-6;
     border-top: 1px solid var(--border-subtle);
     background-color: var(--surface-sunken);

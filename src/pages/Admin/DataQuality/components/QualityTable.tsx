@@ -3,7 +3,7 @@ import { Badge } from '@/components/common/Badge';
 import { Card } from '@/components/common/Card';
 import { DEFAULT_PAGE_SIZE, Pagination } from '@/components/common/Pagination';
 import { OPERATION_LABEL, OPERATION_TONE } from '@/mocks/status';
-import { QUALITY_THRESHOLD } from '@/mocks/quality';
+import { QUALITY_THRESHOLD } from '@/configs/quality';
 import { Reveal } from '@/components/common/Reveal';
 import { Table } from '@/components/common/Table';
 import { formatNumber } from '@/utils/format';

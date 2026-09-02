@@ -3,7 +3,7 @@ import { Badge } from '@/components/common/Badge';
 import { Button } from '@/components/common/Button';
 import { Modal } from '@/components/common/Modal';
 import { OPERATION_LABEL, OPERATION_ORDER, OPERATION_RANK, OPERATION_TONE } from '@/mocks/status';
-import { REGIONS } from '@/mocks/regions';
+import { CHUNGNAM_REGIONS } from '@/configs/regions';
 import { getInvertersOf } from '@/mocks/equipment';
 import { SCHOOL_LEVELS, SCHOOLS } from '@/mocks/schools';
 import { Select } from '@/components/common/Select';
@@ -87,7 +87,7 @@ export function PlantSearchModal({ isOpen, filters, onClose, onApply, onSelect }
             label="지역"
             value={draft.region}
             onChange={(value) => setDraft({ ...draft, region: value })}
-            options={[{ value: ALL, label: '전체 지역' }, ...REGIONS.map((item) => ({ value: item.code, label: item.name }))]}
+            options={[{ value: ALL, label: '전체 지역' }, ...CHUNGNAM_REGIONS.map((item) => ({ value: item.code, label: item.name }))]}
           />
           <Select
             label="기관별"

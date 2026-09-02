@@ -1,4 +1,4 @@
-import { ACCOUNTS, ROLE_LABEL, ROLE_SCOPE_NOTE } from '@/mocks/accounts';
+import { ACCOUNTS, isReviewRole, ROLE_LABEL, ROLE_SCOPE_NOTE } from '@/mocks/accounts';
 import { Badge } from '@/components/common/Badge';
 import { ChevronRightIcon } from '@/components/common/Icon';
 import styles from '../Login.module.scss';
@@ -33,7 +33,7 @@ export function DemoAccounts({ onEnter, isLocked }: DemoAccountsProps) {
               <span className={styles.demo__note}>{ROLE_SCOPE_NOTE[item.role]}</span>
             </span>
             <span className={styles.demo__meta}>
-              <Badge tone={item.role === 'admin' ? 'brand' : 'neutral'}>{ROLE_LABEL[item.role]}</Badge>
+              <Badge tone={isReviewRole(item.role) ? 'brand' : 'neutral'}>{ROLE_LABEL[item.role]}</Badge>
               <ChevronRightIcon />
             </span>
           </button>

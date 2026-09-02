@@ -1,7 +1,8 @@
 import dayjs from 'dayjs';
 import type { DiagEfficiencyPoint, ModelMetrics, PredictionPoint } from '@/interface/diagnosisDetail';
 import type { OperationStatus } from '@/interface/status';
-import { DIAG_EFFICIENCY_WARN, getInverterById } from './equipment';
+import { NORMAL_BAND } from '@/configs/diagnosis';
+import { getNode } from './tree';
 import { FAULT_BY_STATUS } from './faultCodes';
 import { SUNRISE_HOUR, SUNSET_HOUR } from './generation';
 import { createRandom, hashSeed, pickNumber } from './random';
@@ -21,24 +22,21 @@ export const MODEL_METRICS: ModelMetrics = {
 
 export const MODEL_NOTE = '전압 Bagging Tree · 전류 Linear Regression · 고장분류 KNN (학습 80% / 검증 20%)';
 
-/** 정상으로 보는 진단 효율 구간 (SFR-013-03) */
-export const NORMAL_BAND = { min: DIAG_EFFICIENCY_WARN, max: 105 };
-
 const predictionCache = new Map<string, PredictionPoint[]>();
 
 /**
  * 정시 기준 DC 전압·전류 예측값과 실측값 (SFR-014-01/10).
  * 물리식으로 기대값을 만들고 실측은 설비 상태만큼 깎아 붙인다.
  */
-export function getPredictionSeries(inverterId: string, date: Date): PredictionPoint[] {
+export function getPredictionSeries(unitId: string, date: Date): PredictionPoint[] {
   const ymd = dayjs(date).format('YYYY-MM-DD');
-  const key = `${inverterId}-${ymd}-pred`;
+  const key = `${unitId}-${ymd}-pred`;
   const cached = predictionCache.get(key);
 
   if (cached) return cached;
 
-  const inverter = getInverterById(inverterId);
-  const status: OperationStatus = inverter?.status ?? 'running';
+  // 인버터와 스트링이 같은 셈을 쓴다 — 상태는 계층 노드가 알고 있어 둘 다 여기서 읽힌다.
+  const status: OperationStatus = getNode(unitId)?.status ?? 'running';
   const next = createRandom(hashSeed(key));
   // 상태가 나쁘면 실측이 예측보다 이만큼 낮게 나온다.
   const lossBase = status === 'fault' ? 0.46 : status === 'degraded' ? 0.78 : 1;

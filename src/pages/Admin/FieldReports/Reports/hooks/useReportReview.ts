@@ -5,20 +5,19 @@ import { toast } from '@/stores/toastStore';
 import { useAuthUser } from '@/stores/authStore';
 import useFieldReportStore from '@/stores/fieldReportStore';
 import type { FieldReport, ReportState } from '@/interface/fieldReport';
-import { nextStateOf } from '../components/reportState';
 
 /**
  * 보고서 검토 흐름 (SFR-021-08).
  *
- * 진행과 반려는 확인 절차만 다를 뿐 「상태를 옮기고 이력을 한 줄 남긴다」는 점이 같아
- * 한곳에 모았다. 무엇을 처리하려는지(advancing·rejecting)는 표의 버튼이 정하고,
- * 실제 처리는 확인 창에서 이뤄진다.
+ * 검토·반려·확인은 「상태를 옮기고 이력을 한 줄 남긴다」는 점이 같아 한곳에 모았다.
+ * 무엇을 매길지는 표의 버튼이 정하고, 실제 처리는 확인 창에서 이뤄진다 —
+ * 반려만 사유를 받아야 해서 창이 따로다.
  */
 export function useReportReview() {
   const patch = useFieldReportStore((state) => state.patch);
   const actor = useAuthUser();
 
-  const [advancing, setAdvancing] = useState<FieldReport | null>(null);
+  const [pending, setPending] = useState<{ report: FieldReport; state: ReportState } | null>(null);
   const [rejecting, setRejecting] = useState<FieldReport | null>(null);
   const [reason, setReason] = useState('');
 
@@ -33,14 +32,12 @@ export function useReportReview() {
     });
   };
 
-  const advance = () => {
-    const next = advancing && nextStateOf(advancing.state);
+  const apply = () => {
+    if (!pending) return;
 
-    if (!advancing || !next) return;
-
-    move(advancing, next, `${REPORT_STATE_LABEL[next]}(으)로 바꿨습니다.`);
-    toast.success(`${advancing.schoolName} 보고서를 ${REPORT_STATE_LABEL[next]}(으)로 처리했습니다.`);
-    setAdvancing(null);
+    move(pending.report, pending.state, `${REPORT_STATE_LABEL[pending.state]}(으)로 바꿨습니다.`);
+    toast.success(`${pending.report.schoolName} 보고서를 ${REPORT_STATE_LABEL[pending.state]}(으)로 처리했습니다.`);
+    setPending(null);
   };
 
   /*
@@ -63,15 +60,17 @@ export function useReportReview() {
   };
 
   return {
-    advancing,
+    pending,
     rejecting,
     reason,
     setReason,
-    askAdvance: setAdvancing,
-    askReject: setRejecting,
-    closeAdvance: () => setAdvancing(null),
+    /** 반려만 사유를 받아야 해서 다른 창으로 보낸다 */
+    ask: (report: FieldReport, state: ReportState) => (
+      state === 'rejected' ? setRejecting(report) : setPending({ report, state })
+    ),
+    closePending: () => setPending(null),
     closeReject: endReject,
-    advance,
+    apply,
     reject,
   };
 }

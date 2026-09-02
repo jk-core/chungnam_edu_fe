@@ -1,7 +1,6 @@
 import dayjs from 'dayjs';
 import type { DiagnosisFaultCode } from '@/interface/equipment';
-import type { AlertRecord, AlertRule, AlertType } from '@/interface/alert';
-import type { OperationStatus, Severity } from '@/interface/status';
+import type { AlarmStatus, AlertRecord, AlertRule } from '@/interface/alert';
 import { SCHOOLS } from './schools';
 import { isAbnormal } from './status';
 import { endOfToday, NOW } from './today';
@@ -9,8 +8,7 @@ import { createRandom, hashSeed, pickNumber } from './random';
 
 interface Template {
   faultCode: DiagnosisFaultCode | null;
-  type: AlertType;
-  severity: Severity;
+  status: AlarmStatus;
   title: string;
   description: string;
   device: string;
@@ -23,8 +21,7 @@ interface Template {
 const TEMPLATES: Template[] = [
   {
     faultCode: 7,
-    type: '통신',
-    severity: 'critical',
+    status: 'commLost',
     title: '인버터 통신 두절',
     description: 'RTU가 인버터 응답을 15분 이상 받지 못했습니다.',
     device: '인버터 #1',
@@ -33,8 +30,7 @@ const TEMPLATES: Template[] = [
   },
   {
     faultCode: 3,
-    type: '발전',
-    severity: 'critical',
+    status: 'fault',
     title: '스트링 출력 저하',
     description: '동일 인버터의 다른 스트링 대비 출력이 30% 이상 낮습니다.',
     device: '인버터 #2 · String 4',
@@ -43,8 +39,7 @@ const TEMPLATES: Template[] = [
   },
   {
     faultCode: null,
-    type: '설비',
-    severity: 'caution',
+    status: 'degraded',
     title: '인버터 내부 온도 상승',
     description: '인버터 내부 온도가 65℃를 넘어 출력 제한이 발생했습니다.',
     device: '인버터 #3',
@@ -53,8 +48,7 @@ const TEMPLATES: Template[] = [
   },
   {
     faultCode: 7,
-    type: '설비',
-    severity: 'critical',
+    status: 'fault',
     title: '절연저항 기준치 미달',
     description: '절연저항이 1MΩ 아래로 측정되었습니다. 감전 위험이 있어 즉시 확인이 필요합니다.',
     device: '접속함 A',
@@ -63,8 +57,7 @@ const TEMPLATES: Template[] = [
   },
   {
     faultCode: 3,
-    type: '환경',
-    severity: 'caution',
+    status: 'degraded',
     title: '어레이 출력 이상 저하',
     description: '맑은 날 오후 시간대 출력이 반복적으로 떨어집니다. 오염 또는 음영이 의심됩니다.',
     device: '모듈 어레이 B동',
@@ -73,8 +66,7 @@ const TEMPLATES: Template[] = [
   },
   {
     faultCode: 5,
-    type: '환경',
-    severity: 'info',
+    status: 'degraded',
     title: '일사량계 계측 오차 확대',
     description: '인근 관측소 값과의 차이가 허용 오차 상한에 근접했습니다.',
     device: '일사량계',
@@ -83,8 +75,7 @@ const TEMPLATES: Template[] = [
   },
   {
     faultCode: null,
-    type: '발전',
-    severity: 'caution',
+    status: 'degraded',
     title: '일 발전량 기대치 미달',
     description: '같은 일사량 대비 발전량이 기대치의 80%에 못 미쳤습니다.',
     device: '발전소 전체',
@@ -92,8 +83,7 @@ const TEMPLATES: Template[] = [
   },
   {
     faultCode: null,
-    type: '통신',
-    severity: 'info',
+    status: 'commLost',
     title: '수집 지연',
     description: '계측값이 예정 시각보다 30분 이상 늦게 들어왔습니다.',
     device: 'RTU',
@@ -132,8 +122,7 @@ function buildAlerts(): AlertRecord[] {
       schoolName: school.name,
       regionName: school.regionName,
       deviceName: template.device,
-      type: template.type,
-      severity: template.severity,
+      status: template.status,
       faultCode: template.faultCode,
       title: template.title,
       description: template.description,
@@ -151,7 +140,7 @@ function buildAlerts(): AlertRecord[] {
 }
 
 /** 지금 이상 상태인 발전소에 붙일 템플릿. 상태와 경보의 무게를 맞춘다. */
-const OPEN_TEMPLATE: Partial<Record<OperationStatus, Template>> = {
+const OPEN_TEMPLATE: Partial<Record<AlarmStatus, Template>> = {
   fault: TEMPLATES[3],
   degraded: TEMPLATES[4],
   commLost: TEMPLATES[0],
@@ -167,7 +156,8 @@ const OPEN_TEMPLATE: Partial<Record<OperationStatus, Template>> = {
  */
 function buildOpenAlerts(next: () => number): AlertRecord[] {
   return SCHOOLS.filter((school) => isAbnormal(school.status)).map((school, index) => {
-    const template = OPEN_TEMPLATE[school.status] ?? TEMPLATES[6];
+    // isAbnormal 이 걸러 준 뒤라 school.status 는 알림이 될 수 있는 셋 중 하나다.
+    const template = OPEN_TEMPLATE[school.status as AlarmStatus] ?? TEMPLATES[6];
     const occurred = NOW.subtract(Math.floor(pickNumber(next, 0, 9)), 'hour')
       .subtract(Math.floor(pickNumber(next, 0, 59)), 'minute');
 
@@ -177,8 +167,7 @@ function buildOpenAlerts(next: () => number): AlertRecord[] {
       schoolName: school.name,
       regionName: school.regionName,
       deviceName: template.device,
-      type: template.type,
-      severity: template.severity,
+      status: template.status,
       faultCode: template.faultCode,
       title: template.title,
       description: template.description,
@@ -193,8 +182,6 @@ function buildOpenAlerts(next: () => number): AlertRecord[] {
 }
 
 export const ALERT_RECORDS: AlertRecord[] = buildAlerts();
-
-export const ALERT_TYPES: AlertType[] = ['통신', '발전', '설비', '환경'];
 
 /** 알림이 열려 있던 시간(분). 아직 진행 중이면 기준 시각까지로 센다. */
 export function alertDurationMinutes(alert: AlertRecord, now = endOfToday()): number {
@@ -213,8 +200,7 @@ export const ALERT_RULES: AlertRule[] = [
     id: 'RULE-01',
     label: '통신 두절',
     description: 'RTU가 인버터 응답을 받지 못한 상태가 이어질 때',
-    type: '통신',
-    severity: 'critical',
+    status: 'commLost',
     threshold: '15분 이상',
     enabled: true,
     channels: ['시스템', '문자', '메일'],
@@ -223,8 +209,7 @@ export const ALERT_RULES: AlertRule[] = [
     id: 'RULE-02',
     label: '스트링 출력 저하',
     description: '같은 인버터의 다른 스트링 대비 출력이 낮을 때',
-    type: '발전',
-    severity: 'critical',
+    status: 'fault',
     threshold: '30% 이상 · 2일 연속',
     enabled: true,
     channels: ['시스템', '문자'],
@@ -233,8 +218,7 @@ export const ALERT_RULES: AlertRule[] = [
     id: 'RULE-03',
     label: '인버터 과열',
     description: '인버터 내부 온도가 기준을 넘을 때',
-    type: '설비',
-    severity: 'caution',
+    status: 'degraded',
     threshold: '65℃ 초과',
     enabled: true,
     channels: ['시스템', '메일'],
@@ -243,8 +227,7 @@ export const ALERT_RULES: AlertRule[] = [
     id: 'RULE-04',
     label: '발전량 기대치 미달',
     description: '일사량 대비 발전량이 기대치에 못 미칠 때',
-    type: '발전',
-    severity: 'caution',
+    status: 'degraded',
     threshold: '기대치의 80% 미만',
     enabled: true,
     channels: ['시스템'],
@@ -253,8 +236,7 @@ export const ALERT_RULES: AlertRule[] = [
     id: 'RULE-05',
     label: '수집 지연',
     description: '계측값이 예정 시각보다 늦게 들어올 때',
-    type: '통신',
-    severity: 'info',
+    status: 'commLost',
     threshold: '30분 이상',
     enabled: false,
     channels: ['시스템'],
@@ -263,8 +245,7 @@ export const ALERT_RULES: AlertRule[] = [
     id: 'RULE-06',
     label: '일사량계 오차',
     description: '인근 관측소 값과 차이가 커질 때',
-    type: '환경',
-    severity: 'info',
+    status: 'degraded',
     threshold: '오차 2.5% 초과',
     enabled: true,
     channels: ['시스템'],

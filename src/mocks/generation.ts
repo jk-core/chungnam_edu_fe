@@ -86,7 +86,7 @@ function buildDailyTrend(year: number, month: number): TrendPoint[] {
     return {
       label: `${index + 1}일`,
       generation: Math.round(base * weather),
-      irradiance: pickNumber(next, 2.4, 6.4, 2) * seasonal,
+      irradiance: Math.round(pickNumber(next, 240, 640) * seasonal),
       previous: Math.round(base * pickNumber(next, 0.5, 1.05, 3)),
     };
   });
@@ -99,7 +99,7 @@ function buildMonthlyTrend(year: number): TrendPoint[] {
   return MONTH_FACTOR.map((factor, index) => ({
     label: `${index + 1}월`,
     generation: Math.round(base * factor * pickNumber(next, 0.94, 1.06, 3)),
-    irradiance: pickNumber(next, 2.6, 5.8, 2) * factor,
+    irradiance: Math.round(pickNumber(next, 260, 580) * factor),
     previous: Math.round(base * factor * pickNumber(next, 0.84, 0.99, 3)),
   }));
 }
@@ -115,7 +115,7 @@ function buildYearlyTrend(endYear: number): TrendPoint[] {
     return {
       label: `${year}년`,
       generation: Math.round(base * growthOf(year) * pickNumber(next, 0.97, 1.04, 3)),
-      irradiance: pickNumber(next, 3.6, 4.4, 2),
+      irradiance: Math.round(pickNumber(next, 360, 440)),
       previous: Math.round(base * growthOf(year - 1) * pickNumber(next, 0.97, 1.04, 3)),
     };
   });
@@ -169,8 +169,8 @@ function buildHourlyTrend(date: Date): TrendPoint[] {
   return shape.map((value, hour) => ({
     label: `${String(hour).padStart(2, '0')}시`,
     generation: Math.round(value * scale),
-    // 시간 단위 일사량은 kWh/m² 로 환산한다. 맑은 정오가 대략 0.9~1.0.
-    irradiance: Math.round(value * 0.98 * 100) / 100,
+    // 그 시각의 일사강도(W/m²). 맑은 정오가 STC(1,000)에 가깝다.
+    irradiance: Math.round(value * 980),
     previous: Math.round(value * scale * previousWeather),
   }));
 }
