@@ -33,7 +33,7 @@ export const EMPTY_VALUES: EquipmentFormValues = {
   equipmentCapacity: Number.NaN,
   asExpiresAt: NOW.add(AS_YEARS, 'year').format('YYYY-MM-DD'),
   note: '',
-  installedAt: '',
+  installedAt: NOW.format('YYYY-MM-DD'),
   operatedAt: '',
   rows: [],
   takenSeqs: [],

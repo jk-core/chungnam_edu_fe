@@ -6,17 +6,17 @@ import { TemplateEditor } from './components/TemplateEditor';
 import { TemplateTable } from './components/TemplateTable';
 
 /**
- * 점검 양식 편집과 판 관리 (SFR-021-14).
+ * 점검 양식 등록·편집과 판 관리 (SFR-021-14).
  *
  * 초안(분류·문항·개정 사유)은 편집기가 통째로 가진다 — 어느 양식을 고쳤는지는 주소가 쥔다.
  */
 function TemplatesDepth({ depth }: { depth: AdminDepth }) {
   const [params] = useSearchParams();
   const templates = useTemplates();
-  const template = templates.find((item) => item.id === params.get('templateId'));
+  const templateId = params.get('templateId');
 
-  // 양식은 새로 만들지 않고 있는 것을 고쳐 새 판으로 낸다 — 없는 주소면 목록을 보여 준다.
-  if (depth === 'form') return template ? <TemplateEditor template={template} /> : <TemplateTable />;
+  // `?templateId=` 가 없으면 새로 세우는 자리다 — 다른 관리 화면과 같은 규칙이다.
+  if (depth === 'form') return <TemplateEditor template={templates.find((item) => item.id === templateId) ?? null} />;
 
   return (
     <>

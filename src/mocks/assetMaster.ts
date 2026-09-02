@@ -12,6 +12,14 @@ const BUILDERS = [
   { name: '서해태양광', phone: '041-664-4400' },
 ];
 
+// 아직 담당 업체를 적지 않은 발전소가 실제로 있다 — 빈 칸이 화면에서 어떻게 보이는지도 봐야 한다.
+const MANAGERS = [
+  { name: '충남에너지관리', phone: '041-577-7010' },
+  { name: '', phone: '' },
+  { name: '아산태양광유지보수', phone: '041-542-8820' },
+  { name: '내포솔라케어', phone: '041-630-9900' },
+];
+
 const RTU_MAKERS = ['에이치에너지', '나눔에너지', '해줌', '솔라커넥트'];
 const ADDRESS_DETAILS = ['본관 옥상', '체육관 옥상', '급식동 옥상', '별관 옥상', '주차장 캐노피'];
 
@@ -33,9 +41,9 @@ function buildAsset(schoolIndex: number): PlantAsset {
     addressDetail: pickOne(next, ADDRESS_DETAILS),
     latitude: school.location.lat,
     longitude: school.location.lng,
-    installedAt: school.installedAt,
     rtuEntName: pickOne(next, RTU_MAKERS),
     builder: pickOne(next, BUILDERS),
+    managerEnterprise: pickOne(next, MANAGERS),
     userId: OWNER_BY_PLANT.get(school.id) ?? null,
     // 일사량계는 학교마다 한 대씩 서 있고, 번호가 학교 순서를 따른다.
     irradId: schoolIndex + 1,

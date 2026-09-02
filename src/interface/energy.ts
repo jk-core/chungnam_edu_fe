@@ -43,7 +43,6 @@ export interface School {
   /** 이용률(0~1) */
   utilization: number;
   status: OperationStatus;
-  installedAt: string;
   /** 지도 마커 좌표 — 주소를 지오코딩한 실제 위치 */
   location: GeoPoint;
 }

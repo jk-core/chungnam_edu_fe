@@ -2,8 +2,10 @@ import { useNavigate } from 'react-router-dom';
 import { Badge } from '@/components/common/Badge';
 import { Button } from '@/components/common/Button';
 import { Card } from '@/components/common/Card';
-import { editPath } from '@/pages/Admin/_shared/adminPath';
+import { createPath, editPath } from '@/pages/Admin/_shared/adminPath';
 import { flattenTemplate } from '@/mocks/fieldReport';
+import { formatNumber } from '@/utils/format';
+import { PlusIcon } from '@/components/common/Icon';
 import { Reveal } from '@/components/common/Reveal';
 import { Table } from '@/components/common/Table';
 import { useTemplates } from '@/stores/fieldReportStore';
@@ -33,6 +35,7 @@ export function TemplateTable() {
       width: '100px',
       render: (row) => <Badge tone={row.inspectType === '특별' ? 'caution' : 'neutral'}>{row.inspectType}</Badge>,
     },
+    { key: 'targetType', header: '점검 대상', width: '110px', render: (row) => row.targetType },
     {
       key: 'count',
       header: '분류 · 문항',
@@ -69,13 +72,26 @@ export function TemplateTable() {
   ];
 
   return (
-    <Reveal>
-      <Card
-        title="점검 양식"
-        description="문항을 고치면 새 판으로 나갑니다. 이미 작성된 보고서는 그때 문항을 그대로 지킵니다."
-      >
-        <Table caption="점검 양식 목록" columns={columns} rows={templates} getRowKey={(row) => row.id} />
-      </Card>
-    </Reveal>
+    <>
+      <div className={styles.toolbar}>
+        <div className={styles.toolbar__left}>
+          <p className={styles.toolbar__note}>총 {formatNumber(templates.length)}개</p>
+        </div>
+        <div className={styles.toolbar__actions}>
+          <Button iconLeft={<PlusIcon />} onClick={() => navigate(createPath('field-reports', 'templates'))}>
+            양식 등록
+          </Button>
+        </div>
+      </div>
+
+      <Reveal>
+        <Card
+          title="점검 양식"
+          description="문항을 고치면 새 판으로 나갑니다. 이미 작성된 보고서는 그때 문항을 그대로 지킵니다."
+        >
+          <Table caption="점검 양식 목록" columns={columns} rows={templates} getRowKey={(row) => row.id} />
+        </Card>
+      </Reveal>
+    </>
   );
 }

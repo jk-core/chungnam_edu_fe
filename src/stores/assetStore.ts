@@ -129,6 +129,19 @@ const useAssetStore = create<AssetState>()(
     {
       name: 'cne-admin',
       storage: createJSONStorage(() => localStorage),
+      /*
+        1 판의 발전소에는 설치 시기가 있고 담당 업체가 없다. 사용자 등급도 그때는 다른 이름이었다.
+        옛 값을 그대로 읽으면 `managerEnterprise` 가 비어 등록 정보 화면이 그 자리에서 죽는다 —
+        판이 다르면 그 슬롯을 비우고 시드에서 다시 세운다.
+      */
+      version: 2,
+      migrate: (persisted) => ({
+        ...(persisted as AssetState),
+        plantCreated: [],
+        assetPatched: {},
+        userCreated: [],
+        userPatched: {},
+      }),
     },
   ),
 );

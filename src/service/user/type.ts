@@ -1,6 +1,7 @@
 import { z } from 'zod';
 import { MSG } from '@/configs/messages';
 import { pagingRequest } from '@/service/common';
+import { SELECTABLE_ROLES } from '@/mocks/accounts';
 
 /** 비밀번호 규칙 — 영대문자·영소문자·숫자·특수문자를 각 하나 이상, 공백 없이 8~20자. */
 export const PASSWORD_RULE = /^(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.*[^A-Za-z0-9\s])(?=\S+$).{8,20}$/;
@@ -16,6 +17,7 @@ export const EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 export const NAME_MAX = 14;
 export const EMAIL_MAX = 50;
+export const ORG_NAME_MAX = 60;
 
 /** 검색어는 사용자 이름·로그인 ID·이메일을 함께 훑는다 */
 export const userListRequestSchema = pagingRequest.extend({
@@ -81,6 +83,7 @@ export type UserDeleteRequest = z.infer<typeof userDeleteRequestSchema>;
 export function userFormSchema(isNew: boolean) {
   return z.object({
     name: z.string().trim().min(1, MSG.requiredField('이름')).max(NAME_MAX, MSG.tooLong('이름', NAME_MAX)),
+    orgName: z.string().trim().max(ORG_NAME_MAX, MSG.tooLong('소속', ORG_NAME_MAX)),
     email: z
       .string()
       .trim()
@@ -92,7 +95,7 @@ export function userFormSchema(isNew: boolean) {
       .string()
       .refine((value) => (isNew || value ? PASSWORD_RULE.test(value) : true), `${PASSWORD_HINT}로 넣어 주세요.`),
     passwordConfirm: z.string(),
-    role: z.enum(['guest', 'customer', 'group', 'admin']),
+    role: z.enum(SELECTABLE_ROLES),
   }).refine((values) => values.password === values.passwordConfirm, {
     path: ['passwordConfirm'],
     message: '비밀번호가 서로 다릅니다.',

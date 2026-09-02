@@ -28,7 +28,6 @@ function toSchoolRow(asset: PlantAsset): School {
     yearKwh: 0,
     utilization: 0,
     status: 'ready',
-    installedAt: asset.installedAt,
     location: region.center,
   };
 }

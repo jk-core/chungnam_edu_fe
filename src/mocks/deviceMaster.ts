@@ -69,6 +69,9 @@ function productFor(maker: string, kind: InverterKind, capacityKw: number): Inve
   ) ?? SEED_INVERTER_PRODUCTS[0];
 }
 
+/** 설비 날짜의 기준이 되는 달. 설비마다 다른 날을 심을 이유가 없어 한 값에서 파생시킨다 */
+const SEED_INSTALLED_MONTH = '2021-03';
+
 export const SEED_EQUIPMENT: EquipmentMaster[] = INVERTERS.map((inverter, index) => {
   const next = createRandom(hashSeed(`equipment-${inverter.id}`));
   const asset = getSeedAsset(inverter.schoolId);
@@ -76,7 +79,6 @@ export const SEED_EQUIPMENT: EquipmentMaster[] = INVERTERS.map((inverter, index)
   const watt = product.wattPerPanel;
   const panelCount = Math.max(1, Math.round((inverter.capacityKw * 1000) / watt));
   const { series, parallel } = splitArray(next, panelCount);
-  const installedAt = asset?.installedAt ?? '2021-03';
   // 운영 설비는 전부 스트링 직결이다. 카탈로그의 센트럴·마이크로 기종은 제품 관리 화면에만 남는다.
   const kind: InverterKind = 'string';
 
@@ -103,11 +105,11 @@ export const SEED_EQUIPMENT: EquipmentMaster[] = INVERTERS.map((inverter, index)
     series2: 0,
     parallel2: 0,
     equipmentCapacity: Math.round(inverter.capacityKw * 1000) / 1000,
-    asExpiresAt: `${Number(installedAt.slice(0, 4)) + 5}${installedAt.slice(4)}-01`,
+    asExpiresAt: `${Number(SEED_INSTALLED_MONTH.slice(0, 4)) + 5}${SEED_INSTALLED_MONTH.slice(4)}-01`,
     note: '',
-    installedAt: `${installedAt}-01`,
-    operatedAt: `${installedAt}-15`,
-    firstReceivedAt: `${installedAt}-15 06:20`,
+    installedAt: `${SEED_INSTALLED_MONTH}-01`,
+    operatedAt: `${SEED_INSTALLED_MONTH}-15`,
+    firstReceivedAt: `${SEED_INSTALLED_MONTH}-15 06:20`,
     // 통신이 끊긴 설비는 마지막 수신이 한참 전에 멈춰 있다.
     lastReceivedAt: inverter.status === 'commLost' ? stampAgo(3, '05:40') : stampAgo(0, '14:35'),
   };

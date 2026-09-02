@@ -15,11 +15,16 @@ interface FieldReportState {
   remove: (id: string) => void;
   nextId: () => string;
 
+  /** 관리자가 새로 세운 점검 양식 (SFR-021-14) */
+  templateCreated: ReportTemplate[];
   /** 관리자가 고친 점검 양식 — 시드 위에 덮어쓴다 (SFR-021-14) */
   templatePatched: Record<string, ReportTemplate>;
+  templateDeleted: string[];
   /** 양식 개정 이력. 새 판을 낼 때마다 앞에 쌓인다 */
   revisions: TemplateRevision[];
-  saveTemplate: (template: ReportTemplate, revision: TemplateRevision) => void;
+  saveTemplate: (template: ReportTemplate, revision: TemplateRevision, isNew: boolean) => void;
+  removeTemplate: (id: string) => void;
+  nextTemplateId: () => string;
 }
 
 const useFieldReportStore = create<FieldReportState>()(
@@ -55,13 +60,23 @@ const useFieldReportStore = create<FieldReportState>()(
       // 새로 만든 것끼리 번호가 겹치지 않게 뒤에서부터 이어 붙인다.
       nextId: () => `FR-${String(2700 + get().created.length)}`,
 
+      templateCreated: [],
       templatePatched: {},
+      templateDeleted: [],
       revisions: [],
-      saveTemplate: (template, revision) =>
+      saveTemplate: (template, revision, isNew) =>
         set((state) => ({
-          templatePatched: { ...state.templatePatched, [template.id]: template },
+          // 새로 세운 양식은 자기 목록에 쌓고, 이미 있던 것은 변경분으로만 덮는다.
+          templateCreated: isNew
+            ? [template, ...state.templateCreated]
+            : state.templateCreated.map((item) => (item.id === template.id ? template : item)),
+          templatePatched: isNew || state.templateCreated.some((item) => item.id === template.id)
+            ? state.templatePatched
+            : { ...state.templatePatched, [template.id]: template },
           revisions: [revision, ...state.revisions],
         })),
+      removeTemplate: (id) => set((state) => ({ templateDeleted: [...state.templateDeleted, id] })),
+      nextTemplateId: () => `TPL-${String(1000 + get().templateCreated.length + 1)}`,
     }),
     {
       name: 'cne-field-reports',
@@ -70,8 +85,23 @@ const useFieldReportStore = create<FieldReportState>()(
         created: state.created,
         patched: state.patched,
         deleted: state.deleted,
+        templateCreated: state.templateCreated,
         templatePatched: state.templatePatched,
+        templateDeleted: state.templateDeleted,
         revisions: state.revisions,
+      }),
+      /*
+        1 판의 보고서에는 점검 설비 목록과 발전소 정보가 들어 있고 점검대상이 이름 문자열이었다.
+        양식도 `targetKind` 로 갈래를 담았다 — 옛 값을 그대로 읽으면 점검대상 칸이 빈다.
+        판이 다르면 보고서·양식 저장분을 비우고 시드에서 다시 세운다.
+      */
+      version: 2,
+      migrate: (persisted) => ({
+        ...(persisted as FieldReportState),
+        created: [],
+        patched: {},
+        templateCreated: [],
+        templatePatched: {},
       }),
     },
   ),
@@ -102,16 +132,27 @@ export function getFieldReport(id: string): FieldReport | null {
   return listFieldReports().find((report) => report.id === id) ?? null;
 }
 
-/** 시드 + 관리자 수정분이 합쳐진 점검 양식 (SFR-021-14) */
-export function mergeTemplates(patched: Record<string, ReportTemplate>): ReportTemplate[] {
-  return CHECKLIST_TEMPLATES.map((template) => patched[template.id] ?? template);
+/** 시드 + 관리자 등록·수정분이 합쳐진 점검 양식 (SFR-021-14) */
+export function mergeTemplates(
+  created: ReportTemplate[],
+  patched: Record<string, ReportTemplate>,
+  deleted: string[],
+): ReportTemplate[] {
+  return [...created, ...CHECKLIST_TEMPLATES]
+    .filter((template) => !deleted.includes(template.id))
+    .map((template) => patched[template.id] ?? template);
 }
 
 /** 최신 양식 목록. 표와 편집기가 같은 목록을 봐야 해서 한 곳에서 꺼낸다 */
 export function useTemplates(): ReportTemplate[] {
+  const templateCreated = useFieldReportStore((state) => state.templateCreated);
   const templatePatched = useFieldReportStore((state) => state.templatePatched);
+  const templateDeleted = useFieldReportStore((state) => state.templateDeleted);
 
-  return useMemo(() => mergeTemplates(templatePatched), [templatePatched]);
+  return useMemo(
+    () => mergeTemplates(templateCreated, templatePatched, templateDeleted),
+    [templateCreated, templatePatched, templateDeleted],
+  );
 }
 
 /** 시드 + 사용자 저장분이 합쳐진 양식 개정 이력 */
@@ -124,9 +165,10 @@ export function mergeRevisions(revisions: TemplateRevision[]): TemplateRevision[
  * 보고서를 새로 쓸 때만 쓴다 — 이미 쓰인 보고서는 자기 문항을 통째로 들고 있다.
  */
 export function getLiveTemplate(id: string): ReportTemplate {
-  const { templatePatched } = useFieldReportStore.getState();
+  const { templateCreated, templatePatched, templateDeleted } = useFieldReportStore.getState();
+  const live = mergeTemplates(templateCreated, templatePatched, templateDeleted);
 
-  return mergeTemplates(templatePatched).find((item) => item.id === id) ?? CHECKLIST_TEMPLATES[0];
+  return live.find((item) => item.id === id) ?? live[0] ?? CHECKLIST_TEMPLATES[0];
 }
 
 export default useFieldReportStore;

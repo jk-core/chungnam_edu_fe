@@ -7,10 +7,11 @@ import { PlusIcon } from '@/components/common/Icon';
 import { Reveal } from '@/components/common/Reveal';
 import { buildPath } from '@/routes/buildPath';
 import { formatNumber } from '@/utils/format';
+import { isReviewRole } from '@/mocks/accounts';
 import { useAuthUser } from '@/stores/authStore';
 import type { BoardKind } from '@/interface/board';
 import styles from '../Guide.module.scss';
-import { KIND_LABEL, useBoardPosts, WRITE_ROLE } from '../hooks/useBoardPosts';
+import { KIND_LABEL, useBoardPosts, WRITE_RESTRICTED } from '../hooks/useBoardPosts';
 
 const DESCRIPTION: Record<BoardKind, string> = {
   notice: '교육청이 알리는 글입니다. 고정 글이 위로 오고, 제목을 누르면 본문으로 넘어갑니다.',
@@ -27,7 +28,7 @@ export function PostList({ kind }: { kind: BoardKind }) {
   const navigate = useNavigate();
   const user = useAuthUser();
   const { posts } = useBoardPosts(kind);
-  const canWrite = WRITE_ROLE[kind] === null || user?.role === WRITE_ROLE[kind];
+  const canWrite = !WRITE_RESTRICTED[kind] || isReviewRole(user?.role);
 
   return (
     <div className={styles.tab}>

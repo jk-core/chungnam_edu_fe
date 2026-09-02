@@ -131,7 +131,7 @@ export interface EquipmentMaster {
   /** AS 만료일 */
   asExpiresAt: string;
   note: string;
-  /** 운전시작일 (meainInstDtm) */
+  /** 설치일시 (meainInstDtm) */
   installedAt: string;
   operatedAt: string;
   /** 수집이 처음·마지막으로 들어온 때. 등록이 아니라 수집기가 채우는 값이라 폼이 만지지 않는다 */

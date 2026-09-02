@@ -24,11 +24,12 @@ export interface PlantAsset {
   /** 지도 마커가 서는 자리 — 주소를 고르면 채워지고 손으로 고칠 수 있다 */
   latitude: number;
   longitude: number;
-  installedAt: string;
   /** RTU 업체 (rtuEntName) */
   rtuEntName: string;
   /** 시공 업체 (installerName) */
   builder: { name: string; phone: string };
+  /** 유지보수를 맡은 담당 업체 (managerEnterpriseName). 담당자 계정(`userId`) 과 다른 것이다 */
+  managerEnterprise: { name: string; phone: string };
   /** 이 발전소를 맡은 사용자 (userId) — 사용자 관리의 계정과 잇는다 */
   userId: number | null;
   /** 연결한 일사량계 번호 (irradId) */

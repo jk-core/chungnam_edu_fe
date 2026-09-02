@@ -1,10 +1,13 @@
 /**
  * 계정 등급 (userTypeCode).
  *
- * 게스트 2001 · 수용가 2002 · 그룹관리자 2006 · 관리자 2998 · 개발자 2999.
- * **개발자는 화면에 세우지 않는다** — 등급 선택지에도, 사용자 목록에도 나오지 않는다.
+ * 기관담당자 2002 · 그룹관리자 2005 · 교육지원청 2010 · 관리자(도교육청) 2997 ·
+ * 슈퍼관리자 2998 · 개발자 2999.
+ *
+ * 숫자 코드는 `USER_TYPE_CODE` 가 들고 있다 — 여기 주석에만 두면 서버 응답과 맞대 볼 근거가
+ * 코드에 남지 않는다.
  */
-export type Role = 'guest' | 'customer' | 'group' | 'admin' | 'developer';
+export type Role = 'institution' | 'group' | 'educationOffice' | 'admin' | 'superAdmin' | 'developer';
 
 /** 로그인한 사용자 */
 export interface AuthUser {
@@ -17,7 +20,7 @@ export interface AuthUser {
   email: string;
   /**
    * 조회 가능한 발전소 id 목록.
-   * 빈 배열이면 제한 없음(도 전체) — 관리자·게스트가 여기에 해당한다.
+   * 빈 배열이면 제한 없음(도 전체) — 교육지원청·관리자가 여기에 해당한다.
    */
   plantIds: string[];
 }
@@ -31,6 +34,8 @@ export interface ManagedUser {
   loginId: string;
   name: string;
   role: Role;
+  /** 소속 기관 표기 */
+  orgName: string;
   email: string;
   /** 휴대전화번호 (cellPhone) */
   phone: string;

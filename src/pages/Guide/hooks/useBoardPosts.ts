@@ -1,23 +1,25 @@
 import { useMemo } from 'react';
+import { isReviewRole } from '@/mocks/accounts';
 import { mergePosts } from '@/stores/boardStore';
 import useBoardStore from '@/stores/boardStore';
 import type { BoardKind, BoardPost } from '@/interface/board';
+import type { Role } from '@/interface/account';
 
 /** 게시판 이름 — 화면 글귀와 확인 문구가 같은 말을 쓰게 한다 */
 export const KIND_LABEL: Record<BoardKind, string> = { notice: '공지사항', inquiry: '문의하기' };
 
 /** 공지사항은 교육청이 알리는 자리라 아무나 쓰지 못한다 (SFR-025-01) */
-export const WRITE_ROLE: Record<BoardKind, 'admin' | null> = { notice: 'admin', inquiry: null };
+export const WRITE_RESTRICTED: Record<BoardKind, boolean> = { notice: true, inquiry: false };
 
 /**
  * 이 글을 고치거나 지울 수 있는가 (SFR-025-01/04).
- * 관리자는 게시판을 관리하는 자리라 남의 글도 손댈 수 있고, 그 밖에는 제가 쓴 글만이다.
+ * 교육청은 게시판을 관리하는 자리라 남의 글도 손댈 수 있고, 그 밖에는 제가 쓴 글만이다.
  */
-export function canManagePost(post: BoardPost, user: { role: string; orgName: string } | null): boolean {
+export function canManagePost(post: BoardPost, user: { role: Role; orgName: string } | null): boolean {
   if (!user) return false;
-  if (user.role === 'admin') return true;
+  if (isReviewRole(user.role)) return true;
 
-  return WRITE_ROLE[post.kind] === null && post.author === user.orgName;
+  return !WRITE_RESTRICTED[post.kind] && post.author === user.orgName;
 }
 
 export interface BoardNeighbors {

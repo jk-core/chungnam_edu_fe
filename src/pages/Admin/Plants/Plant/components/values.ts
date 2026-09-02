@@ -1,4 +1,3 @@
-import { NOW } from '@/mocks/today';
 import { SCHOOL_LEVELS } from '@/mocks/schools';
 import { CHUNGNAM_REGIONS } from '@/configs/regions';
 import type { PlantFormValues } from '@/service/plant/type';
@@ -14,10 +13,11 @@ export const EMPTY_VALUES: PlantFormValues = {
   addressDetail: '',
   latitude: '',
   longitude: '',
-  installedAt: NOW.format('YYYY-MM-DD'),
   rtuEntName: '',
   builderName: '',
   builderPhone: '',
+  managerEnterpriseName: '',
+  managerEnterprisePhone: '',
   userId: '',
   userLabel: '',
   irradId: '',
@@ -45,10 +45,11 @@ export function toFormValues(asset: PlantAsset, users: ManagedUser[], irrads: Py
     addressDetail: asset.addressDetail,
     latitude: String(asset.latitude),
     longitude: String(asset.longitude),
-    installedAt: asset.installedAt,
     rtuEntName: asset.rtuEntName,
     builderName: asset.builder.name,
     builderPhone: asset.builder.phone,
+    managerEnterpriseName: asset.managerEnterprise.name,
+    managerEnterprisePhone: asset.managerEnterprise.phone,
     userId: asset.userId === null ? '' : String(asset.userId),
     userLabel: user ? userLabelOf(user) : '',
     irradId: asset.irradId === null ? '' : String(asset.irradId),

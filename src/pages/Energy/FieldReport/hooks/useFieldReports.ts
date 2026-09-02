@@ -2,7 +2,7 @@ import { useMemo } from 'react';
 import { findRepeatIssues } from '@/mocks/fieldReport';
 import { useAuthUser } from '@/stores/authStore';
 import { usePlantScope } from '@/hooks/usePlantScope';
-import useFieldReportStore, { mergeFieldReports, mergeTemplates } from '@/stores/fieldReportStore';
+import useFieldReportStore, { mergeFieldReports, useTemplates } from '@/stores/fieldReportStore';
 import { getFieldPermission } from '../utils/fieldPermission';
 
 /**
@@ -18,10 +18,9 @@ export function useFieldReports() {
   const created = useFieldReportStore((state) => state.created);
   const patched = useFieldReportStore((state) => state.patched);
   const deleted = useFieldReportStore((state) => state.deleted);
-  const templatePatched = useFieldReportStore((state) => state.templatePatched);
+  const templates = useTemplates();
 
   const permission = getFieldPermission(user);
-  const templates = useMemo(() => mergeTemplates(templatePatched), [templatePatched]);
 
   const reports = useMemo(() => {
     const all = mergeFieldReports(created, patched, deleted).filter(permission.canRead);

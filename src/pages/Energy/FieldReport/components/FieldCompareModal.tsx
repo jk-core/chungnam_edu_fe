@@ -54,11 +54,7 @@ export function FieldCompareModal({ isOpen, reports, onClose }: FieldCompareModa
                   </span>
                 </p>
                 <p className={styles.row__meta}>{report.summary}</p>
-                <p className={styles.row__meta}>
-                  {report.devices.length > 0
-                    ? `점검 설비 ${report.devices.map((device) => device.name).join(', ')}`
-                    : '점검 설비 미기재'}
-                </p>
+                <p className={styles.row__meta}>점검 대상 {report.targetType}</p>
               </div>
             ))}
           </div>

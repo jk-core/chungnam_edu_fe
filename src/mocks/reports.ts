@@ -26,7 +26,6 @@ export interface MonthlyReport {
     inverterStructure: string;
     moduleModel: string;
     moduleStructure: string;
-    installedAt: string;
   };
   /** 전월 대비 금월 일 단위 발전량 (SFR-019-02) */
   dailyCompare: { day: number; current: number; previous: number }[];
@@ -196,7 +195,6 @@ export function getMonthlyReport(schoolId: string, year: number, month: number):
         : '인버터 정보 없음',
       moduleModel: pickOne(next, MODULE_MODELS),
       moduleStructure: `${Math.round(school.capacityKw / 0.455)}장 · ${Math.max(1, Math.round(school.capacityKw / 24))}직렬`,
-      installedAt: school.installedAt,
     },
     dailyCompare,
     inverterHours,

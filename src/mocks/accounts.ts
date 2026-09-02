@@ -16,7 +16,7 @@ export const ACCOUNTS: AuthUser[] = [
   {
     id: 'cne-admin',
     name: '김도현',
-    role: 'admin',
+    role: 'superAdmin',
     orgName: '충청남도교육청 교육과정평가정보원',
     department: '정보인프라부',
     email: 'admin@cne.go.kr',
@@ -25,7 +25,7 @@ export const ACCOUNTS: AuthUser[] = [
   {
     id: 'cne-office',
     name: '박세연',
-    role: 'guest',
+    role: 'admin',
     orgName: '충청남도교육청',
     department: '시설과',
     email: 'office@cne.go.kr',
@@ -34,7 +34,7 @@ export const ACCOUNTS: AuthUser[] = [
   {
     id: 'school-cheonan',
     name: '이준서',
-    role: 'customer',
+    role: 'institution',
     orgName: institutionSchool?.name ?? '천안 소재 학교',
     department: '행정실',
     email: 'school@cne.go.kr',
@@ -42,25 +42,49 @@ export const ACCOUNTS: AuthUser[] = [
   },
 ];
 
+/** 서버 `userTypeCode`. 응답을 등급으로 옮기고 저장 때 되돌리는 자리가 이 표 하나를 본다. */
+export const USER_TYPE_CODE: Record<Role, number> = {
+  institution: 2002,
+  group: 2005,
+  educationOffice: 2010,
+  admin: 2997,
+  superAdmin: 2998,
+  developer: 2999,
+};
+
 export const ROLE_LABEL: Record<Role, string> = {
-  guest: '게스트',
-  customer: '수용가',
+  institution: '기관담당자',
   group: '그룹관리자',
-  admin: '관리자',
+  educationOffice: '교육지원청',
+  admin: '관리자(도교육청)',
+  superAdmin: '슈퍼관리자',
   developer: '개발자',
 };
 
 /**
- * 화면에서 고를 수 있는 등급.
- * 개발자는 뺀다 — 등급 선택지에도 사용자 목록에도 세우지 않는다.
+ * 사용자 관리 화면에서 만들고 고칠 수 있는 등급.
+ * 교육지원청 위로는 이 화면에서 다루지 않는다 — 목록도 같은 범위로 좁혀 둔다.
  */
-export const SELECTABLE_ROLES: Role[] = ['guest', 'customer', 'group', 'admin'];
+export const SELECTABLE_ROLES = ['institution', 'group'] as const satisfies readonly Role[];
+
+/** 화면에 세우는 등급 — 개발자만 뺀다. 권한표가 이 순서로 열을 세운다. */
+export const VISIBLE_ROLES: Role[] = ['institution', 'group', 'educationOffice', 'admin', 'superAdmin'];
 
 /**
- * 관리자 콘솔에 들어가고 전권을 갖는 등급 — 관리자(2998)·개발자(2999) 둘뿐이다.
+ * 제출된 보고서를 검토·확인으로 넘기거나 반려하는 등급 — 2997 이상이다.
+ * 작성 자체는 모든 등급이 하고, 여기 등급만 그 뒤 단계를 판정한다.
+ */
+export const REVIEW_ROLES: Role[] = ['admin', 'superAdmin', 'developer'];
+
+export function isReviewRole(role: Role | undefined): boolean {
+  return role !== undefined && REVIEW_ROLES.includes(role);
+}
+
+/**
+ * 관리자 콘솔에 들어가는 등급 — 슈퍼관리자(2998)·개발자(2999) 둘뿐이다.
  * 라우트 가드·메뉴·세션 길이가 저마다 판정하면 한 곳만 늘어나 권한이 새므로 여기 한 줄을 본다.
  */
-export const ADMIN_ROLES: Role[] = ['admin', 'developer'];
+export const ADMIN_ROLES: Role[] = ['superAdmin', 'developer'];
 
 export function isAdminRole(role: Role | undefined): boolean {
   return role !== undefined && ADMIN_ROLES.includes(role);
@@ -68,10 +92,11 @@ export function isAdminRole(role: Role | undefined): boolean {
 
 /** 등급별로 무엇까지 볼 수 있는지 — 로그인 화면과 계정 메뉴에서 그대로 쓴다. */
 export const ROLE_SCOPE_NOTE: Record<Role, string> = {
-  guest: '전체 발전소를 조회만 합니다.',
-  customer: '자기 발전소의 설비만 조회합니다.',
-  group: '맡은 발전소 여러 곳을 함께 조회합니다.',
-  admin: '전체 발전소 조회와 관리자 콘솔을 씁니다.',
+  institution: '자기 발전소의 설비를 조회하고 현장보고서를 씁니다.',
+  group: '맡은 발전소 여러 곳을 함께 조회하고 현장보고서를 씁니다.',
+  educationOffice: '전체 발전소를 조회하고 현장보고서를 씁니다.',
+  admin: '전체를 조회하고 제출된 현장보고서를 검토·확인·반려합니다.',
+  superAdmin: '전체 발전소 조회와 관리자 콘솔을 씁니다.',
   developer: '전체를 보고 관리자 콘솔을 씁니다. 화면에는 세우지 않습니다.',
 };
 
@@ -96,10 +121,11 @@ function buildManagedUsers(): ManagedUser[] {
     loginId: account.id.replace('cne-', ''),
     name: account.name,
     role: account.role,
+    orgName: account.orgName,
     email: account.email,
-    phone: account.role === 'admin' ? '010-2841-0114' : '010-3517-0132',
+    phone: account.role === 'superAdmin' ? '010-2841-0114' : '010-3517-0132',
     plantIds: account.plantIds,
-    lastLoginAt: stampAgo(account.role === 'customer' ? 1 : 0, `09:0${Math.round(pickNumber(next, 0, 9))}`),
+    lastLoginAt: stampAgo(account.role === 'institution' ? 1 : 0, `09:0${Math.round(pickNumber(next, 0, 9))}`),
     locked: false,
   }));
 
@@ -112,7 +138,8 @@ function buildManagedUsers(): ManagedUser[] {
       userId: ACCOUNTS.length + index + 1,
       loginId: `mgr${String(index + 11)}`,
       name,
-      role: 'customer',
+      role: 'institution',
+      orgName: school.name,
       email: `mgr${String(index + 11)}@school.cne.go.kr`,
       phone: `010-${String(3000 + Math.round(pickNumber(next, 0, 6999)))}-${String(1000 + Math.round(pickNumber(next, 0, 8999)))}`,
       plantIds: [school.id],
@@ -136,6 +163,7 @@ function buildManagedUsers(): ManagedUser[] {
     loginId: `grp${String(index + 1).padStart(2, '0')}`,
     name: `${pickOne(next, USER_SURNAME)}${pickOne(next, USER_GIVEN)}`,
     role: 'group',
+    orgName: '충청남도교육청',
     email: `grp${String(index + 1).padStart(2, '0')}@cne.go.kr`,
     phone: `010-${String(4000 + index * 111)}-${String(2000 + index * 137)}`,
     plantIds: SCHOOLS.slice(index * 7, index * 7 + span).map((school) => school.id),
@@ -153,7 +181,7 @@ export const SEED_USERS: ManagedUser[] = buildManagedUsers();
  * 학교는 인사이동으로 담당자가 자주 바뀌므로, 최근 몇 건을 미리 깔아 둔다.
  */
 export const SEED_USER_CHANGES: UserChange[] = (() => {
-  const targets = SEED_USERS.filter((user) => user.role === 'customer').slice(1, 5);
+  const targets = SEED_USERS.filter((user) => user.role === 'institution').slice(1, 5);
 
   const rows: (Omit<UserChange, 'id' | 'userId' | 'userName'> & { index: number })[] = [
     { index: 0, at: stampAgo(4, '14:20'), actor: '김도현', field: '연락처', before: '041-000-0000', after: targets[0]?.phone ?? '-' },
@@ -166,7 +194,7 @@ export const SEED_USER_CHANGES: UserChange[] = (() => {
       before: '010-0000-0000',
       after: targets[2]?.phone ?? '-',
     },
-    { index: 3, at: stampAgo(23, '09:31'), actor: '김도현', field: '등급', before: ROLE_LABEL.guest, after: ROLE_LABEL.customer },
+    { index: 3, at: stampAgo(23, '09:31'), actor: '김도현', field: '등급', before: ROLE_LABEL.group, after: ROLE_LABEL.institution },
   ];
 
   return rows

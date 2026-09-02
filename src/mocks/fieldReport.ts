@@ -1,14 +1,11 @@
 import type {
   CheckResult,
   FieldReport,
-  InspectedDevice,
+  InspectionTarget,
   InspectorRole,
-  InstallForm,
-  OperationState,
   ReportBasics,
   ReportState,
   ReportTemplate,
-  SupportProgram,
   TemplateRevision,
 } from '@/interface/fieldReport';
 import { SCHOOLS } from './schools';
@@ -22,18 +19,17 @@ export const CHECK_LABEL: Record<CheckResult, string> = {
 };
 
 /** 머리 표의 네모칸 — 종이 양식에 적힌 순서를 그대로 쓴다 */
-export const OPERATION_OPTIONS: OperationState[] = ['가동', '미가동', '휴지·폐업'];
-export const INSTALL_FORM_OPTIONS: InstallForm[] = ['건축물', '일반부지', '기타'];
-export const PROGRAM_OPTIONS: SupportProgram[] = [
-  '주택지원',
-  '건물지원',
-  '융복합',
-  '지역지원',
-  '설치의무화',
-  '태양광 대여',
-  '기타',
-];
 export const INSPECTOR_ROLE_OPTIONS: InspectorRole[] = ['소유자', '설비관리자', '시공기업'];
+
+/** 점검대상 구분 — 작성 폼과 양식 관리가 같은 목록을 쓴다 */
+export const INSPECTION_TARGET_OPTIONS = [
+  '전체',
+  'RTU',
+  '인버터',
+  '모듈 어레이',
+  '일사량계',
+  '기타',
+] as const satisfies readonly InspectionTarget[];
 
 /**
  * 점검결과에 미흡이 하나라도 있으면 띄우는 안내 (표준 체크리스트 하단).
@@ -49,8 +45,20 @@ export const REPORT_STATE_LABEL: Record<ReportState, string> = {
   rejected: '반려',
 };
 
-/** 앞으로 나아가는 단계 — 반려는 여기 없다. 되돌린 자리는 따로 다룬다 (SFR-021-08). */
+/** 목록 필터와 상태 표시가 쓰는 차례. 반려는 이 줄 밖에 있어 따로 붙인다 (SFR-021-08). */
 export const STATE_ORDER: ReportState[] = ['draft', 'submitted', 'reviewing', 'confirmed'];
+
+/**
+ * 검토자가 제출된 보고서에 매기는 처리 (SFR-021-08).
+ *
+ * **단계를 밟아 나아가지 않는다** — 검토를 거쳐야 확인할 수 있는 것이 아니라 셋 중 하나를
+ * 곧바로 고른다. 버튼에는 상태 이름(검토중·확인완료)이 아니라 시키는 일을 적는다.
+ */
+export const MANAGE_ACTIONS: { state: ReportState; label: string }[] = [
+  { state: 'rejected', label: '반려' },
+  { state: 'reviewing', label: '검토' },
+  { state: 'confirmed', label: '확인' },
+];
 
 /**
  * 점검 양식 (SFR-021-03/14/15).
@@ -65,7 +73,7 @@ export const CHECKLIST_TEMPLATES: ReportTemplate[] = [
   {
     id: 'TPL-SELF-SAFETY',
     inspectType: '정기',
-    targetKind: 'plant',
+    targetType: '전체',
     label: '자가용 태양광 설비 안전점검 체크리스트',
     version: 1,
     revisedAt: daysAgo(30),
@@ -116,40 +124,12 @@ function pickResult(next: () => number): CheckResult {
   return 'normal';
 }
 
-/** 머리 표 — 학교마다 값이 갈리도록 순번으로 돌려 고른다 */
-function seedBasics(school: { name: string; address: string; capacityKw: number }, order: number): ReportBasics {
+/** 머리 표 — 순번으로 돌려 고른다. 연락처가 빈 건도 하나 섞어 하이픈 표기를 보게 한다 */
+function seedBasics(order: number): ReportBasics {
   return {
-    ownerName: school.name,
-    address: school.address,
-    capacityKw: school.capacityKw,
-    operation: '가동',
-    installForm: '건축물',
-    installFormEtc: '',
-    program: PROGRAM_OPTIONS[order % 5],
-    programEtc: '',
     inspectorRole: INSPECTOR_ROLE_OPTIONS[order % INSPECTOR_ROLE_OPTIONS.length],
-    contact: `041-${String(500 + order)}-${String(1000 + order * 7).slice(0, 4)}`,
+    contact: order === 2 ? '' : `041-${String(500 + order)}-${String(1000 + order * 7).slice(0, 4)}`,
   };
-}
-
-/** 점검한 설비 목록 — 양식이 겨눈 갈래에 맞춰 한두 대를 깔아 둔다 (SFR-021-06). */
-function seedDevices(targetKind: ReportTemplate['targetKind'], order: number): InspectedDevice[] {
-  if (targetKind === 'inverter') {
-    return [{ id: `dev-${order}-1`, kind: '인버터', name: '인버터 #1', note: '' }];
-  }
-
-  if (targetKind === 'rtu') {
-    return [
-      { id: `dev-${order}-1`, kind: 'RTU', name: 'RTU #1', note: '' },
-      { id: `dev-${order}-2`, kind: '인버터', name: '인버터 #1', note: '국번 일치 확인' },
-    ];
-  }
-
-  return [
-    { id: `dev-${order}-1`, kind: '모듈 어레이', name: '옥상 어레이 A', note: '' },
-    { id: `dev-${order}-2`, kind: '모듈 어레이', name: '모듈 어레이 A동', note: '' },
-    { id: `dev-${order}-3`, kind: '인버터', name: '인버터 #1', note: '' },
-  ];
 }
 
 /** 시드 보고서 — 목록·이력 비교를 볼 수 있게 몇 건 깔아 둔다. */
@@ -187,14 +167,13 @@ function buildSeed(): FieldReport[] {
       templateId: template.id,
       templateVersion: template.version,
       inspectType: template.inspectType,
-      targetKind: template.targetKind,
-      targetName: template.targetKind === 'inverter' ? '인버터 #1' : template.targetKind === 'rtu' ? 'RTU #1' : school.name,
+      // 같은 양식이어도 현장에서 무엇을 봤는지는 갈린다 — 목록 필터가 이 값으로 돈다.
+      targetType: INSPECTION_TARGET_OPTIONS[order % INSPECTION_TARGET_OPTIONS.length],
       inspector: seed.inspector,
       date: daysAgo(seed.daysAgo),
       state: seed.state,
-      basics: seedBasics(school, order),
+      basics: seedBasics(order),
       checklist,
-      devices: seedDevices(template.targetKind, order),
       photos: abnormalCount > 0
         ? [{ id: `photo-${order}`, name: `현장사진_${daysAgo(seed.daysAgo)}.jpg`, itemId: checklist.find((item) => item.result === 'abnormal')?.id ?? null }]
         : [],

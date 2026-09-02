@@ -170,7 +170,7 @@ export const ADMIN_NAVIGATION: NavSection = {
     {
       label: '계정·권한 관리',
       path: PATH.ADMIN_ACCOUNTS,
-      description: '등급별 계정 트리와 접근 가능 화면을 정합니다.',
+      description: '등급별로 접근 가능한 화면을 정합니다.',
       requirements: ['SFR-023-01', 'SFR-023-02', 'SFR-023-03'],
     },
     {

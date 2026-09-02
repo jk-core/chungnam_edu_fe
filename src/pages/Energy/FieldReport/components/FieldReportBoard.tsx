@@ -4,7 +4,7 @@ import { Card } from '@/components/common/Card';
 import { cn } from '@/utils/cn';
 import { EmptyState } from '@/components/common/EmptyState';
 import { PlusIcon } from '@/components/common/Icon';
-import type { FieldReport } from '@/interface/fieldReport';
+import type { FieldReport, ReportState } from '@/interface/fieldReport';
 import styles from '../FieldReport.module.scss';
 import { useFieldReports } from '../hooks/useFieldReports';
 import { useReportWorkflow } from '../hooks/useReportWorkflow';
@@ -26,7 +26,7 @@ interface WriteIntent {
  * 목록·상세·작성이 같은 한 벌을 보므로 무엇을 열어 두었는지만 여기서 쥔다.
  */
 export function FieldReportBoard() {
-  const { plant, label, permission, reports, repeats } = useFieldReports();
+  const { plant, label, reports, repeats } = useFieldReports();
   const workflow = useReportWorkflow();
 
   const [openId, setOpenId] = useState<string | null>(null);
@@ -59,6 +59,17 @@ export function FieldReportBoard() {
     setRejecting(null);
   };
 
+  /** 반려만 사유를 받아야 해서 창을 연다 — 나머지는 고른 그대로 매긴다 */
+  const manage = (report: FieldReport, state: ReportState) => {
+    if (state === 'rejected') {
+      setRejecting(report);
+
+      return;
+    }
+
+    workflow.setState(report, state);
+  };
+
   return (
     <div className={styles.tab}>
       <div className={cn(styles.toolbar, 'no-print')}>
@@ -66,19 +77,14 @@ export function FieldReportBoard() {
           <p className={styles.toolbar__note}>
             {label} · 보고서 {reports.length}건
           </p>
-          {permission.writeBlockedReason ? (
-            <p className={styles.toolbar__note}>{permission.writeBlockedReason}</p>
-          ) : null}
         </div>
         <div className={styles.toolbar__actions}>
           <Button variant="secondary" onClick={() => setIsComparing(true)} disabled={pickedReports.length < 2}>
             선택한 2건 비교{picked.length > 0 ? ` (${picked.length}/2)` : ''}
           </Button>
-          {permission.canWrite ? (
-            <Button iconLeft={<PlusIcon />} onClick={() => setWriting({ origin: null })} disabled={!plant}>
-              보고서 작성
-            </Button>
-          ) : null}
+          <Button iconLeft={<PlusIcon />} onClick={() => setWriting({ origin: null })} disabled={!plant}>
+            보고서 작성
+          </Button>
         </div>
       </div>
 
@@ -100,7 +106,7 @@ export function FieldReportBoard() {
           report={detail}
           onClose={() => setOpenId(null)}
           onEdit={startEditing}
-          onReject={setRejecting}
+          onManage={manage}
         />
       ) : null}
 

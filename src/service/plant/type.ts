@@ -36,12 +36,14 @@ export const plantDetailResponseSchema = z.object({
   /** 지도 마커가 서는 자리 */
   latitude: z.number(),
   longitude: z.number(),
-  installedAt: z.string(),
   /** RTU 업체 (rtuEntName) */
   rtuEntName: z.string(),
   /** 시공 업체 (installerName) */
   installerName: z.string(),
   installerPhone: z.string(),
+  /** 유지보수를 맡은 담당 업체 — 담당자 계정과 다른 것이라 이름을 가른다 */
+  managerEnterpriseName: z.string(),
+  managerEnterprisePhone: z.string(),
   userId: z.number().int().nullable(),
   userName: z.string(),
   irradId: z.number().int().nullable(),
@@ -91,10 +93,11 @@ export const plantFormSchema = z.object({
   */
   latitude: z.string().trim().min(1, MSG.requiredField('위도')),
   longitude: z.string().trim().min(1, MSG.requiredField('경도')),
-  installedAt: z.string(),
   rtuEntName: z.string().trim().min(1, MSG.requiredField('RTU업체')).max(120, MSG.tooLong('RTU업체', 120)),
   builderName: z.string().max(120, MSG.tooLong('시공업체', 120)),
   builderPhone: z.string(),
+  managerEnterpriseName: z.string().max(120, MSG.tooLong('담당업체', 120)),
+  managerEnterprisePhone: z.string(),
   userId: z.string().min(1, MSG.selectRequired('사용자')),
   /** 보일 이름 — 규칙은 id 가 진다 (참조가 지워지면 이름만 비는데 오류를 보여 줄 자리가 없다) */
   userLabel: z.string(),

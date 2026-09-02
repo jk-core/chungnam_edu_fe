@@ -72,7 +72,7 @@ export const equipmentDetailResponseSchema = z.object({
   parallel2: z.number().int(),
   asExpiresAt: z.string(),
   etc: z.string(),
-  /** 운전시작일 (meainInstDtm) */
+  /** 설치일시 (meainInstDtm) */
   installedAt: z.string(),
   /** 아래는 폼이 고치지 않고 읽기만 하는 값이다 */
   rtuEntName: z.string(),

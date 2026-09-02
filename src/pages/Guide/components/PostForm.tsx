@@ -9,13 +9,14 @@ import { MSG } from '@/configs/messages';
 import { Reveal } from '@/components/common/Reveal';
 import { buildPath } from '@/routes/buildPath';
 import { daysAhead, NOW, TODAY } from '@/mocks/today';
+import { isReviewRole } from '@/mocks/accounts';
 import { toast } from '@/stores/toastStore';
 import { useAuthUser } from '@/stores/authStore';
 import useBoardStore from '@/stores/boardStore';
 import type { BoardAttachment, BoardKind, BoardPost } from '@/interface/board';
 import type { UploadFile } from '@/components/common/Form';
 import styles from '../Guide.module.scss';
-import { canManagePost, KIND_LABEL, useBoardPosts, WRITE_ROLE } from '../hooks/useBoardPosts';
+import { canManagePost, KIND_LABEL, useBoardPosts, WRITE_RESTRICTED } from '../hooks/useBoardPosts';
 
 /** 올린 파일을 글에 붙일 모양으로 옮긴다 — 사진은 자리까지 안고 가야 글에서 펼쳐진다 */
 function toAttachment(file: UploadFile): BoardAttachment {
@@ -56,7 +57,7 @@ export function PostForm({ kind }: { kind: BoardKind }) {
   });
 
   // 공지사항은 교육청이 알리는 자리다. 단추를 감춰 두었어도 주소로 들어올 수 있어 여기서도 막는다.
-  if (WRITE_ROLE[kind] && user?.role !== WRITE_ROLE[kind]) {
+  if (WRITE_RESTRICTED[kind] && !isReviewRole(user?.role)) {
     return <Navigate to={buildPath.board(kind)} replace />;
   }
 

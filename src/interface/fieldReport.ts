@@ -7,30 +7,23 @@
  */
 export type CheckResult = 'normal' | 'abnormal' | 'na';
 
-/** 체크리스트 머리의 선택 항목 — 종이 양식이 네모칸으로 두는 것들 */
-export type OperationState = '가동' | '미가동' | '휴지·폐업';
-export type InstallForm = '건축물' | '일반부지' | '기타';
-export type SupportProgram = '주택지원' | '건물지원' | '융복합' | '지역지원' | '설치의무화' | '태양광 대여' | '기타';
 export type InspectorRole = '소유자' | '설비관리자' | '시공기업';
 
 /**
- * 보고서 머리에 적는 설비·점검자 정보 (표준 체크리스트 상단).
+ * 점검대상 구분 (targetType).
  *
- * 점검 문항만으로는 「어떤 설비를 누가 점검했는가」 가 남지 않는다. 종이 양식이 문항보다 먼저
- * 이 표를 두는 것도 그래서다 — 뒤에 남는 기록은 문항 답이 아니라 이 표와 함께 읽힌다.
+ * 발전소를 통째로 본 점검과 인버터 한 대를 본 점검이 뒤에 나란히 남으므로, 무엇을 겨눈
+ * 점검인지가 보고서에 남아야 한다. 접속반은 이 프로젝트 설비 계층에 없어 두지 않는다.
+ */
+export type InspectionTarget = '전체' | 'RTU' | '인버터' | '모듈 어레이' | '일사량계' | '기타';
+
+/**
+ * 보고서 머리에 적는 점검자 정보 (표준 체크리스트 상단).
+ *
+ * 발전소 용량·주소·설치형태처럼 등록 정보에 이미 있는 값은 여기서 다시 받지 않는다 —
+ * 두 곳에 적히면 어느 쪽이 맞는지 판단할 근거가 없다.
  */
 export interface ReportBasics {
-  /** 사용자(기관) */
-  ownerName: string;
-  address: string;
-  capacityKw: number;
-  operation: OperationState;
-  installForm: InstallForm;
-  /** 설치형태가 「기타」 일 때 적는 말 */
-  installFormEtc: string;
-  program: SupportProgram;
-  /** 보급사업 종류가 「기타」 일 때 적는 말 */
-  programEtc: string;
   inspectorRole: InspectorRole;
   /** 점검자 연락처 */
   contact: string;
@@ -63,7 +56,8 @@ export interface ReportTemplate {
   id: string;
   /** 정기 / 특별 */
   inspectType: '정기' | '특별';
-  targetKind: 'inverter' | 'rtu' | 'plant';
+  /** 이 양식이 겨눈 대상. 보고서를 새로 쓸 때 기본값이 된다 */
+  targetType: InspectionTarget;
   label: string;
   /** 개정 번호. 보고서는 작성 시점 번호를 박제한다 (SFR-021-14) */
   version: number;
@@ -83,19 +77,6 @@ export interface TemplateRevision {
   note: string;
 }
 
-/**
- * 이 보고서에서 실제로 점검한 설비 (SFR-021-06).
- * 어느 설비를 보고 무엇이 특이했는지가 사진·항목과 따로 남는다.
- */
-export interface InspectedDevice {
-  id: string;
-  /** 인버터 · RTU · 모듈 어레이처럼 설비 갈래 */
-  kind: string;
-  name: string;
-  /** 이 설비에서 본 특이사항 */
-  note: string;
-}
-
 export interface ReportPhoto {
   id: string;
   name: string;
@@ -111,16 +92,14 @@ export interface FieldReport {
   /** 작성 당시 양식 판 번호 — 양식이 개정돼도 이 보고서는 그때 문항 그대로다 (SFR-021-14) */
   templateVersion: number;
   inspectType: '정기' | '특별';
-  targetKind: 'inverter' | 'rtu' | 'plant';
-  targetName: string;
+  /** 이번 점검이 무엇을 겨눴는지 — 작성자가 고른다 */
+  targetType: InspectionTarget;
   inspector: string;
   date: string;
   state: ReportState;
-  /** 체크리스트 머리의 설비·점검자 정보 */
+  /** 체크리스트 머리의 점검자 정보 */
   basics: ReportBasics;
   checklist: ChecklistItem[];
-  /** 점검한 설비와 설비별 특이사항 (SFR-021-06) */
-  devices: InspectedDevice[];
   photos: ReportPhoto[];
   summary: string;
   /** 조치 내용 — 월간보고서에 그대로 실린다 (SFR-021-20) */
