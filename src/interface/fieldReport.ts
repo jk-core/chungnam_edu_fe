@@ -51,7 +51,14 @@ export interface TemplateSection {
   items: string[];
 }
 
-/** 점검 양식 — 기관·점검 유형별로 갈린다 (SFR-021-14/15) */
+/**
+ * 점검 양식 — 기관·점검 유형별로 갈리며, 이번 회차를 언제까지 내는지도 함께 갖는다
+ * (SFR-021-14/15/19).
+ *
+ * 일정을 따로 두지 않고 양식이 겸한다. 다음 회차를 열 때는 문항을 그대로 두고 기간만 고친다 —
+ * **그때는 판 번호가 오르지 않는다.** 판은 문항이 바뀔 때만 오르므로 개정 이력이 「무엇을
+ * 고쳤는가」만 가리킨다.
+ */
 export interface ReportTemplate {
   id: string;
   /** 정기 / 특별 */
@@ -63,8 +70,15 @@ export interface ReportTemplate {
   version: number;
   /** 이 판이 쓰이기 시작한 날 */
   revisedAt: string;
+  /** 이번 회차를 낼 수 있게 열리는 날 (SFR-021-19) */
+  startDate: string;
+  /** 이번 회차 마감기한 (SFR-021-19) */
+  dueDate: string;
   sections: TemplateSection[];
 }
+
+/** 이번 회차를 냈는가 — 시작일~마감기한 사이에 낸 보고서가 있으면 완료다 (SFR-021-19) */
+export type ScheduleProgress = 'done' | 'scheduled' | 'overdue';
 
 /** 양식 개정 이력 한 줄 (SFR-021-14) */
 export interface TemplateRevision {

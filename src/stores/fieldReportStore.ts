@@ -22,7 +22,8 @@ interface FieldReportState {
   templateDeleted: string[];
   /** 양식 개정 이력. 새 판을 낼 때마다 앞에 쌓인다 */
   revisions: TemplateRevision[];
-  saveTemplate: (template: ReportTemplate, revision: TemplateRevision, isNew: boolean) => void;
+  /** revision 이 null 이면 기간만 고친 것이라 이력에 남기지 않는다 (SFR-021-14/19) */
+  saveTemplate: (template: ReportTemplate, revision: TemplateRevision | null, isNew: boolean) => void;
   removeTemplate: (id: string) => void;
   nextTemplateId: () => string;
 }
@@ -73,7 +74,7 @@ const useFieldReportStore = create<FieldReportState>()(
           templatePatched: isNew || state.templateCreated.some((item) => item.id === template.id)
             ? state.templatePatched
             : { ...state.templatePatched, [template.id]: template },
-          revisions: [revision, ...state.revisions],
+          revisions: revision ? [revision, ...state.revisions] : state.revisions,
         })),
       removeTemplate: (id) => set((state) => ({ templateDeleted: [...state.templateDeleted, id] })),
       nextTemplateId: () => `TPL-${String(1000 + get().templateCreated.length + 1)}`,

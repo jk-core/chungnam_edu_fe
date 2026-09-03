@@ -6,11 +6,12 @@ import type {
   ReportBasics,
   ReportState,
   ReportTemplate,
+  ScheduleProgress,
   TemplateRevision,
 } from '@/interface/fieldReport';
 import { SCHOOLS } from './schools';
 import { createRandom, hashSeed, pickNumber } from './random';
-import { daysAgo, stampAgo } from './today';
+import { daysAgo, daysAhead, stampAgo, TODAY } from './today';
 
 export const CHECK_LABEL: Record<CheckResult, string> = {
   normal: '양호',
@@ -77,6 +78,8 @@ export const CHECKLIST_TEMPLATES: ReportTemplate[] = [
     label: '자가용 태양광 설비 안전점검 체크리스트',
     version: 1,
     revisedAt: daysAgo(30),
+    startDate: daysAgo(10),
+    dueDate: daysAhead(5),
     sections: [
       { title: '가동', items: ['시공기준에 적합하게 모듈, 인버터, 접속함 등은 정상적으로 운영 중인가?'] },
       { title: '모듈', items: ['외관상 모듈 파손이나 균열이 있는가?'] },
@@ -86,6 +89,21 @@ export const CHECKLIST_TEMPLATES: ReportTemplate[] = [
       { title: '인버터·접속함', items: ['인버터 및 접속함 내부상태는 양호한가?'] },
       { title: '배수·방수', items: ['설비 주변 배수 및 지붕방수 등에 문제는 없는가?'] },
       { title: '주변', items: ['태양광 설비 주변 정리 상태는 양호한가?'] },
+    ],
+  },
+  {
+    id: 'TPL-STORM',
+    inspectType: '특별',
+    targetType: '모듈 어레이',
+    label: '풍수해 대비 특별점검표',
+    version: 1,
+    revisedAt: daysAgo(70),
+    startDate: daysAgo(60),
+    dueDate: daysAgo(20),
+    sections: [
+      { title: '결속', items: ['강풍에 대비해 모듈 체결 볼트가 조여져 있는가?'] },
+      { title: '배수', items: ['집중호우에 대비해 배수로가 막힘 없이 트여 있는가?'] },
+      { title: '전기', items: ['접속함 침수 흔적이나 결로가 있는가?'] },
     ],
   },
 ];
@@ -100,6 +118,43 @@ export function flattenTemplate(template: ReportTemplate): { id: string; section
       section: section.title,
       label,
     })));
+}
+
+/** 마감이 이 안으로 들어온 점검을 「임박」으로 본다 (SFR-021-19). */
+export const DUE_SOON_DAYS = 7;
+
+/**
+ * 이 발전소가 이번 회차를 냈는가 (SFR-021-19).
+ *
+ * 시작일~마감기한 사이에 낸 보고서가 있으면 완료다 — 그 구간이 없으면 지난 회차에 낸 것과
+ * 이번에 낸 것을 가를 수 없다. 임시저장과 반려는 아직 낼 것이 남아 있어 낸 것으로 세지 않는다.
+ */
+export function scheduleProgress(template: ReportTemplate, reports: FieldReport[]): ScheduleProgress {
+  const done = reports.some((report) => report.templateId === template.id
+    && report.state !== 'draft'
+    && report.state !== 'rejected'
+    && report.date >= template.startDate
+    && report.date <= template.dueDate);
+
+  if (done) return 'done';
+
+  return TODAY.format('YYYY-MM-DD') > template.dueDate ? 'overdue' : 'scheduled';
+}
+
+/**
+ * 아직 안 낸 점검 가운데 마감이 임박했거나 이미 지난 것 (SFR-021-19).
+ *
+ * 시작 전인 것은 세지 않는다 — 아직 쓸 수 없는 것을 재촉할 이유가 없다.
+ * 마감이 지난 것을 빼지 않는다: 재촉이 가장 급한 자리가 거기다.
+ */
+export function findDueTemplates(templates: ReportTemplate[], reports: FieldReport[]): ReportTemplate[] {
+  const today = TODAY.format('YYYY-MM-DD');
+  const limit = daysAhead(DUE_SOON_DAYS);
+
+  return templates
+    .filter((template) => template.startDate <= today && template.dueDate <= limit)
+    .filter((template) => scheduleProgress(template, reports) !== 'done')
+    .sort((a, b) => a.dueDate.localeCompare(b.dueDate));
 }
 
 /** 양식 개정 이력 (SFR-021-14) — 관리자 콘솔에서 새 판을 내면 이 위에 쌓인다. */

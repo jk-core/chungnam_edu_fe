@@ -8,12 +8,22 @@ import { formatNumber } from '@/utils/format';
 import { PlusIcon } from '@/components/common/Icon';
 import { Reveal } from '@/components/common/Reveal';
 import { Table } from '@/components/common/Table';
+import { TODAY } from '@/mocks/today';
 import { useTemplates } from '@/stores/fieldReportStore';
 import type { Column } from '@/components/common/Table';
 import type { ReportTemplate } from '@/interface/fieldReport';
 import styles from '@/pages/Admin/Admin.module.scss';
 
-/** 점검 양식 목록 (SFR-021-14). 문항을 고치려면 여기서 골라 편집기로 들어간다. */
+/** 마감까지 며칠인지. 지났으면 셈하지 않고 「마감」이라 적는다 */
+function dueLabel(dueDate: string): string {
+  const days = Math.round(TODAY.diff(dueDate, 'day', true) * -1);
+
+  if (days < 0) return '마감';
+
+  return days === 0 ? '오늘 마감' : `D-${days}`;
+}
+
+/** 점검 양식 목록 (SFR-021-14/19). 문항과 이번 회차 기간을 여기서 고른다. */
 export function TemplateTable() {
   const templates = useTemplates();
   const navigate = useNavigate();
@@ -44,6 +54,17 @@ export function TemplateTable() {
       render: (row) => `${row.sections.length}분류 · ${flattenTemplate(row).length}문항`,
     },
     {
+      key: 'period',
+      header: '점검 기간',
+      width: '170px',
+      render: (row) => (
+        <span className={styles.stackCell}>
+          <strong>{row.startDate} ~ {row.dueDate}</strong>
+          <span className={styles.stackCell__sub}>{dueLabel(row.dueDate)}</span>
+        </span>
+      ),
+    },
+    {
       key: 'version',
       header: '판',
       width: '120px',
@@ -65,7 +86,7 @@ export function TemplateTable() {
           variant="secondary"
           onClick={() => navigate(editPath('field-reports', 'templates', 'templateId', row.id))}
         >
-          문항 편집
+          편집
         </Button>
       ),
     },
@@ -87,7 +108,7 @@ export function TemplateTable() {
       <Reveal>
         <Card
           title="점검 양식"
-          description="문항을 고치면 새 판으로 나갑니다. 이미 작성된 보고서는 그때 문항을 그대로 지킵니다."
+          description="문항을 고치면 새 판으로 나갑니다. 다음 회차는 문항을 그대로 두고 점검 기간만 고쳐 엽니다."
         >
           <Table caption="점검 양식 목록" columns={columns} rows={templates} getRowKey={(row) => row.id} />
         </Card>
