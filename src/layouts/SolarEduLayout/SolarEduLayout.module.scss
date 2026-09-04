@@ -74,28 +74,6 @@
     }
   }
 
-  /*
-    화면 모드를 따르는 배경을 깐 판.
-
-    밝은 하늘(`--backdrop`)과 달리 색을 고쳐 잡지 않는다 — 배경이 토큰으로 그려져 어두운
-    모드에서는 함께 어두워지므로, 글자색을 밝은 바탕용으로 못 박으면 오히려 읽히지 않는다.
-    바탕 그라디언트만 걷어 배경 그림과 색이 겹치지 않게 하고, 헤더는 배경 위에서 읽히도록
-    카드와 같은 결의 판을 깐다.
-  */
-  &.edu--tinted {
-    background: none;
-
-    .top {
-      padding: s.$space-4 s.$space-5;
-      border: 1px solid var(--border-subtle);
-      border-bottom: 1px solid var(--border-subtle);
-      border-radius: s.$radius-lg;
-      background-color: color-mix(in srgb, var(--surface) 84%, transparent);
-      box-shadow: var(--shadow-sm);
-      backdrop-filter: blur(6px);
-    }
-  }
-
   @include media.kiosk {
     height: max(100vh, 1080px);
     padding: s.$space-6 s.$space-8;
@@ -216,6 +194,9 @@
     background-color: var(--brand-soft);
     color: var(--brand-contrast);
     font-style: normal;
+
+    // 시안 문자는 주소(`/solar-edu/a`)에 그대로 쓰이므로 띠가 그것을 대문자로 바꾸면 안 된다.
+    text-transform: none;
   }
 }
 

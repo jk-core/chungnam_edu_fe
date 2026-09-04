@@ -1,7 +1,8 @@
-import { EDU_HEADLINE } from '@/mocks/eduCards';
-import { QuietBackdrop } from '@/components/solar-edu/variants/c/QuietBackdrop';
-import { EDU_VARIANT_LABEL } from '@/components/solar-edu/variants/EduBoard';
+import { EDU_CELLS } from '@/components/solar-edu/variants/EduBoard';
+import { EDU_CONTENT } from '@/mocks/eduContent';
+import { EduBoard } from '@/components/solar-edu/variants/EduBoard';
 import { HeadlineStrip } from '@/components/solar-edu/HeadlineStrip';
+import { PaperBoard } from '@/components/solar-edu/variants/middle/paper/PaperBoard';
 import { SkyBackdrop } from '@/components/solar-edu/SkyBackdrop';
 import { SolarEduLayout } from '@/layouts/SolarEduLayout';
 import { useAutoPager } from '@/hooks/useAutoPager';
@@ -9,7 +10,6 @@ import { useAutoRefresh } from '@/hooks/useAutoRefresh';
 import type { EduVariant } from '@/components/solar-edu/variants/EduBoard';
 import { useEduClock } from '../hooks/useEduClock';
 import { useEduScope } from '../hooks/useEduScope';
-import { EduStage } from './EduStage';
 import { LevelPicker } from './LevelPicker';
 import { SchoolPicker } from './SchoolPicker';
 
@@ -19,68 +19,100 @@ const REFRESH_MS = 60_000;
 /** 티커 문구를 바꾸는 주기 */
 const FACT_MS = 11_000;
 
-/** 화면 한 벌을 세운다 — 머리줄·고르개·본문이 모두 같은 조회 대상과 같은 시각을 본다. */
-export function SolarEduScreen({ variant }: { variant?: EduVariant }) {
+/**
+ * 화면 한 벌을 세운다 — 머리줄·고르개·본문이 모두 같은 조회 대상과 같은 시각을 본다.
+ *
+ * 무엇을 보여 줄지는 눈높이와 시안이 함께 정하고, 그 조합의 성격은 `EDU_CELLS` 한 곳에 적혀 있다.
+ * 여기서는 그 표를 읽어 껍데기를 맞출 뿐이라, 시안이 늘거나 줄어도 이 파일은 그대로다.
+ */
+export function SolarEduScreen({ variant }: { variant: EduVariant }) {
   // 화면을 주기적으로 되그린다. 실제 API 로 바뀌면 이 틱이 재조회 시점이 된다 (SFR-005-09).
   useAutoRefresh(REFRESH_MS);
 
   const { clock, date, nowHour } = useEduClock();
-  const { node, plant, stats, weather, content, scopeInfo } = useEduScope(nowHour);
+  const { node, plant, stats, weather, level, scopeInfo } = useEduScope(nowHour);
 
-  // 세 판은 본문 구성 자체가 갈린다 — 하늘을 까는 것은 그림이 주인공인 초등 판뿐이다.
-  const isKid = content.level === 'elementary';
+  const cell = EDU_CELLS[level][variant];
 
   /*
-    아래를 도는 "알고 계셨나요" 한 줄. 초등 판에는 두지 않는다 —
-    본문이 이미 걸음마다 큰 글씨 한 줄을 바꿔 달고 있어, 읽을 곳이 둘이 되면 오히려 산만하다.
+    껍데기가 읽을 대본. 본문과 같은 것을 봐야 한다 —
+    본문은 쉬운 말인데 위 다섯 줄만 어려운 화면이 되지 않게 칸이 정한 대본을 그대로 따른다.
+  */
+  const script = EDU_CONTENT[cell.script];
 
-    한 줄씩 넘기는 것도 쪽 넘김이라 관제 화면과 같은 장치를 쓴다. 문구 수가 눈높이마다 달라
+  /*
+    아래를 도는 "알고 계셨나요" 한 줄.
+
+    그림이 본문인 칸에는 두지 않는다 — 그런 칸은 이미 걸음마다 큰 글씨 한 줄을 바꿔 달고 있어
+    화면 아래에서 또 다른 글이 돌면 읽을 곳이 둘이 된다. 초등 대본은 이 문구를 아예 갖고 있지 않다.
+
+    한 줄씩 넘기는 것도 쪽 넘김이라 관제 화면과 같은 장치를 쓴다. 문구 수가 대본마다 달라
     총 수를 여기에 매어 둬야 인덱스가 범위를 벗어나지 않는다.
   */
-  const facts = isKid ? [] : content.facts;
+  const facts = cell.facts && script.level !== 'elementary' ? script.facts : [];
   const fact = useAutoPager({ total: facts.length, perPage: 1, intervalMs: FACT_MS });
 
-  /*
-    위쪽 요약 띠도 그 시안의 눈높이를 따른다.
-
-    시안 C 는 눈높이가 다른 시안보다 한 칸씩 낮은데, 띠만 현행 문구를 쓰면 본문은 쉬운 말인데
-    위 다섯 줄만 어려운 화면이 된다. 다른 시안은 지금 대본을 그대로 쓴다.
-  */
-  const headline = variant === 'c' ? EDU_HEADLINE[content.level] : content.headline;
+  const scopePicker = <SchoolPicker plantId={plant?.id ?? null} variant={variant} />;
 
   /*
-    화면 뒤에 까는 그림.
+    골격까지 제 것을 세우는 칸은 여기서 갈라져 나간다.
 
-    초등은 어느 시안이든 밝은 하늘을 깐다 — 그림이 주인공인 판이라 그 편이 맞다.
-    시안 C 는 중·고등에도 배경을 깔되 결이 다르다. 카드가 주인공이므로 배경은 뒤로 물러나고,
-    색을 토큰으로만 그려 화면 모드를 그대로 따른다.
+    공용 껍데기에 끼우면 그 판의 첫 장과 위쪽 요약 띠가 같은 값을 두 번 말한다.
+    조회 대상·시각·눈높이를 정하는 방식은 다른 칸과 똑같다 — 시안이 갈리는 것은
+    **보여 주는 방식**이지 무엇을 보는지가 아니기 때문이다.
   */
-  const isQuiet = variant === 'c' && !isKid;
-  const backdrop = isKid ? <SkyBackdrop nowHour={nowHour} /> : isQuiet ? <QuietBackdrop nowHour={nowHour} /> : undefined;
+  if (cell.standalone) {
+    return (
+      <PaperBoard
+        level={cell.script}
+        variantLabel={cell.label}
+        scopeLabel={node.fullName}
+        scopeInfo={scopeInfo}
+        stats={stats}
+        weather={weather}
+        clock={clock}
+        date={date}
+        nowHour={nowHour}
+        isLive={stats.isLive}
+        scopePicker={scopePicker}
+        levelPicker={<LevelPicker />}
+      />
+    );
+  }
 
   return (
     <SolarEduLayout
       scopeLabel={node.fullName}
-      variantLabel={variant ? EDU_VARIANT_LABEL[variant][content.level] : undefined}
+      variantLabel={cell.label}
       scopeInfo={scopeInfo}
-      scopePicker={<SchoolPicker plantId={plant?.id ?? null} variant={variant} />}
-      backdrop={backdrop}
-      backdropTone={isQuiet ? 'theme' : 'bright'}
+      scopePicker={scopePicker}
+      /*
+        하늘은 어느 칸에나 깐다 (2026-09-04 지시).
+
+        한때 그림이 주인공인 칸에만 깔았다 — 값이 주인공인 칸에서는 배경이 숫자를 흐린다고 보았다.
+        그런데 눈높이를 오갈 때마다 배경이 있었다 없었다 해서 같은 학교의 화면이 서로 다른 곳처럼
+        보였다. 카드가 화면을 덮고 있어 숫자가 흐려지지도 않는다.
+      */
+      backdrop={<SkyBackdrop nowHour={nowHour} />}
       levelPicker={<LevelPicker />}
       weather={weather}
       isLive={stats.isLive}
       clock={clock}
       date={date}
-      headline={<HeadlineStrip stats={stats} content={headline} large={content.emphasis === 'large'} />}
+      headline={
+        cell.headline
+          ? <HeadlineStrip stats={stats} content={script.headline} large={script.emphasis === 'large'} />
+          : undefined
+      }
       facts={facts}
       factIndex={fact.page}
       onSelectFact={fact.goTo}
     >
-      <EduStage
+      <EduBoard
+        level={level}
         variant={variant}
         scopeLabel={node.fullName}
         stats={stats}
-        content={content}
         nowHour={nowHour}
       />
     </SolarEduLayout>

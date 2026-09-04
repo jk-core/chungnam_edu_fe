@@ -1,100 +1,111 @@
 import type { EduLevel } from '@/interface/edu';
-import { PAPER_LABEL } from '@/mocks/eduPaper';
-import type { EduContent } from '@/mocks/eduContent';
+import { ELEMENTARY_CONTENT } from '@/mocks/eduElementary';
+import { ELEMENTARY_PICTURE } from '@/mocks/eduPicture';
+import { HIGH_CONTENT } from '@/mocks/eduContent';
+import { MIDDLE_CONTENT } from '@/mocks/eduMiddle';
 import type { EduStats } from '@/mocks/solarEdu';
-import { CardDeck } from './c/CardDeck';
-import { SplitBoard } from './c/SplitBoard';
-import { TwoColumnBoard } from './c/TwoColumnBoard';
+import { ElementaryStage } from '../ElementaryStage';
+import { HighBoard } from '../HighBoard';
+import { HighCards } from '../HighCards';
 import { ElementaryClock } from './elementary/ElementaryClock';
-import { ElementaryPoster } from './elementary/ElementaryPoster';
-import { MiddleCompare } from './middle/MiddleCompare';
-import { MiddleFlow } from './middle/MiddleFlow';
-import { HighConsole } from './high/HighConsole';
-import { HighTimeline } from './high/HighTimeline';
+import { ElementaryRelief } from './elementary/ElementaryRelief';
+import { MiddleCardDeck } from './middle/MiddleCardDeck';
+import { MiddleClock } from './middle/MiddleClock';
+import { HighPoster } from './high/HighPoster';
+
+/** 견줘 볼 시안 셋. 눈높이마다 같은 세 자리를 둔다. */
+export type EduVariant = 'a' | 'b' | 'c';
+
+export const EDU_VARIANTS: EduVariant[] = ['a', 'b', 'c'];
 
 /**
- * 비교용 시안. 현행은 이름이 없다 — 그것이 시안 A 다.
+ * 한 칸의 성격.
  *
- * 시안 E 는 이 갈림길을 지나지 않는다. 공용 레이아웃을 쓰지 않고 골격까지 제 것을 세우므로
- * 페이지에서 곧장 갈라진다 — 여기에는 학교 고르개가 주소를 지을 때 쓸 이름만 남는다.
+ * 눈높이 × 시안이라 열두 칸인데, 칸마다 본문만 다른 것이 아니라 **껍데기까지 다르다** —
+ * 어떤 칸은 위쪽 수치 띠를 달고 어떤 칸은 그 자리를 그림에 내준다. 이것을 화면 쪽에 갈림문으로
+ * 두면 조건이 화면 곳곳에 흩어지므로, 칸의 성격을 여기 표 하나에 모아 두고 화면은 표를 읽기만 한다.
  */
-export type EduVariant = 'b' | 'c' | 'd' | 'e';
+export interface EduCell {
+  /** 회의 자리에서 부르는 이름 */
+  label: string;
+  /**
+   * 껍데기가 읽을 대본의 눈높이.
+   *
+   * 보는 사람의 눈높이와 어긋나는 칸이 여럿이다 — 고등 a 는 초등 대본을, 고등 c 는 중등 대본을
+   * 읽는다. 회의에서 그 조합이 낫다고 본 것이라 그대로 굳혔다. 머리줄 띠와 아래 티커도
+   * 본문과 같은 대본을 봐야 하므로 여기 한 곳이 그것을 정한다.
+   */
+  script: EduLevel;
+  /** 위쪽 수치 띠를 다는지 */
+  headline: boolean;
+  /** 아래를 도는 「알고 계셨나요」 줄을 다는지 */
+  facts: boolean;
+  /**
+   * 공용 레이아웃을 쓰지 않고 골격까지 제 것을 세우는 칸인지.
+   *
+   * 중등 a 하나뿐이다. 그 판은 스스로 머리줄과 고르개를 안고 그리므로 공용 껍데기에 끼우면
+   * 같은 값을 두 번 말한다. 화면이 이 표시를 보고 아예 다른 조립으로 간다.
+   */
+  standalone?: boolean;
+}
 
 /**
- * 시안 이름표.
+ * 시안 격자 (SFR-005).
  *
- * 눈높이마다 콘셉트가 다르므로 시안 문자 하나로는 회의 자리에서 무엇을 보고 있는지 알 수 없다 —
- * "초등 시안 C" 가 아니라 "초등 시안 C · 숫자 놀이터" 라고 불려야 표에 적을 수 있다.
+ * 고르고 난 뒤에는 이 파일과 variants 폴더만 지우면 한 벌만 남는다.
  */
-export const EDU_VARIANT_LABEL: Record<EduVariant, Record<EduLevel, string>> = {
-  b: {
-    elementary: '시안 B · 우리 학교의 하루',
-    middle: '시안 B · 흐름도 한 장',
-    high: '시안 B · AI 콘솔',
+export const EDU_CELLS: Record<EduLevel, Record<EduVariant, EduCell>> = {
+  elementary: {
+    a: { label: '시안 a · 걸음마다 한 장', script: 'elementary', headline: true, facts: false },
+    // 글 대신 그림이 본문인 두 판. 위쪽 띠를 떼어 낸 자리를 그림이 물려받는다.
+    b: { label: '시안 b · 하루 한 바퀴', script: 'elementary', headline: false, facts: false },
+    c: { label: '시안 c · 한 장에 다, 입체', script: 'elementary', headline: false, facts: false },
   },
-  /*
-    시안 C 는 학교급마다 골격이 다르다.
-    초등은 한 장씩 넘겨 읽고, 중등은 화면을 좌우로 갈라 왼쪽에 원리를 오른쪽에 오늘을 두며,
-    고등은 가로로 갈라 위에 오늘의 값을 아래에 원리를 둔다.
-  */
-  c: {
-    elementary: '시안 C · 한 장씩',
-    middle: '시안 C · 왼쪽 원리 오른쪽 오늘',
-    high: '시안 C · 위는 오늘 아래는 원리',
+  middle: {
+    a: { label: '시안 a · 세 개의 질문', script: 'middle', headline: true, facts: false, standalone: true },
+    b: { label: '시안 b · 한 장에 다, 책', script: 'elementary', headline: true, facts: false },
+    c: { label: '시안 c · 한 장씩 넘겨 읽기', script: 'elementary', headline: true, facts: false },
   },
-  d: {
-    elementary: '시안 D · 한 장 그림',
-    middle: '시안 D · 비교 실험',
-    high: '시안 D · 발전 원리 해설',
-  },
-  // 시안 E 는 눈높이가 갈려도 골격이 하나다 — 갈리는 것은 말의 높낮이뿐이다.
-  e: {
-    elementary: PAPER_LABEL,
-    middle: PAPER_LABEL,
-    high: PAPER_LABEL,
+  high: {
+    a: { label: '시안 a · 한 장 그림', script: 'elementary', headline: true, facts: false },
+    b: { label: '시안 b · 데이터 콘솔', script: 'high', headline: true, facts: true },
+    c: { label: '시안 c · 설명 카드 셋', script: 'middle', headline: true, facts: true },
   },
 };
 
 interface EduBoardProps {
+  /** 보는 사람의 눈높이 — 어느 판을 세울지는 이것과 시안이 함께 정한다 */
+  level: EduLevel;
   variant: EduVariant;
   scopeLabel: string;
   stats: EduStats;
-  content: EduContent;
   nowHour: number;
 }
 
 /**
  * 시안별 본문을 고르는 갈림길 (SFR-005).
  *
- * 눈높이 × 시안이라 아홉 갈래가 되는데, 이 갈림을 페이지에 두면 페이지가 아홉 개 판을 모두
- * 알아야 한다. 여기 한 곳에 모아 두면 페이지는 "시안이 있다" 만 알면 되고,
- * 고르고 난 뒤에는 이 파일과 variants 폴더만 지우면 원래대로 돌아온다.
+ * 판마다 읽는 대본이 정해져 있어 여기서 곧장 집어 넘긴다. 보는 사람의 눈높이를 그대로 따르지 않고
+ * `EDU_CELLS` 가 정한 대본을 쓰는 칸이 여럿이라, 대본을 밖에서 받아 오면 어느 칸이 무엇을 읽는지가
+ * 두 곳으로 갈라진다.
  */
-export function EduBoard({ variant, scopeLabel, stats, content, nowHour }: EduBoardProps) {
-  /*
-    시안 C 는 초등만 한 장씩 넘긴다.
-    중·고등은 앞뒤를 견줘야 하는 나이라 여러 칸을 한 화면에 둔다 — 다만 시안 A 보다 칸이 적고 넓다.
-  */
-  if (variant === 'c') {
-    if (content.level === 'elementary') return <CardDeck stats={stats} nowHour={nowHour} />;
-    if (content.level === 'middle') return <TwoColumnBoard stats={stats} />;
+export function EduBoard({ level, variant, scopeLabel, stats, nowHour }: EduBoardProps) {
+  if (level === 'elementary') {
+    if (variant === 'b') return <ElementaryClock stats={stats} content={ELEMENTARY_PICTURE} nowHour={nowHour} />;
+    if (variant === 'c') return <ElementaryRelief stats={stats} content={ELEMENTARY_PICTURE} nowHour={nowHour} />;
 
-    return <SplitBoard stats={stats} />;
+    return <ElementaryStage stats={stats} content={ELEMENTARY_CONTENT} />;
   }
 
-  if (content.level === 'elementary') {
-    if (variant === 'b') return <ElementaryClock stats={stats} content={content} nowHour={nowHour} />;
+  if (level === 'middle') {
+    if (variant === 'c') return <MiddleCardDeck stats={stats} nowHour={nowHour} />;
 
-    return <ElementaryPoster stats={stats} content={content} nowHour={nowHour} />;
+    // 시안 a 는 골격까지 제 것이라 화면 쪽에서 이미 갈라졌다 — 여기 닿는 것은 b 뿐이다.
+    return <MiddleClock stats={stats} content={ELEMENTARY_CONTENT} nowHour={nowHour} />;
   }
 
-  if (content.level === 'middle') {
-    if (variant === 'b') return <MiddleFlow stats={stats} content={content} />;
+  if (variant === 'a') return <HighPoster stats={stats} content={ELEMENTARY_CONTENT} nowHour={nowHour} />;
+  if (variant === 'c') return <HighCards stats={stats} content={MIDDLE_CONTENT} />;
 
-    return <MiddleCompare scopeLabel={scopeLabel} stats={stats} content={content} />;
-  }
-
-  if (variant === 'b') return <HighConsole scopeLabel={scopeLabel} stats={stats} content={content} />;
-
-  return <HighTimeline scopeLabel={scopeLabel} stats={stats} content={content} />;
+  return <HighBoard scopeLabel={scopeLabel} stats={stats} content={HIGH_CONTENT} />;
 }

@@ -3,7 +3,7 @@ import { useParams, useSearchParams } from 'react-router-dom';
 import { buildEduStats } from '@/mocks/solarEdu';
 import { formatCapacity, formatNumber } from '@/utils/format';
 import { getDayWeather } from '@/mocks/weather';
-import { getEduContent, resolveEduLevel } from '@/mocks/eduContent';
+import { resolveEduLevel } from '@/mocks/eduContent';
 import { getNode } from '@/mocks/tree';
 import { getSchoolById, SCHOOLS } from '@/mocks/schools';
 import { TODAY } from '@/mocks/today';
@@ -31,14 +31,21 @@ export function useEduScope(nowHour: number) {
 
   // 상황판은 학교마다 걸린다 — 어느 학교를 띄울지 여기서 고른다 (회의 결정).
   const plant = node.plantId ? getSchoolById(node.plantId) : null;
-  const content = getEduContent(resolveEduLevel(plant, searchParams.get('level')));
+
+  /*
+    보는 사람의 눈높이만 정하고 대본은 고르지 않는다.
+
+    시안마다 읽는 대본이 다르기 때문이다 — 고등 시안 a 는 초등 대본을 읽는다. 여기서 대본까지
+    정해 버리면 그 어긋남을 표현할 수 없어, 대본 고르기는 시안 격자(`EDU_CELLS`)에 맡긴다.
+  */
+  const level = resolveEduLevel(plant, searchParams.get('level'));
 
   return {
     node,
     plant,
     stats,
     weather,
-    content,
+    level,
     scopeInfo: plant
       ? `설비용량 ${capacityText(plant.capacityKw)} · 인버터 ${plant.inverterCount}대`
       : `관내 ${formatNumber(SCHOOLS.length)}개 학교를 합쳐서 봅니다`,

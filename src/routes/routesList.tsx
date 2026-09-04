@@ -22,11 +22,18 @@ const ControlRoomDraftPage = lazy(() => import('@/pages/ControlRoom/drafts'));
 const AdminLayout = lazy(() => import('@/layouts/AdminLayout'));
 const AdminPage = lazy(() => import('@/pages/Admin'));
 
-/** 옛 `/kiosk/:orgId` 를 같은 학교의 `/solar-edu/:orgId` 로 넘긴다. */
+/** 옛 `/kiosk/:orgId` 를 같은 학교의 교육 화면으로 넘긴다. */
 function KioskRedirect() {
   const { orgId } = useParams<{ orgId: string }>();
 
-  return <Navigate to={orgId ? buildPath.solarEdu(orgId) : PATH.SOLAR_EDU} replace />;
+  return <Navigate to={orgId ? buildPath.solarEdu(orgId) : PATH.SOLAR_EDU_A} replace />;
+}
+
+/** 시안 이름이 빠진 `/solar-edu/:orgId` 를 같은 학교의 첫 시안으로 넘긴다. */
+function SolarEduRedirect() {
+  const { orgId } = useParams<{ orgId: string }>();
+
+  return <Navigate to={orgId ? buildPath.solarEdu(orgId) : PATH.SOLAR_EDU_A} replace />;
 }
 
 export const routes: RouteObject[] = [
@@ -36,23 +43,26 @@ export const routes: RouteObject[] = [
   },
   // 교육용 대시보드는 모니터에 걸어 두고 조작 없이 돌리는 화면이라 로그인을 요구하지 않는다 (SFR-005-08).
   // 세션이 만료됐다고 복도 모니터가 로그인 화면으로 튕기면 안 된다.
-  { path: PATH.SOLAR_EDU, element: <SolarEduPage /> },
   /*
     시안 주소를 학교 주소(`/solar-edu/:orgId`)보다 **먼저** 세운다.
-    라우터가 고정 조각을 변수 조각보다 앞에 두긴 하지만, 읽는 사람에게도 b·c·d 가
+    라우터가 고정 조각을 변수 조각보다 앞에 두긴 하지만, 읽는 사람에게도 a·b·c 가
     학교 id 가 아니라는 것이 보여야 한다. 학교 id 는 `천안-1` 꼴이라 겹칠 일도 없다.
   */
+  { path: PATH.SOLAR_EDU_A, element: <SolarEduPage variant="a" /> },
+  { path: `${PATH.SOLAR_EDU_A}/:orgId`, element: <SolarEduPage variant="a" /> },
   { path: PATH.SOLAR_EDU_B, element: <SolarEduPage variant="b" /> },
   { path: `${PATH.SOLAR_EDU_B}/:orgId`, element: <SolarEduPage variant="b" /> },
   { path: PATH.SOLAR_EDU_C, element: <SolarEduPage variant="c" /> },
   { path: `${PATH.SOLAR_EDU_C}/:orgId`, element: <SolarEduPage variant="c" /> },
-  { path: PATH.SOLAR_EDU_D, element: <SolarEduPage variant="d" /> },
-  { path: `${PATH.SOLAR_EDU_D}/:orgId`, element: <SolarEduPage variant="d" /> },
-  { path: PATH.SOLAR_EDU_E, element: <SolarEduPage variant="e" /> },
-  { path: `${PATH.SOLAR_EDU_E}/:orgId`, element: <SolarEduPage variant="e" /> },
-  { path: `${PATH.SOLAR_EDU}/:orgId`, element: <SolarEduPage /> },
+  /*
+    시안 이름이 없는 주소는 첫 시안으로 넘긴다.
+    셋을 대등하게 두기로 한 뒤로 「이름 없는 현행」 이 사라졌는데, 모니터에 이미 걸린 URL 이
+    있을 수 있어 길만 열어 둔다.
+  */
+  { path: PATH.SOLAR_EDU, element: <Navigate to={PATH.SOLAR_EDU_A} replace /> },
+  { path: `${PATH.SOLAR_EDU}/:orgId`, element: <SolarEduRedirect /> },
   // 교육용 화면을 하나로 합치기 전 주소. 모니터에 이미 걸린 URL 이 있을 수 있어 넘겨만 준다.
-  { path: PATH.KIOSK, element: <Navigate to={PATH.SOLAR_EDU} replace /> },
+  { path: PATH.KIOSK, element: <Navigate to={PATH.SOLAR_EDU_A} replace /> },
   { path: `${PATH.KIOSK}/:orgId`, element: <KioskRedirect /> },
   {
     // 로그인하지 않으면 아래 화면 전부 막힌다.

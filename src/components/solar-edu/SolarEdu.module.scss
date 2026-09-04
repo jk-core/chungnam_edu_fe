@@ -507,13 +507,13 @@
 
     /*
       그림이 내려앉을 수 있는 바닥.
-      글씨를 키운 뒤로 이 칸의 자리가 줄어, 바닥이 높으면 그림이 자리를 붙들고 아래 글이 잘린다 —
-      잘린 글은 쓰지 않은 글과 같으므로 양보하는 쪽은 그림이다.
+      아래 이야기 칸을 걷어낸 뒤로 이 칸에서 자리를 다투는 것이 없어져, 바닥을 올려 잡아도
+      다른 것을 밀어내지 않는다.
     */
-    min-height: 44px;
+    min-height: 120px;
 
     /* 굴려 보는 화면에서는 받을 자리가 넉넉해 그림만 끝없이 커진다 — 위쪽을 묶는다 */
-    max-height: 240px;
+    max-height: 520px;
     border-radius: s.$radius-md;
     background: linear-gradient(180deg, var(--sky-top) 0%, var(--surface-sunken) 100%);
   }
@@ -542,103 +542,6 @@
       );
       animation: none;
     }
-  }
-
-  /* 글은 줄지 않는다 — 잘린 글은 쓰지 않은 글과 같다 */
-  &__story {
-    display: flex;
-    flex-direction: column;
-    gap: s.$space-2;
-    flex-shrink: 0;
-    min-height: 104px;
-  }
-
-  &__dots {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: s.$space-2;
-    margin-top: auto;
-    list-style: none;
-  }
-
-  &__dot {
-    width: 6px;
-    background-color: var(--border-strong);
-
-    &:hover {
-      background-color: var(--brand-soft);
-    }
-
-    &--active {
-      width: 20px;
-      background-color: var(--brand);
-    }
-  }
-
-  &__dot,
-&__dot--active {
-    @include mx.press;
-
-    display: block;
-    height: 6px;
-    padding: 0;
-    border: 0;
-    border-radius: s.$radius-full;
-    cursor: pointer;
-    transition: background-color 0.3s ease, width 0.3s ease;
-  }
-}
-
-.topic {
-  flex: 1;
-  min-height: 0;
-  padding: s.$space-2 s.$space-3;
-  border-left: 2px solid var(--brand);
-  border-radius: s.$radius-sm;
-  background-color: var(--surface-sunken);
-  animation: topic-in 0.4s ease both;
-
-  @include media.reduced-motion {
-    animation: none;
-  }
-
-  &__head {
-    @include t.label-md;
-
-    display: flex;
-    align-items: center;
-    gap: s.$space-2;
-    color: var(--text-strong);
-  }
-
-  &__icon {
-    display: inline-flex;
-    color: var(--brand-contrast);
-
-    svg {
-      width: 17px;
-      height: 17px;
-    }
-  }
-
-  &__body {
-    @include t.body-sm;
-
-    margin-top: 3px;
-    color: var(--text-muted);
-  }
-}
-
-@keyframes topic-in {
-  from {
-    opacity: 0;
-    transform: translateY(6px);
-  }
-
-  to {
-    opacity: 1;
-    transform: none;
   }
 }
 

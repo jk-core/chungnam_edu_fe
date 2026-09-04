@@ -1,7 +1,7 @@
 import { CountUp } from '@/components/common/CountUp';
 import { type PaperScript, paperSteps } from '@/mocks/eduPaper';
 import type { EduStats } from '@/mocks/solarEdu';
-import { JourneyOverviewArt } from '../../JourneyOverviewArt';
+import { JourneyOverviewArt } from '@/components/solar-edu/JourneyOverviewArt';
 import { StepGlyph } from './PaperGlyphs';
 import styles from './ChapterPrinciple.module.scss';
 

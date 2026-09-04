@@ -1,32 +1,23 @@
 import type { EduVariant } from '@/components/solar-edu/variants/EduBoard';
-import { SolarEduPaper } from './components/SolarEduPaper';
 import { SolarEduScreen } from './components/SolarEduScreen';
 
 interface SolarEduPageProps {
   /**
-   * 어느 시안으로 보여 줄지. 없으면 현행(시안 A).
+   * 어느 시안으로 보여 줄지.
    *
    * 눈높이(초·중·고)와는 다른 축이다 — 눈높이는 **무엇을 말할지**, 시안은 **어떻게 늘어놓을지**를
-   * 가른다. 그래서 둘이 곱해져 열두 가지 화면이 나오고, 어느 시안을 골라도 눈높이는 그대로 따라온다.
+   * 가른다. 그래서 둘이 곱해져 아홉 가지 화면이 나오고, 어느 시안을 골라도 눈높이는 그대로 따라온다.
    */
-  variant?: EduVariant;
+  variant: EduVariant;
 }
 
 /**
  * 학생 교육용 태양광 대시보드 (SFR-005).
  *
  * 복도·강당 모니터에 걸어 두고 아무도 조작하지 않는 화면이라, 페이지를 넘기지 않고
- * 한 화면에 담았다. 운영 지표 대신 "지금 얼마나 만들고 있고, 그게 무슨 뜻인지" 만 남기고,
- * 전기가 되는 과정만 오른쪽에서 한 단계씩 스스로 넘어간다.
+ * 한 화면에 담았다. 운영 지표 대신 "지금 얼마나 만들고 있고, 그게 무슨 뜻인지" 만 남긴다.
  */
 function SolarEduPage({ variant }: SolarEduPageProps) {
-  /*
-    시안 E 만 골격까지 제 것이다.
-    공용 레이아웃의 요약 띠가 E 의 1장과 같은 말을 하게 되어, 띠를 쓰면 화면이 같은 값을
-    두 번 말한다. 여기서 갈라 두면 나머지 시안은 지금 조립을 그대로 쓴다.
-  */
-  if (variant === 'e') return <SolarEduPaper />;
-
   return <SolarEduScreen variant={variant} />;
 }
 

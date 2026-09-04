@@ -4,7 +4,7 @@ import type { ImpactId } from '@/mocks/eduContent';
 import type { EduStats } from '@/mocks/solarEdu';
 import type { MiddleBenefitContent } from '@/mocks/eduMiddle';
 import { ImpactArt } from './scene-art/ImpactArt';
-import styles from './MiddleBoard.module.scss';
+import styles from './HighCards.module.scss';
 import type { ImpactArtId } from './scene-art/ImpactArt';
 
 /**
@@ -20,7 +20,7 @@ const ART_OF: Record<ImpactId, ImpactArtId> = {
   led: 'lamp',
 };
 
-interface MiddleBenefitCardProps {
+interface HighBenefitCardProps {
   stats: EduStats;
   content: MiddleBenefitContent;
 }
@@ -36,7 +36,7 @@ interface MiddleBenefitCardProps {
  * 쓰던 것을 그대로 가져와, 두 판을 오가며 보는 아이가 같은 것을 말하고 있다는 걸 알아본다.
  * 값 아래 한 줄이 붙어야 표가 아니라 설명이 된다.
  */
-export function MiddleBenefitCard({ stats, content }: MiddleBenefitCardProps) {
+export function HighBenefitCard({ stats, content }: HighBenefitCardProps) {
   return (
     <section className={styles.card}>
       <p className={styles.card__head}>

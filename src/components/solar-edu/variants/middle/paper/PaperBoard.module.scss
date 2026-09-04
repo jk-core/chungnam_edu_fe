@@ -112,6 +112,9 @@
     @include t.eyebrow;
 
     color: var(--brand);
+
+    // 시안 문자는 주소(`/solar-edu/a`)에 그대로 쓰이므로 대문자로 바꾸지 않는다.
+    text-transform: none;
   }
 
   &__title {

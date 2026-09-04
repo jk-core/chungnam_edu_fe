@@ -212,13 +212,6 @@ export const FlowIcon = (props: IconProps) => (
   </Base>
 );
 
-/** 계통도 아래 세 가지 이야기 */
-export const TOPIC_ICONS: Record<string, ReactNode> = {
-  meaning: <SchoolIcon />,
-  principle: <FlowIcon />,
-  effect: <LeafIcon />,
-};
-
 /** 전기가 되기까지의 단계 */
 export const JOURNEY_ICONS: Record<string, ReactNode> = {
   sun: <SunIcon />,

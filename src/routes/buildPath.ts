@@ -48,5 +48,5 @@ export const buildPath = {
   /** 사용자 상세 (SFR-018) */
   adminUserDetail: (id: string) => `${PATH.ADMIN_USERS}/${id}`,
   /** 기관 고정 교육용 대시보드 (SFR-005) */
-  solarEdu: (orgId: string) => `${PATH.SOLAR_EDU}/${orgId}`,
+  solarEdu: (orgId: string) => `${PATH.SOLAR_EDU_A}/${orgId}`,
 };

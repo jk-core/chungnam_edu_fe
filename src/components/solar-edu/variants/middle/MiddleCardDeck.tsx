@@ -1,5 +1,5 @@
 import { CountUp } from '@/components/common/CountUp';
-import { EDU_DECK } from '@/mocks/eduCards';
+import { EDU_CARDS } from '@/mocks/eduCards';
 import { cn } from '@/utils/cn';
 import { useAutoPager } from '@/hooks/useAutoPager';
 import type { CardScene } from '@/mocks/eduCards';
@@ -9,7 +9,7 @@ import { DayCurve } from '../shared/DayCurve';
 import { ImpactArt } from '../../scene-art/ImpactArt';
 import { ImpactScene } from '../../scene-art/ImpactScene';
 import { JourneyScene } from '../../scene-art/JourneyScene';
-import styles from './CardDeck.module.scss';
+import styles from './MiddleCardDeck.module.scss';
 
 /**
  * 한 장이 머무는 시간.
@@ -17,7 +17,7 @@ import styles from './CardDeck.module.scss';
  */
 const CARD_MS = 9_000;
 
-interface CardDeckProps {
+interface MiddleCardDeckProps {
   stats: EduStats;
   nowHour: number;
 }
@@ -34,8 +34,8 @@ interface CardDeckProps {
  * 중·고등은 이렇게 넘기지 않는다 — 그 나이에는 곡선과 환산을 나란히 놓고 견주는 편이 낫다
  * (`RoomyBoard`).
  */
-export function CardDeck({ stats, nowHour }: CardDeckProps) {
-  const deck = EDU_DECK.cards;
+export function MiddleCardDeck({ stats, nowHour }: MiddleCardDeckProps) {
+  const deck = EDU_CARDS;
   const pager = useAutoPager({ total: deck.length, perPage: 1, intervalMs: CARD_MS });
   const card = deck[Math.min(pager.page, deck.length - 1)];
   const readout = card.readout?.(stats);

@@ -6,7 +6,7 @@ import type { EduStats } from '@/mocks/solarEdu';
 import { BenefitScene } from '../../scene-art/BenefitScene';
 import { ImpactArt } from '../../scene-art/ImpactArt';
 import { JourneyScene } from '../../scene-art/JourneyScene';
-import styles from './ElementaryPoster.module.scss';
+import styles from './HighPoster.module.scss';
 
 /** 값과 단위를 한 덩이로. 도 전체를 합치면 kW·kWh 로는 칸을 넘어 M·G 로 올린다. */
 function siText(kilo: number, suffix: 'W' | 'Wh') {
@@ -18,7 +18,7 @@ function siText(kilo: number, suffix: 'W' | 'Wh') {
 /** 걸음을 이 값으로 못 박아 그림의 네 마디를 처음부터 모두 켠다 */
 const ALL_STEPS = 3;
 
-interface ElementaryPosterProps {
+interface HighPosterProps {
   stats: EduStats;
   content: ElementaryContent;
   nowHour: number;
@@ -34,7 +34,7 @@ interface ElementaryPosterProps {
  * 벽보처럼 세운다. 말풍선이 옮겨 다니지 않으니 아이가 보고 싶은 곳을 먼저 보고, 읽고 싶은 만큼만 읽는다.
  * 그림은 여전히 살아 움직이지만 **순서를 정해 주지 않는** 것이 이 시안이 앞의 것들과 다른 점이다.
  */
-export function ElementaryPoster({ stats, content, nowHour }: ElementaryPosterProps) {
+export function HighPoster({ stats, content, nowHour }: HighPosterProps) {
   /*
     그림의 네 마디.
 

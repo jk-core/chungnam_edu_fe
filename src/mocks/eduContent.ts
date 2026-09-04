@@ -1,6 +1,5 @@
 import { CO2_PER_KWH, CO2_PER_TREE_YEAR, kwhToHouseholdDays } from '@/utils/eco';
 import { formatCapacity, formatEnergy, formatNumber, scaleCarbon, scaleSi } from '@/utils/format';
-import type { AnalysisStage } from '@/interface/diagnosis';
 import type { EduLevel } from '@/interface/edu';
 import type { School, SchoolLevel } from '@/interface/energy';
 import type { SiScale } from '@/utils/format';
@@ -269,13 +268,6 @@ export interface EduNote {
   body: string;
 }
 
-/** 계통도 아래 세 가지 이야기 (SFR-005-01/02) */
-export interface EduTopic {
-  id: 'meaning' | 'principle' | 'effect';
-  title: string;
-  body: string;
-}
-
 /** 위쪽에 고정으로 붙는 지금 이 순간의 수치 */
 export interface HeadlineContent {
   mainLabel: string;
@@ -313,7 +305,6 @@ export interface ImpactContent {
 export interface JourneyContent {
   head: string;
   note: string;
-  topics: EduTopic[];
 }
 
 /** 설비 그림에서 지금 들여다보는 자리 */
@@ -334,30 +325,17 @@ export const PLANT_SPOT_LABEL: Record<PlantSpot, string> = {
 };
 
 /**
- * 단계 하나가 담는 것.
+ * 자리마다 무슨 일이 일어나는가 (고등 전용).
  *
- * 같은 자리를 두고 두 가지를 나란히 말한다 — 여기서 **무슨 일이 일어나는가**(태양광 원리)와,
- * AI 는 **그 자리에서 무엇을 보는가**(진단 원리). 둘을 붙여 두어야 학생이 "AI 가 왜 저기를 보는지" 를 안다.
+ * 한때 AI 진단 절차를 나란히 적었다. 학생이 배워야 할 것은 진단 절차가 아니라 발전 원리라
+ * 그쪽을 걷어냈고(2026-08-24), 남은 것은 자리와 거기서 일어나는 일뿐이다. 그래서 진단 단계로
+ * 묶여 있던 것을 **자리로** 다시 묶었다 — 그리는 쪽이 자리로 찾아 쓰기 때문이다.
  */
-export interface EduAiStage {
-  label: string;
-  /** 이 단계가 학생에게 가르치는 것 */
-  teach: string;
-  /** 설비 그림에서 밝아지는 자리 */
-  spot: PlantSpot;
-  /** 그 자리에서 일어나는 일 */
-  physics: string;
-  /** AI 가 그 자리에서 보는 것 */
-  diagnosis: string;
-}
-
-/** AI 가 무엇을 하고 있는지 학생에게 설명하는 말 (고등 전용) */
-export interface EduAiContent {
+export interface EduStageContent {
   head: string;
   note: string;
-  stages: Record<AnalysisStage, EduAiStage>;
-  /** 패널 맨 아래에 남기는 한 줄 — 이 화면이 무엇을 보여 준 것인지 */
-  footer: string;
+  /** 설비 그림의 자리마다, 거기서 일어나는 일 */
+  spots: Record<PlantSpot, string>;
 }
 
 // ── 수준별 콘텐츠 ──────────────────────────────────────────
@@ -405,7 +383,7 @@ export interface HighContent extends EduContentBase {
   day: DayContent;
   impact: ImpactContent;
   journey: JourneyContent;
-  ai: EduAiContent;
+  stage: EduStageContent;
 }
 
 export type EduContent = ElementaryContent | MiddleContent | HighContent;
@@ -417,36 +395,36 @@ export type EduContent = ElementaryContent | MiddleContent | HighContent;
   고등학생이 걸음을 멈추고 읽기에는 어려워 읽히지 않았다. 그래서 다루는 개념은 그대로 두고
   말만 중학교 과학 수준으로 낮췄다 — 덜어낸 것은 지식이 아니라 전문 용어다 (2026-08-31 검토 의견).
 
-  한 번 낮추고도 여전히 어렵다는 지적을 받아 같은 날 한 차례 더 훑었다. 두 번째로 걷어낸 것은
-  **중학교 교과 밖의 말**과 **풀지 않고 쓰던 말**이다 — 반도체를 걷어 전자의 움직임만 남기고,
-  직류·교류는 그 자리에서 무엇이 다른지 함께 적고, 셀·모듈·스트링은 서로 어떤 관계인지 한 번 밝힌다.
-  남은 말은 중2 과학의 전자·전류·전압·직렬까지다.
+  세 번째로 훑었다 (2026-09-04 지시). 이번에 걷어낸 것은 **읽는 사람이 이미 아는 것으로 바꿀 수
+  있었던 말**이다 — 「고도」 를 해의 높이로, 「수직에 가깝게」 를 똑바로 내리쬔다로, 「직류·교류」 를
+  흐르는 방향이 어떻게 다른지로, 「전자」 를 아주 작은 알갱이로 풀어 적었다. 개념은 그대로 넷이고
+  줄 수도 그대로다.
 
   문체는 서술체, 지표 이름은 표준 용어 그대로다. 쉬워져야 할 것은 설명이지 이름이 아니다.
 */
-const HIGH: HighContent = {
+export const HIGH_CONTENT: HighContent = {
   level: 'high',
   emphasis: 'normal',
   headline: {
     mainLabel: '실시간 출력',
     mainNote: (stats) =>
-      `설비용량 ${formatNumber(stats.capacityKw)}kW 로 낼 수 있는 최대치 대비 현재의 출력을 나타낸다`,
+      `한 번에 만들 수 있는 최대치 ${capacityText(stats)} 가운데 지금 내고 있는 만큼이다`,
     statIds: ['today', 'powerTime', 'co2', 'irradiance', 'capacity'],
     // 기본 문구가 이미 서술체이자 표준 용어라 덮어쓸 것이 없다.
   },
   sunPath: {
-    head: '태양의 하루 고도',
-    note: '햇빛이 들어오는 각도는 시각마다 달라진다',
+    head: '해가 하루 동안 지나는 길',
+    note: '해의 높이가 시각마다 달라지고, 그에 따라 햇빛의 힘도 달라진다',
     notes: [
       {
         id: 'angle',
-        term: '고도가 높을수록 발전량이 는다',
-        body: '태양이 높이 뜨면 햇빛이 모듈에 수직에 가깝게 내리쬐어, 같은 빛이 좁은 면적에 모인다.',
+        term: '해가 높이 뜰수록 많이 만든다',
+        body: '해가 머리 위에 오면 햇빛이 지붕에 똑바로 내리쬔다. 같은 빛이 좁은 자리에 모이므로 그만큼 전기도 많아진다.',
       },
       {
         id: 'airmass',
-        term: '아침·저녁에는 공기층을 길게 지난다',
-        body: '지나는 동안 먼지와 공기에 부딪혀 흩어져, 모듈에 닿을 때는 이미 힘이 줄어 있다.',
+        term: '아침저녁 햇빛은 힘이 약하다',
+        body: '해가 낮으면 햇빛이 공기를 더 길게 지나온다. 지나는 동안 먼지에 부딪혀 흩어져, 지붕에 닿을 때는 이미 힘이 줄어 있다.',
       },
     ],
   },
@@ -457,13 +435,13 @@ const HIGH: HighContent = {
     notes: [
       {
         id: 'shape',
-        term: '곡선의 모양은 태양의 고도와 같다',
-        body: '발전량을 정하는 것은 설비 성능이 아니라 그 시각에 들어온 햇빛의 양이다.',
+        term: '차트가 가장 높은 때가 해가 가장 높은 때다',
+        body: '오늘 얼마나 만드는지는 설비가 좋고 나쁨이 아니라, 그 시각에 들어온 햇빛의 양이 정한다.',
       },
       {
         id: 'cloud',
-        term: '같이 떨어졌다면 날씨 때문이다',
-        body: '일사강도는 그대로인데 발전량만 떨어졌다면 오염·그늘·고장을 살펴야 한다.',
+        term: '둘이 함께 내려갔다면 날씨 탓이다',
+        body: '햇빛 세기는 그대로인데 발전량만 내려갔다면 먼지·그늘·고장을 살펴봐야 한다.',
       },
     ],
   },
@@ -471,8 +449,8 @@ const HIGH: HighContent = {
     head: '환산해 본 의미',
     // 대상 이름의 받침에 따라 조사가 달라지지 않도록 "에서" 로 받는다
     note: (scopeLabel, stats) =>
-      `${scopeLabel}에서 오늘 만든 ${energyText(stats.dayKwh)} 가 어느 정도인지 아는 것으로 바꿔 보면 이렇다`,
-    caption: '발전시간이 길었던 날일수록 이 값들도 함께 커진다',
+      `${scopeLabel}에서 오늘 만든 ${energyText(stats.dayKwh)} 가 얼마나 되는 양인지 익숙한 것으로 바꿔 보면 이렇다`,
+    caption: '해가 오래 떠 있던 날일수록 이 값들도 함께 커진다',
     // 가운데 열을 AI 판단에 내주면서 이 칸이 좁아졌다 — 넉 장은 눌려 읽히지 않아 석 장으로 줄인다.
     itemIds: ['co2', 'tree', 'led'],
     /*
@@ -483,84 +461,39 @@ const HIGH: HighContent = {
     */
     showBasis: false,
   },
+  /*
+    가운데 칸이 자리를 하나씩 당겨 보는 동안, 이쪽은 넷이 한 줄로 이어져 있다는 것을 보여 준다.
+    제목을 「햇빛이 전기가 되기까지」 로 두었더니 가운데 칸과 같은 말이 한 화면에 두 번 나와,
+    두 칸이 같은 것을 두 번 말하는 것처럼 보였다.
+  */
   journey: {
-    head: '햇빛이 전기가 되기까지',
-    note: '지붕에서 교실까지 네 단계로 이어진다',
-    topics: [
-      {
-        id: 'principle',
-        title: '발전 원리',
-        body: '태양전지에 햇빛이 닿으면 그 안의 전자가 움직여 전류가 흐른다.',
-      },
-      {
-        id: 'effect',
-        title: '무엇이 달라지는가',
-        body: '여기서 만든 만큼 화력발전소가 덜 돌아가고, 태우지 않은 연료가 곧 줄어든 온실가스다.',
-      },
-    ],
+    head: '전체 흐름 한눈에 보기',
+    note: '지붕에서 교실까지, 네 단계가 한 줄로 이어진다',
   },
-  ai: {
-    head: '햇빛이 전기가 되기까지, 단계마다 무슨 일이 일어나는가',
-    note: '태양전지에서 학교까지, 전기가 만들어져 흘러가는 네 곳을 차례로 살펴본다',
-    stages: {
-      scan: {
-        label: '계측값 수집',
-        teach: '진단은 짐작이 아니라 실제로 잰 값에서 출발한다. 하루치 계측값을 빠짐없이 읽어 들인다.',
-        spot: 'cell',
-        /*
-          첫 문장이 이 자리에서 일어나는 일을 통째로 말한다.
-          시안 D 는 자리마다 한 줄만 적을 자리밖에 없어 이 첫 문장만 떼어 쓴다 —
-          같은 말을 두 곳에 적어 두지 않으려면 첫 문장이 홀로 서야 한다.
-        */
-        physics:
-          '태양전지는 햇빛을 받으면 전기가 한 방향으로 흐르도록 만든 얇은 판이다. 빛이 닿으면 그 안의 '
-          + '전자가 에너지를 얻어 움직이기 시작하고, 전자가 줄지어 흐르는 것이 곧 전류다. '
-          + '발전이 실제로 일어나는 자리가 여기다.',
-        diagnosis:
-          '진단도 여기서 나온 값에서 시작한다. 셀이 만든 전력을 시간대별로 빠짐없이 읽어 들인다 — '
-          + '빠진 값이나 튀는 값이 섞이면 그 뒤의 판단이 모두 어긋난다.',
-      },
-      classify: {
-        label: '정상 범위와 대조',
-        teach: '판단은 비교에서 나온다. 같은 햇빛이라면 나와야 할 값과 실제로 잰 값을 견준다.',
-        spot: 'module',
-        physics:
-          '태양전지 여러 장을 이어 붙인 것이 모듈, 모듈을 직렬로 이은 한 줄이 스트링이다. '
-          + '직렬이라 한 장에만 그늘이 져도 그 줄 전체의 출력이 함께 떨어진다.',
-        diagnosis:
-          '금일 발전 곡선의 모양을 본다. 그늘은 특정 시각만 움푹 패이고, 표면 오염은 하루 내내 고르게 낮으며, '
-          + '구름은 일사강도 곡선까지 함께 내려간다. 모양이 다르므로 원인을 가릴 수 있다.',
-      },
-      reason: {
-        label: '차이가 난 이유 찾기',
-        teach: '숫자만 있으면 무엇을 해야 할지 알 수 없다. 기대한 값과 차이가 난 이유를 문장으로 적어 남긴다.',
-        spot: 'inverter',
-        physics:
-          '모듈이 만든 전기는 한 방향으로만 흐르는 직류다. 교실 콘센트에 오는 전기는 방향이 계속 바뀌는 '
-          + '교류라, 그대로는 쓸 수 없다. 인버터가 직류를 교류로 바꿔 학교로 보낸다.',
-        diagnosis:
-          '기대한 값과 벌어진 차이를 햇빛·온도·인버터 변환 가운데 어느 쪽 몫인지로 갈라 본다. '
-          + '어디서 얼마가 새는지까지 갈라 놓아야 어디를 손볼지 정할 수 있다.',
-      },
-      done: {
-        label: '판정과 근거 남기기',
-        teach: '무엇을 근거로 그렇게 판단했는지가 남아야 사람이 확인할 수 있다.',
-        spot: 'grid',
-        physics:
-          '만든 전기는 학교가 그대로 쓴다. 쓰는 곳에서 바로 만드니 멀리 보내며 잃는 전기가 없고, '
-          + '그만큼 밖에서 사 오는 전기가 줄어든다.',
-        diagnosis:
-          '판정과 함께 그렇게 본 근거를 문장으로 남긴다. 근거 없이 경보만 울리면 사람이 믿지 않고, '
-          + '믿지 못하는 진단은 실제 조치로 이어지지 않는다.',
-      },
+  stage: {
+    head: '햇빛이 전기가 되기까지, 자리마다 무슨 일이 일어나는가',
+    note: '태양전지에서 학교까지, 전기가 만들어져 흘러가는 네 곳을 차례로 본다',
+    spots: {
+      cell:
+        '지붕에 깔린 얇고 검푸른 판이 태양전지다. 햇빛이 닿으면 판 안에 있는 아주 작은 알갱이(전자)가 '
+        + '힘을 얻어 한쪽으로 밀려 나가는데, 그것이 줄지어 흐르는 것이 곧 전기다. '
+        + '전기가 실제로 만들어지는 자리가 여기다.',
+      module:
+        '태양전지 여러 장을 한 판으로 묶은 것이 모듈이고, 모듈을 한 줄로 이어 놓은 것이 스트링이다. '
+        + '한 줄로 이어져 있어서 그중 한 장만 그늘이 져도 그 줄 전체가 함께 힘을 잃는다.',
+      inverter:
+        '지붕에서 만든 전기는 한 방향으로만 흐른다. 교실 콘센트에 오는 전기는 방향이 계속 바뀐다. '
+        + '둘이 서로 달라 그대로는 쓸 수 없어서, 인버터가 학교에서 쓸 수 있는 형태로 바꿔 보낸다.',
+      grid:
+        '바뀐 전기는 학교가 그대로 쓴다. 쓰는 곳에서 바로 만드니 멀리 보내며 잃는 전기가 없고, '
+        + '그만큼 밖에서 사 오는 전기가 줄어든다.',
     },
-    footer: '전국의 태양광 발전소를 이 절차로 하루 한 번 점검한다.',
   },
   facts: [
-    '태양전지는 온도가 높으면 효율이 떨어진다. 그래서 한여름보다 볕 좋은 봄·가을에 발전량이 더 나온다.',
-    '모듈에 먼지가 쌓이면 발전량이 줄어들고, 비가 내려 씻기면 다시 회복된다.',
-    '직렬로 이은 모듈 하나에만 그늘이 져도 그 줄 전체의 출력이 함께 떨어진다.',
-    '지붕에 설치하면 따로 땅이 들지 않고, 여름에는 지붕에 그늘을 만들어 건물 온도도 낮춰 준다.',
+    '태양전지는 뜨거우면 오히려 힘이 떨어진다. 그래서 한여름보다 볕 좋은 봄·가을에 전기가 더 나온다.',
+    '판에 먼지가 쌓이면 만드는 전기가 줄고, 비가 내려 씻기면 다시 돌아온다.',
+    '한 줄로 이은 판 가운데 하나만 그늘이 져도 그 줄 전체가 함께 힘을 잃는다.',
+    '지붕에 놓으면 따로 땅이 들지 않고, 여름에는 지붕에 그늘을 만들어 건물 온도도 낮춰 준다.',
     'kW 는 지금 이 순간의 힘, kWh 는 그 힘으로 일정 시간 동안 만든 전기의 양이다. 속도와 거리의 관계와 같다.',
     '1,000kW 는 1MW, 1,000MW 는 1GW 다. 여러 학교를 합쳐 보면 단위가 이렇게 올라간다.',
   ],
@@ -569,7 +502,7 @@ const HIGH: HighContent = {
 export const EDU_CONTENT: Record<EduLevel, EduContent> = {
   elementary: ELEMENTARY_CONTENT,
   middle: MIDDLE_CONTENT,
-  high: HIGH,
+  high: HIGH_CONTENT,
 };
 
 export function getEduContent(level: EduLevel): EduContent {

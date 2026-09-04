@@ -33,7 +33,7 @@ export function HighBoard({ scopeLabel, stats, content }: HighBoardProps) {
       </div>
 
       <div className={styles.center}>
-        <StagePanel content={content.ai} />
+        <StagePanel content={content.stage} />
       </div>
 
       <div className={cn(styles.column, styles['column--story'])}>

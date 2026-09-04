@@ -1,33 +1,36 @@
-import type { EduLevel } from '@/interface/edu';
-import type { WeatherKind } from '@/interface/weather';
 import type { EduStats } from '@/mocks/solarEdu';
-import { WEATHER_META } from '@/mocks/weather';
 import { CO2_PER_KWH, CO2_PER_TREE_YEAR } from '@/utils/eco';
-import { clockOf, formatPercent, scaleCarbon, scaleSi } from '@/utils/format';
+import { scaleCarbon, scaleSi } from '@/utils/format';
+import type { EduLevel } from '@/interface/edu';
 
 /**
- * 시안 E 「네 개의 질문」 의 대본과 셈 (SFR-005).
+ * 「세 개의 질문」 의 대본과 셈 (SFR-005).
  *
- * 다른 시안이 지표를 칸에 늘어놓는 데 견줘, 이 판은 **묻고 답하는 네 장**으로 간다.
+ * 다른 시안이 지표를 칸에 늘어놓는 데 견줘, 이 판은 **묻고 답하는 세 장**으로 간다.
  * 그래서 대본도 지표 목록이 아니라 장 단위로 묶여 있다 — 장 하나가 질문 하나와
  * 그 답에 필요한 것들을 통째로 갖는다.
  *
- * 눈높이는 문구와 **읽을 것의 수**를 가른다. 어느 눈높이든 같은 네 질문에 같은 수치로 답하되,
+ * 눈높이는 문구와 **읽을 것의 수**를 가른다. 어느 눈높이든 같은 세 질문에 같은 수치로 답하되,
  * 고등만 값을 재는 기준(일사강도·이용률·셈의 근거)까지 펴 본다 (SFR-005-04).
  */
 
 // ── 장 ────────────────────────────────────────────────────
-export type ChapterId = 'summary' | 'principle' | 'carbon' | 'factors';
+export type ChapterId = 'principle' | 'summary' | 'carbon';
 
-/** 왼쪽 궤도에 박히는 순서. 화면이 좁아지면 이 순서대로 이어 읽는 긴 지면이 된다. */
-export const CHAPTER_IDS: ChapterId[] = ['summary', 'principle', 'carbon', 'factors'];
+/**
+ * 왼쪽 궤도에 박히는 순서. 화면이 좁아지면 이 순서대로 이어 읽는 긴 지면이 된다.
+ *
+ * 원리를 앞에 둔다 — 「지금 얼마나 만들고 있나」 부터 열면 값을 먼저 보여 주고 그것이 어디서
+ * 왔는지를 나중에 말하게 된다. 걸어 두고 지나가며 보는 화면이라 첫 장이 곧 화면의 얼굴이고,
+ * 교육용 화면의 얼굴은 값이 아니라 원리다 (2026-09-04 지시).
+ */
+export const CHAPTER_IDS: ChapterId[] = ['principle', 'summary', 'carbon'];
 
 /** 궤도 눈금에 적는 짧은 이름 — 질문 전문은 지면에서 크게 다시 나온다 */
 export const CHAPTER_MARK: Record<ChapterId, string> = {
-  summary: '오늘의 발전',
   principle: '전기가 되는 길',
+  summary: '오늘의 발전',
   carbon: '줄인 탄소',
-  factors: '많고 적은 까닭',
 };
 
 // ── 대본 조각 ─────────────────────────────────────────────
@@ -53,11 +56,6 @@ export type ScaleId = 'tree' | 'car' | 'home';
 
 export const SCALE_IDS: ScaleId[] = ['tree', 'car', 'home'];
 
-/** 4장에서 발전량을 밀어 올리거나 끌어내리는 것 */
-export type FactorId = 'sunlight' | 'sunHeight' | 'heat' | 'shade' | 'equipment';
-
-export const FACTOR_IDS: FactorId[] = ['sunlight', 'sunHeight', 'heat', 'shade', 'equipment'];
-
 export interface PaperScript {
   /** 지면 머리에 적는 한 줄 */
   banner: string;
@@ -68,15 +66,11 @@ export interface PaperScript {
   steps: Record<StepId, string>;
   /** 3장 — 잣대마다 그것이 무슨 뜻인지 */
   scales: Record<ScaleId, string>;
-  /** 4장 — 요인마다 왜 늘거나 주는지 */
-  factors: Record<FactorId, string>;
-  /** 4장 맺음 한 줄 */
-  closing: string;
 }
 
 // ── 눈높이별 대본 ─────────────────────────────────────────
 const ELEMENTARY: PaperScript = {
-  banner: '우리 학교 지붕이 오늘 만든 전기를 네 가지 질문으로 읽어 봅니다',
+  banner: '우리 학교 지붕이 오늘 만든 전기를 세 가지 질문으로 읽어 봅니다',
   heads: {
     summary: {
       question: '지금 우리 학교는 전기를 얼마나 만들고 있나요',
@@ -89,10 +83,6 @@ const ELEMENTARY: PaperScript = {
     carbon: {
       question: '오늘 탄소를 얼마나 줄였나요',
       lead: '여기서 만든 만큼 화석연료로 만드는 전기가 줄어듭니다',
-    },
-    factors: {
-      question: '전기가 많이 만들어지는 날은 언제인가요',
-      lead: '발전량을 늘리는 것과 줄이는 것이 함께 작용합니다',
     },
   },
   readings: {
@@ -112,18 +102,10 @@ const ELEMENTARY: PaperScript = {
     car: '자동차가 이만큼 달릴 때 나오는 탄소와 같은 양입니다',
     home: '네 사람이 사는 집 한 채가 며칠 동안 쓸 수 있는 전기입니다',
   },
-  factors: {
-    sunlight: '구름이 해를 가리면 지붕에 닿는 햇빛이 줄어듭니다',
-    sunHeight: '해가 높이 뜬 한낮에 햇빛이 가장 세게 내리쬡니다',
-    heat: '판이 뜨거워지면 오히려 전기가 덜 만들어집니다',
-    shade: '판 위에 먼지가 쌓이거나 그늘이 지면 그만큼 줄어듭니다',
-    equipment: '설비가 고장 없이 잘 돌아가면 만들 수 있는 만큼 다 만듭니다',
-  },
-  closing: '그래서 같은 학교라도 날마다 만드는 전기가 다릅니다',
 };
 
 const MIDDLE: PaperScript = {
-  banner: '우리 학교의 오늘 발전을 네 가지 질문으로 나누어 읽습니다',
+  banner: '우리 학교의 오늘 발전을 세 가지 질문으로 나누어 읽습니다',
   heads: {
     summary: {
       question: '지금 우리 학교는 얼마나 만들고 있나',
@@ -136,10 +118,6 @@ const MIDDLE: PaperScript = {
     carbon: {
       question: '오늘 줄인 탄소는 얼마만큼인가',
       lead: '여기서 만든 만큼 화석연료 발전이 줄어, 그만큼 태우지 않아도 됩니다',
-    },
-    factors: {
-      question: '발전량은 무엇이 늘리고 무엇이 줄이나',
-      lead: '설비는 그대로인데 날마다 값이 달라지는 까닭입니다',
     },
   },
   readings: {
@@ -159,18 +137,10 @@ const MIDDLE: PaperScript = {
     car: '승용차가 이 거리를 달릴 때 나오는 탄소와 같은 양입니다',
     home: '4인 가구 한 집이 며칠 동안 쓸 수 있는 전력량입니다',
   },
-  factors: {
-    sunlight: '구름이 해를 가리면 지붕에 닿는 일사강도가 그만큼 떨어집니다',
-    sunHeight: '해가 높이 뜬 시각일수록 같은 빛이 좁은 면적에 모입니다',
-    heat: '판의 온도가 오르면 효율이 떨어집니다. 한여름보다 봄·가을에 발전량이 더 나오는 까닭입니다',
-    shade: '판 위에 쌓인 먼지와 주변 그림자가 받는 빛을 가립니다',
-    equipment: '인버터가 멈추거나 일부 스트링이 빠지면 그만큼 덜 만들어집니다',
-  },
-  closing: '설비용량이 같아도 이 다섯 가지가 겹쳐 날마다 다른 값이 나옵니다',
 };
 
 const HIGH: PaperScript = {
-  banner: '오늘의 발전을 네 가지 질문으로 나누어 읽습니다',
+  banner: '오늘의 발전을 세 가지 질문으로 나누어 읽습니다',
   heads: {
     summary: {
       question: '지금 이 설비는 얼마나 만들고 있나',
@@ -183,10 +153,6 @@ const HIGH: PaperScript = {
     carbon: {
       question: '오늘 줄인 탄소는 얼마만큼인가',
       lead: '여기서 만든 만큼 화석연료 발전이 줄어, 그만큼 태우지 않아도 됩니다',
-    },
-    factors: {
-      question: '발전량은 무엇이 늘리고 무엇이 줄이나',
-      lead: '설비는 그대로인데 날마다 값이 달라지는 까닭입니다',
     },
   },
   readings: {
@@ -206,14 +172,6 @@ const HIGH: PaperScript = {
     car: '승용차가 이 거리를 달릴 때 배출하는 탄소와 같은 양입니다',
     home: '4인 가구 한 집이 며칠 동안 쓸 수 있는 전력량입니다',
   },
-  factors: {
-    sunlight: '구름이 해를 가리면 지붕에 닿는 일사강도가 그만큼 떨어집니다',
-    sunHeight: '해가 높이 뜬 시각일수록 같은 빛이 좁은 면적에 모여 일사강도가 오릅니다',
-    heat: '모듈 온도가 오르면 효율이 떨어집니다. 한여름보다 봄·가을 발전량이 더 나오는 까닭입니다',
-    shade: '표면에 쌓인 오염과 주변 그림자가 받는 빛을 가립니다',
-    equipment: '인버터 정지나 스트링 탈락이 있으면 그만큼 덜 만들어집니다',
-  },
-  closing: '설비용량이 같아도 이 다섯 가지가 겹쳐 날마다 다른 값이 나옵니다',
 };
 
 export const PAPER_SCRIPT: Record<EduLevel, PaperScript> = {
@@ -221,9 +179,6 @@ export const PAPER_SCRIPT: Record<EduLevel, PaperScript> = {
   middle: MIDDLE,
   high: HIGH,
 };
-
-/** 시안 이름표 — 눈높이마다 골격이 갈리지만 묻는 네 질문은 같다 */
-export const PAPER_LABEL = '시안 E · 네 개의 질문';
 
 // ── 1장 · 읽어 내리는 값 ──────────────────────────────────
 /*
@@ -466,85 +421,4 @@ export function paperScales(stats: EduStats, script: PaperScript): PaperScale[] 
       `4인 가구가 하루에 쓰는 ${HOUSEHOLD_DAY_KWH.toFixed(1)}kWh 기준`,
     ),
   ];
-}
-
-// ── 4장 · 늘리는 것과 줄이는 것 ───────────────────────────
-export interface PaperFactor {
-  id: FactorId;
-  term: string;
-  /** 발전량을 얼마나 밀어 올리거나 끌어내렸는지 (-1 ~ 1) */
-  delta: number;
-  /** 오늘 이 요인이 어땠는지 — 값 하나로 짚는다 */
-  reading: string;
-  note: string;
-}
-
-const FACTOR_TERM: Record<FactorId, string> = {
-  sunlight: '햇빛의 세기',
-  sunHeight: '해의 높이',
-  heat: '판의 온도',
-  shade: '그늘과 먼지',
-  equipment: '설비 상태',
-};
-
-/** 늘 조금씩 깎아 먹는 몫. 청소 주기와 주변 지형에 따라 달라지지만 목업에서는 고정한다. */
-const SHADE_LOSS = -0.05;
-
-function clamp(value: number, limit: number): number {
-  return Math.max(-limit, Math.min(limit, value));
-}
-
-/**
- * 오늘 발전량을 밀어 올린 것과 끌어내린 것 (목업).
- *
- * 실제로는 발전 예측 모델이 요인별 기여를 내지만, 여기서는 화면에서 읽히는 값들로만 셈한다 —
- * 날씨는 일사 감쇄 계수에서, 해의 높이는 지금 시각에서, 설비 상태는 기대발전량 대비에서 온다.
- * 값이 어디서 왔는지 보이지 않으면 교육 자료로 쓸 수 없기 때문이다.
- */
-export function paperFactors(
-  stats: EduStats,
-  weather: WeatherKind,
-  month: number,
-  script: PaperScript,
-): PaperFactor[] {
-  const weatherMeta = WEATHER_META[weather];
-
-  // 흐린 날을 기준(0.8)으로 삼아, 그보다 맑으면 밀어 올리고 흐리면 끌어내린 것으로 읽는다.
-  const sunlight = weatherMeta.factor - 0.8;
-
-  // 정오에서 멀어질수록 해가 낮다. 아침저녁은 빛이 비스듬히 들어와 같은 빛이 넓게 퍼진다.
-  const noonness = Math.max(0, 1 - Math.abs(stats.nowHour - 12.5) / 6.5);
-  const sunHeight = noonness * 0.28 - 0.08;
-
-  // 한여름에는 판이 뜨거워져 효율이 떨어지고, 봄·가을에는 오히려 조금 낫다.
-  const isSummer = month >= 5 && month <= 7;
-  const isWinter = month === 11 || month === 0 || month === 1;
-  const heat = isSummer ? -0.12 : isWinter ? 0.05 : 0.03;
-
-  // 기대발전량 대비 실제. 설비가 제 몫을 하고 있는지가 여기에 드러난다.
-  const equipment = stats.expectedKwh > 0 ? clamp(stats.dayKwh / stats.expectedKwh - 1, 0.15) : 0;
-
-  const deltas: Record<FactorId, number> = {
-    sunlight,
-    sunHeight,
-    heat,
-    shade: SHADE_LOSS,
-    equipment,
-  };
-
-  const readings: Record<FactorId, string> = {
-    sunlight: `${weatherMeta.label} · 일사강도 ${Math.round(stats.irradianceNow)} W/㎡`,
-    sunHeight: `${clockOf(stats.nowHour)} 기준`,
-    heat: isSummer ? '여름 · 판이 달아오르는 철' : isWinter ? '겨울 · 판이 차가운 철' : '봄·가을 · 판이 알맞은 철',
-    shade: '청소 주기와 주변 그림자 기준',
-    equipment: `기대발전량 대비 ${formatPercent(stats.expectedKwh > 0 ? stats.dayKwh / stats.expectedKwh : 1, 0)}`,
-  };
-
-  return FACTOR_IDS.map((id) => ({
-    id,
-    term: FACTOR_TERM[id],
-    delta: deltas[id],
-    reading: readings[id],
-    note: script.factors[id],
-  })).sort((a, b) => b.delta - a.delta);
 }

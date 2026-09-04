@@ -1,4 +1,4 @@
-import { CHAPTER_IDS, CHAPTER_MARK, type ChapterId, PAPER_LABEL, PAPER_SCRIPT } from '@/mocks/eduPaper';
+import { CHAPTER_IDS, CHAPTER_MARK, type ChapterId, PAPER_SCRIPT } from '@/mocks/eduPaper';
 import type { EduLevel } from '@/interface/edu';
 import type { EduStats } from '@/mocks/solarEdu';
 import type { WeatherKind } from '@/interface/weather';
@@ -6,7 +6,6 @@ import { WEATHER_META } from '@/mocks/weather';
 import { useAutoPager } from '@/hooks/useAutoPager';
 import { useRootClass } from '@/hooks/useRootClass';
 import { ChapterCarbon } from './ChapterCarbon';
-import { ChapterFactors } from './ChapterFactors';
 import { ChapterPrinciple } from './ChapterPrinciple';
 import { ChapterSummary } from './ChapterSummary';
 import { PaperBackdrop } from './PaperBackdrop';
@@ -28,12 +27,12 @@ const CHAPTER_MS: Record<EduLevel, number> = {
 
 interface PaperBoardProps {
   level: EduLevel;
+  /** 회의에서 부르는 이름 — 골격을 스스로 세우는 판이라 이름표도 여기서 그린다 */
+  variantLabel: string;
   scopeLabel: string;
   scopeInfo: string;
   stats: EduStats;
   weather: WeatherKind;
-  /** 오늘이 몇 월인지 (0 = 1월) */
-  month: number;
   clock: string;
   date: string;
   /** 지금 몇 시인지 (소수 시간). 배경의 해가 앉는 자리를 정한다. */
@@ -44,15 +43,15 @@ interface PaperBoardProps {
 }
 
 /**
- * 시안 E 「네 개의 질문」 (SFR-005).
+ * 「세 개의 질문」 — 중등 시안 a (SFR-005).
  *
  * 다른 시안이 지표를 칸에 늘어놓는 데 견줘, 이 판은 **묻고 답하는 지면**이다.
  * 그래서 골격도 공용 레이아웃을 쓰지 않고 여기서 통째로 세운다 — 위에 요약 띠를 두면
  * 1장이 그 띠를 한 번 더 말하는 꼴이 되고, 카드 격자가 한 번이라도 끼면 다른 시안과
  * 같은 화면이 된다.
  *
- * 왼쪽 궤도가 네 장의 차례를 쥐고, 오른쪽 지면이 지금 장을 편다. 벽걸이 화면에서는
- * 한 장이 화면을 가득 채우고 스스로 넘어가며, 좁은 화면에서는 네 장이 이어진 긴 지면이 된다 —
+ * 왼쪽 궤도가 세 장의 차례를 쥐고, 오른쪽 지면이 지금 장을 편다. 벽걸이 화면에서는
+ * 한 장이 화면을 가득 채우고 스스로 넘어가며, 좁은 화면에서는 세 장이 이어진 긴 지면이 된다 —
  * 같은 글이 걸어 두는 화면에서는 낭독이 되고 앉아서 보는 화면에서는 읽을거리가 된다.
  *
  * 눈높이가 골격을 가른다 (`data-level`). 초등은 궤도를 위로 올려 지면이 화면을 다 쓰고
@@ -61,11 +60,11 @@ interface PaperBoardProps {
  */
 export function PaperBoard({
   level,
+  variantLabel,
   scopeLabel,
   scopeInfo,
   stats,
   weather,
-  month,
   clock,
   date,
   nowHour,
@@ -81,10 +80,9 @@ export function PaperBoard({
   const pager = useAutoPager({ total: CHAPTER_IDS.length, perPage: 1, intervalMs: turnMs });
 
   const chapters: Record<ChapterId, ReactNode> = {
-    summary: <ChapterSummary stats={stats} script={script} level={level} />,
     principle: <ChapterPrinciple stats={stats} script={script} />,
+    summary: <ChapterSummary stats={stats} script={script} level={level} />,
     carbon: <ChapterCarbon stats={stats} script={script} level={level} />,
-    factors: <ChapterFactors stats={stats} weather={weather} month={month} script={script} />,
   };
 
   return (
@@ -93,7 +91,7 @@ export function PaperBoard({
 
       <aside className={styles.rail}>
         <div className={styles.scope}>
-          <p className={styles.scope__variant}>{PAPER_LABEL}</p>
+          <p className={styles.scope__variant}>{variantLabel}</p>
           <h1 className={styles.scope__title}>{scopeLabel}</h1>
           <p className={styles.scope__info}>{scopeInfo}</p>
         </div>

@@ -227,22 +227,10 @@ function LeafGlyph() {
   );
 }
 
-function SwingGlyph() {
-  return (
-    <Glyph>
-      <>
-        <path d="M11 26.4V8.4M6.8 12.6L11 8.4l4.2 4.2" />
-        <path d="M21 5.6v18M25.2 19.4L21 23.6l-4.2-4.2" />
-      </>
-    </Glyph>
-  );
-}
-
 const CHAPTER_GLYPH: Record<ChapterId, () => ReactElement> = {
-  summary: GaugeGlyph,
   principle: BoltGlyph,
+  summary: GaugeGlyph,
   carbon: LeafGlyph,
-  factors: SwingGlyph,
 };
 
 export function ChapterGlyph({ id }: { id: ChapterId }) {

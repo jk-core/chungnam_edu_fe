@@ -5,7 +5,7 @@ import { useChartPalette } from '@/hooks/useChartPalette';
 import type { EduStats } from '@/mocks/solarEdu';
 import type { MiddleProductionContent } from '@/mocks/eduMiddle';
 import { SunPathArt } from './SunPathArt';
-import styles from './MiddleBoard.module.scss';
+import styles from './HighCards.module.scss';
 import type { EChartsOption } from 'echarts';
 
 const AXIS_FONT = { fontSize: 11, fontFamily: 'Space Grotesk, sans-serif' };
@@ -13,7 +13,7 @@ const AXIS_FONT = { fontSize: 11, fontFamily: 'Space Grotesk, sans-serif' };
 /** 축과 곡선이 겹치지 않는 최소 높이 */
 const MIN_CHART_HEIGHT = 140;
 
-interface MiddleProductionCardProps {
+interface HighProductionCardProps {
   stats: EduStats;
   content: MiddleProductionContent;
 }
@@ -25,7 +25,7 @@ interface MiddleProductionCardProps {
  * 곡선 하나만 남긴 뒤, 그 옆에 해가 지나간 길을 나란히 세웠다. 두 그림의 모양이 닮았다는 것을 눈으로 잇는 것이
  * 이 나이에 필요한 전부다 — 발전량을 정하는 것은 설비가 아니라 햇빛이라는 이야기다.
  */
-export function MiddleProductionCard({ stats, content }: MiddleProductionCardProps) {
+export function HighProductionCard({ stats, content }: HighProductionCardProps) {
   const palette = useChartPalette();
   const slotRef = useRef<HTMLDivElement>(null);
   // 화면 크기에 맞춰 차트를 늘린다 — echarts 는 퍼센트 높이를 못 받아 실측값을 넘긴다.
