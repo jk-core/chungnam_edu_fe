@@ -50,7 +50,7 @@ export interface EduStats {
   expectedKwh: number;
   /** 시간대별 발전량(kWh) 24칸 */
   hourly: number[];
-  /** 시간대별 일사강도(kW/m²) 24칸 — 계측은 시점 강도만 하고 적산하지 않는다 */
+  /** 시간대별 일사강도(W/m²) 24칸 — 계측은 시점 강도만 하고 적산하지 않는다 */
   irradianceSeries: number[];
   /** 이 값이 어느 시각 기준인지 (소수 시간, 예: 14.25 = 14시 15분) */
   nowHour: number;
@@ -87,7 +87,7 @@ export function buildEduStats(node: ScopeNode, nowHour: number = NOW_HOUR): EduS
     todayKwh: Math.round(sumTo(stat.hourly)),
     dayKwh: Math.round(dayKwh),
     loadRatio: capacityKw > 0 && live ? (stat.hourly[hourIndex] ?? 0) / capacityKw : 0,
-    irradianceNow: Math.round((irradianceSeries[hourIndex] ?? 0) * 1000),
+    irradianceNow: Math.round(irradianceSeries[hourIndex] ?? 0),
     equivalentHours: capacityKw > 0 ? dayKwh / capacityKw : 0,
     capacityFactor: capacityKw > 0 ? dayKwh / (capacityKw * 24) : 0,
     expectedKwh: Math.round(stat.expectedKwh),
