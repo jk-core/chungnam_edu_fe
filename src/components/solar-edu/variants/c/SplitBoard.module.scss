@@ -81,10 +81,39 @@
 }
 
 // ── 위 왼쪽 · 오늘의 곡선 ──────────────────────────────────
-.curve {
-  display: flex;
+
+/*
+  곡선과 읽는 법을 좌우로 놓는다.
+
+  위아래로 쌓으면 설명 두 줄이 칸의 세로를 가져가 곡선이 그만큼 납작해진다.
+  옆으로 옮기면 곡선이 칸의 세로를 통째로 받고, 설명은 곡선을 보면서 읽게 된다.
+*/
+.today {
+  display: grid;
+
+  /* 좁은 화면에서는 예전처럼 곡선 아래에 설명이 붙는다 */
+  grid-template-rows: minmax(0, 1fr) auto;
+  gap: s.$space-4;
   flex: 1;
   min-height: 0;
+
+  /*
+    좌우로 가르는 것은 폭이 넉넉한 벽걸이 화면에서만이다.
+    1280px 에서 갈라 보았더니 곡선이 300px 안팎으로 좁아져 시간축 눈금이 뭉개졌다 —
+    그 폭에서는 설명을 아래로 내리고 곡선에 가로를 다 주는 편이 낫다.
+  */
+  @include media.kiosk {
+    grid-template-columns: minmax(0, 1fr) minmax(300px, 0.4fr);
+    grid-template-rows: none;
+    gap: s.$space-5;
+  }
+}
+
+.curve {
+  display: flex;
+
+  /* 코드의 DayCurve MIN_HEIGHT 와 짝이다 — 여기가 낮으면 차트가 칸 밖으로 그려진다 */
+  min-height: 140px;
   border-radius: s.$radius-md;
   background-color: var(--surface-sunken);
 }
@@ -93,7 +122,8 @@
 .read {
   @include t.body-lg;
 
-  flex: none;
+  align-self: center;
+  min-height: 0;
   padding-left: s.$space-3;
   border-left: 3px solid var(--solar);
   color: var(--text-muted);

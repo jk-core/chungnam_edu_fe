@@ -61,11 +61,13 @@ export function TwoColumnBoard({ stats }: TwoColumnBoardProps) {
           <span className={styles.card__note}>{script.production.note(stats)}</span>
         </p>
 
-        <div className={styles.curve}>
-          <DayCurve stats={stats} showIrradiance />
-        </div>
+        <div className={styles.today}>
+          <div className={styles.curve}>
+            <DayCurve stats={stats} showIrradiance />
+          </div>
 
-        <p className={styles.read}>{script.production.read}</p>
+          <p className={styles.read}>{script.production.read}</p>
+        </div>
       </section>
 
       {/* 오른쪽 아래 — 그래서 뭐가 좋아졌나 */}
