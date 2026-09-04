@@ -1,4 +1,5 @@
 import type { EduVariant } from '@/components/solar-edu/variants/EduBoard';
+import { SolarEduPaper } from './components/SolarEduPaper';
 import { SolarEduScreen } from './components/SolarEduScreen';
 
 interface SolarEduPageProps {
@@ -19,6 +20,13 @@ interface SolarEduPageProps {
  * 전기가 되는 과정만 오른쪽에서 한 단계씩 스스로 넘어간다.
  */
 function SolarEduPage({ variant }: SolarEduPageProps) {
+  /*
+    시안 E 만 골격까지 제 것이다.
+    공용 레이아웃의 요약 띠가 E 의 1장과 같은 말을 하게 되어, 띠를 쓰면 화면이 같은 값을
+    두 번 말한다. 여기서 갈라 두면 나머지 시안은 지금 조립을 그대로 쓴다.
+  */
+  if (variant === 'e') return <SolarEduPaper />;
+
   return <SolarEduScreen variant={variant} />;
 }
 

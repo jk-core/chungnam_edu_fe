@@ -1,4 +1,5 @@
 import type { EduLevel } from '@/interface/edu';
+import { PAPER_LABEL } from '@/mocks/eduPaper';
 import type { EduContent } from '@/mocks/eduContent';
 import type { EduStats } from '@/mocks/solarEdu';
 import { CardDeck } from './c/CardDeck';
@@ -11,8 +12,13 @@ import { MiddleFlow } from './middle/MiddleFlow';
 import { HighConsole } from './high/HighConsole';
 import { HighTimeline } from './high/HighTimeline';
 
-/** 비교용 시안. 현행은 이름이 없다 — 그것이 시안 A 다. */
-export type EduVariant = 'b' | 'c' | 'd';
+/**
+ * 비교용 시안. 현행은 이름이 없다 — 그것이 시안 A 다.
+ *
+ * 시안 E 는 이 갈림길을 지나지 않는다. 공용 레이아웃을 쓰지 않고 골격까지 제 것을 세우므로
+ * 페이지에서 곧장 갈라진다 — 여기에는 학교 고르개가 주소를 지을 때 쓸 이름만 남는다.
+ */
+export type EduVariant = 'b' | 'c' | 'd' | 'e';
 
 /**
  * 시안 이름표.
@@ -40,6 +46,12 @@ export const EDU_VARIANT_LABEL: Record<EduVariant, Record<EduLevel, string>> = {
     elementary: '시안 D · 한 장 그림',
     middle: '시안 D · 비교 실험',
     high: '시안 D · 발전 원리 해설',
+  },
+  // 시안 E 는 눈높이가 갈려도 골격이 하나다 — 갈리는 것은 말의 높낮이뿐이다.
+  e: {
+    elementary: PAPER_LABEL,
+    middle: PAPER_LABEL,
+    high: PAPER_LABEL,
   },
 };
 

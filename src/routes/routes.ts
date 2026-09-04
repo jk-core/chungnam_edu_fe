@@ -22,6 +22,7 @@ export const PATH = {
   SOLAR_EDU_B: '/solar-edu/b',
   SOLAR_EDU_C: '/solar-edu/c',
   SOLAR_EDU_D: '/solar-edu/d',
+  SOLAR_EDU_E: '/solar-edu/e',
   /** 통합관제 전체화면 상황판 (SFR-004) */
   CONTROL: '/control',
   /*

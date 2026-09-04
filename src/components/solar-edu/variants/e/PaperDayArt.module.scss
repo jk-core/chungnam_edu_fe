@@ -1,0 +1,83 @@
+@use "@/styles/utils/media" as media;
+
+/*
+  하루 곡선.
+
+  `preserveAspectRatio` 를 풀어 두어 판이 칸에 맞춰 늘어난다. 그래서 선 굵기도 함께 늘어나는데,
+  `vector-effect` 로 굵기만 화면 좌표에 매어 두면 어느 폭에서도 같은 두께로 그려진다.
+*/
+.art {
+  display: block;
+  width: 100%;
+  height: 100%;
+
+  &__fill {
+    animation: day-rise 1.1s ease-out both;
+    transform-origin: bottom;
+  }
+
+  &__line {
+    fill: none;
+    stroke: var(--solar-deep);
+    stroke-width: 2;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    vector-effect: non-scaling-stroke;
+
+    /* 선이 왼쪽에서 오른쪽으로 그려진다 — 길이를 넉넉히 잡아 두어야 처음이 비어 있다 */
+    stroke-dasharray: 600;
+    animation: day-draw 1.6s ease-out both;
+  }
+
+  &__now {
+    stroke: var(--solar-deep);
+    stroke-width: 2;
+    stroke-dasharray: 3 4;
+    vector-effect: non-scaling-stroke;
+    animation: day-now 0.6s 1.2s ease-out both;
+  }
+
+  @include media.reduced-motion {
+    &__fill,
+&__line,
+&__now {
+      animation: none;
+    }
+
+    &__line {
+      stroke-dasharray: none;
+    }
+  }
+}
+
+@keyframes day-draw {
+  from {
+    stroke-dashoffset: 600;
+  }
+
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+@keyframes day-rise {
+  from {
+    opacity: 0;
+    transform: scaleY(0.4);
+  }
+
+  to {
+    opacity: 1;
+    transform: scaleY(1);
+  }
+}
+
+@keyframes day-now {
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
+}

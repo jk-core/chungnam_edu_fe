@@ -48,6 +48,8 @@ export const routes: RouteObject[] = [
   { path: `${PATH.SOLAR_EDU_C}/:orgId`, element: <SolarEduPage variant="c" /> },
   { path: PATH.SOLAR_EDU_D, element: <SolarEduPage variant="d" /> },
   { path: `${PATH.SOLAR_EDU_D}/:orgId`, element: <SolarEduPage variant="d" /> },
+  { path: PATH.SOLAR_EDU_E, element: <SolarEduPage variant="e" /> },
+  { path: `${PATH.SOLAR_EDU_E}/:orgId`, element: <SolarEduPage variant="e" /> },
   { path: `${PATH.SOLAR_EDU}/:orgId`, element: <SolarEduPage /> },
   // 교육용 화면을 하나로 합치기 전 주소. 모니터에 이미 걸린 URL 이 있을 수 있어 넘겨만 준다.
   { path: PATH.KIOSK, element: <Navigate to={PATH.SOLAR_EDU} replace /> },
