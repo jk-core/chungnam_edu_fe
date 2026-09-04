@@ -10,12 +10,21 @@ import type { CSSProperties } from 'react';
 type StepId = 'sun' | 'cell' | 'inverter' | 'school';
 
 /**
+ * 이 띠를 쓸 수 있는 눈높이.
+ *
+ * 유치원은 뺀다. 마디마다 설명 한 줄과 계측값이 붙는 물건이라 네 마디면 글이 네 줄인데,
+ * 그것을 아무리 쉬운 말로 갈아도 못 읽는 아이에게는 읽히지 않는다. 유치원 판은 같은 네 마디를
+ * 글 없이 **그림 넷**으로 세운다 — 말을 쉽게 만드는 것과 말을 없애는 것은 다른 일이다.
+ */
+type PrincipleLevel = Exclude<EduLevel, 'kinder'>;
+
+/**
  * 눈높이마다 다른 말.
  *
  * 값을 만드는 셈은 같고 부르는 이름과 설명만 갈린다 — 초등에게 "광전효과" 라고 적을 수 없고,
  * 고등에게 "판이 전기를 만들어요" 라고만 적으면 배울 것이 없다. 같은 그림 위에 말만 바꿔 얹는다.
  */
-const COPY: Record<EduLevel, Record<StepId, { label: string; line: string }>> = {
+const COPY: Record<PrincipleLevel, Record<StepId, { label: string; line: string }>> = {
   elementary: {
     sun: { label: '햇빛', line: '해가 우리 학교 지붕을 비춰요' },
     cell: { label: '태양전지', line: '햇빛을 받으면 패널이 전기를 만들어요' },
@@ -38,7 +47,7 @@ const COPY: Record<EduLevel, Record<StepId, { label: string; line: string }>> = 
 
 interface PrincipleStripProps {
   stats: EduStats;
-  level: EduLevel;
+  level: PrincipleLevel;
   /** 제목을 붙일지. 이미 위에 제목이 있는 자리에서는 끈다 */
   heading?: string;
 }

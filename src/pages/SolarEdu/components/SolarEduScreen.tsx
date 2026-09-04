@@ -25,17 +25,18 @@ export function SolarEduScreen({ variant }: { variant?: EduVariant }) {
   const { clock, date, nowHour } = useEduClock();
   const { node, plant, stats, weather, content, scopeInfo } = useEduScope(nowHour);
 
-  // 세 판은 본문 구성 자체가 갈린다 — 하늘을 까는 것은 그림이 주인공인 초등 판뿐이다.
-  const isKid = content.level === 'elementary';
+  // 네 판은 본문 구성 자체가 갈린다 — 하늘을 까는 것은 그림이 주인공인 유치원·초등 판이다.
+  const isKid = content.level === 'kinder' || content.level === 'elementary';
 
   /*
-    아래를 도는 "알고 계셨나요" 한 줄. 초등 판에는 두지 않는다 —
-    본문이 이미 걸음마다 큰 글씨 한 줄을 바꿔 달고 있어, 읽을 곳이 둘이 되면 오히려 산만하다.
+    아래를 도는 "알고 계셨나요" 한 줄. 유치원·초등 판에는 두지 않는다 —
+    초등은 본문이 이미 걸음마다 큰 글씨 한 줄을 바꿔 달고 있어 읽을 곳이 둘이 되면 산만해지고,
+    유치원은 아예 읽지 못한다.
 
     한 줄씩 넘기는 것도 쪽 넘김이라 관제 화면과 같은 장치를 쓴다. 문구 수가 눈높이마다 달라
     총 수를 여기에 매어 둬야 인덱스가 범위를 벗어나지 않는다.
   */
-  const facts = isKid ? [] : content.facts;
+  const facts = content.level === 'middle' || content.level === 'high' ? content.facts : [];
   const fact = useAutoPager({ total: facts.length, perPage: 1, intervalMs: FACT_MS });
 
   return (
@@ -50,7 +51,21 @@ export function SolarEduScreen({ variant }: { variant?: EduVariant }) {
       isLive={stats.isLive}
       clock={clock}
       date={date}
-      headline={<HeadlineStrip stats={stats} content={content.headline} large={content.emphasis === 'large'} />}
+      headline={
+        /*
+          위쪽 수치 띠. 유치원 판만 달지 않는다 (SFR-005-04).
+
+          이 띠는 지표 다섯에 설명 한 줄씩이 붙은 글 덩어리라 1080 높이에서 300px 넘게 쓴다.
+          글을 못 읽는 눈높이에서는 그 자리가 통째로 회색 띠로 남을 뿐이고, 떼어 내면 그만큼을
+          그림이 물려받아 화면 전체가 한 장면이 된다.
+
+          「지금 얼마나 만들고 있는가」(SFR-005-01)는 사라지지 않는다 — 유치원 판이 그것을
+          본문 안에서 켜진 전구의 개수로 말한다.
+        */
+        content.level === 'kinder'
+          ? undefined
+          : <HeadlineStrip stats={stats} content={content.headline} large={content.emphasis === 'large'} />
+      }
       facts={facts}
       factIndex={fact.page}
       onSelectFact={fact.goTo}

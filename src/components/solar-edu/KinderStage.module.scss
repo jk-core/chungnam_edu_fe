@@ -1,0 +1,187 @@
+@use "@/styles/tokens/spacing" as s;
+@use "@/styles/tokens/typography" as t;
+@use "@/styles/utils/media" as media;
+
+/**
+ * 유치원 판 · 현행 자리 — 세 장짜리 이야기 (SFR-005-04/06/07).
+ *
+ * 위쪽 수치 띠를 달지 않는 눈높이라 본문이 화면을 통째로 쓴다. 위에서 아래로 셋이다 —
+ * 머리줄, 그림, 그리고 말과 걸음 표시.
+ */
+.stage {
+  display: flex;
+  flex-direction: column;
+  gap: s.$space-4;
+  height: 100%;
+}
+
+/* 머리줄 — 왼쪽에 장 이름, 오른쪽에 지금 출력. 둘 다 어른이 읽는 줄이라 작다 */
+.header {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: s.$space-4;
+  flex-shrink: 0;
+}
+
+.chapter {
+  @include t.eyebrow;
+
+  color: var(--brand-contrast);
+  opacity: 0.72;
+}
+
+.now {
+  @include t.caption;
+
+  display: flex;
+  align-items: baseline;
+  gap: s.$space-2;
+  color: var(--text-muted);
+
+  strong {
+    @include t.data-md;
+
+    color: var(--brand-contrast);
+  }
+}
+
+/*
+  그림 자리.
+
+  높이를 절반 조금 넘게 못 박는다. 남는 높이를 전부 그림에 주었더니 화면이 통째로 삽화가 되어,
+  그림이 크다기보다 **화면이 비었다**는 인상이 됐다 — 큰 그림 하나만 있는 화면은 클수록 허전해진다.
+  줄인 만큼은 아래 말이 가져가 넉넉한 자리에 앉는다.
+
+  `min-height: 0` 이 있어야 flex 안에서 그림이 제 내용 높이 아래로도 눌린다.
+*/
+.canvas {
+  flex: 0 1 auto;
+  height: 54%;
+  min-height: 0;
+
+  svg {
+    display: block;
+    width: 100%;
+    height: 100%;
+  }
+}
+
+/*
+  2장 — 그림 하나와 수 하나.
+
+  둘을 나란히 놓고 가운데로 모은다. 수를 그림 아래에 두면 그림이 위로 밀려 자리가 비고,
+  옆에 세우면 「이 그림이 이만큼」 이 한 줄로 읽힌다.
+*/
+.gift {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: s.$space-7;
+  height: 100%;
+
+  &__art {
+    display: block;
+    height: 100%;
+    aspect-ratio: 1;
+
+    svg {
+      display: block;
+      width: 100%;
+      height: 100%;
+    }
+  }
+
+  &__value {
+    display: flex;
+    align-items: baseline;
+    gap: s.$space-3;
+    color: var(--brand-contrast);
+    font-size: clamp(64px, 8vw, 150px);
+    font-weight: 800;
+    line-height: 1;
+    letter-spacing: -0.03em;
+  }
+
+  &__unit {
+    font-size: clamp(26px, 2.6vw, 48px);
+    font-weight: 700;
+    color: var(--text-muted);
+  }
+}
+
+// 3장 — 그림 하나만 가운데 크게
+.good {
+  display: grid;
+  place-items: center;
+  height: 100%;
+
+  svg {
+    display: block;
+    height: 100%;
+    aspect-ratio: 1;
+  }
+}
+
+// ── 아래 — 말과 걸음 표시 ──────────────────────────────────
+
+/*
+  그림에서 덜어낸 높이를 이쪽이 가져간다.
+  말이 화면 아래 절반의 한가운데에 앉아, 멀리서 보면 그림과 말이 위아래로 짝을 이룬다.
+*/
+.foot {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: s.$space-5;
+  flex: 1;
+  min-height: 0;
+}
+
+/*
+  걸음 표시.
+
+  누를 수 없다 — 무인 화면이라 누를 사람이 없고, 눌리는 것처럼 보이면 아이가 화면을 만진다.
+  칸마다 지나온 것은 꽉 차 있고 지금 칸만 차오르는 중이라, 어디까지 왔는지와 얼마나 남았는지를
+  한 줄이 함께 말한다.
+*/
+.dots {
+  display: flex;
+  gap: s.$space-3;
+  flex-shrink: 0;
+  list-style: none;
+}
+
+/*
+  칸 하나.
+
+  테두리를 진하게 두른다 — 하늘 위에 놓이는 표시라 옅은 회색 테두리로는 아침 하늘에서도
+  저녁 하늘에서도 묻힌다. 하늘색은 시각마다 바뀌지만 이 테두리 색은 바뀌지 않는다.
+*/
+.dot {
+  position: relative;
+  overflow: hidden;
+  width: 64px;
+  height: 16px;
+  border-radius: s.$radius-full;
+  background-color: var(--surface);
+  box-shadow: inset 0 0 0 3px var(--brand-contrast);
+
+  &--done {
+    background-color: var(--solar);
+  }
+
+  &__fill {
+    position: absolute;
+    inset: 0 auto 0 0;
+    display: block;
+    border-radius: s.$radius-full;
+    background-color: var(--solar);
+  }
+
+  @include media.kiosk {
+    width: 88px;
+    height: 18px;
+  }
+}

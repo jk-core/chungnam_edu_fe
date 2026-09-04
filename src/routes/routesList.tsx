@@ -39,13 +39,15 @@ export const routes: RouteObject[] = [
   { path: PATH.SOLAR_EDU, element: <SolarEduPage /> },
   /*
     시안 주소를 학교 주소(`/solar-edu/:orgId`)보다 **먼저** 세운다.
-    라우터가 고정 조각을 변수 조각보다 앞에 두긴 하지만, 읽는 사람에게도 b·c·d 가
+    라우터가 고정 조각을 변수 조각보다 앞에 두긴 하지만, 읽는 사람에게도 b·d·e 가
     학교 id 가 아니라는 것이 보여야 한다. 학교 id 는 `천안-1` 꼴이라 겹칠 일도 없다.
   */
   { path: PATH.SOLAR_EDU_B, element: <SolarEduPage variant="b" /> },
   { path: `${PATH.SOLAR_EDU_B}/:orgId`, element: <SolarEduPage variant="b" /> },
   { path: PATH.SOLAR_EDU_D, element: <SolarEduPage variant="d" /> },
   { path: `${PATH.SOLAR_EDU_D}/:orgId`, element: <SolarEduPage variant="d" /> },
+  { path: PATH.SOLAR_EDU_E, element: <SolarEduPage variant="e" /> },
+  { path: `${PATH.SOLAR_EDU_E}/:orgId`, element: <SolarEduPage variant="e" /> },
   { path: `${PATH.SOLAR_EDU}/:orgId`, element: <SolarEduPage /> },
   // 교육용 화면을 하나로 합치기 전 주소. 모니터에 이미 걸린 URL 이 있을 수 있어 넘겨만 준다.
   { path: PATH.KIOSK, element: <Navigate to={PATH.SOLAR_EDU} replace /> },

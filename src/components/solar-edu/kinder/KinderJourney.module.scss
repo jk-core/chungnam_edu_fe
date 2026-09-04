@@ -1,0 +1,55 @@
+@use "@/styles/utils/media" as media;
+
+/**
+ * 전기가 오는 길 — 걸음마다 그림이 하나씩 켜진다.
+ * 시안 둘이 나눠 쓰므로 자리 잡기(크기·여백)는 여기서 하지 않고 쓰는 쪽이 정한다.
+ */
+
+/*
+  차례가 된 그림.
+
+  아래에서 톡 올라오며 나타난다. `transform-box: fill-box` 가 있어야 SVG 안의 묶음이
+  제 상자를 기준으로 커졌다 작아진다 — 없으면 화면 좌표계 원점을 기준으로 돌아 그림이 날아간다.
+*/
+.item {
+  opacity: 0;
+  transform: translateY(24px) scale(0.92);
+  transform-box: fill-box;
+  transform-origin: center;
+  transition: opacity 0.7s ease, transform 0.7s cubic-bezier(0.34, 1.4, 0.64, 1);
+
+  &--on {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+// 교실에 불이 들어오는 순간 퍼지는 빛
+.burst {
+  animation: kinder-burst 3.4s ease-in-out infinite;
+  transform-box: fill-box;
+  transform-origin: center;
+}
+
+@keyframes kinder-burst {
+  0%,
+  100% {
+    opacity: 0.35;
+    transform: scale(0.9);
+  }
+
+  50% {
+    opacity: 1;
+    transform: scale(1.06);
+  }
+}
+
+@include media.reduced-motion {
+  .item {
+    transition: none;
+  }
+
+  .burst {
+    animation: none;
+  }
+}

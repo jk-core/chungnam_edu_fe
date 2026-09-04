@@ -5,17 +5,22 @@ import type { EduLevel } from '@/interface/edu';
 import type { School, SchoolLevel } from '@/interface/energy';
 import { ELEMENTARY_CONTENT } from './eduElementary';
 import { FULL_SUN_WM2 } from './solarEdu';
+import { KINDER_CONTENT } from './eduKinder';
 import { MIDDLE_CONTENT } from './eduMiddle';
 import type { EduBenefit, EduScene, ElementaryImpact } from './eduElementary';
+import type { KinderGift, KinderGood, KinderScene } from './eduKinder';
 import type { MiddleBenefitContent, MiddlePrincipleContent, MiddleProductionContent } from './eduMiddle';
 import type { EduStats } from './solarEdu';
 
 /*
   교육용 대시보드의 수준별 콘텐츠 (SFR-005-02/03/04).
 
-  세 판은 이제 본문 구조 자체가 갈린다 — 초등은 스스로 넘어가는 장면, 중등은 설명 카드 셋,
-  고등은 AI 판단을 가운데 둔 분석 판이다. 그래서 `EduContent` 를 판별 유니온으로 두고,
-  세 판이 진짜로 나눠 쓰는 것(위쪽 수치 띠와 아래쪽 티커)만 밑동에 남겼다.
+  네 판은 이제 본문 구조 자체가 갈린다 — 유치원은 글 없는 장면, 초등은 스스로 넘어가는 장면,
+  중등은 설명 카드 셋, 고등은 AI 판단을 가운데 둔 분석 판이다. 그래서 `EduContent` 를 판별
+  유니온으로 두고, 네 판이 **모두** 나눠 쓰는 것만 밑동에 남겼다.
+
+  위쪽 수치 띠(`headline`)는 밑동에 있지 않다. 유치원 판만 그것을 달지 않는데, 밑동에 두면
+  유치원 대본이 아무도 보지 않을 문구 다섯 벌을 억지로 채워야 한다.
 
   값을 만드는 함수(`value`, `note`)는 데이터로 뺄 수 없어 아래 레지스트리에 두고, 수준별 리터럴은
   "무엇을 몇 개 어떤 순서로 보일지" 와 "문구를 무엇으로 덮어쓸지" 만 담는다. 그래야 학교를 바꾸면
@@ -26,20 +31,25 @@ import type { EduStats } from './solarEdu';
   되돌아오는 쪽이 `import type` 뿐이라 컴파일 뒤에는 남지 않는다.
 */
 
-export const EDU_LEVELS: EduLevel[] = ['elementary', 'middle', 'high'];
+export const EDU_LEVELS: EduLevel[] = ['kinder', 'elementary', 'middle', 'high'];
 
 export const EDU_LEVEL_LABEL: Record<EduLevel, string> = {
+  kinder: '유치원',
   elementary: '초등',
   middle: '중등',
   high: '고등',
 };
 
 /**
- * 학교급이 곧 눈높이다. 유치원과 특수학교는 가장 쉽게 읽히는 초등 판을 쓰고,
+ * 학교급이 곧 눈높이다.
+ *
+ * 유치원은 글을 못 읽는 판을 따로 둔다 — 전에는 초등 판으로 보냈는데, 그쪽은 말풍선에 두 줄씩
+ * 글이 찍히는 화면이라 유치원 복도에 걸면 그림만 남고 이야기는 전달되지 않았다.
+ * 특수학교는 학년 폭이 넓어 그림과 글이 함께 있는 초등 판이 낫고,
  * 학생이 상주하지 않는 교육기관은 정보가 가장 많은 고등 판으로 둔다.
  */
 const BY_SCHOOL_LEVEL: Record<SchoolLevel, EduLevel> = {
-  유치원: 'elementary',
+  유치원: 'kinder',
   초등학교: 'elementary',
   중학교: 'middle',
   고등학교: 'high',
@@ -301,7 +311,27 @@ export interface EduAiContent {
 interface EduContentBase {
   /** 멀리서 보는 나이일수록 글씨를 키운다 (SFR-005-04) */
   emphasis: 'normal' | 'large';
-  headline: HeadlineContent;
+}
+
+/**
+ * 유치원 — 글이 없는 판 (`eduKinder.ts`).
+ *
+ * 위쪽 수치 띠(`headline`)를 두지 않는 유일한 눈높이다. 그 띠는 지표 다섯에 설명 한 줄씩이
+ * 붙은 글 덩어리라, 못 읽는 아이에게는 화면 위쪽 3분의 1을 그냥 잡아먹는 회색 띠가 된다.
+ * 띠를 떼어 낸 자리를 그림이 그대로 물려받아 화면 전체가 한 장면이 된다.
+ *
+ * 아래를 도는 "알고 계셨나요" 줄도 같은 이유로 없다.
+ */
+export interface KinderContent extends EduContentBase {
+  level: 'kinder';
+  /** 세 장의 이름 — 어른이 읽는다 */
+  chapters: { id: string; label: string }[];
+  /** 1장 — 전기가 오는 길 */
+  scenes: KinderScene[];
+  /** 2장 — 오늘 만든 전기로 무엇을 할 수 있나 */
+  gifts: KinderGift[];
+  /** 3장 — 태양광은 왜 좋은가 */
+  goods: KinderGood[];
 }
 
 /**
@@ -312,6 +342,7 @@ interface EduContentBase {
  */
 export interface ElementaryContent extends EduContentBase {
   level: 'elementary';
+  headline: HeadlineContent;
   /** 세 장의 이름 — 아래 점 네비가 이 순서를 따른다 */
   chapters: { id: string; label: string }[];
   /** 1장 — 전기가 만들어지는 순서 */
@@ -325,6 +356,7 @@ export interface ElementaryContent extends EduContentBase {
 /** 중등 — 원리·발전량·이점 세 카드 (`eduMiddle.ts`) */
 export interface MiddleContent extends EduContentBase {
   level: 'middle';
+  headline: HeadlineContent;
   principle: MiddlePrincipleContent;
   production: MiddleProductionContent;
   benefit: MiddleBenefitContent;
@@ -335,6 +367,7 @@ export interface MiddleContent extends EduContentBase {
 /** 고등 — 데이터·AI 판단·의미 세 열 */
 export interface HighContent extends EduContentBase {
   level: 'high';
+  headline: HeadlineContent;
   /** 화면 아래를 도는 "알고 계셨나요" 문구 */
   facts: string[];
   sunPath: SunPathContent;
@@ -344,7 +377,7 @@ export interface HighContent extends EduContentBase {
   ai: EduAiContent;
 }
 
-export type EduContent = ElementaryContent | MiddleContent | HighContent;
+export type EduContent = KinderContent | ElementaryContent | MiddleContent | HighContent;
 
 /*
   고등 — 지금까지 쓰던 판.
@@ -492,6 +525,7 @@ const HIGH: HighContent = {
 };
 
 export const EDU_CONTENT: Record<EduLevel, EduContent> = {
+  kinder: KINDER_CONTENT,
   elementary: ELEMENTARY_CONTENT,
   middle: MIDDLE_CONTENT,
   high: HIGH,

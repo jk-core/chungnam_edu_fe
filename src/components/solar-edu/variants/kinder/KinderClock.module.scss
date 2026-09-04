@@ -1,0 +1,257 @@
+@use "@/styles/tokens/spacing" as s;
+@use "@/styles/tokens/typography" as t;
+@use "@/styles/utils/media" as media;
+
+/**
+ * 유치원 판 · 시안 B — 해님이 어디 있나요.
+ *
+ * 넘어가는 걸음이 없다. 화면이 말하려는 것 전부가 처음부터 펼쳐져 있어야 하므로 세 칸으로 나눈다 —
+ * 위 왼쪽에 해님 시계, 위 오른쪽에 환산 셋, 아래를 가로질러 좋은 점 넷.
+ */
+.board {
+  display: flex;
+  flex-direction: column;
+  gap: s.$space-4;
+  height: 100%;
+}
+
+.top {
+  display: flex;
+  gap: s.$space-5;
+  flex: 1;
+  min-height: 0;
+}
+
+/* 칸 이름표 — 어른이 읽는 줄이라 작게 두고 그림보다 앞에 서지 않게 한다 */
+.head {
+  @include t.eyebrow;
+
+  flex-shrink: 0;
+  margin-bottom: s.$space-2;
+  color: var(--brand-contrast);
+  opacity: 0.72;
+}
+
+/* 이름표 옆에 지금 출력을 나란히 세우는 줄 */
+.headRow {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: s.$space-4;
+  flex-shrink: 0;
+}
+
+.now {
+  @include t.caption;
+
+  display: flex;
+  align-items: baseline;
+  gap: s.$space-2;
+  margin-bottom: s.$space-2;
+  color: var(--text-muted);
+
+  strong {
+    @include t.data-md;
+
+    color: var(--brand-contrast);
+  }
+}
+
+// ── 왼쪽 · 해님 시계 ───────────────────────────────────────
+
+.clock {
+  display: flex;
+  flex-direction: column;
+  flex: 1.45;
+  min-width: 0;
+
+  &__canvas {
+    flex: 1;
+    min-height: 0;
+
+    svg {
+      display: block;
+      width: 100%;
+      height: 100%;
+    }
+  }
+}
+
+/*
+  지나온 길에 남는 빛.
+
+  길이가 시각에 따라 달라지는데, 그 길이가 바뀌는 순간을 눈에 띄게 하지 않는다 —
+  1분에 한 번 되그릴 때마다 빛이 툭 늘어나면 화면이 덜컹거린다. 대신 빛 자체가 천천히
+  숨을 쉬게 두어, 길이가 늘어난 것이 그 호흡에 묻히게 한다.
+*/
+.trail {
+  animation: kinder-trail 4.6s ease-in-out infinite;
+
+  @include media.reduced-motion {
+    animation: none;
+  }
+}
+
+@keyframes kinder-trail {
+  0%,
+  100% {
+    opacity: 0.72;
+  }
+
+  50% {
+    opacity: 1;
+  }
+}
+
+// ── 오른쪽 · 이만큼 할 수 있어요 ───────────────────────────
+
+.gifts {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-width: 0;
+
+  &__list {
+    display: grid;
+    grid-auto-rows: 1fr;
+    gap: s.$space-3;
+    flex: 1;
+    min-height: 0;
+    list-style: none;
+  }
+}
+
+.gift {
+  display: flex;
+  align-items: center;
+  gap: s.$space-4;
+  min-height: 0;
+  padding: s.$space-3 s.$space-4;
+  border: 4px solid var(--border);
+  border-radius: s.$radius-lg;
+  background-color: rgb(255 255 255 / 78%);
+
+  &__art {
+    flex-shrink: 0;
+    height: 84%;
+    aspect-ratio: 1;
+
+    svg {
+      display: block;
+      width: 100%;
+      height: 100%;
+    }
+  }
+
+  &__text {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+  }
+
+  &__name {
+    @include t.label-sm;
+
+    color: var(--text-muted);
+  }
+
+  /*
+    수를 크게 둔다.
+    유치원에서 수는 글이 아니라 배우는 중인 것이라, 크게 두면 아이가 자릿수를 세어 보려 든다 —
+    화면에서 유일하게 아이가 하려고 드는 자리다.
+  */
+  &__value {
+    display: flex;
+    align-items: baseline;
+    gap: s.$space-2;
+    color: var(--brand-contrast);
+    font-size: clamp(34px, 3.2vw, 60px);
+    font-weight: 800;
+    line-height: 1.05;
+    letter-spacing: -0.02em;
+  }
+
+  &__unit {
+    font-size: clamp(16px, 1.3vw, 24px);
+    font-weight: 700;
+    color: var(--text-muted);
+  }
+
+  /*
+    설명 한 줄.
+
+    캡션 크기(12px)로 두었더니 벽에 걸어 놓고 몇 걸음 떨어져서는 읽히지 않았다. 이 줄은
+    선생님이 아이에게 읽어 주는 줄이라 **읽는 사람이 화면 앞까지 오지 않는다** — 앉아서 보는
+    화면의 캡션과 같은 크기를 쓸 이유가 없다. 오른쪽 칸은 폭이 넉넉해 본문 큰 단계까지 올린다.
+  */
+  &__line {
+    @include t.body-lg;
+
+    margin-top: 2px;
+    color: var(--text);
+  }
+}
+
+// ── 아래 · 태양광은 좋아요 ─────────────────────────────────
+
+.goods {
+  flex-shrink: 0;
+
+  &__list {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: s.$space-3;
+    list-style: none;
+
+    @include media.tablet {
+      grid-template-columns: repeat(2, 1fr);
+    }
+  }
+}
+
+.good {
+  display: flex;
+  align-items: center;
+  gap: s.$space-3;
+  padding: s.$space-2 s.$space-3;
+  border: 4px solid var(--border);
+  border-radius: s.$radius-lg;
+  background-color: rgb(255 255 255 / 78%);
+
+  &__art {
+    flex-shrink: 0;
+    width: 62px;
+    height: 62px;
+
+    svg {
+      display: block;
+      width: 100%;
+      height: 100%;
+    }
+
+    @include media.kiosk {
+      width: 76px;
+      height: 76px;
+    }
+  }
+
+  &__text {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+  }
+
+  &__name {
+    color: var(--brand-contrast);
+    font-size: clamp(22px, 1.8vw, 32px);
+    font-weight: 800;
+    line-height: 1.15;
+  }
+
+  /* 아래 띠는 네 칸으로 나뉘어 폭이 좁다 — 한 단계만 올린다 */
+  &__line {
+    @include t.body-md;
+
+    color: var(--text);
+  }
+}
