@@ -22,8 +22,6 @@ export interface Region {
   capacityKw: number;
   todayKwh: number;
   monthKwh: number;
-  /** 시·군 중심 좌표 — 지도에 라벨과 발전소 마커를 놓는 기준 */
-  center: GeoPoint;
 }
 
 /** 발전설비가 설치된 학교 */
@@ -45,7 +43,6 @@ export interface School {
   /** 이용률(0~1) */
   utilization: number;
   status: OperationStatus;
-  installedAt: string;
   /** 지도 마커 좌표 — 주소를 지오코딩한 실제 위치 */
   location: GeoPoint;
 }

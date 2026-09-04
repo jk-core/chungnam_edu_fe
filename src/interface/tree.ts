@@ -1,9 +1,9 @@
 import type { OperationStatus } from './status';
 
-export type NodeKind = 'root' | 'plant' | 'inverter' | 'junctionBox' | 'string' | 'channel';
+export type NodeKind = 'root' | 'plant' | 'inverter' | 'string';
 
 /**
- * 설비 계층의 한 칸. 전체 → 발전소 → 인버터 → (스트링 | 접속반 → 채널)
+ * 설비 계층의 한 칸. 전체 → 발전소 → 인버터 → 스트링
  *
  * 타입만 여기 두고 그래프를 만드는 값은 mocks/tree.ts 가 갖는다.
  * 고장코드 사전이 NodeKind 를 참조해야 해서, 목업끼리 순환 참조가 생기지 않도록 갈라 놓았다.

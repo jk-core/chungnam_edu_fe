@@ -172,17 +172,20 @@
   }
 
   &__note {
+    display: flex;
+    align-items: center;
+    gap: s.$space-1;
     color: var(--text-faint);
 
     @include t.caption;
   }
 }
 
-.snoozeForm {
+/* 상세 창 안의 조치 입력. 칸끼리 붙지 않게 세로 간격을 준다 */
+.actionForm {
   display: flex;
   flex-direction: column;
-  gap: s.$space-3;
-  align-items: flex-start;
+  gap: s.$space-4;
 }
 
 .pending {

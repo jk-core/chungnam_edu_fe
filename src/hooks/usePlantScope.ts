@@ -1,4 +1,3 @@
-import { REGION_TOTAL } from '@/mocks/regions';
 import { getInverterById } from '@/mocks/equipment';
 import { getSchoolById } from '@/mocks/schools';
 import { useSelectedNode } from '@/stores/plantStore';
@@ -17,11 +16,6 @@ export interface PlantScope {
   label: string;
   /** 발전소 단위까지만 다루는 화면이 쓰는 이름 */
   plantLabel: string;
-  /**
-   * 도 전체 수치를 선택 대상 몫으로 환산할 때 곱하는 값.
-   * 설비용량 비율을 그대로 쓴다.
-   */
-  factor: number;
 }
 
 export function usePlantScope(): PlantScope {
@@ -35,6 +29,5 @@ export function usePlantScope(): PlantScope {
     inverter,
     label: node.fullName,
     plantLabel: plant?.name ?? '',
-    factor: node.capacityKw / REGION_TOTAL.capacityKw,
   };
 }

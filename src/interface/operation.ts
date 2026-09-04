@@ -24,9 +24,9 @@ export interface OperationRaw {
   /** AC 출력 — 단상이면 단일 값, 삼상이면 상별 값 */
   acVolt: number | null;
   acAmp: number | null;
-  acVoltRS: number | null;
-  acVoltST: number | null;
-  acVoltTR: number | null;
+  acVoltR: number | null;
+  acVoltS: number | null;
+  acVoltT: number | null;
   acAmpR: number | null;
   acAmpS: number | null;
   acAmpT: number | null;

@@ -3,7 +3,7 @@ import { motion } from 'motion/react';
 import { AlertIcon, CheckIcon, ChevronRightIcon, MonitorIcon } from '@/components/common/Icon';
 import { Badge } from '@/components/common/Badge';
 import { Card } from '@/components/common/Card';
-import { DIAG_EFFICIENCY_CRITICAL, DIAG_EFFICIENCY_WARN } from '@/mocks/equipment';
+import { DIAG_EFFICIENCY_CRITICAL, DIAG_EFFICIENCY_WARN } from '@/configs/diagnosis';
 import { EmptyState } from '@/components/common/EmptyState';
 import { getChildNodes, getNodePath } from '@/mocks/tree';
 import { getDiagEfficiencyPoints } from '@/mocks/prediction';
@@ -32,9 +32,7 @@ const KIND_NOUN: Record<NodeKind, string> = {
   root: '전체',
   plant: '발전소',
   inverter: '인버터',
-  junctionBox: '접속반',
   string: '스트링',
-  channel: '채널',
 };
 
 /** 한 화면에 늘어놓을 카드 수 — 넘치면 이상 설비를 앞세워 자른다. */

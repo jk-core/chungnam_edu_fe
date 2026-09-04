@@ -2,7 +2,7 @@ import { Badge } from '@/components/common/Badge';
 import { Card } from '@/components/common/Card';
 import { getSchoolById } from '@/mocks/schools';
 import { Reveal } from '@/components/common/Reveal';
-import { ROLE_LABEL, ROLE_SCOPE_NOTE } from '@/mocks/accounts';
+import { isReviewRole, ROLE_LABEL, ROLE_SCOPE_NOTE } from '@/mocks/accounts';
 import { useAuthUser } from '@/stores/authStore';
 import styles from '../MyPage.module.scss';
 
@@ -41,7 +41,7 @@ export function AccountInfo() {
           <div>
             <dt>권한</dt>
             <dd className={styles.info__role}>
-              <Badge tone={user.role === 'admin' ? 'brand' : 'neutral'}>{ROLE_LABEL[user.role]}</Badge>
+              <Badge tone={isReviewRole(user.role) ? 'brand' : 'neutral'}>{ROLE_LABEL[user.role]}</Badge>
               <span className={styles.info__note}>{ROLE_SCOPE_NOTE[user.role]}</span>
             </dd>
           </div>

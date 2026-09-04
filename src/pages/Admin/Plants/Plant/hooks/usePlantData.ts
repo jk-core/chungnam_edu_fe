@@ -1,6 +1,5 @@
 import { useCallback, useMemo } from 'react';
-import { regionNameOfCode } from '@/mocks/manageCodes';
-import { REGIONS } from '@/mocks/regions';
+import { CHUNGNAM_REGIONS } from '@/configs/regions';
 import { SCHOOLS } from '@/mocks/schools';
 import useAssetStore, { mergeAsset } from '@/stores/assetStore';
 import useEquipmentStore, { mergeEquipment } from '@/stores/equipmentStore';
@@ -12,8 +11,7 @@ import type { School } from '@/interface/energy';
  * 새로 세운 발전소는 아직 계측값도 설비도 없으므로 0 으로 두고 상태는 준비중이다 (SFR-003-10).
  */
 function toSchoolRow(asset: PlantAsset): School {
-  const regionName = regionNameOfCode(asset.regionCode);
-  const region = REGIONS.find((item) => item.name === regionName) ?? REGIONS[0];
+  const region = CHUNGNAM_REGIONS.find((item) => item.regionCode === asset.regionCode) ?? CHUNGNAM_REGIONS[0];
 
   return {
     id: asset.plantId,
@@ -30,7 +28,6 @@ function toSchoolRow(asset: PlantAsset): School {
     yearKwh: 0,
     utilization: 0,
     status: 'ready',
-    installedAt: asset.installedAt,
     location: region.center,
   };
 }

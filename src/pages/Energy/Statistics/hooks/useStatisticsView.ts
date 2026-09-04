@@ -2,7 +2,8 @@ import dayjs from 'dayjs';
 import { useMemo, useState } from 'react';
 import { childKindOf, getNodePath } from '@/mocks/tree';
 import { getChildStats, getNodeStat } from '@/mocks/nodeStats';
-import { CUMULATIVE, getDetailTrend, PERIOD_META } from '@/mocks/generation';
+import { getDetailTrend, PERIOD_META } from '@/mocks/generation';
+import { kwhToCarbon, kwhToHouseholdMonths, kwhToTrees } from '@/utils/eco';
 import { usePlantScope } from '@/hooks/usePlantScope';
 import { useStatisticsDate } from '@/stores/filterStore';
 import { useStatisticsScopeRoute } from '@/hooks/useStatisticsScopeRoute';
@@ -32,7 +33,7 @@ export function useStatisticsView() {
   // 무엇을 기준으로 묶어 볼지 (SFR-008-04)
   const [basis, setBasis] = useState<StatBasis>('device');
   const [date, setDate] = useStatisticsDate();
-  const { node, label, factor } = usePlantScope();
+  const { node, label } = usePlantScope();
 
   const stat = useMemo(() => getNodeStat(node, period, date), [node, period, date]);
   const childStats = useMemo(() => getChildStats(node, period, date), [node, period, date]);
@@ -50,13 +51,14 @@ export function useStatisticsView() {
   const path = getNodePath(node.id).filter((item) => item.kind !== 'root');
 
   /*
-    환경 기여도는 누적 발전량에서 나온다.
+    환경 기여도는 조회 기간의 발전량에서 나온다 — 같은 카드에 선 발전량·발전시간과 잣대를 맞춘다.
+    누적으로 두었더니 기간을 바꿔도 셋째 칸만 그대로여서, 세 값이 같은 기준으로 읽히지 않았다.
     계수는 환경부 고시 기준 — CO₂ 0.4594kg/kWh, 30년생 소나무 6.6kgCO₂/년, 4인 가구 350kWh/월.
   */
   const eco = {
-    co2SavedKg: CUMULATIVE.co2SavedKg * factor,
-    pineTrees: Math.round(CUMULATIVE.pineTrees * factor),
-    households: Math.round(CUMULATIVE.households * factor),
+    co2SavedKg: kwhToCarbon(stat.generationKwh),
+    pineTrees: kwhToTrees(stat.generationKwh),
+    households: kwhToHouseholdMonths(stat.generationKwh),
   };
 
   return {

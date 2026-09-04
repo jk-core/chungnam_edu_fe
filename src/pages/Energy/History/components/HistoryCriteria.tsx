@@ -1,33 +1,22 @@
 import dayjs from 'dayjs';
-import { Badge } from '@/components/common/Badge';
-import { OPERATION_LABEL, OPERATION_TONE, RTU_LABEL, RTU_TONE } from '@/mocks/status';
-import { formatNumber } from '@/utils/format';
+import { COLLECT_INTERVAL_MINUTE } from '@/configs/collect';
 import type { Inverter } from '@/interface/equipment';
-import type { Rtu } from '@/interface/asset';
 import styles from '../History.module.scss';
 
 interface HistoryCriteriaProps {
   date: Date;
   plantLabel: string;
   inverter: Inverter;
-  /** 발전소에 물린 RTU. 없으면 정상으로 본다 */
-  rtu: Rtu | null;
-  /** 그날 올라온 계측 줄 수 */
-  rowCount: number;
 }
 
 /**
  * 무엇을 어떤 조건으로 보고 있는지 (SFR-009-01/03).
  *
- * 통신상태와 인버터 상태를 함께 적는다 — 계측이 비어 있을 때 인버터가 선 것인지 RTU 가 끊긴
- * 것인지 여기서 갈린다. 둘 중 하나만 적으면 빈 표를 앞에 두고 어디를 손봐야 할지 알 수 없다.
+ * 통신상태·인버터 상태는 적지 않는다 — 둘을 합친 값이 곧 설비 운전상태라 조회 대상 패널이
+ * 이미 그리고 있고, 통신이 끊기면 프로시저가 그 상태를 통신단절로 바꿔 준다.
+ * 그날 올라온 줄 수도 여기서 세지 않는다. 표 아래 쪽나눔이 「전체 N건」으로 답한다.
  */
-export function HistoryCriteria({ date, plantLabel, inverter, rtu, rowCount }: HistoryCriteriaProps) {
-  const interval = rtu?.intervalMinutes ?? null;
-  const intervalLabel = interval
-    ? `${interval}분 · 하루 ${formatNumber(rowCount)}건`
-    : `하루 ${formatNumber(rowCount)}건`;
-
+export function HistoryCriteria({ date, plantLabel, inverter }: HistoryCriteriaProps) {
   return (
     <div className={styles.criteria} aria-label="조회 기준">
       <span className={styles.criteria__label}>조회 기준</span>
@@ -35,20 +24,7 @@ export function HistoryCriteria({ date, plantLabel, inverter, rtu, rowCount }: H
       <Item name="기간" value={dayjs(date).format('YYYY-MM-DD')} />
       <Item name="발전소" value={plantLabel} />
       <Item name="인버터" value={inverter.name} />
-      <Item name="수집주기" value={intervalLabel} />
-
-      <span className={styles.criteria__item}>
-        <span className={styles.criteria__key}>통신상태</span>
-        <Badge tone={RTU_TONE[rtu?.status ?? 'normal']} withDot>
-          {RTU_LABEL[rtu?.status ?? 'normal']}
-        </Badge>
-      </span>
-      <span className={styles.criteria__item}>
-        <span className={styles.criteria__key}>인버터 상태</span>
-        <Badge tone={OPERATION_TONE[inverter.ownStatus]} withDot>
-          {OPERATION_LABEL[inverter.ownStatus]}
-        </Badge>
-      </span>
+      <Item name="수집주기" value={`${COLLECT_INTERVAL_MINUTE}분`} />
     </div>
   );
 }

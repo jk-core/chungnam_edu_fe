@@ -6,7 +6,6 @@ import { EmptyState } from '@/components/common/EmptyState';
 import { ExcelIcon } from '@/components/common/Icon';
 import { getInverters } from '@/mocks/equipment';
 import { getOperationRaw, sortRawDesc } from '@/mocks/operationRaw';
-import { getRtuOf } from '@/mocks/rtu';
 import { MSG } from '@/configs/messages';
 import { Pagination } from '@/components/common/Pagination';
 import { Reveal } from '@/components/common/Reveal';
@@ -100,13 +99,7 @@ export function HistoryBoard() {
             )}
             padding="none"
           >
-            <HistoryCriteria
-              date={date}
-              plantLabel={plantLabel}
-              inverter={selected}
-              rtu={plant ? getRtuOf(plant.id) : null}
-              rowCount={rows.length}
-            />
+            <HistoryCriteria date={date} plantLabel={plantLabel} inverter={selected} />
 
             {/* 표는 한 줄씩 확인하는 자리, 그래프는 하루의 모양을 보는 자리다 (SFR-010-03/04) */}
             {view === 'table' ? (

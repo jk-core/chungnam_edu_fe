@@ -1,6 +1,4 @@
-import ChannelIcon from '@/assets/svg/icons/channel.svg';
 import InverterIcon from '@/assets/svg/icons/inverter.svg';
-import JunctionIcon from '@/assets/svg/icons/junction.svg';
 import PlantIcon from '@/assets/svg/icons/plant.svg';
 import SiteIcon from '@/assets/svg/icons/site.svg';
 import StringIcon from '@/assets/svg/icons/string.svg';
@@ -17,9 +15,7 @@ const ICON: Record<NodeKind, FunctionComponent<SVGProps<SVGSVGElement>>> = {
   root: SiteIcon,
   plant: PlantIcon,
   inverter: InverterIcon,
-  junctionBox: JunctionIcon,
   string: StringIcon,
-  channel: ChannelIcon,
 };
 
 interface EquipmentIconProps extends SVGProps<SVGSVGElement> {

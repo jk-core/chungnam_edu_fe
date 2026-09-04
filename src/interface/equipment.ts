@@ -1,7 +1,7 @@
 import type { OperationStatus, RtuStatus, Severity } from './status';
 import type { NodeKind } from './tree';
 
-/** 인버터 아래 스트링 (또는 접속반 아래 채널) */
+/** 인버터 아래 스트링 */
 export interface StringUnit {
   id: string;
   name: string;
@@ -11,26 +11,11 @@ export interface StringUnit {
   relativeOutput: number;
 }
 
-/** 센트럴형 인버터 아래 접속반 */
-export interface JunctionBox {
-  id: string;
-  name: string;
-  status: OperationStatus;
-  capacityKw: number;
-  /** 접속반에 물린 채널 */
-  channels: StringUnit[];
-}
-
-/**
- * 발전소에 설치된 인버터.
- * 스트링형은 스트링이 바로 물리고, 센트럴형은 접속반을 거쳐 채널이 물린다.
- */
+/** 발전소에 설치된 인버터. 아래에는 스트링이 바로 물린다. */
 export interface Inverter {
   id: string;
   schoolId: string;
   name: string;
-  /** string = 스트링 직결형, central = 접속반 경유형 */
-  type: 'string' | 'central';
   /** 계통 연계 위상 — 소용량은 단상, 그 위는 삼상이다 (SFR-017-04) */
   phase: 'single' | 'three';
   capacityKw: number;
@@ -54,10 +39,7 @@ export interface Inverter {
   temperature: number;
   /** 최근 7일 발전시간(h) 추이 */
   hoursTrend: number[];
-  /** 스트링형일 때만 채워진다. */
   strings: StringUnit[];
-  /** 센트럴형일 때만 채워진다. */
-  junctionBoxes: JunctionBox[];
 }
 
 /**

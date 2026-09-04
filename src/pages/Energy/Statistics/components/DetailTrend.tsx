@@ -41,7 +41,7 @@ export function detailTrendHead(view: StatisticsView) {
 }
 
 /**
- * 시점별 발전량 추이 — 막대(발전량)와 선(일사량)을 한 판에 겹친다.
+ * 시점별 발전량 추이 — 막대(발전량)와 선(일사강도)을 한 판에 겹친다.
  *
  * 하나 전 같은 기간은 테두리만 있는 점선 막대로 뒤에 깔아, 같은 눈금 위에서 높낮이만
  * 비교하게 한다 (SFR-007-03). 같은 값을 숫자로 확인하고 싶은 사람을 위해 표로도 바꿀 수 있다.
@@ -65,7 +65,7 @@ export function DetailTrend({ view }: { view: StatisticsView }) {
       borderWidth: 1,
       textStyle: { color: palette.text, fontSize: 12, fontFamily: 'Pretendard Variable, sans-serif' },
     },
-    legend: topLegend(palette, ['발전량', COMPARE_LABEL[period], '일사량']),
+    legend: topLegend(palette, ['발전량', COMPARE_LABEL[period], '일사강도']),
     xAxis: {
       type: 'category',
       data: detail.map((point) => point.label),
@@ -84,7 +84,7 @@ export function DetailTrend({ view }: { view: StatisticsView }) {
       },
       {
         type: 'value',
-        name: 'kWh/m²',
+        name: 'W/m²',
         nameGap: AXIS_NAME_GAP,
         nameTextStyle: { color: palette.axis, fontSize: 11 },
         splitLine: { show: false },
@@ -119,7 +119,7 @@ export function DetailTrend({ view }: { view: StatisticsView }) {
         animationDuration: 700,
       },
       {
-        name: '일사량',
+        name: '일사강도',
         type: 'line',
         yAxisIndex: 1,
         smooth: true,
@@ -157,7 +157,7 @@ export function DetailTrend({ view }: { view: StatisticsView }) {
           labels={detail.map((point) => point.label)}
           generation={stat.series}
           irradiance={detail.map((point) => point.irradiance)}
-          caption={`${label}의 ${DETAIL_UNIT[period]}별 발전량, 일사량 표`}
+          caption={`${label}의 ${DETAIL_UNIT[period]}별 발전량, 일사강도 표`}
         />
       )}
     </>

@@ -1,6 +1,5 @@
-import { NOW } from '@/mocks/today';
 import { SCHOOL_LEVELS } from '@/mocks/schools';
-import { REGION_CODES } from '@/mocks/manageCodes';
+import { CHUNGNAM_REGIONS } from '@/configs/regions';
 import type { PlantFormValues } from '@/service/plant/type';
 import type { ManagedUser } from '@/interface/account';
 import type { PlantAsset } from '@/interface/asset';
@@ -9,13 +8,16 @@ import type { Pyranometer } from '@/interface/deviceMaster';
 export const EMPTY_VALUES: PlantFormValues = {
   plantName: '',
   plantType: SCHOOL_LEVELS[0],
-  regionCode: REGION_CODES[0].regionCode,
+  regionCode: CHUNGNAM_REGIONS[0].regionCode,
   address: '',
   addressDetail: '',
-  installedAt: NOW.format('YYYY-MM'),
+  latitude: '',
+  longitude: '',
   rtuEntName: '',
   builderName: '',
   builderPhone: '',
+  managerEnterpriseName: '',
+  managerEnterprisePhone: '',
   userId: '',
   userLabel: '',
   irradId: '',
@@ -41,10 +43,13 @@ export function toFormValues(asset: PlantAsset, users: ManagedUser[], irrads: Py
     regionCode: asset.regionCode,
     address: asset.address,
     addressDetail: asset.addressDetail,
-    installedAt: asset.installedAt,
+    latitude: String(asset.latitude),
+    longitude: String(asset.longitude),
     rtuEntName: asset.rtuEntName,
     builderName: asset.builder.name,
     builderPhone: asset.builder.phone,
+    managerEnterpriseName: asset.managerEnterprise.name,
+    managerEnterprisePhone: asset.managerEnterprise.phone,
     userId: asset.userId === null ? '' : String(asset.userId),
     userLabel: user ? userLabelOf(user) : '',
     irradId: asset.irradId === null ? '' : String(asset.irradId),

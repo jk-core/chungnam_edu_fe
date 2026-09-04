@@ -1,6 +1,6 @@
 import dayjs from 'dayjs';
 import type { DiagnosisFaultCode } from '@/interface/equipment';
-import { getInverterById } from './equipment';
+import { getNode } from './tree';
 import { getPredictionSeries } from './prediction';
 import { getDayWeather } from './weather';
 
@@ -38,26 +38,29 @@ export function readTrend(point: DiagTrendPoint, metric: TrendMetric): { measure
 const trendCache = new Map<string, DiagTrendPoint[]>();
 
 /**
- * 인버터 한 대의 기간별 계측 추이 (SFR-013-09).
+ * 인버터 한 대 또는 스트링 한 조의 기간별 계측 추이 (SFR-013-09).
  *
  * 하루치 예측·실측(정시 전압·전류)을 날마다 이어 붙이고, 전력은 그 둘을 곱해 만든다.
  * 일사량은 발전이 왜 오르내렸는지 답하는 값이라 같은 그림에 겹칠 수 있게 함께 담는다.
+ *
+ * 스트링도 같은 셈을 쓴다 — 계측 축이 인버터와 같고, 조회 대상이 어느 계층이든 그 자신의
+ * 상태로 실측이 깎인다.
  */
-export function getInverterTrend(inverterId: string, start: Date, end: Date): DiagTrendPoint[] {
-  const key = `${inverterId}-${dayjs(start).format('YYYYMMDD')}-${dayjs(end).format('YYYYMMDD')}`;
+export function getUnitTrend(unitId: string, start: Date, end: Date): DiagTrendPoint[] {
+  const key = `${unitId}-${dayjs(start).format('YYYYMMDD')}-${dayjs(end).format('YYYYMMDD')}`;
   const cached = trendCache.get(key);
 
   if (cached) return cached;
 
-  const inverter = getInverterById(inverterId);
+  const plantId = getNode(unitId)?.plantId ?? null;
   const days = Math.max(1, dayjs(end).diff(dayjs(start), 'day') + 1);
   const points: DiagTrendPoint[] = [];
 
   for (let index = 0; index < days; index += 1) {
     const day = dayjs(start).add(index, 'day');
     const date = day.format('YYYY-MM-DD');
-    const hourly = getPredictionSeries(inverterId, day.toDate());
-    const weather = getDayWeather(inverter?.schoolId ?? null, day.toDate());
+    const hourly = getPredictionSeries(unitId, day.toDate());
+    const weather = getDayWeather(plantId, day.toDate());
     // 그 날 예측 전류가 가장 큰 시각을 정오로 보고 일사량 곡선을 같은 모양으로 깐다.
     const peakCurrent = Math.max(...hourly.map((point) => point.predCurrent), 1);
 

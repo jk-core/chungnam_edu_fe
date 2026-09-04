@@ -79,7 +79,7 @@ export const routes: RouteObject[] = [
               /*
                * 발전통계는 조회 뎁스를 주소로 관리한다 — 발전소 한 단, 인버터 한 단.
                * 주소만 주고받아도 같은 화면이 열리고, 뒤로 가기가 조회 단계를 되짚는다.
-               * 인버터 아래(접속반·스트링·채널)는 AI진단 몫이라 여기서는 열지 않는다.
+               * 인버터 아래(스트링)는 AI진단 몫이라 여기서는 열지 않는다.
                */
               { path: 'energy/statistics/:plantId', element: <EnergyPage tab="statistics" /> },
               { path: 'energy/statistics/:plantId/:inverterId', element: <EnergyPage tab="statistics" /> },
@@ -100,6 +100,7 @@ export const routes: RouteObject[] = [
                 `write` 를 먼저 두어 글 번호로 읽히지 않게 한다 (SFR-025).
               */
               { path: 'guide/:tab/write', element: <GuidePage depth="write" /> },
+              { path: 'guide/:tab/:postId/edit', element: <GuidePage depth="edit" /> },
               { path: 'guide/:tab/:postId', element: <GuidePage depth="detail" /> },
             ],
           },

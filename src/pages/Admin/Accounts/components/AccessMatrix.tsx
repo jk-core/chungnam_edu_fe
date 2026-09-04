@@ -2,13 +2,13 @@ import { useMemo } from 'react';
 import { Card } from '@/components/common/Card';
 import { NAVIGATION, visibleNavigation } from '@/configs/navigation';
 import { Reveal } from '@/components/common/Reveal';
-import { ROLE_LABEL, ROLE_SCOPE_NOTE, SELECTABLE_ROLES } from '@/mocks/accounts';
+import { ADMIN_ROLES, ROLE_LABEL, ROLE_SCOPE_NOTE, VISIBLE_ROLES } from '@/mocks/accounts';
 import { Table } from '@/components/common/Table';
 import type { Column } from '@/components/common/Table';
 import type { Role } from '@/interface/account';
 import styles from '../../Admin.module.scss';
 
-const ROLES: Role[] = SELECTABLE_ROLES;
+const ROLES: Role[] = VISIBLE_ROLES;
 
 interface MatrixRow {
   section: string;
@@ -17,10 +17,11 @@ interface MatrixRow {
 
 /** 어느 등급도 못 보는 상태에서 시작해 실제 규칙으로 켜 나간다 */
 const NONE_ALLOWED = (): Record<Role, boolean> => ({
-  guest: false,
-  customer: false,
+  institution: false,
   group: false,
+  educationOffice: false,
   admin: false,
+  superAdmin: false,
   developer: false,
 });
 
@@ -37,7 +38,10 @@ export function AccessMatrix() {
     );
 
     // 관리자 콘솔은 내비게이션 규칙 바깥에 있어 손으로 한 줄 세운다.
-    bySection.set('관리자 콘솔', { section: '관리자 콘솔', allowed: { ...NONE_ALLOWED(), admin: true } });
+    const adminRow: MatrixRow = { section: '관리자 콘솔', allowed: NONE_ALLOWED() };
+
+    ADMIN_ROLES.forEach((role) => { adminRow.allowed[role] = true; });
+    bySection.set('관리자 콘솔', adminRow);
 
     ROLES.forEach((role) => {
       visibleNavigation(role).forEach((section) => {

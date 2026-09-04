@@ -26,7 +26,7 @@ function dummyImage(caption: string, tone: string): string {
   return `data:image/svg+xml;charset=utf-8,${encodeURIComponent(svg)}`;
 }
 
-/** 공지·Q&A 시드 (SFR-025) */
+/** 공지·문의하기 시드 (SFR-025) */
 export const SEED_POSTS: BoardPost[] = [
   {
     id: 'BD-1042',
@@ -34,7 +34,7 @@ export const SEED_POSTS: BoardPost[] = [
     title: '2026년 하반기 태양광 설비 정기점검 일정 안내',
     body:
       '2026년 하반기 정기점검을 8월 3일부터 9월 12일까지 진행합니다. 학교별 방문 일정은 첨부한 계획표를 확인해 주세요.\n\n'
-      + '점검 당일에는 옥상 출입문 개방과 담당자 입회가 필요합니다. 일정 변경이 필요하면 Q&A 로 알려 주세요.',
+      + '점검 당일에는 옥상 출입문 개방과 담당자 입회가 필요합니다. 일정 변경이 필요하면 문의하기로 알려 주세요.',
     author: '교육청 시설과',
     at: stampAgo(3, '09:10'),
     pinned: true,
@@ -78,7 +78,7 @@ export const SEED_POSTS: BoardPost[] = [
   },
   {
     id: 'BD-1039',
-    kind: 'qna',
+    kind: 'inquiry',
     title: '발전량이 어제보다 크게 낮은데 확인 부탁드립니다',
     body: '어제 대비 발전량이 40% 정도 낮게 나옵니다. 날씨는 비슷했는데 원인을 알 수 있을까요?',
     author: '온양초등학교',
@@ -99,7 +99,7 @@ export const SEED_POSTS: BoardPost[] = [
   },
   {
     id: 'BD-1036',
-    kind: 'qna',
+    kind: 'inquiry',
     title: '현장보고서 제출 후 수정이 가능한가요?',
     body: '제출완료 상태에서 사진을 한 장 더 붙이고 싶습니다.',
     author: '반포중학교',

@@ -189,7 +189,7 @@ const MIDDLE_HEADLINE: HeadlineContent = {
   ...MIDDLE_CONTENT.headline,
   copy: {
     ...MIDDLE_CONTENT.headline.copy,
-    insolation: { note: () => '가장 센 힘으로만 만들었다면 이만큼 걸렸을 시간이다' },
+    powerTime: { note: () => '가장 센 힘으로만 만들었다면 이만큼 걸렸을 시간이다' },
     irradiance: { note: () => '맑은 날 한낮의 햇빛이 100점이다' },
   },
 };

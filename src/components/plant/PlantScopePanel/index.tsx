@@ -17,7 +17,7 @@ import styles from './PlantScopePanel.module.scss';
 
 /**
  * 좌측 컬럼 맨 위에 놓이는 조회 대상 패널.
- * 발전소는 모달로 고르고, 그 아래 인버터·접속반·스트링·채널은 구조 트리에서 좁힌다.
+ * 발전소는 모달로 고르고, 그 아래 인버터·스트링은 구조 트리에서 좁힌다.
  * 접으면 머리글만 남아 아래 하위 메뉴가 위로 올라온다.
  */
 export function PlantScopePanel() {
@@ -29,13 +29,11 @@ export function PlantScopePanel() {
 
   /*
    * 화면마다 파고들 수 있는 깊이가 다르다.
-   * - AI진단: 스트링·접속반까지 판정한다. 채널은 계측 조회용이라 대상이 아니다.
+   * - AI진단: 스트링까지 판정한다.
    * - 그 밖(발전통계·운전이력 등): 인버터까지가 조회 단위라 그 아래는 트리에서 끊는다.
    *   흐리게 두고 못 누르게 하는 것보다, 없는 계층은 안 보이는 편이 덜 헷갈린다.
    */
-  const isDiagnosis = pathname.startsWith(PATH.AI_DIAGNOSIS);
-  const disabledKinds: NodeKind[] = isDiagnosis ? ['channel'] : [];
-  const stopAt: NodeKind | undefined = isDiagnosis ? undefined : 'inverter';
+  const stopAt: NodeKind | undefined = pathname.startsWith(PATH.AI_DIAGNOSIS) ? undefined : 'inverter';
   const capacity = formatCapacity(node.kind === 'root' ? REGION_TOTAL.capacityKw : node.capacityKw);
 
   return (
@@ -86,7 +84,7 @@ export function PlantScopePanel() {
               <PlantPicker variant="summary" />
             </div>
 
-            <PlantTree disabledKinds={disabledKinds} stopAt={stopAt} />
+            <PlantTree stopAt={stopAt} />
           </div>
         </div>
       </div>

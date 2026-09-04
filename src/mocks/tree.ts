@@ -14,9 +14,7 @@ export const KIND_LABEL: Record<NodeKind, string> = {
   root: '전체',
   plant: '발전소',
   inverter: '인버터',
-  junctionBox: '접속반',
   string: '스트링',
-  channel: '채널',
 };
 
 function buildNodes(): Map<string, ScopeNode> {
@@ -72,57 +70,19 @@ function buildNodes(): Map<string, ScopeNode> {
       inverterId: inverter.id,
     });
 
-    if (inverter.type === 'string') {
-      inverter.strings.forEach((unit) => {
-        childIds.push(unit.id);
-        nodes.set(unit.id, {
-          id: unit.id,
-          kind: 'string',
-          name: unit.name,
-          fullName: `${plant.name} ${inverter.name} ${unit.name}`,
-          capacityKw: unit.capacityKw,
-          status: unit.status,
-          parentId: inverter.id,
-          childIds: [],
-          plantId: plant.id,
-          inverterId: inverter.id,
-        });
-      });
-
-      return;
-    }
-
-    inverter.junctionBoxes.forEach((box) => {
-      childIds.push(box.id);
-
-      const channelIds = box.channels.map((channel) => channel.id);
-
-      nodes.set(box.id, {
-        id: box.id,
-        kind: 'junctionBox',
-        name: box.name,
-        fullName: `${plant.name} ${inverter.name} ${box.name}`,
-        capacityKw: box.capacityKw,
-        status: box.status,
+    inverter.strings.forEach((unit) => {
+      childIds.push(unit.id);
+      nodes.set(unit.id, {
+        id: unit.id,
+        kind: 'string',
+        name: unit.name,
+        fullName: `${plant.name} ${inverter.name} ${unit.name}`,
+        capacityKw: unit.capacityKw,
+        status: unit.status,
         parentId: inverter.id,
-        childIds: channelIds,
+        childIds: [],
         plantId: plant.id,
         inverterId: inverter.id,
-      });
-
-      box.channels.forEach((channel) => {
-        nodes.set(channel.id, {
-          id: channel.id,
-          kind: 'channel',
-          name: channel.name,
-          fullName: `${plant.name} ${inverter.name} ${box.name} ${channel.name}`,
-          capacityKw: channel.capacityKw,
-          status: channel.status,
-          parentId: box.id,
-          childIds: [],
-          plantId: plant.id,
-          inverterId: inverter.id,
-        });
       });
     });
   });

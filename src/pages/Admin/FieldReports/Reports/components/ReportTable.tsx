@@ -1,27 +1,25 @@
-import { useMemo, useState } from 'react';
+import { useState } from 'react';
 import { Badge } from '@/components/common/Badge';
-import { Button } from '@/components/common/Button';
 import { Card } from '@/components/common/Card';
 import { DEFAULT_PAGE_SIZE, Pagination } from '@/components/common/Pagination';
 import { REPORT_STATE_LABEL } from '@/mocks/fieldReport';
+import { ReportStateActions } from '@/components/report/ReportStateActions';
 import { Reveal } from '@/components/common/Reveal';
 import { Table } from '@/components/common/Table';
-import useFieldReportStore, { mergeTemplates } from '@/stores/fieldReportStore';
+import { useTemplates } from '@/stores/fieldReportStore';
 import styles from '@/pages/Admin/Admin.module.scss';
 import type { Column } from '@/components/common/Table';
-import type { FieldReport } from '@/interface/fieldReport';
-import { canReject, nextStateOf, STATE_TONE } from './reportState';
+import type { FieldReport, ReportState } from '@/interface/fieldReport';
+import { STATE_TONE } from './reportState';
 
 interface ReportTableProps {
   rows: FieldReport[];
-  onAdvance: (report: FieldReport) => void;
-  onReject: (report: FieldReport) => void;
+  onManage: (report: FieldReport, state: ReportState) => void;
 }
 
 /** 걸러 낸 보고서 목록. 쪽 나눔은 표가 스스로 쥔다. */
-export function ReportTable({ rows, onAdvance, onReject }: ReportTableProps) {
-  const templatePatched = useFieldReportStore((state) => state.templatePatched);
-  const templates = useMemo(() => mergeTemplates(templatePatched), [templatePatched]);
+export function ReportTable({ rows, onManage }: ReportTableProps) {
+  const templates = useTemplates();
   const templateLabelOf = (id: string) => templates.find((item) => item.id === id)?.label ?? id;
 
   const [page, setPage] = useState(1);
@@ -83,22 +81,12 @@ export function ReportTable({ rows, onAdvance, onReject }: ReportTableProps) {
       header: '관리',
       width: '190px',
       align: 'center',
-      render: (row) => {
-        const next = nextStateOf(row.state);
-
-        return (
-          <span className={styles.toolbar__actions}>
-            {next ? (
-              <Button size="sm" variant="secondary" onClick={() => onAdvance(row)}>
-                {REPORT_STATE_LABEL[next]}
-              </Button>
-            ) : null}
-            {canReject(row.state) ? (
-              <Button size="sm" variant="ghost" onClick={() => onReject(row)}>반려</Button>
-            ) : null}
-          </span>
-        );
-      },
+      // 아직 내지 않은 보고서는 검토할 것이 없다.
+      render: (row) => (row.state === 'draft' ? null : (
+        <span className={styles.toolbar__actions}>
+          <ReportStateActions report={row} size="sm" onSelect={onManage} />
+        </span>
+      )),
     },
   ];
 
@@ -106,7 +94,7 @@ export function ReportTable({ rows, onAdvance, onReject }: ReportTableProps) {
     <Reveal>
       <Card
         title="현장보고서 전체 목록"
-        description="제출된 보고서를 검토·확인으로 넘기거나 사유를 적어 반려합니다. 처리 내역은 보고서 이력에 남습니다."
+        description="제출된 보고서에 검토·반려·확인을 매깁니다. 순서를 밟지 않고 곧바로 고르며, 처리 내역은 보고서 이력에 남습니다."
       >
         <Table
           caption="현장보고서 목록"

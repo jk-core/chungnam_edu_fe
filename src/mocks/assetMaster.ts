@@ -1,8 +1,8 @@
 import type { AssetChange, PlantAsset } from '@/interface/asset';
+import { regionCodeOf } from '@/configs/regions';
 import { SCHOOLS } from './schools';
 import { SEED_USERS } from './accounts';
 import { createRandom, hashSeed, pickOne } from './random';
-import { regionCodeOf } from './manageCodes';
 import { stampAgo } from './today';
 
 const BUILDERS = [
@@ -10,6 +10,14 @@ const BUILDERS = [
   { name: '대성에너지산업', phone: '042-331-2200' },
   { name: '금강그린텍', phone: '041-856-3300' },
   { name: '서해태양광', phone: '041-664-4400' },
+];
+
+// 아직 담당 업체를 적지 않은 발전소가 실제로 있다 — 빈 칸이 화면에서 어떻게 보이는지도 봐야 한다.
+const MANAGERS = [
+  { name: '충남에너지관리', phone: '041-577-7010' },
+  { name: '', phone: '' },
+  { name: '아산태양광유지보수', phone: '041-542-8820' },
+  { name: '내포솔라케어', phone: '041-630-9900' },
 ];
 
 const RTU_MAKERS = ['에이치에너지', '나눔에너지', '해줌', '솔라커넥트'];
@@ -31,9 +39,11 @@ function buildAsset(schoolIndex: number): PlantAsset {
     regionCode: regionCodeOf(school.regionCode),
     address: school.address,
     addressDetail: pickOne(next, ADDRESS_DETAILS),
-    installedAt: school.installedAt,
+    latitude: school.location.lat,
+    longitude: school.location.lng,
     rtuEntName: pickOne(next, RTU_MAKERS),
     builder: pickOne(next, BUILDERS),
+    managerEnterprise: pickOne(next, MANAGERS),
     userId: OWNER_BY_PLANT.get(school.id) ?? null,
     // 일사량계는 학교마다 한 대씩 서 있고, 번호가 학교 순서를 따른다.
     irradId: schoolIndex + 1,

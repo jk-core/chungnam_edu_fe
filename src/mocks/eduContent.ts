@@ -62,7 +62,7 @@ export function resolveEduLevel(plant: School | null, param: string | null): Edu
 
 // ── 지표 레지스트리 ────────────────────────────────────────
 
-export type StatId = 'today' | 'insolation' | 'co2' | 'irradiance' | 'capacity';
+export type StatId = 'today' | 'powerTime' | 'co2' | 'irradiance' | 'capacity';
 
 export interface StatDef {
   label: string;
@@ -120,7 +120,7 @@ export const STAT_DEFS: Record<StatId, StatDef> = {
     fractionDigits: 0,
     note: (stats) => `맑은 날 정오의 햇빛을 100점으로 놓고 본 값이다 (${formatNumber(stats.irradianceNow)} W/m²)`,
   },
-  insolation: {
+  powerTime: {
     label: '발전시간',
     value: (stats) => stats.equivalentHours,
     unit: '시간',
@@ -430,9 +430,9 @@ const HIGH: HighContent = {
   headline: {
     mainLabel: '실시간 출력',
     mainNote: (stats) =>
-      `설비용량 ${capacityText(stats)} 로 낼 수 있는 최대치 가운데 지금 내고 있는 출력이다`,
-    statIds: ['today', 'insolation', 'co2', 'irradiance', 'capacity'],
-    // 기본 문구가 이미 이 눈높이에 맞춰져 있어 덮어쓸 것이 없다.
+      `설비용량 ${formatNumber(stats.capacityKw)}kW 로 낼 수 있는 최대치 대비 현재의 출력을 나타낸다`,
+    statIds: ['today', 'powerTime', 'co2', 'irradiance', 'capacity'],
+    // 기본 문구가 이미 서술체이자 표준 용어라 덮어쓸 것이 없다.
   },
   sunPath: {
     head: '태양의 하루 고도',

@@ -37,9 +37,6 @@ export interface DiagEfficiencyPoint {
   faultCode: DiagnosisFaultCode;
 }
 
-/** 수집 데이터 상태 코드 (SFR-003-05~08) */
-export type QualityCode = 'ok' | 'missing' | 'zero' | 'negative' | 'overLimit' | 'reversed' | 'corrLow';
-
 /** 설비별·기간별 품질 지표 (SFR-012-10) */
 export interface QualityStatus {
   schoolId: string;
@@ -50,7 +47,4 @@ export interface QualityStatus {
   validRows: number;
   /** 유효 비율(0~1) */
   qualityRate: number;
-  byCode: Record<QualityCode, number>;
-  /** 품질 기준 미달로 AI 학습에서 뺀 건수 (SFR-012-11) */
-  excludedFromTraining: number;
 }

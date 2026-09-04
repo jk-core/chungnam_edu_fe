@@ -3,6 +3,7 @@ import { useForm, useWatch } from 'react-hook-form';
 import { useNavigate } from 'react-router-dom';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { AddressSearchModal } from '@/components/common/AddressSearch';
+import { geocode } from '@/mocks/addresses';
 import { Button } from '@/components/common/Button';
 import { ConfirmDialog } from '@/components/common/ConfirmDialog';
 import { createForm, FormRow, FormSection } from '@/components/common/Form';
@@ -14,7 +15,7 @@ import { MSG } from '@/configs/messages';
 import { plantFormSchema } from '@/service/plant/type';
 import { SCHOOL_LEVELS, SCHOOLS } from '@/mocks/schools';
 import { RecordPicker } from '@/components/common/RecordPicker';
-import { regionNameOfCode } from '@/mocks/manageCodes';
+import { regionNameOfCode } from '@/configs/regions';
 import { toast } from '@/stores/toastStore';
 import { useManagedUsers, usePlantAssets } from '@/hooks/usePlantAssets';
 import { usePyranometerRows } from '@/pages/Admin/Plants/Pyranometer/hooks/usePyranometerRows';
@@ -87,9 +88,14 @@ export function PlantEditor({ powerPlantId }: { powerPlantId: number | null }) {
       regionCode: values.regionCode,
       address: values.address,
       addressDetail: values.addressDetail.trim(),
-      installedAt: values.installedAt.trim(),
+      latitude: Number(values.latitude),
+      longitude: Number(values.longitude),
       rtuEntName: values.rtuEntName,
       builder: { name: values.builderName.trim(), phone: values.builderPhone.trim() },
+      managerEnterprise: {
+        name: values.managerEnterpriseName.trim(),
+        phone: values.managerEnterprisePhone.trim(),
+      },
       userId: toId(values.userId),
       // 일사량계는 일사량계 탭에서 따로 세운 뒤 이 발전소를 골라 잇는다.
       irradId: null,
@@ -115,9 +121,14 @@ export function PlantEditor({ powerPlantId }: { powerPlantId: number | null }) {
       regionCode: values.regionCode,
       address: values.address,
       addressDetail: values.addressDetail.trim(),
-      installedAt: values.installedAt.trim(),
+      latitude: Number(values.latitude),
+      longitude: Number(values.longitude),
       rtuEntName: values.rtuEntName,
       builder: { name: values.builderName.trim(), phone: values.builderPhone.trim() },
+      managerEnterprise: {
+        name: values.managerEnterpriseName.trim(),
+        phone: values.managerEnterprisePhone.trim(),
+      },
       userId: toId(values.userId),
       irradId: toId(values.irradId),
       etc: values.etc.trim(),
@@ -130,10 +141,11 @@ export function PlantEditor({ powerPlantId }: { powerPlantId: number | null }) {
       ['구분', asset.plantType, next.plantType ?? ''],
       ['주소', asset.address, next.address ?? ''],
       ['상세 주소', asset.addressDetail || '—', next.addressDetail || '—'],
-      ['설치 시기', asset.installedAt, next.installedAt ?? ''],
       ['RTU 업체', asset.rtuEntName, next.rtuEntName ?? ''],
       ['시공 업체', asset.builder.name, next.builder?.name ?? ''],
       ['시공 업체 연락처', asset.builder.phone, next.builder?.phone ?? ''],
+      ['담당 업체', asset.managerEnterprise.name || '—', next.managerEnterprise?.name || '—'],
+      ['담당 업체 연락처', asset.managerEnterprise.phone || '—', next.managerEnterprise?.phone || '—'],
       ['사용자', nameOfUser(asset.userId), nameOfUser(toId(values.userId))],
       ['연결 일사량계', irradNameOf(asset.irradId), irradNameOf(toId(values.irradId))],
       ['비고', asset.etc || '—', next.etc || '—'],
@@ -175,7 +187,7 @@ export function PlantEditor({ powerPlantId }: { powerPlantId: number | null }) {
           title={isNew ? '발전소 등록' : `${asset.plantName} 등록 정보`}
           description={isNew
             ? '설비용량은 설비 탭에서 설비를 등록하면 그 합으로 채워집니다.'
-            : `${asset.address} · 설치 ${asset.installedAt}`}
+            : asset.address}
           backTo={backTo}
           danger={isNew ? null : (
             <Button variant="solar" onClick={() => setIsDeleting(true)}>삭제</Button>
@@ -212,17 +224,26 @@ export function PlantEditor({ powerPlantId }: { powerPlantId: number | null }) {
                   <AddressSearchModal
                     isOpen
                     onClose={onClose}
-                    onSelect={(picked) => onSelect({
-                      address: picked.roadAddress,
-                      regionCode: picked.sigunguCode,
-                    })}
+                    onSelect={(picked) => {
+                      // 우편번호 서비스는 좌표를 주지 않는다 — 고른 주소로 한 번 더 찍는다.
+                      const point = geocode(picked.roadAddress);
+
+                      onSelect({
+                        address: picked.roadAddress,
+                        regionCode: picked.sigunguCode,
+                        latitude: point ? String(point.lat) : '',
+                        longitude: point ? String(point.lng) : '',
+                      });
+                    }}
                   />
                 )}
               />
               <Form.Text label="상세주소" name="addressDetail" placeholder="예: 본관 옥상" optional />
             </FormRow>
             <FormRow cols={2}>
-              <Form.Text label="설치 시기" name="installedAt" hint="YYYY-MM" ime="numeric" />
+              {/* 주소를 고르면 채워진다. 옥상이 아닌 부지는 지도에서 어긋나므로 손으로 보정한다. */}
+              <Form.Text label="위도" name="latitude" hint="지도 마커가 서는 자리" ime="numeric" required />
+              <Form.Text label="경도" name="longitude" hint="주소를 고르면 채워집니다" ime="numeric" required />
             </FormRow>
           </FormSection>
 
@@ -235,6 +256,16 @@ export function PlantEditor({ powerPlantId }: { powerPlantId: number | null }) {
               <Form.Text
                 label="시공업체 연락처"
                 name="builderPhone"
+                transform={formatPhone}
+                ime="numeric"
+                optional
+              />
+              <Form.Text label="담당업체" name="managerEnterpriseName" maxLength={120} optional />
+            </FormRow>
+            <FormRow cols={2}>
+              <Form.Text
+                label="담당업체 연락처"
+                name="managerEnterprisePhone"
                 transform={formatPhone}
                 ime="numeric"
                 optional

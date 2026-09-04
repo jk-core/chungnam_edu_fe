@@ -12,7 +12,7 @@ interface PlantState {
    */
   selectedPlantId: string;
   /**
-   * 지금 화면에서 파고든 계층(인버터·접속반·스트링·채널).
+   * 지금 화면에서 파고든 계층(인버터·스트링).
    * 저장하지 않으므로 다른 화면으로 옮기면 발전소 계층으로 되돌아간다.
    */
   selectedNodeId: string;

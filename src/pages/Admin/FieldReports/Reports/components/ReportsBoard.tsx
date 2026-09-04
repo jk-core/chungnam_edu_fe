@@ -3,7 +3,6 @@ import { ConfirmDialog } from '@/components/common/ConfirmDialog';
 import { REPORT_STATE_LABEL } from '@/mocks/fieldReport';
 import useFieldReportStore, { mergeFieldReports } from '@/stores/fieldReportStore';
 import { useReportReview } from '../hooks/useReportReview';
-import { nextStateOf } from './reportState';
 import { RejectModal } from './RejectModal';
 import { ReportTable } from './ReportTable';
 import { ReportToolbar } from './ReportToolbar';
@@ -35,7 +34,6 @@ export function ReportsBoard() {
   }, [created, patched, deleted, keyword, stateFilter]);
 
   const waiting = rows.filter((report) => report.state === 'submitted' || report.state === 'reviewing').length;
-  const advancingTo = review.advancing && nextStateOf(review.advancing.state);
 
   return (
     <>
@@ -48,17 +46,17 @@ export function ReportsBoard() {
         waiting={waiting}
       />
 
-      <ReportTable rows={rows} onAdvance={review.askAdvance} onReject={review.askReject} />
+      <ReportTable rows={rows} onManage={review.ask} />
 
       <ConfirmDialog
-        isOpen={advancingTo !== null}
-        title={review.advancing && advancingTo
-          ? `${review.advancing.schoolName} 보고서를 ${REPORT_STATE_LABEL[advancingTo]}(으)로 처리할까요?`
+        isOpen={review.pending !== null}
+        title={review.pending
+          ? `${review.pending.report.schoolName} 보고서를 ${REPORT_STATE_LABEL[review.pending.state]}(으)로 처리할까요?`
           : ''}
         description="처리 내역은 보고서 이력에 남습니다."
         confirmLabel="처리"
-        onConfirm={review.advance}
-        onClose={review.closeAdvance}
+        onConfirm={review.apply}
+        onClose={review.closePending}
       />
 
       {review.rejecting ? (

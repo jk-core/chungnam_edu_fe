@@ -2,10 +2,9 @@ import dayjs from 'dayjs';
 import type { AnalysisStage, DiagnosisFinding, DiagnosisReport } from '@/interface/diagnosis';
 import type { OperationStatus } from '@/interface/status';
 import { withParticle } from '@/utils/korean';
+import { DIAG_EFFICIENCY_CRITICAL, DIAG_EFFICIENCY_WARN } from '@/configs/diagnosis';
 import { getChildNodes, getNode } from './tree';
 import {
-  DIAG_EFFICIENCY_CRITICAL,
-  DIAG_EFFICIENCY_WARN,
   getDiagEfficiencySeries,
   getFaultCode,
   getInverterById,
@@ -78,7 +77,7 @@ const ACTION_BY_STATUS: Record<OperationStatus, string> = {
   commLost: '현장 통신 모뎀 전원과 신호 세기를 먼저 확인하세요.',
 };
 
-/** 진단 판정 대상이 되는 노드들. 채널은 제외한다. */
+/** 진단 판정 대상이 되는 노드들. */
 function diagnosisTargetsOf(node: ScopeNode): ScopeNode[] {
   if (node.kind === 'root') {
     // 도 전체는 판정 단위가 너무 많아, 이상 설비를 앞세운 인버터 표본만 본다.
@@ -89,7 +88,7 @@ function diagnosisTargetsOf(node: ScopeNode): ScopeNode[] {
   }
 
   if (node.kind === 'plant') return getChildNodes(node.id);
-  // 인버터는 그 아래 진단 단위(스트링 또는 접속반)를 본다.
+  // 인버터는 그 아래 스트링을 본다.
   if (node.kind === 'inverter') return getChildNodes(node.id);
 
   return [node];

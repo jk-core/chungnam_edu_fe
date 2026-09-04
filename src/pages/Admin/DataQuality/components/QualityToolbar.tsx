@@ -1,5 +1,5 @@
 import { DateRangePicker } from '@/components/common/DateRangePicker';
-import { QUALITY_THRESHOLD } from '@/mocks/quality';
+import { QUALITY_THRESHOLD } from '@/configs/quality';
 import { formatNumber } from '@/utils/format';
 import type { DateRangeValue } from '@/components/common/DateRangePicker';
 import styles from '../../Admin.module.scss';

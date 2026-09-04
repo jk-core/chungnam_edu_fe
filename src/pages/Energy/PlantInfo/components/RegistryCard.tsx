@@ -24,9 +24,14 @@ export function RegistryCard({ view }: { view: PlantInfoView }) {
           <Fact label="구분" value={asset?.plantType ?? plant.level} />
           <Fact label="시·군" value={plant.regionName} />
           <Fact label="주소" value={`${asset?.address ?? plant.address} ${asset?.addressDetail ?? ''}`.trim()} wide />
-          <Fact label="준공" value={asset?.installedAt ?? plant.installedAt} />
           <Fact label="담당자" value={manager ? `${manager.name} · ${manager.phone}` : '-'} />
           <Fact label="시공 업체" value={asset ? `${asset.builder.name} · ${asset.builder.phone}` : '-'} />
+          <Fact
+            label="담당 업체"
+            value={asset?.managerEnterprise.name
+              ? `${asset.managerEnterprise.name} · ${asset.managerEnterprise.phone}`
+              : '-'}
+          />
           <Fact label="RTU 업체" value={asset?.rtuEntName ?? '-'} />
           <Fact label="비고" value={asset?.etc || '-'} wide />
         </dl>

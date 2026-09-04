@@ -1,6 +1,7 @@
 import { Card } from '@/components/common/Card';
 import { EChart } from '@/components/common/EChart';
-import { RESOURCE_CRITICAL, RESOURCE_WARNING, SERVERS } from '@/mocks/serverHealth';
+import { RESOURCE_CRITICAL, RESOURCE_WARNING } from '@/configs/serverHealth';
+import { SERVERS } from '@/mocks/serverHealth';
 import { Reveal } from '@/components/common/Reveal';
 import { seriesPalette } from '@/utils/chart';
 import { formatNumber } from '@/utils/format';

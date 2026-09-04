@@ -17,12 +17,13 @@ export const buildPath = {
     return `${PATH.ENERGY_STATISTICS}/${plantId}/${inverterId}`;
   },
   /*
-    게시판은 공지사항·Q&A 가 따로 선다 (SFR-025).
+    게시판은 공지사항·문의하기가 따로 선다 (SFR-025).
     목록·글쓰기·글 하나가 저마다 주소를 가져, 주고받으면 같은 화면이 열린다.
   */
-  board: (kind: BoardKind) => (kind === 'notice' ? PATH.GUIDE_NOTICE : PATH.GUIDE_QNA),
+  board: (kind: BoardKind) => (kind === 'notice' ? PATH.GUIDE_NOTICE : PATH.GUIDE_INQUIRY),
   boardWrite: (kind: BoardKind) => `${buildPath.board(kind)}/write`,
   boardDetail: (kind: BoardKind, postId: string) => `${buildPath.board(kind)}/${postId}`,
+  boardEdit: (kind: BoardKind, postId: string) => `${buildPath.board(kind)}/${postId}/edit`,
   /*
     알림 하나를 펼친 알림이력 (SFR-022).
     헤더 종에서 누른 알림이 목록의 조회 조건에 걸리지 않을 수 있어, 어느 알림인지를 주소에
@@ -32,7 +33,7 @@ export const buildPath = {
   /** 운전이력 상세 (SFR-009-04) */
   operationHistoryDetail: (id: string) => `${PATH.ENERGY_HISTORY}/${id}`,
   /*
-    AI 진단은 발전소 → 인버터 → 접속반·스트링까지 내려간다.
+    AI 진단은 발전소 → 인버터 → 스트링까지 내려간다.
     진단 판정이 그 자리까지 나오므로 주소도 세 칸을 둔다 (SFR-013-04/07).
   */
   diagnosis: (plantId?: string, inverterId?: string, unitId?: string) => {

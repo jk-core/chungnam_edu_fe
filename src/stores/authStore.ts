@@ -57,6 +57,12 @@ const useAuthStore = create<AuthState>()(
       storage: createJSONStorage(() => localStorage),
       // 계정 정보는 목업에서 다시 찾아오므로 세션만 남긴다.
       partialize: (state) => ({ user: state.user, expiresAt: state.expiresAt }),
+      /*
+        1 판 세션에는 없어진 등급(게스트·수용가)이 들어 있다. 그대로 살려 두면 사라진 등급으로
+        권한을 판정하게 되므로 판이 다르면 로그인부터 다시 받는다.
+      */
+      version: 2,
+      migrate: () => ({ user: null, expiresAt: null }),
     },
   ),
 );

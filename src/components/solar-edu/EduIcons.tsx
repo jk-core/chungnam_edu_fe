@@ -123,8 +123,8 @@ export const IrradianceIcon = (props: IconProps) => (
   </Base>
 );
 
-/** 적산 일사 — 곡선 아래 넓이를 쌓는다 */
-export const InsolationIcon = (props: IconProps) => (
+/** 발전시간 — 시간대별 발전을 쌓아 본 모양 */
+export const PowerTimeIcon = (props: IconProps) => (
   <Base {...props}>
     <path d="M2.6 19.4h18.8" />
     <path d="M3.4 19.4C7 19.4 8.2 7.4 12 7.4s5 12 8.6 12" />
@@ -253,7 +253,7 @@ export const IMPACT_ICONS: Record<string, ReactNode> = {
 /** 지금 이 순간의 수치들 */
 export const STAT_ICONS: Record<string, ReactNode> = {
   today: <BoltIcon />,
-  insolation: <InsolationIcon />,
+  powerTime: <PowerTimeIcon />,
   co2: <LeafIcon />,
   irradiance: <IrradianceIcon />,
   capacity: <AreaIcon />,

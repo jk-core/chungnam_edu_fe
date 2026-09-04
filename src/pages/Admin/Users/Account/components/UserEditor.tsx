@@ -9,7 +9,7 @@ import { formatPhone } from '@/utils/format';
 import { FormPage } from '@/pages/Admin/_shared/FormPage';
 import { listPath } from '@/pages/Admin/_shared/adminPath';
 import { MSG } from '@/configs/messages';
-import { EMAIL_MAX, NAME_MAX, PASSWORD_HINT, userFormSchema } from '@/service/user/type';
+import { EMAIL_MAX, NAME_MAX, ORG_NAME_MAX, PASSWORD_HINT, userFormSchema } from '@/service/user/type';
 import { ROLE_LABEL, ROLE_SCOPE_NOTE, SELECTABLE_ROLES } from '@/mocks/accounts';
 import { toast } from '@/stores/toastStore';
 import { useManagedUsers } from '@/hooks/usePlantAssets';
@@ -24,6 +24,7 @@ import { EMPTY_VALUES, toFormValues } from './values';
 const TRACKED: { key: keyof UserFormValues & keyof ManagedUser; label: string }[] = [
   { key: 'loginId', label: '로그인 ID' },
   { key: 'name', label: '이름' },
+  { key: 'orgName', label: '소속' },
   { key: 'email', label: '이메일' },
   { key: 'phone', label: '연락처' },
   { key: 'role', label: '등급' },
@@ -71,6 +72,7 @@ export function UserEditor({ userId }: UserEditorProps) {
       loginId: values.loginId,
       name: values.name,
       role: values.role,
+      orgName: values.orgName.trim(),
       email: values.email,
       phone: values.phone.trim(),
       plantIds: target?.plantIds ?? [],
@@ -130,9 +132,10 @@ export function UserEditor({ userId }: UserEditorProps) {
           <FormSection legend="기본 정보">
             <FormRow cols={2}>
               <Form.Text label="이름" name="name" maxLength={NAME_MAX} required />
-              <Form.Text label="이메일" name="email" ime="latin" maxLength={EMAIL_MAX} optional />
+              <Form.Text label="소속" name="orgName" maxLength={ORG_NAME_MAX} optional />
             </FormRow>
             <FormRow cols={2}>
+              <Form.Text label="이메일" name="email" ime="latin" maxLength={EMAIL_MAX} optional />
               <Form.Text
                 label="연락처"
                 name="phone"
@@ -181,11 +184,7 @@ export function UserEditor({ userId }: UserEditorProps) {
             <Form.Radio
               label="사용자 등급"
               name="role"
-              options={SELECTABLE_ROLES.map((item) => ({
-                value: item,
-                label: ROLE_LABEL[item],
-                tone: item === 'admin' ? ('brand' as const) : undefined,
-              }))}
+              options={SELECTABLE_ROLES.map((item) => ({ value: item, label: ROLE_LABEL[item] }))}
               required
             />
           </FormSection>

@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Button } from '@/components/common/Button';
 import { ConfirmDialog } from '@/components/common/ConfirmDialog';
-import { flattenTemplate } from '@/mocks/fieldReport';
+import { flattenTemplate, INSPECTION_TARGET_OPTIONS } from '@/mocks/fieldReport';
 import { FormField, FormRow, FormSection, SelectControl, TextArea, TextField } from '@/components/common/Form';
 import { Modal } from '@/components/common/Modal';
 import { MSG } from '@/configs/messages';
@@ -12,32 +12,28 @@ import useFieldReportStore from '@/stores/fieldReportStore';
 import type {
   CheckResult,
   FieldReport,
-  InspectedDevice,
+  InspectionTarget,
   ReportBasics,
   ReportState,
 } from '@/interface/fieldReport';
-import type { School } from '@/interface/energy';
 import type { UploadFile } from '@/components/common/Form';
 import styles from '../../FieldReport.module.scss';
 import { useFieldReports } from '../../hooks/useFieldReports';
 import { BasicsFields } from './BasicsFields';
 import { ChecklistFields } from './ChecklistFields';
-import { DeviceFields } from './DeviceFields';
 import { PhotoFields } from './PhotoFields';
 
 interface DraftState {
   id: string;
   templateId: string;
-  /** 체크리스트 머리의 설비·점검자 정보 */
+  /** 체크리스트 머리의 점검자 정보 */
   basics: ReportBasics;
-  targetName: string;
+  targetType: InspectionTarget;
   inspector: string;
   summary: string;
   actionNote: string;
   results: Record<string, CheckResult | null>;
   notes: Record<string, string>;
-  /** 점검한 설비와 설비별 특이사항 (SFR-021-06) */
-  devices: InspectedDevice[];
   photos: UploadFile[];
   /** 사진 id → 점검 항목 id. 비어 있으면 보고서 전체에 붙은 사진이다 (SFR-021-06). */
   photoLinks: Record<string, string>;
@@ -47,22 +43,6 @@ interface ReportEditorProps {
   /** 되돌아온(또는 작성중인) 보고서를 고쳐 다시 내는 경우 그 원본 (SFR-021-09) */
   origin: FieldReport | null;
   onClose: () => void;
-}
-
-/** 새 보고서의 머리 표 기본값 — 고른 학교에서 끌어온다 */
-function emptyBasics(plant: School | null): ReportBasics {
-  return {
-    ownerName: plant?.name ?? '',
-    address: plant?.address ?? '',
-    capacityKw: plant?.capacityKw ?? 0,
-    operation: '가동',
-    installForm: '건축물',
-    installFormEtc: '',
-    program: '설치의무화',
-    programEtc: '',
-    inspectorRole: '설비관리자',
-    contact: '',
-  };
 }
 
 /**
@@ -80,13 +60,12 @@ export function ReportEditor({ origin, onClose }: ReportEditorProps) {
       id: origin.id,
       templateId: origin.templateId,
       basics: origin.basics,
-      targetName: origin.targetName,
+      targetType: origin.targetType,
       inspector: origin.inspector,
       summary: origin.summary,
       actionNote: origin.actionNote,
       results: Object.fromEntries(origin.checklist.map((item) => [item.id, item.result])),
       notes: Object.fromEntries(origin.checklist.map((item) => [item.id, item.note])),
-      devices: origin.devices,
       // 이미 올린 사진은 파일 자체를 다시 받아 오지 않는다 — 이름만 들고 목록에 남긴다.
       photos: origin.photos.map((photo) => ({
         id: photo.id,
@@ -102,14 +81,13 @@ export function ReportEditor({ origin, onClose }: ReportEditorProps) {
     : {
       id: nextId(),
       templateId: templates[0].id,
-      basics: emptyBasics(plant),
-      targetName: plant?.name ?? '',
+      basics: { inspectorRole: '설비관리자', contact: '' },
+      targetType: templates[0].targetType,
       inspector: user?.name ?? '',
       summary: '',
       actionNote: '',
       results: {},
       notes: {},
-      devices: [],
       photos: [],
       photoLinks: {},
     }));
@@ -162,14 +140,12 @@ export function ReportEditor({ origin, onClose }: ReportEditorProps) {
       templateId: template.id,
       templateVersion: template.version,
       inspectType: template.inspectType,
-      targetKind: template.targetKind,
-      targetName: draft.targetName || (origin?.schoolName ?? plant?.name ?? ''),
+      targetType: draft.targetType,
       inspector: draft.inspector,
       date: origin?.date ?? TODAY.format('YYYY-MM-DD'),
       state,
       basics: draft.basics,
       checklist,
-      devices: draft.devices,
       photos: draft.photos.map((file) => ({
         id: file.id,
         name: file.name,
@@ -236,21 +212,29 @@ export function ReportEditor({ origin, onClose }: ReportEditorProps) {
               <FormField label="점검 양식">
                 <SelectControl
                   value={draft.templateId}
-                  // 양식이 바뀌면 문항 자체가 달라지므로 앞서 고른 답은 남기지 않는다.
-                  onChange={(value) => change({ templateId: value, results: {}, notes: {} })}
+                  /*
+                    양식이 바뀌면 문항 자체가 달라지므로 앞서 고른 답은 남기지 않는다.
+                    점검대상도 새 양식이 겨눈 곳으로 돌린다 — 고쳐 고를 수 있다.
+                  */
+                  onChange={(value) => change({
+                    templateId: value,
+                    targetType: templateOf(value).targetType,
+                    results: {},
+                    notes: {},
+                  })}
                   options={templates.map((item) => ({
                     value: item.id,
                     label: `${item.label} (${item.inspectType} · v${item.version})`,
                   }))}
                 />
               </FormField>
-              <TextField
-                label="점검 대상"
-                value={draft.targetName}
-                onChange={(value) => change({ targetName: value })}
-                width="md"
-                hint="인버터 번호나 RTU 이름을 적어도 됩니다."
-              />
+              <FormField label="점검 대상" hint="이번 점검에서 무엇을 봤는지 고릅니다.">
+                <SelectControl
+                  value={draft.targetType}
+                  onChange={(value) => change({ targetType: value })}
+                  options={INSPECTION_TARGET_OPTIONS.map((item) => ({ value: item, label: item }))}
+                />
+              </FormField>
             </FormRow>
             <FormRow cols={2}>
               <TextField
@@ -274,13 +258,6 @@ export function ReportEditor({ origin, onClose }: ReportEditorProps) {
           <BasicsFields
             basics={draft.basics}
             onChange={(patch) => change({ basics: { ...draft.basics, ...patch } })}
-            error={error}
-          />
-
-          <DeviceFields
-            devices={draft.devices}
-            onChange={(devices) => change({ devices })}
-            reportId={draft.id}
           />
 
           <ChecklistFields

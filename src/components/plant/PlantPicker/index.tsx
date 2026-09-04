@@ -5,7 +5,7 @@ import { CheckIcon, SchoolIcon, SearchIcon } from '@/components/common/Icon';
 import { EmptyState } from '@/components/common/EmptyState';
 import { KIND_LABEL } from '@/mocks/tree';
 import { Modal } from '@/components/common/Modal';
-import { REGIONS } from '@/mocks/regions';
+import { CHUNGNAM_REGIONS } from '@/configs/regions';
 import { SCHOOLS } from '@/mocks/schools';
 import { Select } from '@/components/common/Select';
 import { cn } from '@/utils/cn';
@@ -17,7 +17,7 @@ import styles from './PlantPicker.module.scss';
 
 const REGION_OPTIONS = [
   { value: 'all', label: '전체 지역' },
-  ...REGIONS.map((region) => ({ value: region.code, label: region.name })),
+  ...CHUNGNAM_REGIONS.map((region) => ({ value: region.code, label: region.name })),
 ];
 
 interface PlantPickerProps {
@@ -30,7 +30,7 @@ interface PlantPickerProps {
 
 /**
  * 발전소 선택기. 128개를 드롭다운에 담기 어려워 검색·필터가 있는 모달로 펼친다.
- * 발전소 아래 인버터·접속반·스트링·채널은 좌측 설비 구조 트리에서 고른다.
+ * 발전소 아래 인버터·스트링은 좌측 설비 구조 트리에서 고른다.
  */
 export function PlantPicker({ variant = 'inline' }: PlantPickerProps) {
   const { node, plant } = usePlantScope();

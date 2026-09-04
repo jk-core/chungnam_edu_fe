@@ -123,9 +123,9 @@ function buildGroups(threePhase: boolean): Group[] {
         {
           header: '출력전압 (V)',
           columns: [
-            { key: 'acVoltRS' as const, header: 'R-S', fraction: 2 },
-            { key: 'acVoltST' as const, header: 'S-T', fraction: 2 },
-            { key: 'acVoltTR' as const, header: 'T-R', fraction: 2 },
+            { key: 'acVoltR' as const, header: 'R', fraction: 2 },
+            { key: 'acVoltS' as const, header: 'S', fraction: 2 },
+            { key: 'acVoltT' as const, header: 'T', fraction: 2 },
           ],
         },
         {
