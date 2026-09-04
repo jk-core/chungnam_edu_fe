@@ -52,6 +52,18 @@ export function SolarEduScreen({ variant }: { variant: EduVariant }) {
   const facts = cell.facts && script.level !== 'elementary' ? script.facts : [];
   const fact = useAutoPager({ total: facts.length, perPage: 1, intervalMs: FACT_MS });
 
+  /*
+    완전히 멎었을 때 띄우는 한 줄 (SFR-005-10).
+
+    「~가 아파요」 같은 말은 정말 멎었을 때만 쓴다 (2026-09-04 회의). 임계값으로 고장을 가리면
+    상시 걸리는데, 상시 걸리는 경고는 아무도 보지 않는다.
+  */
+  const stoppedNote = stats.isStopped
+    ? script.level === 'elementary'
+      ? '태양광이 아파요. 지금은 전기를 만들지 못하고 있어요.'
+      : '해는 떠 있는데 발전이 멈췄습니다. 설비 점검이 필요합니다.'
+    : undefined;
+
   const scopePicker = <SchoolPicker plantId={plant?.id ?? null} variant={variant} />;
 
   /*
@@ -84,7 +96,7 @@ export function SolarEduScreen({ variant }: { variant: EduVariant }) {
     <SolarEduLayout
       scopeLabel={node.fullName}
       variantLabel={cell.label}
-      scopeInfo={scopeInfo}
+      scopeInfo={cell.subtitle === false ? undefined : scopeInfo}
       scopePicker={scopePicker}
       /*
         하늘은 어느 칸에나 깐다 (2026-09-04 지시).
@@ -97,6 +109,7 @@ export function SolarEduScreen({ variant }: { variant: EduVariant }) {
       levelPicker={<LevelPicker />}
       weather={weather}
       isLive={stats.isLive}
+      stoppedNote={stoppedNote}
       clock={clock}
       date={date}
       headline={

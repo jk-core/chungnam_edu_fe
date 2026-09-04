@@ -41,6 +41,13 @@ export interface EduCell {
   /** 아래를 도는 「알고 계셨나요」 줄을 다는지 */
   facts: boolean;
   /**
+   * 화면 제목 아래 한 줄(조회 대상의 설비 정보)을 다는지.
+   *
+   * 고등 a 만 뗀다 (2026-09-04 노트). 그 판은 벽보라 제목이 커야 하는데, 바로 아래에 작은 줄이
+   * 붙으면 둘이 한 덩이로 보여 제목이 눌린다. 같은 값은 머리줄 띠의 설비용량 칸에 이미 있다.
+   */
+  subtitle?: boolean;
+  /**
    * 공용 레이아웃을 쓰지 않고 골격까지 제 것을 세우는 칸인지.
    *
    * 중등 a 하나뿐이다. 그 판은 스스로 머리줄과 고르개를 안고 그리므로 공용 껍데기에 끼우면
@@ -67,7 +74,7 @@ export const EDU_CELLS: Record<EduLevel, Record<EduVariant, EduCell>> = {
     c: { label: '시안 c · 한 장씩 넘겨 읽기', script: 'elementary', headline: true, facts: false },
   },
   high: {
-    a: { label: '시안 a · 한 장 그림', script: 'elementary', headline: true, facts: false },
+    a: { label: '시안 a · 한 장 그림', script: 'elementary', headline: true, facts: false, subtitle: false },
     b: { label: '시안 b · 데이터 콘솔', script: 'high', headline: true, facts: true },
     c: { label: '시안 c · 설명 카드 셋', script: 'middle', headline: true, facts: true },
   },
@@ -101,10 +108,10 @@ export function EduBoard({ level, variant, scopeLabel, stats, nowHour }: EduBoar
     if (variant === 'c') return <MiddleCardDeck stats={stats} nowHour={nowHour} />;
 
     // 시안 a 는 골격까지 제 것이라 화면 쪽에서 이미 갈라졌다 — 여기 닿는 것은 b 뿐이다.
-    return <MiddleClock stats={stats} content={ELEMENTARY_CONTENT} nowHour={nowHour} />;
+    return <MiddleClock stats={stats} nowHour={nowHour} />;
   }
 
-  if (variant === 'a') return <HighPoster stats={stats} content={ELEMENTARY_CONTENT} nowHour={nowHour} />;
+  if (variant === 'a') return <HighPoster stats={stats} nowHour={nowHour} />;
   if (variant === 'c') return <HighCards stats={stats} content={MIDDLE_CONTENT} />;
 
   return <HighBoard scopeLabel={scopeLabel} stats={stats} content={HIGH_CONTENT} />;

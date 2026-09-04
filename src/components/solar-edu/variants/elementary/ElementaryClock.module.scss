@@ -6,7 +6,7 @@
  * 초등 시안 b — 하루 한 바퀴.
  *
  * 넘어가는 걸음이 없다. 화면이 말하려는 것 전부가 처음부터 펼쳐져 있어야 하므로 세 칸으로 나눈다 —
- * 위 왼쪽에 해님 시계, 위 오른쪽에 환산 셋, 아래를 가로질러 좋은 점 넷.
+ * 위 왼쪽에 햇님 시계, 위 오른쪽에 환산 셋, 아래를 가로질러 좋은 점 넷.
  */
 .board {
   display: flex;
@@ -24,7 +24,7 @@
 
 /* 칸 이름표 — 어른이 읽는 줄이라 작게 두고 그림보다 앞에 서지 않게 한다 */
 .head {
-  @include t.eyebrow;
+  @include t.title-sm;
 
   flex-shrink: 0;
   margin-bottom: s.$space-2;
@@ -57,7 +57,7 @@
   }
 }
 
-// ── 왼쪽 · 해님 시계 ───────────────────────────────────────
+// ── 왼쪽 · 햇님 시계 ───────────────────────────────────────
 
 .clock {
   display: flex;
@@ -187,6 +187,8 @@
   &__line {
     @include t.body-lg;
 
+    /* 두 줄을 미리 비워 둔다 — 한 줄짜리 칸만 수가 위로 밀려 석 장의 높이가 어긋났다 */
+    min-height: 2.9em;
     margin-top: 2px;
     color: var(--text);
   }
@@ -199,24 +201,33 @@
 
   &__list {
     display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    gap: s.$space-3;
+
+    // 넷이던 것을 셋으로 줄였다 (2026-09-04 회의) — 남은 자리를 셋이 나눠 갖는다
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    padding: s.$space-2;
+    border: 4px solid var(--border);
+    border-radius: s.$radius-lg;
+    background-color: rgb(255 255 255 / 78%);
     list-style: none;
 
     @include media.tablet {
-      grid-template-columns: repeat(2, 1fr);
+      grid-template-columns: repeat(2, minmax(0, 1fr));
     }
   }
 }
 
+/*
+  좋은 점 한 마디.
+
+  셋을 각자 테두리에 넣었다가 한 칸으로 합쳤다 (2026-09-04 지시) — 「공짜예요, 깨끗해요,
+  조용해요」 가 이어 읽히면 세 가지가 아니라 한 가지 이야기가 된다.
+*/
 .good {
   display: flex;
   align-items: center;
+  justify-content: center;
   gap: s.$space-3;
-  padding: s.$space-2 s.$space-3;
-  border: 4px solid var(--border);
-  border-radius: s.$radius-lg;
-  background-color: rgb(255 255 255 / 78%);
+  padding: s.$space-1 s.$space-2;
 
   &__art {
     flex-shrink: 0;
@@ -235,23 +246,10 @@
     }
   }
 
-  &__text {
-    display: flex;
-    flex-direction: column;
-    min-width: 0;
-  }
-
   &__name {
     color: var(--brand-contrast);
     font-size: clamp(22px, 1.8vw, 32px);
     font-weight: 800;
     line-height: 1.15;
-  }
-
-  /* 아래 띠는 네 칸으로 나뉘어 폭이 좁다 — 한 단계만 올린다 */
-  &__line {
-    @include t.body-md;
-
-    color: var(--text);
   }
 }

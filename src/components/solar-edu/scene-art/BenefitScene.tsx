@@ -1,6 +1,6 @@
 import { cn } from '@/utils/cn';
 import type { BenefitArt } from '@/mocks/eduElementary';
-import { Box, Building, RoofPanel, SolarPanel, Sun, Window } from './SceneParts';
+import { Box, SolarPanel, Sun } from './SceneParts';
 import { CastShadow, SceneDefs } from './SceneDefs';
 import styles from './SceneArt.module.scss';
 import type { CSSProperties, ReactNode } from 'react';
@@ -10,15 +10,17 @@ const delay = (seconds: number) => ({ animationDelay: `${seconds}s` }) as CSSPro
 /** 말풍선이 차지하는 상자 (그림 좌표계) */
 const BUBBLE = { w: 250, h: 132 };
 
-/** 넷을 나란히 세울 자리. 그림은 저마다 300×190 좌표로 그려 여기서 줄여 놓는다 */
+/*
+  셋을 나란히 세울 자리. 그림은 저마다 300×190 좌표로 그려 여기서 줄여 놓는다.
+  넷이던 것을 셋으로 줄이며(2026-09-04 회의) 남은 자리를 그림에 나눠 줘 하나하나가 커졌다.
+*/
 const SPOTS: { id: BenefitArt; x: number; label: string }[] = [
-  { id: 'free', x: 6, label: '연료가 들지 않음' },
-  { id: 'clean', x: 232, label: '매연 없음' },
-  { id: 'quiet', x: 458, label: '소리 없음' },
-  { id: 'roof', x: 678, label: '지붕이면 충분' },
+  { id: 'free', x: 20, label: '공짜예요' },
+  { id: 'clean', x: 315, label: '깨끗해요' },
+  { id: 'quiet', x: 610, label: '조용해요' },
 ];
 
-const SCALE = 0.72;
+const SCALE = 0.9;
 const TOP = 140;
 
 /*
@@ -69,7 +71,6 @@ export function BenefitScene({ focus, bubbleAt, bubble }: BenefitSceneProps) {
             {spot.id === 'free' ? <FreeArt /> : null}
             {spot.id === 'clean' ? <CleanArt /> : null}
             {spot.id === 'quiet' ? <QuietArt /> : null}
-            {spot.id === 'roof' ? <RoofArt /> : null}
           </g>
 
           <text
@@ -109,7 +110,30 @@ function FreeArt() {
 
       <SolarPanel x={148} y={110} scale={0.62} glow={0.24} />
 
-      <text x="150" y="28" fill="var(--ok-text)" fontSize="22" textAnchor="middle" fontWeight="700">연료비 0</text>
+      {/*
+        사 오지 않는 연료 — 석유통에 가위표 (2026-09-04 노트).
+
+        「연료비 0」 이라고 글로 적어 두었었다. 셋 가운데 이 한 칸만 글이라 나머지 둘과 결이
+        어긋났고, 무엇보다 읽어야 알 수 있었다. 통 하나에 가위표를 얹으면 「이것이 필요 없다」 가
+        읽기 전에 잡힌다 — 매연·소리 칸이 이미 같은 기호를 쓰고 있어 셋이 한 규칙이 된다.
+        선 굵기도 그 둘에 맞춘다. 혼자 굵으면 같은 기호로 읽히지 않는다.
+      */}
+      <g transform="translate(152 8)">
+        {/* 통 — 손잡이와 주둥이가 있어야 기름통으로 읽힌다 */}
+        <path d="M6 22h44a4 4 0 0 1 4 4v40a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V26a4 4 0 0 1 4-4Z" fill="var(--text-faint)" fillOpacity="0.35" />
+        <path d="M18 12h20v10H18Z" fill="var(--text-faint)" fillOpacity="0.5" />
+        <path d="M38 16h14l6 8" stroke="var(--text-faint)" strokeWidth="5" strokeLinecap="round" fill="none" />
+        <path
+          d="M6 22h44a4 4 0 0 1 4 4v40a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V26a4 4 0 0 1 4-4Z"
+          fill="none"
+          stroke="var(--text-faint)"
+          strokeWidth="4"
+        />
+
+        <g stroke="var(--critical)" strokeWidth="6" strokeLinecap="round">
+          <path d="M2 12 58 78M58 12 2 78" />
+        </g>
+      </g>
     </g>
   );
 }
@@ -167,40 +191,6 @@ function QuietArt() {
       <circle cx="150" cy="72" r="30" fill="none" stroke="var(--border-strong)" strokeWidth="2.4" />
       <path d="M138 60v24l-12-6v-12Z" fill="var(--text-faint)" />
       <path d="M144 62 162 82M162 62 144 82" stroke="var(--critical)" strokeWidth="5" strokeLinecap="round" />
-    </g>
-  );
-}
-
-/** 지붕만 있으면 된다 — 빈 지붕 위로 판이 내려앉는다 */
-function RoofArt() {
-  return (
-    <g>
-      <Building x={58} y={96} w={176} h={76} depth={18}>
-        <Window x={18} y={14} w={24} h={22} />
-        <Window x={58} y={14} w={24} h={22} />
-        <Window x={98} y={14} w={24} h={22} />
-        <Window x={138} y={14} w={24} h={22} />
-        <Window x={18} y={46} w={24} h={22} />
-        <Window x={58} y={46} w={24} h={22} />
-        <Window x={98} y={46} w={24} h={22} />
-
-        <rect x="138" y="46" width="24" height="30" rx="2" fill="var(--brand)" fillOpacity="0.42" />
-        <rect x="138" y="46" width="24" height="30" rx="2" fill="url(#edu-shade)" />
-        <rect x="138" y="46" width="24" height="30" rx="2" fill="none" stroke="var(--border-strong)" strokeWidth="1.6" />
-
-        {/* 옥상 위로 내려앉는 판 석 장 */}
-        {[0, 1, 2].map((slot) => (
-          <RoofPanel
-            key={`roof-${slot}`}
-            x={7 + slot * 58}
-            y={-17}
-            w={52}
-            d={12}
-            className={styles.land}
-            style={delay(slot * 0.4)}
-          />
-        ))}
-      </Building>
     </g>
   );
 }

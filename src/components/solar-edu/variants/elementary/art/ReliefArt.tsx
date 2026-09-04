@@ -13,7 +13,7 @@ import type { CSSProperties } from 'react';
   빛은 늘 왼쪽 위에서 온다 — 이 규칙은 초등·중등 판이 쓰던 것을 그대로 가져왔고, 명암 정의도
   같은 `SceneDefs` 를 본다. 이 판만 다른 광원을 쓰면 같은 학교의 화면 셋이 서로 다른 곳처럼 보인다.
 
-  평면 쪽에서 지켰던 두 가지는 여기서도 지킨다 — 해님에게는 얼굴이 있고, 선은 굵다.
+  평면 쪽에서 지켰던 두 가지는 여기서도 지킨다 — 햇님에게는 얼굴이 있고, 선은 굵다.
   명암을 얹었다고 잔 무늬를 늘리지 않는다. 멀리서 보는 화면에서 잔 무늬는 때가 될 뿐이다.
 */
 
@@ -24,7 +24,7 @@ const STROKE = 5;
 const BOX = 120;
 
 /**
- * 얼굴이 있는 해님.
+ * 얼굴이 있는 햇님.
  *
  * 몸통은 `scene-art` 의 해를 그대로 쓴다 — 가운데가 부풀어 오른 명암과 겹겹의 후광이 이미 들어 있어,
  * 평면 쪽의 납작한 원과 나란히 놓으면 차이가 곧바로 보인다. 그 위에 얼굴만 얹는다.
@@ -275,6 +275,67 @@ function ReliefNo() {
       <circle r="25" fill="none" stroke="var(--critical)" strokeWidth="8" />
       <path d="M-13 13 13 -13" stroke="var(--critical)" strokeWidth="8" strokeLinecap="round" />
     </g>
+  );
+}
+
+/**
+ * 바뀌기 전의 것 — 쌓인 전기 (입체).
+ *
+ * 옆의 나무·집과 같은 상자에 같은 굵기로 그린다. 그림이 없으면 그 칸만 다른 물건처럼 보여
+ * 「이것이 저것으로 바뀌었다」 는 짝이 서지 않는다.
+ *
+ * 번개 하나로 둔다. 콘센트나 전선도 놓아 보았지만 이 나이가 「전기」 로 곧장 읽는 것은 번개였고,
+ * 여러 물건을 겹치면 칸이 작아 무엇인지 알아보기 어려웠다.
+ */
+export function ReliefPowerArt() {
+  const bolt = 'M68 12 34 66h20l-8 42 36-56H62Z';
+
+  return (
+    <svg viewBox={`0 0 ${BOX} ${BOX}`} fill="none" role="presentation">
+      <SceneDefs />
+      <CastShadow cx={60} cy={112} rx={30} ry={7} />
+
+      {/* 두께 — 같은 모양을 살짝 내려 깔면 번개가 판때기가 아니라 덩어리가 된다 */}
+      <path d={bolt} transform="translate(3 5)" fill="var(--brand-contrast)" fillOpacity="0.35" />
+      <path d={bolt} fill="var(--solar)" />
+      <path d={bolt} fill="url(#edu-orb)" />
+      <path d={bolt} fill="none" stroke="var(--brand-contrast)" strokeWidth={STROKE} strokeLinejoin="round" />
+    </svg>
+  );
+}
+
+/**
+ * 발전시간 — 모래시계 (입체).
+ *
+ * 시계를 그리면 「몇 시」 로 읽힌다. 발전시간은 시각이 아니라 **길이**라, 쌓이는 것이 보이는
+ * 모래시계 쪽이 뜻에 가깝다. 아래 더미가 위 더미보다 많은 것으로 「지나간 시간」 을 말한다.
+ */
+export function ReliefHourArt() {
+  return (
+    <svg viewBox={`0 0 ${BOX} ${BOX}`} fill="none" role="presentation">
+      <SceneDefs />
+      <CastShadow cx={60} cy={110} rx={28} ry={7} />
+
+      {/* 위아래 받침 */}
+      <rect x="30" y="12" width="60" height="9" rx="4" fill="var(--brand)" />
+      <rect x="30" y="99" width="60" height="9" rx="4" fill="var(--brand)" />
+
+      {/* 유리 — 두 삼각형이 허리에서 만난다 */}
+      <path d="M36 21h48L64 60l20 39H36L56 60Z" fill="var(--surface)" />
+      <path d="M36 21h48L64 60l20 39H36L56 60Z" fill="url(#edu-shine)" />
+
+      {/* 떨어진 모래가 아래에 쌓인다 */}
+      <path d="M44 92h32L64 66Z" fill="var(--solar)" transform="scale(1 -1) translate(0 -184)" />
+      <path d="M46 21h28L62 46Z" fill="var(--solar)" fillOpacity="0.55" />
+
+      <path
+        d="M36 21h48L64 60l20 39H36L56 60Z"
+        fill="none"
+        stroke="var(--brand-contrast)"
+        strokeWidth={STROKE}
+        strokeLinejoin="round"
+      />
+    </svg>
   );
 }
 

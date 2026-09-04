@@ -38,7 +38,7 @@
   &__term {
     @include t.eyebrow;
 
-    color: var(--text-faint);
+    color: var(--text-muted);
   }
 
   &__figure {
@@ -65,7 +65,7 @@
   &__note {
     @include t.body-lg;
 
-    color: var(--text-muted);
+    color: var(--text);
   }
 
   /*
@@ -124,9 +124,9 @@
   }
 
   &__legend {
-    @include t.body-sm;
+    @include t.body-md;
 
-    color: var(--text-faint);
+    color: var(--text);
   }
 }
 
@@ -192,7 +192,7 @@
   &__term {
     @include t.label-md;
 
-    color: var(--text-faint);
+    color: var(--text-muted);
   }
 
   &__figure {
@@ -218,7 +218,7 @@
   &__note {
     @include t.body-md;
 
-    color: var(--text-muted);
+    color: var(--text);
 
     [data-level="elementary"] & {
       @include t.body-lg;

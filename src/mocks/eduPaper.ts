@@ -1,7 +1,8 @@
 import type { EduStats } from '@/mocks/solarEdu';
 import { CO2_PER_KWH, CO2_PER_TREE_YEAR } from '@/utils/eco';
-import { scaleCarbon, scaleSi } from '@/utils/format';
+import { scaleCarbon, scaleCount, scaleSi } from '@/utils/format';
 import type { EduLevel } from '@/interface/edu';
+import { AIRCON_WATT } from './eduElementary';
 
 /**
  * 「세 개의 질문」 의 대본과 셈 (SFR-005).
@@ -11,7 +12,7 @@ import type { EduLevel } from '@/interface/edu';
  * 그 답에 필요한 것들을 통째로 갖는다.
  *
  * 눈높이는 문구와 **읽을 것의 수**를 가른다. 어느 눈높이든 같은 세 질문에 같은 수치로 답하되,
- * 고등만 값을 재는 기준(일사강도·이용률·셈의 근거)까지 펴 본다 (SFR-005-04).
+ * 고등만 값을 재는 기준(일사량·이용률·셈의 근거)까지 펴 본다 (SFR-005-04).
  */
 
 // ── 장 ────────────────────────────────────────────────────
@@ -52,9 +53,9 @@ export type StepId = 'sun' | 'cell' | 'inverter' | 'school';
 export const STEP_IDS: StepId[] = ['sun', 'cell', 'inverter', 'school'];
 
 /** 3장에서 저감량을 바꿔 보는 잣대 */
-export type ScaleId = 'tree' | 'car' | 'home';
+export type ScaleId = 'tree' | 'aircon' | 'home';
 
-export const SCALE_IDS: ScaleId[] = ['tree', 'car', 'home'];
+export const SCALE_IDS: ScaleId[] = ['tree', 'aircon', 'home'];
 
 export interface PaperScript {
   /** 지면 머리에 적는 한 줄 */
@@ -99,7 +100,7 @@ const ELEMENTARY: PaperScript = {
   },
   scales: {
     tree: '줄인 탄소를 소나무 한 그루가 1년 동안 마시는 양으로 나눈 값입니다',
-    car: '자동차가 이만큼 달릴 때 나오는 탄소와 같은 양입니다',
+    aircon: '에어컨 한 대를 이만큼 오래 켤 수 있는 전기입니다',
     home: '네 사람이 사는 집 한 채가 며칠 동안 쓸 수 있는 전기입니다',
   },
 };
@@ -124,17 +125,17 @@ const MIDDLE: PaperScript = {
     output: '지금 이 순간의 발전 세기입니다. 햇빛이 세지면 곧바로 따라 오릅니다',
     today: '오늘 0시부터 지금까지 만든 전력량을 모두 더한 값입니다',
     capacity: '설비가 한 번에 낼 수 있는 최대치입니다. 실시간 출력은 이 값을 넘지 않습니다',
-    hours: '오늘 만든 전력량을 설비용량으로 나눈 값입니다. 최대 세기로만 만들었다면 걸렸을 시간입니다',
+    hours: '발전량을 설비용량으로 나눈 값입니다',
   },
   steps: {
-    sun: '해가 높을수록 햇빛이 지붕에 가깝게 수직으로 들어옵니다. 같은 빛이 좁은 면적에 모여 일사강도가 올라갑니다.',
-    cell: '지붕에 깔린 판이 태양전지입니다. 햇빛을 받으면 전기가 흐르고, 빛이 닿는 동안 계속 만들어집니다.',
-    inverter: '태양전지가 만든 전기는 한 방향으로만 흐르는 직류입니다. 교실 콘센트에 오는 것은 교류라서 인버터가 바꿔 줍니다.',
-    school: '바뀐 전기는 학교가 그대로 씁니다. 쓰는 곳에서 바로 만드니 멀리 보내며 잃는 전기가 없습니다.',
+    sun: '해가 높을수록 햇빛이 지붕에 똑바로 들어와 일사량이 올라갑니다.',
+    cell: '지붕에 깔린 태양전지가 햇빛을 받아 전기를 만듭니다.',
+    inverter: '인버터가 교실에서 쓸 수 있는 전기로 바꿔 줍니다.',
+    school: '바뀐 전기는 학교가 그대로 씁니다.',
   },
   scales: {
     tree: '소나무 한 그루가 1년 동안 흡수하는 탄소량으로 나눈 값입니다',
-    car: '승용차가 이 거리를 달릴 때 나오는 탄소와 같은 양입니다',
+    aircon: '에어컨 한 대를 이만큼 오래 켤 수 있는 전력량입니다',
     home: '4인 가구 한 집이 며칠 동안 쓸 수 있는 전력량입니다',
   },
 };
@@ -156,20 +157,20 @@ const HIGH: PaperScript = {
     },
   },
   readings: {
-    output: '지금 이 순간의 발전 출력입니다. 일사강도가 오르내리면 곧바로 따라 움직입니다',
+    output: '지금 이 순간 내고 있는 출력입니다',
     today: '오늘 0시부터 지금까지 쌓인 발전량입니다. 시간이 갈수록 늘기만 합니다',
     capacity: '설비가 한 번에 낼 수 있는 최대 출력입니다. 실시간 출력은 이 값을 넘지 않습니다',
     hours: '발전량을 설비용량으로 나눈 값입니다. 설비 크기가 다른 학교끼리 견줄 때 이 값을 씁니다',
   },
   steps: {
-    sun: '해의 높이에 따라 지붕에 닿는 일사강도가 달라집니다. 해가 높을수록 같은 빛이 좁은 면적에 모여 값이 올라갑니다.',
+    sun: '해의 높이에 따라 지붕에 닿는 일사량이 달라집니다. 해가 높을수록 같은 빛이 좁은 면적에 모여 값이 올라갑니다.',
     cell: '태양전지 하나하나를 이어 붙인 것이 모듈이고, 모듈을 줄지어 이은 것이 스트링입니다. 빛이 닿는 동안 전기가 흐릅니다.',
     inverter: '태양전지가 내는 것은 한 방향으로만 흐르는 직류입니다. 교실에서 쓰는 것은 교류라서 인버터가 바꿔 줍니다.',
     school: '바뀐 전기는 학교가 그대로 씁니다. 쓰는 곳에서 만드니 송전하며 잃는 몫이 없습니다.',
   },
   scales: {
     tree: '소나무 한 그루가 1년 동안 흡수하는 탄소량으로 나눈 값입니다',
-    car: '승용차가 이 거리를 달릴 때 배출하는 탄소와 같은 양입니다',
+    aircon: '에어컨 한 대를 이만큼 오래 가동할 수 있는 전력량입니다',
     home: '4인 가구 한 집이 며칠 동안 쓸 수 있는 전력량입니다',
   },
 };
@@ -242,7 +243,7 @@ export function paperReadings(stats: EduStats, script: PaperScript): PaperReadin
 /**
  * 고등에만 덧붙는 두 줄 (SFR-005-04).
  *
- * 같은 네 질문이라도 고등은 값을 재는 **기준**까지 읽는 눈높이다. 일사강도는 발전량이
+ * 같은 네 질문이라도 고등은 값을 재는 **기준**까지 읽는 눈높이다. 일사량는 발전량이
  * 왜 그만큼인지를 설명하는 원인이고, 이용률은 설비 크기가 다른 학교끼리 견주는 잣대다.
  * 초·중등에 두면 읽을 것이 많아지기만 하므로 여기서만 꺼낸다.
  */
@@ -250,7 +251,7 @@ export function paperExtraReadings(stats: EduStats): PaperReading[] {
   return [
     {
       id: 'irradiance',
-      term: '일사강도',
+      term: '일사량',
       amount: stats.irradianceNow,
       fractionDigits: 0,
       unit: 'W/㎡',
@@ -292,7 +293,7 @@ export function paperSteps(stats: EduStats, script: PaperScript): PaperStep[] {
   const today = scaleSi(stats.todayKwh, 'Wh');
 
   const gauges: Record<StepId, { term: string; amount: number; fractionDigits: number; unit: string }> = {
-    sun: { term: '일사강도', amount: stats.irradianceNow, fractionDigits: 0, unit: ' W/㎡' },
+    sun: { term: '일사량', amount: stats.irradianceNow, fractionDigits: 0, unit: ' W/㎡' },
     cell: { term: '설비 대비', amount: stats.loadRatio * 100, fractionDigits: 0, unit: '%' },
     inverter: { term: '실시간 출력', amount: output.amount, fractionDigits: output.fractionDigits, unit: output.unit },
     school: { term: '금일 발전량', amount: today.amount, fractionDigits: today.fractionDigits, unit: today.unit },
@@ -311,7 +312,6 @@ export function paperSteps(stats: EduStats, script: PaperScript): PaperStep[] {
 
 // ── 3장 · 저감량을 바꿔 보는 잣대 ─────────────────────────
 /** 승용차 1km 주행에서 나오는 탄소(kg). 환경부 온실가스 배출 계수 기준. */
-const CO2_PER_CAR_KM = 0.106;
 
 /** 4인 가구가 하루에 쓰는 전력량(kWh). 월 350kWh 기준. */
 const HOUSEHOLD_DAY_KWH = 350 / 30;
@@ -336,7 +336,7 @@ export const CARBON_BASIS = `전기 1kWh 를 화석연료로 만들 때 나오�
 
 /** 오늘 줄인 탄소(kg) */
 export function paperCarbonKg(stats: EduStats): number {
-  return stats.dayKwh * CO2_PER_KWH;
+  return stats.totalKwh * CO2_PER_KWH;
 }
 
 /** 지면 머리에 크게 적을 저감량 — t 으로 올라가면 단위를 바꿔 단다 */
@@ -391,6 +391,8 @@ function toScale(
 
 export function paperScales(stats: EduStats, script: PaperScript): PaperScale[] {
   const carbonKg = paperCarbonKg(stats);
+  const airconHours = scaleCount((stats.totalKwh * 1000) / AIRCON_WATT, '시간');
+  const homeDays = scaleCount(stats.totalKwh / HOUSEHOLD_DAY_KWH, '일');
 
   return [
     toScale(
@@ -402,21 +404,27 @@ export function paperScales(stats: EduStats, script: PaperScript): PaperScale[] 
       script.scales.tree,
       `소나무 한 그루가 1년에 흡수하는 ${CO2_PER_TREE_YEAR}kg 기준`,
     ),
+    /*
+      승용차 주행거리를 걷어냈다 (2026-09-04 회의).
+
+      「1,200km」 가 얼마나 되는 탄소인지는 운전을 해 본 사람에게나 잡히는 크기다. 학생이
+      날마다 만나는 물건으로 바꾸면 같은 값이 그대로 체감된다.
+    */
     toScale(
-      'car',
-      '승용차 주행',
-      carbonKg / CO2_PER_CAR_KM,
-      'km',
-      0,
-      script.scales.car,
-      `승용차 1km 주행에서 나오는 ${CO2_PER_CAR_KM}kg 기준`,
+      'aircon',
+      '에어컨 가동',
+      airconHours.amount,
+      airconHours.unit,
+      airconHours.fractionDigits,
+      script.scales.aircon,
+      `에어컨 한 대가 쓰는 ${AIRCON_WATT}W 기준`,
     ),
     toScale(
       'home',
       '4인 가구 사용',
-      stats.dayKwh / HOUSEHOLD_DAY_KWH,
-      '일',
-      1,
+      homeDays.amount,
+      homeDays.unit,
+      homeDays.fractionDigits,
       script.scales.home,
       `4인 가구가 하루에 쓰는 ${HOUSEHOLD_DAY_KWH.toFixed(1)}kWh 기준`,
     ),

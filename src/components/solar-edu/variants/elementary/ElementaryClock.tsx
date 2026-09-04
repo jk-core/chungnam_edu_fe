@@ -42,9 +42,9 @@ const LANDING = { x: SCHOOL.x + SCHOOL.w * 0.34, y: SCHOOL.y - SCHOOL.h * 0.2 - 
 
 /** 하루의 어디쯤인지 */
 const TIME_WORD = [
-  { until: 10, word: '아침', line: '해님이 이제 막 올라왔어요' },
-  { until: 15, word: '낮', line: '해님이 가장 높이 떠 있어요' },
-  { until: 24, word: '저녁', line: '해님이 내려가고 있어요' },
+  { until: 10, word: '아침', line: '햇님이 이제 막 올라왔어요' },
+  { until: 15, word: '낮', line: '햇님이 가장 높이 떠 있어요' },
+  { until: 24, word: '저녁', line: '햇님이 내려가고 있어요' },
 ];
 
 interface ElementaryClockProps {
@@ -79,7 +79,7 @@ function pointAt(angle: number) {
  * 시안 a 는 이야기를 걸음으로 나눠 차례로 보여 준다. 잘 읽히지만 기다려야 한다 —
  * 아이가 복도에서 화면 앞에 머무는 시간은 몇 초이고, 그 몇 초에 걸린 걸음 하나만 보고 지나간다.
  *
- * 이 시안은 기다리게 하지 않는다. 왼쪽에 하루 한 바퀴를 길로 그려 해님을 지금 자리에 세우고,
+ * 이 시안은 기다리게 하지 않는다. 왼쪽에 하루 한 바퀴를 길로 그려 햇님을 지금 자리에 세우고,
  * 오른쪽과 아래에 「무엇이 좋아졌나」 와 「왜 좋은가」 를 처음부터 펼쳐 둔다. 언제 와서 봐도
  * 화면이 말하려는 것 전부가 거기 있다.
  *
@@ -111,15 +111,15 @@ export function ElementaryClock({ stats, content, nowHour }: ElementaryClockProp
 
   const time = TIME_WORD.find((item) => nowHour < item.until) ?? TIME_WORD[TIME_WORD.length - 1];
   const word = isDay ? time.word : '쿨쿨';
-  const line = isDay ? time.line : '해님이 자는 동안에는 전기를 만들지 않아요';
+  const line = isDay ? time.line : '햇님이 자는 동안에는 전기를 만들지 않아요';
 
   return (
     <div className={styles.board}>
       <div className={styles.top}>
-        {/* 왼쪽 — 해님이 지금 어디 있나 */}
+        {/* 왼쪽 — 햇님이 지금 어디 있나 */}
         <section className={styles.clock}>
           <div className={styles.headRow}>
-            <p className={styles.head}>해님이 어디 있나요</p>
+            <p className={styles.head}>햇님이 어디 있나요</p>
 
             {/*
               지금 얼마나 만들고 있는지 (SFR-005-01).
@@ -133,7 +133,7 @@ export function ElementaryClock({ stats, content, nowHour }: ElementaryClockProp
               세 시안이 모두 같은 자리에 같은 모양으로 둔다.
             */}
             <p className={styles.now}>
-              지금 만드는 중
+              지금 만들고 있어요
               <strong>{formatNumber(output.amount, output.fractionDigits)}{output.unit}</strong>
             </p>
           </div>
@@ -167,12 +167,12 @@ export function ElementaryClock({ stats, content, nowHour }: ElementaryClockProp
 
               {/*
                 길 아래 우리 학교 — 이 하루가 어디의 하루인지 그림이 말한다.
-                옥상 판이 길과 부딪히지 않을 만큼만 키운다. 주인공은 해님이고 학교는 그 아래 무대다.
+                옥상 판이 길과 부딪히지 않을 만큼만 키운다. 주인공은 햇님이고 학교는 그 아래 무대다.
               */}
               <PictureSchool {...SCHOOL} lit={stats.loadRatio > 0 || !isDay} />
 
               {/*
-                해님이 하는 일.
+                햇님이 하는 일.
 
                 해가 길 위 어디쯤에 있는지만 보이고 **그것이 무엇을 하는지**는 보이지 않는 화면이었다 —
                 시계는 시각을 말할 뿐이라, 해가 지붕에 빛을 내려 주고 그 빛이 전기가 되어 교실로
@@ -197,7 +197,7 @@ export function ElementaryClock({ stats, content, nowHour }: ElementaryClockProp
               ) : null}
 
               {/*
-                해님.
+                햇님.
                 해가 진 뒤에는 길에서 내려 지평선 오른쪽 끝에 눕혀 재운다. 길 위 어딘가에 어정쩡하게
                 남겨 두면 「아직 낮인가?」 로 읽히고, 아예 지우면 화면에서 주인공이 사라진다.
               */}
@@ -228,8 +228,8 @@ export function ElementaryClock({ stats, content, nowHour }: ElementaryClockProp
                   <span className={styles.gift__name}>{gift.name}</span>
                   {/* 수는 굴려 올리지 않는다 — 무인 화면에서 첫 프레임이 늦으면 「0」 이 굳는다 */}
                   <strong className={styles.gift__value}>
-                    {formatNumber(gift.value(stats))}
-                    <span className={styles.gift__unit}>{gift.unit}</span>
+                    {formatNumber(gift.value(stats).amount, gift.value(stats).fractionDigits)}
+                    <span className={styles.gift__unit}>{gift.value(stats).unit}</span>
                   </strong>
                   <span className={styles.gift__line}>{gift.line}</span>
                 </span>
@@ -249,10 +249,7 @@ export function ElementaryClock({ stats, content, nowHour }: ElementaryClockProp
               <span className={styles.good__art}>
                 <PictureGoodArt id={good.id} />
               </span>
-              <span className={styles.good__text}>
-                <strong className={styles.good__name}>{good.name}</strong>
-                <span className={styles.good__line}>{good.line}</span>
-              </span>
+              <strong className={styles.good__name}>{good.name}</strong>
             </li>
           ))}
         </ul>

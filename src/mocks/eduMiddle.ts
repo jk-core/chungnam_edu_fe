@@ -71,7 +71,7 @@ export const MIDDLE_CONTENT: MiddleContent = {
     mainLabel: '실시간 출력',
     mainNote: (stats) =>
       `한 번에 만들 수 있는 최대치 ${capacityText(stats)} 가운데 지금 만들고 있는 양이다`,
-    statIds: ['today', 'powerTime', 'co2', 'irradiance', 'capacity'],
+    statIds: ['today', 'total', 'powerTime', 'co2', 'irradiance', 'capacity'],
     copy: {
       today: {
         note: (stats) => `4인 가구 ${formatNumber(kwhToHouseholdDays(stats.todayKwh))}집이 하루에 쓰는 양이다`,
@@ -148,7 +148,7 @@ export const MIDDLE_CONTENT: MiddleContent = {
   },
   benefit: {
     head: '그래서 무엇이 좋아지는가',
-    note: '오늘 만든 전기가 어느 정도인지 바꿔 보자',
+    note: '그동안 만든 전기가 어느 정도인지 바꿔 보자',
     caption: '여기서 만든 만큼 석탄과 가스를 덜 태운다. 그루 수는 줄어든 탄소를 소나무가 흡수하는 양으로 바꾼 값이다.',
     itemIds: ['co2', 'tree', 'household', 'led'],
     /*

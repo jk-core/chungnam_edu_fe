@@ -129,7 +129,7 @@ export function StepGlyph({ id }: { id: StepId }) {
 const CANOPY = 'M16 4.8L22.4 13.2H9.6ZM16 10L24.4 20.4H7.6Z';
 
 /** 차체. 아래 선이 차체보다 길면 바닥에 걸친 판처럼 보인다 — 폭을 차체에 맞춘다 */
-const CAR_BODY = 'M5 20.2V16.4L8.8 10.8H20.4L24.6 16.4V20.2Z';
+const AIRCON_BODY = 'M4.4 9.2h23.2a2 2 0 0 1 2 2v6.4a2 2 0 0 1-2 2H4.4a2 2 0 0 1-2-2v-6.4a2 2 0 0 1 2-2Z';
 
 /** 박공지붕과 몸채 */
 const HOUSE = 'M5.4 15L16 6.8L26.6 15V15.4H23.4V26H8.6V15.4H5.4Z';
@@ -146,15 +146,15 @@ function TreeGlyph() {
   );
 }
 
-function CarGlyph() {
+function AirconGlyph() {
   return (
-    <Glyph fill={CAR_BODY}>
+    <Glyph fill={AIRCON_BODY}>
       <>
-        <path d={CAR_BODY} />
-        <path d="M5 16.4H24.6M14.2 10.8V16.4" />
-        <circle cx="10.2" cy="21.6" r="2.8" />
-        <circle cx="21.4" cy="21.6" r="2.8" />
-        <path d="M3.4 24.4h25.2" />
+        <path d={AIRCON_BODY} />
+        {/* 앞면 통풍구 한 줄 */}
+        <path d="M5.6 16.4h20.8" />
+        {/* 나오는 바람 셋 — 같은 곡선을 나란히 두어 「분다」 가 읽힌다 */}
+        <path d="M9.2 22.4c0 2.4 2 2.8 2 5.2M16 22.4c0 2.4 2 2.8 2 5.2M22.8 22.4c0 2.4 2 2.8 2 5.2" />
       </>
     </Glyph>
   );
@@ -176,7 +176,7 @@ function HomeGlyph() {
 
 const SCALE_GLYPH: Record<ScaleId, () => ReactElement> = {
   tree: TreeGlyph,
-  car: CarGlyph,
+  aircon: AirconGlyph,
   home: HomeGlyph,
 };
 

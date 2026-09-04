@@ -1,4 +1,6 @@
 import { kwhToHouseholdDays, kwhToTrees } from '@/utils/eco';
+import { scaleCount } from '@/utils/format';
+import type { SiScale } from '@/utils/format';
 import { AIRCON_WATT } from './eduElementary';
 import type { EduStats } from './solarEdu';
 
@@ -10,10 +12,9 @@ import type { EduStats } from './solarEdu';
   한 호흡짜리 한 줄」의 묶음이다. 그래서 `EduContent` 유니온에 넣지 않고 형식을 따로 둔다.
   유니온은 눈높이를 가르지만 이쪽이 가르는 것은 눈높이가 아니라 **말하는 방식**이다.
 
-  문장은 초등 눈높이다. 이 두 판은 원래 글을 못 읽는 눈높이를 겨냥해 그려진 것이라 대본도
-  거기에 맞춰져 있었는데(「해님」, 「슝—」), 그대로 초등에 걸면 그림만 좋고 말은 유치해진다.
-  그림의 크기와 한 줄이라는 형식은 그대로 두고 문장만 한 칸 올렸다 — 사물은 제 이름으로 부르고
-  (해님 → 햇빛, 판 → 발전판), 서술은 「~해요」 대신 평서형으로 적는다.
+  문장은 초등 눈높이다. 그림의 크기와 한 줄이라는 형식은 그대로 두고 말만 이 나이에 맞춘다 —
+  물건은 아이가 부르는 이름으로(햇님, 태양전지), 서술은 「~해요」 로 적는다 (2026-09-04 회의).
+  한자말은 피한다. 「무료」 보다 「공짜」 가, 「매연」 보다 「연기」 가 먼저 읽힌다.
 
   숫자는 남긴다. 다만 단위를 물리량 그대로(kWh) 두지 않고 셀 수 있는 것으로 바꾼다 — 그루, 시간, 일.
 */
@@ -39,15 +40,15 @@ export interface PictureScene {
   하는 일은 아래 한 줄이 말한다.
 */
 const SCENES: PictureScene[] = [
-  { id: 'sun', word: '햇빛', line: '햇빛이 우리 학교 지붕을 비춘다' },
-  { id: 'panel', word: '발전판', line: '지붕에 놓인 판이 햇빛을 받아 전기를 만든다' },
-  { id: 'wire', word: '전선', line: '만들어진 전기가 전선을 타고 교실로 내려온다' },
-  { id: 'class', word: '교실', line: '교실의 불과 기기가 그 전기로 움직인다' },
+  { id: 'sun', word: '햇님', line: '햇님이 우리 학교 지붕을 비춰요' },
+  { id: 'panel', word: '태양전지', line: '지붕 위 태양전지가 햇님을 받아 전기를 만들어요' },
+  { id: 'wire', word: '전선', line: '만들어진 전기가 전선을 타고 교실로 내려와요' },
+  { id: 'class', word: '교실', line: '그 전기로 교실에 불이 켜져요' },
 ];
 
-// ── 2장. 오늘 만든 전기로 ──────────────────────────────────
+// ── 2장. 그동안 만든 전기로 ────────────────────────────────
 
-/** 오늘 만든 전기를 바꿔 세어 보는 것들 */
+/** 그동안 만든 전기를 바꿔 세어 보는 것들 */
 export type PictureGiftId = 'tree' | 'aircon' | 'house';
 
 export interface PictureGift {
@@ -55,60 +56,77 @@ export interface PictureGift {
   /** 그림의 이름 */
   name: string;
   line: string;
-  unit: string;
-  value: (stats: EduStats) => number;
+  /** 값과 단위를 함께 낸다 — 누적으로 세면 날수·시간수가 커져 단위를 올려야 한다 */
+  value: (stats: EduStats) => SiScale;
 }
 
 /*
-  셋 다 「오늘 하루」 를 기준으로 센다.
+  셋 다 「설치 이후 총계」 를 기준으로 센다 (2026-09-04 회의).
 
-  지금까지 만든 양(todayKwh)으로 세면 아침에 본 아이와 하교할 때 본 아이가 다른 수를 보는데,
-  그 차이를 이 나이는 「아까는 틀렸었나?」 로 읽는다. 하루치로 고정해 두면 오늘의 값은 오늘 내내 같다.
+  하루치로 세면 인버터가 멎거나 통신이 끊긴 날 석 장이 모두 0 이 되는데, 걸어 두는 화면에서
+  그것은 「오늘은 적었구나」 가 아니라 「고장 났구나」 로 읽힌다. 쌓인 값은 그런 날에도 남아 있고,
+  수치가 커서 아이가 세어 보고 싶어지기도 한다.
 */
 const GIFTS: PictureGift[] = [
   {
     id: 'tree',
     name: '나무',
-    line: '나무를 이만큼 심은 것과 같다',
-    unit: '그루',
-    value: (stats) => kwhToTrees(stats.dayKwh),
+    line: '그만큼 나무를 심은 것과 같아요',
+    // 그루는 그대로 센다 — 올릴 윗단위가 없고, 셀 수 있다는 것이 이 환산의 뜻이다
+    value: (stats) => ({ amount: kwhToTrees(stats.totalKwh), unit: '그루', fractionDigits: 0 }),
   },
   {
     id: 'aircon',
     name: '에어컨',
-    line: '에어컨을 이만큼 켤 수 있다',
-    unit: '시간',
-    value: (stats) => (stats.dayKwh * 1000) / AIRCON_WATT,
+    line: '에어컨을 이만큼 켤 수 있어요',
+    value: (stats) => scaleCount((stats.totalKwh * 1000) / AIRCON_WATT, '시간'),
   },
   {
     id: 'house',
-    name: '한 집',
-    line: '네 식구가 사는 집이 이만큼 쓸 수 있다',
-    unit: '일',
-    value: (stats) => kwhToHouseholdDays(stats.dayKwh),
+    name: '우리 집',
+    line: '집 한 채가 이만큼 쓸 수 있어요',
+    value: (stats) => scaleCount(kwhToHouseholdDays(stats.totalKwh), '일'),
   },
 ];
 
 // ── 3장. 태양광이 좋은 까닭 ────────────────────────────────
 
-export type PictureGoodId = 'free' | 'clean' | 'quiet' | 'roof';
+export type PictureGoodId = 'free' | 'clean' | 'quiet';
 
 export interface PictureGood {
   id: PictureGoodId;
+  /**
+   * 문장 한 마디 — 그림 곁에 이것만 두는 판이 쓴다.
+   *
+   * 「공짜」 처럼 명사만 두었다가 문장으로 바꿨다 (2026-09-04 지시) — 이 나이는 명사를 보면
+   * 그것이 무엇을 말하는지 한 번 더 생각해야 하지만, 「공짜예요」 는 그대로 따라 말하면 된다.
+   */
   name: string;
+  /**
+   * 한 단어와 그 아래 한 줄 — 자리가 넉넉한 판이 쓴다.
+   *
+   * 같은 것을 두 가지로 적어 두는 까닭은 판마다 쓸 수 있는 자리가 다르기 때문이다. 아래를
+   * 가로지르는 좁은 띠에는 문장 하나가 맞고, 화면의 사분의 일을 쓰는 칸에는 단어를 크게 세우고
+   * 까닭을 한 줄 붙이는 편이 읽힌다.
+   */
+  word: string;
   line: string;
 }
 
 /*
-  넷 가운데 셋이 「없다」 는 이야기다 — 연료를 사지 않고, 연기가 나지 않고, 소리가 나지 않는다.
-  그림에서도 셋 다 가위표를 쓴다. 기호를 섞지 않고 하나로 밀어야 그것이 규칙으로 읽히고,
-  가위표가 없는 넷째(지붕)가 그래서 눈에 걸린다.
+  셋만 둔다 (2026-09-04 회의).
+
+  「지붕」 은 뺐다 — 주차장에도 얹는 학교가 있어 말이 맞지 않는다. 남은 셋은 모두 「없다」 는
+  이야기라 결이 같고, 그림에서도 셋 다 같은 가위표를 쓴다. 기호를 섞지 않고 하나로 밀어야
+  그것이 규칙으로 읽힌다.
+
+  셋을 각자 칸에 넣지 않고 한 칸에 모은다 — 「공짜예요, 깨끗해요, 조용해요」 가 이어 읽히면
+  세 가지가 아니라 **한 가지 이야기**가 된다.
 */
 const GOODS: PictureGood[] = [
-  { id: 'free', name: '무료', line: '햇빛은 날마다 오고 값을 치르지 않는다' },
-  { id: 'clean', name: '깨끗', line: '태울 것이 없어 연기가 나지 않는다' },
-  { id: 'quiet', name: '조용', line: '돌아가는 부품이 없어 소리가 나지 않는다' },
-  { id: 'roof', name: '지붕', line: '땅을 따로 쓰지 않고 지붕 위에 놓는다' },
+  { id: 'free', name: '공짜예요', word: '공짜', line: '햇님은 날마다 그냥 와요' },
+  { id: 'clean', name: '깨끗해요', word: '깨끗', line: '까만 연기가 나지 않아요' },
+  { id: 'quiet', name: '조용해요', word: '조용', line: '시끄러운 소리가 안 나요' },
 ];
 
 /**
@@ -121,7 +139,7 @@ export interface PictureContent {
   chapters: { id: string; label: string }[];
   /** 1장 — 전기가 오는 길 */
   scenes: PictureScene[];
-  /** 2장 — 오늘 만든 전기로 무엇을 할 수 있나 */
+  /** 2장 — 그동안 만든 전기로 무엇을 할 수 있나 */
   gifts: PictureGift[];
   /** 3장 — 태양광은 왜 좋은가 */
   goods: PictureGood[];
@@ -129,8 +147,8 @@ export interface PictureContent {
 
 export const ELEMENTARY_PICTURE: PictureContent = {
   chapters: [
-    { id: 'journey', label: '전기가 오는 길' },
-    { id: 'gift', label: '오늘 만든 전기로' },
+    { id: 'journey', label: '햇님이 전기가 되기까지' },
+    { id: 'gift', label: '그동안 만든 전기로' },
     { id: 'good', label: '태양광이 좋은 까닭' },
   ],
   scenes: SCENES,

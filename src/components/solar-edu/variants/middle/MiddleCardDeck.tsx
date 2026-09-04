@@ -1,21 +1,24 @@
 import { CountUp } from '@/components/common/CountUp';
-import { EDU_CARDS } from '@/mocks/eduCards';
+import { CARD_SECTIONS, EDU_CARDS } from '@/mocks/eduCards';
 import { cn } from '@/utils/cn';
 import { useAutoPager } from '@/hooks/useAutoPager';
 import type { CardScene } from '@/mocks/eduCards';
 import type { EduStats } from '@/mocks/solarEdu';
-import { BenefitScene } from '../../scene-art/BenefitScene';
 import { DayCurve } from '../shared/DayCurve';
 import { ImpactArt } from '../../scene-art/ImpactArt';
-import { ImpactScene } from '../../scene-art/ImpactScene';
+// 좋은 점 셋을 낱개로 그린 것은 초등 그림 쪽에만 있다 — 같은 물건을 두 번 그리지 않는다
+import { PictureGoodArt } from '../elementary/art/PictureArt';
 import { JourneyScene } from '../../scene-art/JourneyScene';
 import styles from './MiddleCardDeck.module.scss';
 
 /**
- * 한 장이 머무는 시간.
- * 큰 글씨 한 줄과 설명 한 줄을 읽고도 그림을 볼 틈이 남아야 해서 넉넉히 잡는다.
+ * 한 묶음이 머무는 시간.
+ *
+ * 낱장으로 넘기던 것을 묶음 단위로 바꾸면서 한 화면에 서너 장이 함께 선다 (2026-09-04 지시).
+ * 읽을 것이 그만큼 늘었으므로 머무는 시간도 함께 늘린다 — 다 읽지 못하고 넘어가면 여러 장을
+ * 함께 세운 뜻이 없다.
  */
-const CARD_MS = 9_000;
+const SECTION_MS = 22_000;
 
 interface MiddleCardDeckProps {
   stats: EduStats;
@@ -23,7 +26,7 @@ interface MiddleCardDeckProps {
 }
 
 /**
- * 시안 C 의 초등 본문 — 한 장씩 넘겨 읽는 판 (SFR-005-01/03/05/07/08).
+ * 중등 시안 c — 묶음으로 넘겨 읽는 판 (SFR-005-01/03/05/07/08).
  *
  * 한 번에 한 장만 세운다. 왼쪽에 그림 한 장, 오른쪽에 큰 글씨. 걸어 두고 멀리서 보는 화면에서
  * 읽을 곳이 하나면 눈이 어디부터 볼지 고르지 않아도 된다 — 지나가며 보는 아이도 한 장은 읽고 간다.
@@ -35,50 +38,54 @@ interface MiddleCardDeckProps {
  * (`RoomyBoard`).
  */
 export function MiddleCardDeck({ stats, nowHour }: MiddleCardDeckProps) {
-  const deck = EDU_CARDS;
-  const pager = useAutoPager({ total: deck.length, perPage: 1, intervalMs: CARD_MS });
-  const card = deck[Math.min(pager.page, deck.length - 1)];
-  const readout = card.readout?.(stats);
+  const pager = useAutoPager({ total: CARD_SECTIONS.length, perPage: 1, intervalMs: SECTION_MS });
+  const section = CARD_SECTIONS[Math.min(pager.page, CARD_SECTIONS.length - 1)];
+  const cards = EDU_CARDS.filter((card) => card.section === section.id);
 
   return (
-    <section className={styles.deck} aria-label="한 장씩 넘겨 보는 설명">
-      <div className={styles.deck__art}>
-        <CardArt scene={card.scene} stats={stats} nowHour={nowHour} />
-      </div>
+    <section className={styles.deck} aria-label="묶음으로 넘겨 보는 설명">
+      <p className={styles.deck__head}>
+        <span className={styles.deck__section}>{section.label}</span>
+        <span className={styles.deck__count}>{pager.page + 1} / {CARD_SECTIONS.length}</span>
+      </p>
 
-      {/* 장이 넘어갈 때 글이 새로 들어오도록 `key` 를 건다 — 바뀐 것이 눈에 걸려야 다시 읽는다 */}
-      <div key={card.id} className={styles.deck__text} role="status">
-        <p className={styles.deck__count}>
-          {pager.page + 1}
-          <span> / {deck.length}</span>
-        </p>
-        <h2 className={styles.deck__title}>{card.title}</h2>
-        <p className={styles.deck__line}>{card.line}</p>
+      {/* 묶음이 넘어갈 때 통째로 새로 들어오도록 `key` 를 건다 */}
+      <ul key={section.id} className={styles.deck__list} role="status">
+        {cards.map((card) => {
+          const readout = card.readout?.(stats);
 
-        {readout ? (
-          <p className={styles.readout}>
-            <span className={styles.readout__label}>{readout.label}</span>
-            <span className={styles.readout__value}>
-              <CountUp
-                value={readout.amount}
-                fractionDigits={readout.fractionDigits}
-                startOnView={false}
-              />
-              <span className={styles.readout__unit}>{readout.unit}</span>
-            </span>
-          </p>
-        ) : null}
-      </div>
+          return (
+            <li key={card.id} className={styles.card}>
+              <span className={styles.card__art}>
+                <CardArt scene={card.scene} stats={stats} nowHour={nowHour} />
+              </span>
 
-      {/* 지금 몇 번째인지. 눌러서 원하는 장으로 바로 갈 수도 있다 */}
+              <h3 className={styles.card__title}>{card.title}</h3>
+              <p className={styles.card__line}>{card.line}</p>
+
+              {readout ? (
+                <p className={styles.readout}>
+                  <span className={styles.readout__label}>{readout.label}</span>
+                  <span className={styles.readout__value}>
+                    <CountUp value={readout.amount} fractionDigits={readout.fractionDigits} startOnView={false} />
+                    <span className={styles.readout__unit}>{readout.unit}</span>
+                  </span>
+                </p>
+              ) : null}
+            </li>
+          );
+        })}
+      </ul>
+
+      {/* 묶음 셋. 눌러서 바로 갈 수도 있다 */}
       <ol className={styles.dots}>
-        {deck.map((item, index) => (
+        {CARD_SECTIONS.map((item, index) => (
           <li key={item.id}>
             <button
               type="button"
               className={cn(styles.dot, { [styles['dot--on']]: index === pager.page })}
               onClick={() => pager.goTo(index)}
-              aria-label={item.title}
+              aria-label={item.label}
               aria-current={index === pager.page ? 'true' : undefined}
             />
           </li>
@@ -96,12 +103,40 @@ export function MiddleCardDeck({ stats, nowHour }: MiddleCardDeckProps) {
  */
 function CardArt({ scene, stats, nowHour }: { scene: CardScene; stats: EduStats; nowHour: number }) {
   if (scene.kind === 'journey') {
-    return <JourneyScene step={scene.step} nowHour={nowHour} loadRatio={stats.loadRatio} />;
+    /* 이 판은 초등 대본을 읽으므로 그림도 그 어투를 따른다 — 글은 「햇님」 인데 그림만 「햇빛」 이면 어긋난다 */
+    return (
+      <JourneyScene
+        step={scene.step}
+        nowHour={nowHour}
+        loadRatio={stats.loadRatio}
+        sunLabel="햇님"
+        focus={scene.focus}
+      />
+    );
   }
 
-  if (scene.kind === 'impact') return <ImpactScene focus={scene.focus} />;
+  /*
+    묶음으로 세우면서 그림도 낱개로 바꿨다 (2026-09-04 지시).
 
-  if (scene.kind === 'benefit') return <BenefitScene focus={scene.focus} />;
+    `ImpactScene`·`BenefitScene` 은 셋을 늘어놓고 하나만 밝히는 그림이라, 한 장씩 넘길 때는
+    「이번엔 이것」 이 보였다. 셋을 나란히 두면 같은 그림이 세 번 서서 무엇이 다른지 알 수 없다.
+    카드마다 제 물건만 그린다.
+  */
+  if (scene.kind === 'impact') {
+    return (
+      <span className={styles.icon} aria-hidden="true">
+        <ImpactArt id={scene.focus === 'gadget' ? 'aircon' : scene.focus} />
+      </span>
+    );
+  }
+
+  if (scene.kind === 'benefit') {
+    return (
+      <span className={styles.icon} aria-hidden="true">
+        <PictureGoodArt id={scene.focus} />
+      </span>
+    );
+  }
 
   if (scene.kind === 'curve') return <DayCurve stats={stats} showIrradiance />;
 

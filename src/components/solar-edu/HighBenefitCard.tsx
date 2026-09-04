@@ -47,7 +47,7 @@ export function HighBenefitCard({ stats, content }: HighBenefitCardProps) {
       <ul className={styles.benefit}>
         {content.itemIds.map((id) => {
           const item = impactOf(id, content.copy?.[id]);
-          const figure = impactFigure(item, stats.dayKwh);
+          const figure = impactFigure(item, stats.totalKwh);
 
           return (
             <li key={id} className={styles.impact}>

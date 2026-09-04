@@ -28,13 +28,13 @@
   gap: s.$space-1;
 
   &__title {
-    @include t.title-sm;
+    @include t.title-md;
 
     color: var(--text-strong);
   }
 
   &__note {
-    @include t.body-sm;
+    @include t.body-md;
 
     color: var(--text-muted);
   }

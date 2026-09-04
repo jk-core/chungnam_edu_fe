@@ -118,7 +118,7 @@
   }
 
   &__title {
-    @include t.title-lg;
+    @include t.title-xl;
 
     margin-top: 2px;
     color: var(--text-strong);
@@ -180,8 +180,14 @@
     text-align: right;
   }
 
+  /*
+    제목 아래 한 줄.
+
+    캡션 크기로 두었더니 걸어 두고 몇 걸음 떨어져서는 읽히지 않았다 (2026-09-04 지시) —
+    이 화면에는 「작은 글씨」 라는 자리가 없다. 본문 크기까지 올린다.
+  */
   &__info {
-    @include t.caption;
+    @include t.body-md;
 
     margin-top: 2px;
     color: var(--edu-text-soft, var(--text-muted));
@@ -213,6 +219,13 @@
   border-radius: s.$radius-full;
   background-color: var(--caution-soft);
   color: var(--caution-text);
+
+  /* 멎은 것은 값이 늦는 것과 무게가 다르다 — 눈에 걸리는 색으로 둔다 */
+  &--stopped {
+    border-color: var(--critical);
+    background-color: var(--critical-soft);
+    color: var(--critical-text);
+  }
 }
 
 .ticker {

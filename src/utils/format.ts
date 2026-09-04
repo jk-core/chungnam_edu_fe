@@ -20,6 +20,20 @@ export interface SiScale {
 }
 
 /**
+ * 세는 단위를 자릿수에 맞춰 올린다 — 「9,514,693일」 은 아무도 읽지 않는다.
+ *
+ * 기준을 누적으로 옮기면서 필요해졌다. `scaleSi` 가 kW·kWh 에 하는 일을 날수·시간수에 한다.
+ * 그림 판처럼 환산 레지스트리를 거치지 않고 직접 세는 자리도 이 함수를 지나야 화면마다
+ * 같은 값이 다른 단위로 적히지 않는다.
+ */
+export function scaleCount(amount: number, unit: '일' | '시간'): SiScale {
+  if (unit === '일' && amount >= 730) return { amount: amount / 365, unit: '년', fractionDigits: 0 };
+  if (unit === '시간' && amount >= 8_760) return { amount: amount / 8_760, unit: '년', fractionDigits: 0 };
+
+  return { amount, unit, fractionDigits: 0 };
+}
+
+/**
  * 킬로 단위로 들어온 값을 자릿수에 맞춰 M·G 로 끌어올린다.
  *
  * 이 시스템의 수치는 전부 kW·kWh 로 들어오는데, 도 전체를 더하면 자릿수가 커져

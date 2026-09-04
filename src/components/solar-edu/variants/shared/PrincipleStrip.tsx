@@ -25,13 +25,13 @@ const COPY: Record<EduLevel, Record<StepId, { label: string; line: string }>> = 
     school: { label: '교실', line: '불을 켜고 선풍기를 돌리는 데 써요' },
   },
   middle: {
-    sun: { label: '일사강도', line: '해가 높이 뜰수록 지붕이 받는 햇빛이 세진다' },
+    sun: { label: '일사량', line: '해가 높이 뜰수록 지붕이 받는 햇빛이 세진다' },
     cell: { label: '태양전지', line: '햇빛을 받으면 전기가 한 방향으로 흐른다' },
     inverter: { label: '인버터', line: '교실에서 쓸 수 있는 전기로 바꾼다' },
     school: { label: '학교', line: '만든 전기는 학교가 그대로 쓴다' },
   },
   high: {
-    sun: { label: '일사강도', line: '해가 높을수록 패널 1m² 가 받는 에너지가 커진다' },
+    sun: { label: '일사량', line: '해가 높을수록 패널 1m² 가 받는 에너지가 커진다' },
     cell: { label: '태양전지', line: '햇빛을 받은 전자가 한 방향으로 흘러 직류가 된다' },
     inverter: { label: '인버터', line: '한 방향으로만 흐르는 직류를 교류로 바꾼다' },
     school: { label: '학교', line: '만든 전기는 학교가 그대로 쓴다' },
@@ -60,7 +60,7 @@ interface PrincipleStripProps {
  */
 export function PrincipleStrip({ stats, level, heading }: PrincipleStripProps) {
   /*
-    모듈 전면에 들어오는 빛의 세기(kW) — 일사강도 × 모듈 면적.
+    모듈 전면에 들어오는 빛의 세기(kW) — 일사량 × 모듈 면적.
 
     모듈 면적은 계측값이 아니라 설비용량에서 어림한 값이라 화면에 수로 적지 않는다. 적어 두면
     실제로 재어 온 값처럼 읽힌다. 여기서는 다음 마디(출력)와 견주기 위한 밑값으로만 쓴다.

@@ -12,9 +12,12 @@ import type { CSSProperties } from 'react';
 
 /**
  * 걸음 하나가 머무는 시간.
- * 말풍선의 글이 다 찍히고도 읽을 틈이 남아야 해서 넉넉히 잡는다.
+ *
+ * 말풍선의 글이 다 찍히고도 읽을 틈이 남아야 해서 넉넉히 잡는다. 이 나이는 읽는 속도가 느려
+ * 넘어가는 화면을 따라가지 못한다는 지적을 받아 한 차례 더 늘렸다 (2026-09-04 회의).
+ * 글 자체도 한 호흡으로 줄였으니, 남는 시간은 그림을 보는 데 쓰인다.
  */
-const STEP_MS = 8_000;
+const STEP_MS = 12_000;
 
 /** 글자 하나가 더 찍히기까지 걸리는 시간(초) */
 const TYPE_STEP = 0.03;
@@ -71,6 +74,7 @@ export function ElementaryStage({ stats, content }: ElementaryStageProps) {
             loadRatio={stats.loadRatio}
             bubbleAt={story.at}
             bubble={bubble}
+            sunLabel="햇님"
           />
         ) : null}
 

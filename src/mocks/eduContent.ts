@@ -61,7 +61,7 @@ export function resolveEduLevel(plant: School | null, param: string | null): Edu
 
 // ── 지표 레지스트리 ────────────────────────────────────────
 
-export type StatId = 'today' | 'powerTime' | 'co2' | 'irradiance' | 'capacity';
+export type StatId = 'today' | 'total' | 'powerTime' | 'co2' | 'irradiance' | 'capacity';
 
 export interface StatDef {
   label: string;
@@ -70,7 +70,7 @@ export interface StatDef {
    * 자릿수가 커지면 단위를 올려 보일 값인지.
    *
    * 도 전체를 합치면 kW·kWh 로는 다섯 자리를 넘겨 칸 밖으로 나간다. 여기에 종류만 적어 두면
-   * 그리는 쪽이 `statFigure` 로 M·G·t 까지 올려 준다. 발전시간(시간)·일사강도(점)처럼
+   * 그리는 쪽이 `statFigure` 로 M·G·t 까지 올려 준다. 발전시간(시간)·일사량(점)처럼
    * SI 가 아닌 값은 적지 않는다.
    */
   scale?: 'W' | 'Wh' | 'carbon';
@@ -112,8 +112,26 @@ export const STAT_DEFS: Record<StatId, StatDef> = {
     fractionDigits: 0,
     note: (stats) => `4인 가구 ${formatNumber(kwhToHouseholdDays(stats.todayKwh))}가구가 하루에 쓰는 양이다`,
   },
+  /*
+    누적 발전량 (2026-09-04 회의).
+
+    금일만 보이면 인버터가 멎거나 통신이 끊긴 날 화면의 모든 값이 0 이 된다. 누적은 그런 날에도
+    남아 있고 수치가 커서 임팩트도 크다 — 그래서 환산 지표(나무·조명 따위)의 기준도 이쪽으로 옮겼다.
+  */
+  total: {
+    label: '누적 발전량',
+    value: (stats) => stats.totalKwh,
+    scale: 'Wh',
+    unit: 'kWh',
+    fractionDigits: 0,
+    note: () => '설치한 뒤로 지금까지 만든 전기를 모두 더한 양이다',
+  },
+  /*
+    「일사강도」 가 아니라 「일사량」 으로 부른다 (2026-09-04 회의).
+    과학 교과와 맞추는 이름이고, 점수 옆에 실제 수치와 단위(W/m²)를 함께 노출한다.
+  */
   irradiance: {
-    label: '일사강도',
+    label: '일사량',
     value: (stats) => (stats.irradianceNow / FULL_SUN_WM2) * 100,
     unit: '점',
     fractionDigits: 0,
@@ -182,8 +200,13 @@ export interface ImpactDef {
   label: string;
   /** 1kWh 당 환산값 */
   perKwh: number;
-  /** 자릿수가 커지면 단위를 올려 보일 값인지 — 그루·일·시간처럼 SI 가 아닌 값은 적지 않는다 */
-  scale?: 'carbon';
+  /**
+   * 자릿수가 커지면 단위를 올려 보일 값인지.
+   *
+   * 기준을 누적으로 옮기고 나서 필요해졌다 — 하루치로 「6,360일」 이던 값이 「9,514,692일」 이 되면
+   * 자릿수를 세다 읽기를 포기한다. 그루처럼 그대로 세는 편이 나은 것은 적지 않는다.
+   */
+  scale?: 'carbon' | 'days' | 'hours';
   unit: string;
   basis: string;
   fractionDigits: number;
@@ -218,6 +241,7 @@ export const IMPACT_DEFS: Record<ImpactId, ImpactDef> = {
   household: {
     label: '4인 가구 사용일수',
     perKwh: 1 / (350 / 30),
+    scale: 'days',
     unit: '일',
     basis: '4인 가구가 하루에 쓰는 11.7kWh 기준',
     fractionDigits: 1,
@@ -226,6 +250,7 @@ export const IMPACT_DEFS: Record<ImpactId, ImpactDef> = {
   led: {
     label: '교실 조명 점등 시간',
     perKwh: 25,
+    scale: 'hours',
     unit: '시간',
     basis: '40W 조명 기준',
     fractionDigits: 0,
@@ -241,16 +266,23 @@ export interface ImpactCopy {
 
 /**
  * 환산 카드 한 장에 실제로 그릴 숫자와 단위.
+ *
+ * 기준은 **누적 발전량**이다 (2026-09-04 회의). 금일로 세면 인버터가 멎은 날 넉 장이 모두 0 이
+ * 되는데, 걸어 두는 화면에서 그것은 「오늘 아무것도 못 했다」 가 아니라 「고장 났다」 로 읽힌다.
  * 탄소는 도 전체를 합치면 t 이 되므로 「kg CO₂」 의 앞머리만 갈아 끼운다.
  */
-export function impactFigure(def: ImpactDef, dayKwh: number): SiScale {
-  const raw = dayKwh * def.perKwh;
+export function impactFigure(def: ImpactDef, kwh: number): SiScale {
+  const raw = kwh * def.perKwh;
 
   if (def.scale === 'carbon') {
     const scaled = scaleCarbon(raw);
 
     return { ...scaled, unit: `${scaled.unit} CO₂` };
   }
+
+  // 두 해를 넘기면 날수보다 햇수가 빨리 읽힌다
+  if (def.scale === 'days' && raw >= 730) return { amount: raw / 365, unit: '년', fractionDigits: 0 };
+  if (def.scale === 'hours' && raw >= 8_760) return { amount: raw / 8_760, unit: '년', fractionDigits: 0 };
 
   return { amount: raw, unit: def.unit, fractionDigits: def.fractionDigits };
 }
@@ -409,7 +441,7 @@ export const HIGH_CONTENT: HighContent = {
     mainLabel: '실시간 출력',
     mainNote: (stats) =>
       `한 번에 만들 수 있는 최대치 ${capacityText(stats)} 가운데 지금 내고 있는 만큼이다`,
-    statIds: ['today', 'powerTime', 'co2', 'irradiance', 'capacity'],
+    statIds: ['today', 'total', 'powerTime', 'co2', 'irradiance', 'capacity'],
     // 기본 문구가 이미 서술체이자 표준 용어라 덮어쓸 것이 없다.
   },
   sunPath: {
@@ -449,8 +481,8 @@ export const HIGH_CONTENT: HighContent = {
     head: '환산해 본 의미',
     // 대상 이름의 받침에 따라 조사가 달라지지 않도록 "에서" 로 받는다
     note: (scopeLabel, stats) =>
-      `${scopeLabel}에서 오늘 만든 ${energyText(stats.dayKwh)} 가 얼마나 되는 양인지 익숙한 것으로 바꿔 보면 이렇다`,
-    caption: '해가 오래 떠 있던 날일수록 이 값들도 함께 커진다',
+      `${scopeLabel}에서 그동안 만든 ${energyText(stats.totalKwh)} 가 얼마나 되는 양인지 익숙한 것으로 바꿔 보면 이렇다`,
+    caption: '설치한 뒤로 쌓인 값이라 날마다 조금씩 늘어난다',
     // 가운데 열을 AI 판단에 내주면서 이 칸이 좁아졌다 — 넉 장은 눌려 읽히지 않아 석 장으로 줄인다.
     itemIds: ['co2', 'tree', 'led'],
     /*
@@ -471,7 +503,7 @@ export const HIGH_CONTENT: HighContent = {
     note: '지붕에서 교실까지, 네 단계가 한 줄로 이어진다',
   },
   stage: {
-    head: '햇빛이 전기가 되기까지, 자리마다 무슨 일이 일어나는가',
+    head: '햇빛이 전기가 되기까지',
     note: '태양전지에서 학교까지, 전기가 만들어져 흘러가는 네 곳을 차례로 본다',
     spots: {
       cell:
@@ -481,9 +513,8 @@ export const HIGH_CONTENT: HighContent = {
       module:
         '태양전지 여러 장을 한 판으로 묶은 것이 모듈이고, 모듈을 한 줄로 이어 놓은 것이 스트링이다. '
         + '한 줄로 이어져 있어서 그중 한 장만 그늘이 져도 그 줄 전체가 함께 힘을 잃는다.',
-      inverter:
-        '지붕에서 만든 전기는 한 방향으로만 흐른다. 교실 콘센트에 오는 전기는 방향이 계속 바뀐다. '
-        + '둘이 서로 달라 그대로는 쓸 수 없어서, 인버터가 학교에서 쓸 수 있는 형태로 바꿔 보낸다.',
+      // 직류와 교류가 어떻게 다른지까지 풀면 이 자리만 세 문장이 된다. 하는 일 한 줄로 족하다.
+      inverter: '지붕에서 만든 전기를 인버터가 교실 콘센트에서 쓸 수 있는 형태로 바꾼다.',
       grid:
         '바뀐 전기는 학교가 그대로 쓴다. 쓰는 곳에서 바로 만드니 멀리 보내며 잃는 전기가 없고, '
         + '그만큼 밖에서 사 오는 전기가 줄어든다.',

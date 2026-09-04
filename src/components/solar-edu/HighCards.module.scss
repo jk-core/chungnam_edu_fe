@@ -57,7 +57,7 @@
   box-shadow: var(--shadow-sm);
 
   &__head {
-    @include t.title-sm;
+    @include t.title-md;
 
     display: flex;
     flex-direction: column;
@@ -66,8 +66,9 @@
     color: var(--text-strong);
   }
 
+  /* 카드 이름 아래 한 줄 — 캡션으로 두면 걸어 두고 몇 걸음 떨어져서는 읽히지 않는다 */
   &__note {
-    @include t.caption;
+    @include t.body-md;
 
     color: var(--text-muted);
   }

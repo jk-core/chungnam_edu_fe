@@ -54,7 +54,7 @@
   &__term {
     @include t.eyebrow;
 
-    color: var(--text-faint);
+    color: var(--text-muted);
   }
 
   &__figure {
@@ -77,14 +77,14 @@
   &__note {
     @include t.body-lg;
 
-    color: var(--text-muted);
+    color: var(--text);
   }
 
   /* 고등만 — 이 값이 어떻게 나왔는지 */
   &__basis {
     @include t.caption;
 
-    color: var(--text-faint);
+    color: var(--text-muted);
   }
 }
 
@@ -135,7 +135,7 @@
   &__term {
     @include t.label-md;
 
-    color: var(--text-faint);
+    color: var(--text-muted);
   }
 
   &__figure {
@@ -193,7 +193,7 @@
     @include t.caption;
 
     justify-self: end;
-    color: var(--text-faint);
+    color: var(--text-muted);
     font-family: var(--font-data);
   }
 
@@ -213,7 +213,7 @@
     @include t.caption;
 
     grid-column: 1 / -1;
-    color: var(--text-faint);
+    color: var(--text-muted);
   }
 }
 

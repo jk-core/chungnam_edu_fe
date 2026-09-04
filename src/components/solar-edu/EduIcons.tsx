@@ -113,7 +113,7 @@ export const RatioIcon = (props: IconProps) => (
   </Base>
 );
 
-/** 일사강도 — 해에서 내리꽂히는 빛 */
+/** 일사량 — 해에서 내리꽂히는 빛 */
 export const IrradianceIcon = (props: IconProps) => (
   <Base {...props}>
     <circle cx="12" cy="6.2" r="3.6" />

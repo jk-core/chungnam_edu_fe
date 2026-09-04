@@ -21,7 +21,7 @@ const energyText = (kwh: number) => {
 
   운영용 진단(`llmDiagnosis.ts`)은 인버터·스트링 단위로 고장코드를 짚는다. 그 화면을 그대로 줄여 놓으면
   학생에게는 읽을 수 없는 표가 된다. 여기서는 같은 4단계 골격만 빌려 오고, 판단의 재료를 학생이 이미 보고 있는
-  값(금일 발전량·기대 발전량·일사강도)으로 바꿨다. 화면 왼쪽 곡선에 있는 숫자가 그대로 소견에 나와야
+  값(금일 발전량·기대 발전량·일사량)으로 바꿨다. 화면 왼쪽 곡선에 있는 숫자가 그대로 소견에 나와야
   "AI 가 저 그래프를 보고 말하는구나" 가 읽힌다.
 
   그래서 이 파일의 모든 함수는 화면이 이미 만들어 둔 `EduStats` 를 **받아서** 파생시킨다. 여기서 다시 계산하면
@@ -160,7 +160,7 @@ export function buildEduLogs(stats: EduStats): EduScanLog[] {
   return [
     { id: 'load', text: `계측 채널 연결 · 발전량 ${stats.hourly.length}칸, 일사 ${stats.irradianceSeries.length}칸` },
     { id: 'gap', text: '결측값 0건 · 범위를 벗어난 값 0건' },
-    { id: 'sun', text: `일조 시간 ${daylight}시간 · 현재 일사강도 ${formatNumber(stats.irradianceNow)}W/m²` },
+    { id: 'sun', text: `일조 시간 ${daylight}시간 · 현재 일사량 ${formatNumber(stats.irradianceNow)}W/m²` },
     { id: 'corr', text: `햇빛–발전량 상관 ${formatNumber(correlation, 2)} · 두 값이 같은 모양으로 움직였다` },
     { id: 'model', text: `기대 발전량 모델 적용 · ${energyText(stats.expectedKwh)}` },
   ];
@@ -266,7 +266,7 @@ export function buildEduInsight(stats: EduStats, scopeLabel: string): EduInsight
   const lines = [
     `${scopeLabel}의 금일 발전량은 ${energyText(stats.dayKwh)} 이다. `
     + `동일 일사 조건의 기대 발전량 ${energyText(stats.expectedKwh)} 대비 ${formatPercent(achieved)} 수준이다.`,
-    `현재 일사강도는 ${formatNumber(stats.irradianceNow)}W/m² 로 ${score}점이다. `
+    `현재 일사량는 ${formatNumber(stats.irradianceNow)}W/m² 로 ${score}점이다. `
     + '기대 발전량이 날씨를 이미 반영한 값이므로, 흐린 날이라고 해서 이 비율이 낮아지지는 않는다.',
     `설비용량으로 나누면 ${formatNumber(stats.equivalentHours, 1)}시간이고, `
     + `하루 내내 최대 출력으로 돌렸을 경우와 비교하면 ${formatPercent(stats.capacityFactor)} 수준이다.`,

@@ -117,7 +117,7 @@
   &__no {
     @include t.eyebrow;
 
-    color: var(--text-faint);
+    color: var(--text-muted);
     font-family: var(--font-data);
   }
 
@@ -147,7 +147,7 @@
   &__body {
     @include t.body-md;
 
-    color: var(--text-muted);
+    color: var(--text);
 
     [data-level="high"] & {
       @include t.body-sm;
@@ -164,7 +164,7 @@
   &__term {
     @include t.eyebrow;
 
-    color: var(--text-faint);
+    color: var(--text-muted);
   }
 
   &__value {

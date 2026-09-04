@@ -103,7 +103,7 @@ export function JourneyOverviewArt({ stats, focus }: JourneyOverviewArtProps) {
           DC
         </text>
         {/* 배지는 케이블·설비를 가리지 않는 빈자리에 둔다 */}
-        <Badge x={120} y={116} tone="solar" title="일사강도" value={`${formatNumber(stats.irradianceNow)} W/m²`} />
+        <Badge x={120} y={116} tone="solar" title="일사량" value={`${formatNumber(stats.irradianceNow)} W/m²`} />
       </g>
 
       {/* ── 3. 인버터 두 대 ─────────────────────────────── */}

@@ -1,6 +1,14 @@
 @use "@/styles/utils/media" as media;
 
 /*
+  배경은 글 뒤에 있어야지 글과 다투면 안 된다 (2026-09-04 회의).
+
+  빛기둥과 구름이 지면 위를 지날 때 설명 글자가 묻힌다는 지적을 받아 전체를 한 겹 더 물렸다 —
+  움직임은 그대로 두고 짙기만 낮춘다. 배경이 하는 일은 「지금이 낮이다」 를 알리는 것이지
+  눈길을 끄는 것이 아니다.
+*/
+
+/*
   지면 뒤에 깔리는 하늘.
 
   여러 겹을 쌓아 깊이를 만든다 — 뒤로 갈수록 옅고 느리게 움직인다.
@@ -124,7 +132,7 @@
   left: 0;
   width: 100%;
   height: 34vh;
-  opacity: 0.7;
+  opacity: 0.42;
 
   path {
     fill: var(--surface);
@@ -139,21 +147,21 @@
   &[data-cloud="1"] {
     transform: translate(-140px, 26px) scale(1.5);
     animation-duration: 150s;
-    opacity: 0.85;
+    opacity: 0.5;
   }
 
   &[data-cloud="2"] {
     transform: translate(-140px, 96px) scale(0.95);
     animation-duration: 220s;
     animation-delay: -60s;
-    opacity: 0.6;
+    opacity: 0.36;
   }
 
   &[data-cloud="3"] {
     transform: translate(-140px, 6px) scale(0.7);
     animation-duration: 300s;
     animation-delay: -170s;
-    opacity: 0.45;
+    opacity: 0.28;
   }
 
   @include media.reduced-motion {
@@ -199,7 +207,7 @@
 
   [data-level="high"] & {
     height: 19vh;
-    opacity: 0.7;
+    opacity: 0.42;
   }
 
   &__far {
@@ -221,7 +229,7 @@
 @keyframes sun-breathe {
   from {
     transform: scale(0.94);
-    opacity: 0.82;
+    opacity: 0.5;
   }
 
   to {

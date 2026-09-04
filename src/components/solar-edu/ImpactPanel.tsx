@@ -21,7 +21,7 @@ interface ImpactPanelProps {
  * 나무는 발전량에 따라 자란다 — 수치가 바뀌면 그림도 함께 바뀌는 자리다.
  */
 export function ImpactPanel({ scopeLabel, stats, content }: ImpactPanelProps) {
-  const trees = kwhToTrees(stats.dayKwh);
+  const trees = kwhToTrees(stats.totalKwh);
   const stage = growthStage(stats.equivalentHours / FULL_GROWTH_HOURS);
 
   return (
@@ -40,7 +40,7 @@ export function ImpactPanel({ scopeLabel, stats, content }: ImpactPanelProps) {
         <div className={styles.impact__grid}>
           {content.itemIds.map((id) => {
             const item = impactOf(id, content.copy?.[id]);
-            const figure = impactFigure(item, stats.dayKwh);
+            const figure = impactFigure(item, stats.totalKwh);
 
             return (
               <div key={id} className={styles.impactCard}>

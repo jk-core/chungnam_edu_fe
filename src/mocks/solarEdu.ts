@@ -27,6 +27,22 @@ export const MODULE_SPEC = {
  */
 export const FULL_SUN_WM2 = 1000;
 
+/**
+ * 설치 이후 총계를 셈하는 기준 (목업).
+ *
+ * 발전소마다 준공일이 다르지만 목업에는 그 날짜가 없다. 설비용량에 연간 등가 가동시간과 햇수를
+ * 곱해 쌓아 두면 조회 대상이 학교든 도 전체든 같은 규칙으로 늘어난다 — 실제 연동이 붙으면
+ * 이 두 상수 대신 서버가 낸 누적값을 그대로 받는다.
+ */
+const YEARLY_FULL_HOURS = 1_314;
+const YEARS_RUNNING = 4.5;
+
+/**
+ * 해가 떠 있다고 볼 최소 일사량(W/m²).
+ * 새벽·해질녘의 희미한 빛까지 「발전해야 할 시간」 으로 세면 하루 두 번 멎었다고 알리게 된다.
+ */
+const DAYLIGHT_WM2 = 80;
+
 /** 교육용 화면이 쓰는 계산값 한 벌 */
 export interface EduStats {
   /** 지금 출력(kW) */
@@ -38,6 +54,8 @@ export interface EduStats {
   todayKwh: number;
   /** 오늘 하루 전체 예상 발전량(kWh) */
   dayKwh: number;
+  /** 설치 이후 지금까지 만든 총 발전량(kWh) */
+  totalKwh: number;
   /** 지금 출력 ÷ 설비용량 */
   loadRatio: number;
   /** 지금 일사강도(W/m²) */
@@ -56,6 +74,14 @@ export interface EduStats {
   nowHour: number;
   /** 계측값이 들어오고 있는지 */
   isLive: boolean;
+  /**
+   * 완전히 멎었는지 — 해는 떠 있는데 출력이 0 인 상태 (SFR-005-10).
+   *
+   * 임계값으로 고장을 가리지는 않는다. 시군마다 센서 편차가 커서 정확도가 나오지 않고, 임계를
+   * 낮추면 상시 걸린다 (2026-09-04 회의). 「일사는 있는데 아무것도 만들지 못하고 있다」 는
+   * 한 가지만 짚는다 — 이건 센서 편차와 무관하게 확실하다.
+   */
+  isStopped: boolean;
 }
 
 /**
@@ -79,15 +105,18 @@ export function buildEduStats(node: ScopeNode, nowHour: number = NOW_HOUR): EduS
   const hourIndex = Math.min(23, Math.max(0, Math.floor(nowHour)));
   const capacityKw = node.capacityKw;
   const dayKwh = stat.generationKwh;
+  const irradianceNow = Math.round(irradianceSeries[hourIndex] ?? 0);
+  const outputKw = live ? Math.round((stat.hourly[hourIndex] ?? 0) * 10) / 10 : 0;
 
   return {
-    outputKw: live ? Math.round((stat.hourly[hourIndex] ?? 0) * 10) / 10 : 0,
+    outputKw,
     capacityKw,
     moduleArea: Math.round(capacityKw * MODULE_SPEC.areaPerKw),
     todayKwh: Math.round(sumTo(stat.hourly)),
     dayKwh: Math.round(dayKwh),
+    totalKwh: Math.round(capacityKw * YEARLY_FULL_HOURS * YEARS_RUNNING),
     loadRatio: capacityKw > 0 && live ? (stat.hourly[hourIndex] ?? 0) / capacityKw : 0,
-    irradianceNow: Math.round(irradianceSeries[hourIndex] ?? 0),
+    irradianceNow,
     equivalentHours: capacityKw > 0 ? dayKwh / capacityKw : 0,
     capacityFactor: capacityKw > 0 ? dayKwh / (capacityKw * 24) : 0,
     expectedKwh: Math.round(stat.expectedKwh),
@@ -95,6 +124,7 @@ export function buildEduStats(node: ScopeNode, nowHour: number = NOW_HOUR): EduS
     irradianceSeries,
     nowHour,
     isLive: live,
+    isStopped: irradianceNow >= DAYLIGHT_WM2 && outputKw === 0,
   };
 }
 

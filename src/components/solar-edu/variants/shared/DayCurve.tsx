@@ -18,7 +18,7 @@ const MIN_HEIGHT = 140;
 
 interface DayCurveProps {
   stats: EduStats;
-  /** 일사강도 점선을 함께 그릴지 */
+  /** 일사량 점선을 함께 그릴지 */
   showIrradiance?: boolean;
   /** 지금 이 순간을 짚는 세로선을 세울지 */
   showNow?: boolean;
@@ -67,7 +67,7 @@ export function DayCurve({ stats, showIrradiance = false, showNow = true }: DayC
       borderWidth: 1,
       textStyle: { color: palette.text, fontSize: 12, fontFamily: 'Pretendard Variable, sans-serif' },
     },
-    legend: showIrradiance ? topLegend(palette, ['발전량', '일사강도']) : { show: false },
+    legend: showIrradiance ? topLegend(palette, ['발전량', '일사량']) : { show: false },
     xAxis: {
       type: 'category',
       boundaryGap: false,
@@ -76,7 +76,7 @@ export function DayCurve({ stats, showIrradiance = false, showNow = true }: DayC
       axisTick: { show: false },
       axisLabel: { color: palette.axis, interval: 2, ...AXIS_FONT },
     },
-    // 일사강도를 끄면 보조축도 함께 지운다 — 남겨 두면 series 의 yAxisIndex 가 빈 축을 가리킨다.
+    // 일사량을 끄면 보조축도 함께 지운다 — 남겨 두면 series 의 yAxisIndex 가 빈 축을 가리킨다.
     yAxis: showIrradiance
       ? [{ type: 'value', show: false }, { type: 'value', show: false }]
       : [{ type: 'value', show: false }],
@@ -117,7 +117,7 @@ export function DayCurve({ stats, showIrradiance = false, showNow = true }: DayC
       },
       ...(showIrradiance
         ? [{
-          name: '일사강도',
+          name: '일사량',
           type: 'line' as const,
           yAxisIndex: 1,
           smooth: true,

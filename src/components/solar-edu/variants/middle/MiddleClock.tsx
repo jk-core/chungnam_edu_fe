@@ -1,8 +1,7 @@
 import { SUNRISE_HOUR, SUNSET_HOUR } from '@/mocks/generation';
 import { AIRCON_WATT } from '@/mocks/eduElementary';
 import { kwhToHouseholdDays, kwhToTrees } from '@/utils/eco';
-import { formatCapacity, formatEnergy, formatNumber } from '@/utils/format';
-import type { ElementaryContent } from '@/mocks/eduContent';
+import { formatCapacity, formatEnergy, formatNumber, scaleCount } from '@/utils/format';
 import type { EduStats } from '@/mocks/solarEdu';
 import { CastShadow, SceneDefs } from '../../scene-art/SceneDefs';
 import { Conifer, Sun, Window } from '../../scene-art/SceneParts';
@@ -87,9 +86,15 @@ const HEIGHT_LESSON = [
   },
 ];
 
+/*
+  대본을 받지 않는다.
+
+  이 판의 글은 카드 넷과 시계 곁 한 줄이 전부이고, 그 넷은 화면이 골라 세운 것이라 대본에 없다.
+  받아 두기만 하고 쓰지 않으면 「이 판이 초등 대본을 읽는다」 는 거짓 신호가 남는다 —
+  껍데기(머리줄 띠)가 무슨 대본을 읽는지는 `EDU_CELLS` 가 따로 정한다.
+*/
 interface MiddleClockProps {
   stats: EduStats;
-  content: ElementaryContent;
   nowHour: number;
 }
 
@@ -126,7 +131,7 @@ function describeArc(radius: number, from: number, to: number): string {
  * 사실 자체가 배움이 된다 — 아침에는 막대가 왼쪽에만 있고 하교할 때는 오른쪽까지 차 있다.
  * 넘어가는 것을 기다릴 필요 없이, 언제 봐도 "지금 여기" 가 해의 자리로 바로 읽힌다.
  */
-export function MiddleClock({ stats, content, nowHour }: MiddleClockProps) {
+export function MiddleClock({ stats, nowHour }: MiddleClockProps) {
   const sun = angleOf(nowHour);
   const sunAt = pointAt(sun, TRACK);
   const isDay = nowHour > SUNRISE_HOUR && nowHour < SUNSET_HOUR;
@@ -138,6 +143,13 @@ export function MiddleClock({ stats, content, nowHour }: MiddleClockProps) {
   // 도 전체를 합치면 kW·kWh 로는 시계 한가운데와 카드를 넘는다 — 자릿수에 맞춰 올린다
   const today = formatEnergy(stats.todayKwh);
   const output = formatCapacity(stats.outputKw);
+
+  /*
+    누적으로 세면 날수·시간수가 일곱 자리를 넘긴다 — 「9,514,693일」 은 읽히지 않을뿐더러
+    글이 길어져 카드가 칸을 넘겨 아래 띠와 겹쳤다. 자릿수에 맞춰 햇수로 올린다.
+  */
+  const homeSpan = scaleCount(kwhToHouseholdDays(stats.totalKwh), '일');
+  const airconSpan = scaleCount((stats.totalKwh * 1000) / AIRCON_WATT, '시간');
 
   return (
     <div className={styles.board}>
@@ -306,10 +318,10 @@ export function MiddleClock({ stats, content, nowHour }: MiddleClockProps) {
       {/* 오른쪽 — 그 시계가 뜻하는 것 */}
       <div className={styles.side}>
         <Card
-          label="우리 학교가 전기를 이만큼 만드는 중이에요"
+          label="지금 만들고 있어요"
           value={output.value}
           unit={output.unit}
-          note={`천장 에어컨 ${formatNumber((stats.outputKw * 1000) / AIRCON_WATT)}대를 켤 수 있어요`}
+          note={`에어컨 ${formatNumber((stats.outputKw * 1000) / AIRCON_WATT)}대를 켤 힘이에요`}
           tone="solar"
           art={<SunArt />}
         />
@@ -317,28 +329,33 @@ export function MiddleClock({ stats, content, nowHour }: MiddleClockProps) {
           label="발전시간"
           value={formatNumber(stats.equivalentHours, 1)}
           unit="시간"
-          note="해가 가장 셀 때만 골라서 발전했다면 이만큼 걸렸을 시간이에요"
+          note="가장 센 힘으로만 만들었다면 걸린 시간이에요"
           tone="brand"
           art={<CupArt ratio={Math.min(1, stats.equivalentHours / 8)} />}
         />
         <Card
           label="소나무를 심은 효과"
-          value={formatNumber(kwhToTrees(stats.dayKwh))}
+          value={formatNumber(kwhToTrees(stats.totalKwh))}
           unit="그루"
           note="탄소가 그만큼 줄었어요"
           tone="ok"
           art={<TreeArt />}
         />
         <Card
-          label="4인 가족이 쓸 수 있는 날"
-          value={formatNumber(kwhToHouseholdDays(stats.dayKwh))}
-          unit="일"
-          note={`에어컨이라면 ${formatNumber((stats.dayKwh * 1000) / AIRCON_WATT)}시간이에요`}
+          label="4인 가족이 쓸 수 있는 기간"
+          value={formatNumber(homeSpan.amount, homeSpan.fractionDigits)}
+          unit={homeSpan.unit}
+          note={`에어컨이라면 ${formatNumber(airconSpan.amount, airconSpan.fractionDigits)}${airconSpan.unit}이에요`}
           tone="brand"
           art={<HouseArt />}
         />
 
-        <p className={styles.caption}>{content.headline.mainNote(stats)}</p>
+        {/*
+          맨 아래 한 줄을 걷었다 (2026-09-04 지시).
+
+          「한 번에 만들 수 있는 양 가운데 지금 이만큼」 은 맨 위 카드가 이미 하는 말이고,
+          그 한 줄이 자리를 먹는 바람에 카드 넷이 눌려 설명이 잘렸다.
+        */}
       </div>
 
       {/*

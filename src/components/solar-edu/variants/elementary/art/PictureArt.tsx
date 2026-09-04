@@ -9,8 +9,8 @@ import type { CSSProperties, ReactNode } from 'react';
   면을 여러 겹 갈라 두께를 만드는데, 멀리서 보는 이 화면에서는 그 겹이 뭉개져 회색 덩어리가 된다.
   여기서는 반대로 간다 — 면을 하나로 두고, 선을 굵게 하고, 모서리를 둥글게 만다.
 
-  해님에게는 얼굴을 준다. 이 나이가 화면에서 가장 먼저 찾는 것이 얼굴이고, 얼굴이 있으면
-  그것이 이야기의 주인공이 된다. 글로 "해님이 전기를 만들어요" 라고 적는 대신, 얼굴 있는 해님이
+  햇님에게는 얼굴을 준다. 이 나이가 화면에서 가장 먼저 찾는 것이 얼굴이고, 얼굴이 있으면
+  그것이 이야기의 주인공이 된다. 글로 "햇님이 전기를 만들어요" 라고 적는 대신, 얼굴 있는 햇님이
   판을 내려다보게 두면 같은 말이 그림만으로 선다.
 
   색은 기존 토큰만 쓴다. 이 판만 색을 새로 들이면 같은 학교의 화면 셋이 서로 다른 곳처럼 보인다.
@@ -20,7 +20,7 @@ import type { CSSProperties, ReactNode } from 'react';
 const STROKE = 5;
 
 /**
- * 얼굴이 있는 해님.
+ * 얼굴이 있는 햇님.
  *
  * 빛살은 천천히 돌고 몸은 위아래로 통통 뜬다. 두 움직임의 주기를 서로 나누어떨어지지 않게 두어,
  * 오래 보고 있어도 같은 자리로 돌아오는 순간이 눈에 띄지 않는다.
@@ -418,7 +418,7 @@ export function PictureGiftArt({ id }: { id: 'tree' | 'aircon' | 'house' }) {
  * 넷 가운데 셋이 「없다」 는 이야기라 셋 다 가위표를 쓴다. 기호를 하나로 밀어야 이 나이가 그것을
  * 규칙으로 읽고, 가위표가 없는 넷째(지붕)가 그래서 눈에 걸린다.
  */
-export function PictureGoodArt({ id }: { id: 'free' | 'clean' | 'quiet' | 'roof' }) {
+export function PictureGoodArt({ id }: { id: 'free' | 'clean' | 'quiet' }) {
   if (id === 'free') {
     return (
       <svg viewBox={`0 0 ${BOX} ${BOX}`} fill="none" role="presentation">
@@ -427,7 +427,7 @@ export function PictureGoodArt({ id }: { id: 'free' | 'clean' | 'quiet' | 'roof'
 
         {/*
           쌓아 둔 동전.
-          해님도 노란 원이라 한 개만 두면 헷갈린다 — 셋을 포개 두면 두께가 생겨 「돈」 이 된다.
+          햇님도 노란 원이라 한 개만 두면 헷갈린다 — 셋을 포개 두면 두께가 생겨 「돈」 이 된다.
         */}
         {[92, 74, 56].map((cy) => (
           <g key={cy}>

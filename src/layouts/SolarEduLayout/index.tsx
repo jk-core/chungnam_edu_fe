@@ -36,6 +36,8 @@ interface SolarEduLayoutProps {
   weather: WeatherKind;
   /** 계측값이 들어오고 있는지 (SFR-005-10) */
   isLive: boolean;
+  /** 완전히 멎었을 때 띄울 한 줄. 없으면 멎지 않은 것으로 본다 */
+  stoppedNote?: string;
   clock: string;
   date: string;
   /** 위쪽에 고정으로 붙는 지금 이 순간의 수치 */
@@ -69,6 +71,7 @@ export function SolarEduLayout({
   backdrop,
   weather,
   isLive,
+  stoppedNote,
   clock,
   date,
   headline,
@@ -135,7 +138,16 @@ export function SolarEduLayout({
           </div>
         </div>
 
-        {!isLive ? (
+        {/*
+          멎었거나 끊겼을 때 (SFR-005-10).
+
+          임계값으로 고장을 가리지는 않는다 — 시군마다 센서 편차가 커서 상시 걸린다 (2026-09-04 회의).
+          「해는 떠 있는데 아무것도 만들지 못하고 있다」 는 한 가지만 짚고, 그 문구는 눈높이를 아는
+          화면 쪽이 정해 넘긴다.
+        */}
+        {stoppedNote ? (
+          <p className={cn(styles.offline, styles['offline--stopped'])} role="status">{stoppedNote}</p>
+        ) : !isLive ? (
           <p className={styles.offline} role="status">
             지금 값이 들어오지 않아, 마지막으로 받은 값을 그대로 보여 주고 있어요.
           </p>

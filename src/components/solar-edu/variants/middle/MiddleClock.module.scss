@@ -200,10 +200,17 @@
 }
 
 // ── 오른쪽 ─────────────────────────────────────────────────
+
+/*
+  오른쪽 숫자 칸.
+
+  카드 넷이 칸 높이를 거의 꽉 채운다 — 사이를 넓게 두면 그만큼 카드가 눌려 설명 줄이 잘린다.
+  여백보다 글이 먼저다.
+*/
 .side {
   display: flex;
   flex-direction: column;
-  gap: s.$space-3;
+  gap: s.$space-2;
   min-height: 0;
 }
 
@@ -213,6 +220,9 @@
   align-items: center;
   gap: s.$space-3;
   flex: 1;
+
+  /* 없으면 칸이 모자랄 때 줄어들지 못하고 넘쳐 아래 띠와 겹친다 */
+  min-height: 0;
   padding: s.$space-3;
   border: 1px solid var(--border-subtle);
   border-radius: s.$radius-lg;

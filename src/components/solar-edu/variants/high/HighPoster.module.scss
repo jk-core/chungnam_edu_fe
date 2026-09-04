@@ -63,7 +63,7 @@
     grid-area: title;
 
     /* 걸어 두고 멀리서 보는 화면이라 판 이름이 본문에 묻히면 안 된다 */
-    @include t.title-md;
+    @include t.title-lg;
 
     color: var(--text-strong);
   }

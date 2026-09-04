@@ -1,4 +1,5 @@
 import type { ImpactArtId } from '@/components/solar-edu/scene-art/ImpactArt';
+import type { JourneyFocus } from '@/components/solar-edu/scene-art/JourneyScene';
 import { ELEMENTARY_CONTENT } from './eduElementary';
 import type { BenefitArt, ImpactItemId, SceneReadout } from './eduElementary';
 import type { EduStats } from './solarEdu';
@@ -16,8 +17,13 @@ import type { EduStats } from './solarEdu';
 
 /** 카드 한 장에 세우는 그림 */
 export type CardScene =
-  /** 햇빛에서 교실까지 이어지는 한 장 — `step` 까지의 그림이 남는다 */
-  | { kind: 'journey'; step: number }
+  /**
+   * 햇빛에서 교실까지 이어지는 한 장.
+   *
+   * `step` 까지의 그림이 남는다. `focus` 를 주면 장면 전체가 아니라 그 걸음의 물건 둘레만
+   * 잘라 보인다 — 넉 장을 나란히 세우는 판에서는 통짜 장면이 넉 장 모두 같은 그림이 된다.
+   */
+  | { kind: 'journey'; step: number; focus: JourneyFocus }
   /** 오늘 만든 전기로 무엇을 할 수 있나 — 셋 가운데 하나가 또렷해진다 */
   | { kind: 'impact'; focus: ImpactItemId }
   /** 태양광의 좋은 점 넷 — 하나가 또렷해진다 */
@@ -27,9 +33,25 @@ export type CardScene =
   /** 환산 한 가지를 그림 하나로 크게 */
   | { kind: 'art'; art: ImpactArtId };
 
+/** 카드가 속한 이야기 묶음 */
+export type CardSection = 'journey' | 'impact' | 'benefit';
+
+export const CARD_SECTIONS: { id: CardSection; label: string }[] = [
+  { id: 'journey', label: '전기가 오는 길' },
+  { id: 'impact', label: '그동안 만든 전기로' },
+  { id: 'benefit', label: '태양광이 좋은 까닭' },
+];
+
 /** 넘겨 읽는 한 장 */
 export interface EduCard {
   id: string;
+  /**
+   * 어느 묶음의 장인지.
+   *
+   * 열한 장을 평평하게 이어 넘기면 지금 무슨 이야기를 하는 중인지가 사라진다 (2026-09-04 노트).
+   * 묶음을 달아 두면 화면이 그 이름을 띄우고 아래 눈금도 묶음별로 갈라 보일 수 있다.
+   */
+  section: CardSection;
   scene: CardScene;
   /** 큰 글씨 한 줄 */
   title: string;
@@ -42,13 +64,15 @@ export interface EduCard {
 export const EDU_CARDS: EduCard[] = [
   ...ELEMENTARY_CONTENT.scenes.map((scene, index): EduCard => ({
     id: scene.id,
-    scene: { kind: 'journey', step: index },
+    section: 'journey',
+    scene: { kind: 'journey', step: index, focus: scene.id as JourneyFocus },
     title: scene.title,
     line: scene.line,
     readout: scene.readout,
   })),
   ...ELEMENTARY_CONTENT.impact.items.map((item): EduCard => ({
     id: item.id,
+    section: 'impact',
     scene: { kind: 'impact', focus: item.id },
     title: item.title,
     line: item.line,
@@ -56,6 +80,7 @@ export const EDU_CARDS: EduCard[] = [
   })),
   ...ELEMENTARY_CONTENT.benefits.map((benefit): EduCard => ({
     id: benefit.id,
+    section: 'benefit',
     scene: { kind: 'benefit', focus: benefit.art },
     title: benefit.title,
     line: benefit.line,
