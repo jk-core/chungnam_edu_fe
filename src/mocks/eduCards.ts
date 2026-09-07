@@ -78,7 +78,7 @@ const MIDDLE_JOURNEY: Record<string, { title: string; line: string }> = {
     line: '해가 높이 뜰수록 빛이 태양전지판에 똑바로 닿아 전기를 더 많이 만들어요.',
   },
   panel: {
-    title: '태양전지판이 받아요',
+    title: '태양전지판이 빛을 받아요',
     line: '지붕 위 태양전지판에 햇빛이 닿으면 그 자리에서 바로 전기가 만들어져요.',
   },
   inverter: {
