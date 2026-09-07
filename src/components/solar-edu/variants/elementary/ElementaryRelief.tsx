@@ -134,6 +134,7 @@ export function ElementaryRelief({ stats, content, nowHour }: ElementaryReliefPr
                   {/* 수는 굴려 올리지 않는다 — 무인 화면에서 첫 프레임이 늦으면 「0」 이 굳는다 */}
                   <strong className={styles.gift__value}>
                     {formatNumber(gift.value(stats).amount, gift.value(stats).fractionDigits)}
+                    {gift.value(stats).countSuffix}
                     <span className={styles.gift__unit}>{gift.value(stats).unit}</span>
                   </strong>
                   <span className={styles.gift__line}>{gift.line}</span>

@@ -305,42 +305,50 @@ export function ReliefPowerArt() {
 }
 
 /**
- * 발전시간 — 모래시계 (입체).
+ * 발전시간 — 시계 (입체).
  *
- * 시계를 그리면 「몇 시」 로 읽힌다. 발전시간은 시각이 아니라 **길이**라, 쌓이는 것이 보이는
- * 모래시계 쪽이 뜻에 가깝다. 아래 더미가 위 더미보다 많은 것으로 「지나간 시간」 을 말한다.
+ * 모래시계로 그렸다가 시계로 바꿨다 (2026-09-07 지시). 모래시계가 「쌓이는 길이」 에 더 가깝긴
+ * 하지만, 이 나이가 그림 하나로 「시간」 을 읽어 내는 물건은 시계 쪽이다 — 옆 칸이 「3시간 57분」
+ * 이라고 적고 있으므로 그림까지 뜻을 새로 가르칠 필요가 없다.
+ *
+ * 바늘은 세 시 방향에서 조금 지난 자리에 세워 둔다. 열두 시 정각에 두면 두 바늘이 겹쳐 하나로
+ * 보이고, 여섯 시로 두면 일직선이 되어 역시 시계로 읽히지 않는다.
  */
 export function ReliefHourArt() {
+  const face = 46;
+
   return (
     <svg viewBox={`0 0 ${BOX} ${BOX}`} fill="none" role="presentation">
       <SceneDefs />
-      <CastShadow cx={60} cy={110} rx={28} ry={7} />
+      <CastShadow cx={60} cy={112} rx={34} ry={8} />
 
-      {/* 위아래 받침 */}
-      <rect x="30" y="12" width="60" height="9" rx="4" fill="var(--brand)" />
-      <rect x="30" y="99" width="60" height="9" rx="4" fill="var(--brand)" />
+      {/* 꼭지와 고리 — 이것 둘이 붙어야 벽시계로 읽힌다 */}
+      <rect x="52" y="4" width="16" height="10" rx="3" fill="var(--brand-contrast)" fillOpacity="0.55" />
 
-      {/* 유리 — 두 삼각형이 허리에서 만난다 */}
-      <path d="M36 21h48L64 60l20 39H36L56 60Z" fill="var(--surface)" />
-      <path d="M36 21h48L64 60l20 39H36L56 60Z" fill="url(#edu-shine)" />
+      {/* 두께 — 같은 원을 살짝 내려 깔면 판때기가 아니라 덩어리가 된다 */}
+      <circle cx={60} cy={65} r={face} fill="var(--brand-contrast)" fillOpacity="0.35" />
+
+      <circle cx={60} cy={62} r={face} fill="var(--surface)" />
+      <circle cx={60} cy={62} r={face} fill="url(#edu-orb)" />
+      <circle cx={60} cy={62} r={face} fill="none" stroke="var(--brand-contrast)" strokeWidth={STROKE} />
 
       {/*
-        떨어진 모래가 아래에 쌓인다.
-
-        뒤집는 변환이 붙어 있었다 — `scale(1 -1) translate(0 -184)` 는 점을 (x, 184−y) 로 옮기므로
-        더미의 꼭짓점이 y=66 에서 y=118 로 내려가, 받침(99~108)을 뚫고 밖으로 삐져나왔다.
-        더미는 처음부터 바닥에 넓고 위로 뾰족한 모양이라 뒤집을 것이 없다.
+        열두 시·세 시·여섯 시·아홉 시 넉 점.
+        열둘을 다 찍으면 이 크기에서 점들이 테두리로 뭉쳐 눈금이 아니라 띠로 보인다.
       */}
-      <path d="M44 92h32L64 66Z" fill="var(--solar)" />
-      <path d="M46 21h28L62 46Z" fill="var(--solar)" fillOpacity="0.55" />
+      {[
+        [60, 62 - 32],
+        [60 + 32, 62],
+        [60, 62 + 32],
+        [60 - 32, 62],
+      ].map(([x, y]) => (
+        <circle key={`${x}-${y}`} cx={x} cy={y} r={3.4} fill="var(--brand-contrast)" fillOpacity="0.5" />
+      ))}
 
-      <path
-        d="M36 21h48L64 60l20 39H36L56 60Z"
-        fill="none"
-        stroke="var(--brand-contrast)"
-        strokeWidth={STROKE}
-        strokeLinejoin="round"
-      />
+      {/* 짧은바늘과 긴바늘 — 굵기로 둘을 가른다 */}
+      <path d="M60 62 82 72" stroke="var(--solar-deep)" strokeWidth={STROKE + 1} strokeLinecap="round" />
+      <path d="M60 62 66 34" stroke="var(--brand-contrast)" strokeWidth={STROKE} strokeLinecap="round" />
+      <circle cx={60} cy={62} r={5} fill="var(--brand-contrast)" />
     </svg>
   );
 }

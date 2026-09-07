@@ -2,7 +2,7 @@ import { CountUp } from '@/components/common/CountUp';
 import { CARBON_BASIS, paperCarbonFigure, paperScales, type PaperScript } from '@/mocks/eduPaper';
 import type { EduLevel } from '@/interface/edu';
 import type { EduStats } from '@/mocks/solarEdu';
-import { formatNumber } from '@/utils/format';
+import { formatKoCount } from '@/utils/format';
 import { ScaleGlyph } from './PaperGlyphs';
 import styles from './ChapterCarbon.module.scss';
 
@@ -51,6 +51,7 @@ export function ChapterCarbon({ stats, script, level }: ChapterCarbonProps) {
 
             <p className={styles.scale__figure}>
               <CountUp value={scale.amount} fractionDigits={scale.fractionDigits} />
+              {scale.countSuffix}
               <span className={styles.scale__unit}>{scale.unit}</span>
             </p>
 
@@ -64,7 +65,7 @@ export function ChapterCarbon({ stats, script, level }: ChapterCarbonProps) {
             </p>
 
             <p className={styles.scale__legend}>
-              그림 하나 = {formatNumber(scale.perGlyph)}
+              그림 하나 = {formatKoCount(scale.perGlyph)}
               {scale.unit}
             </p>
 

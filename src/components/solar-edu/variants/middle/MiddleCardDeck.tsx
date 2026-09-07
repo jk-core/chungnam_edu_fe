@@ -10,6 +10,7 @@ import { ImpactArt } from '../../scene-art/ImpactArt';
 import { PictureGoodArt } from '../elementary/art/PictureArt';
 import { JourneyScene } from '../../scene-art/JourneyScene';
 import styles from './MiddleCardDeck.module.scss';
+import type { CSSProperties } from 'react';
 
 /**
  * 한 묶음이 머무는 시간.
@@ -68,6 +69,7 @@ export function MiddleCardDeck({ stats, nowHour }: MiddleCardDeckProps) {
                   <span className={styles.readout__label}>{readout.label}</span>
                   <span className={styles.readout__value}>
                     <CountUp value={readout.amount} fractionDigits={readout.fractionDigits} startOnView={false} />
+                    {readout.countSuffix}
                     <span className={styles.readout__unit}>{readout.unit}</span>
                   </span>
                 </p>
@@ -79,17 +81,27 @@ export function MiddleCardDeck({ stats, nowHour }: MiddleCardDeckProps) {
 
       {/* 묶음 셋. 눌러서 바로 갈 수도 있다 */}
       <ol className={styles.dots}>
-        {CARD_SECTIONS.map((item, index) => (
-          <li key={item.id}>
-            <button
-              type="button"
-              className={cn(styles.dot, { [styles['dot--on']]: index === pager.page })}
-              onClick={() => pager.goTo(index)}
-              aria-label={item.label}
-              aria-current={index === pager.page ? 'true' : undefined}
-            />
-          </li>
-        ))}
+        {CARD_SECTIONS.map((item, index) => {
+          const isOn = index === pager.page;
+
+          return (
+            <li key={item.id}>
+              {/*
+                지금 칸은 넘어갈 때마다 새로 만든다 — CSS 애니메이션은 같은 요소에 다시 걸어도
+                되감기지 않으므로, 채움을 처음부터 다시 흐르게 하는 방법이 이것뿐이다.
+              */}
+              <button
+                key={isOn ? `on-${pager.turnKey}` : 'off'}
+                type="button"
+                className={cn(styles.dot, { [styles['dot--on']]: isOn })}
+                style={isOn ? ({ '--rotation-ms': `${SECTION_MS}ms` } as CSSProperties) : undefined}
+                onClick={() => pager.goTo(index)}
+                aria-label={item.label}
+                aria-current={isOn ? 'true' : undefined}
+              />
+            </li>
+          );
+        })}
       </ol>
     </section>
   );

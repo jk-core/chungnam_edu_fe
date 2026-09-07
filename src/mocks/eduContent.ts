@@ -1,5 +1,5 @@
 import { CO2_PER_KWH, CO2_PER_TREE_YEAR, kwhToHouseholdDays } from '@/utils/eco';
-import { formatCapacity, formatEnergy, formatNumber, scaleCarbon, scaleSi } from '@/utils/format';
+import { formatCapacity, formatEnergy, formatNumber, scaleCarbon, scaleKoCount, scaleSi } from '@/utils/format';
 import type { EduLevel } from '@/interface/edu';
 import type { School, SchoolLevel } from '@/interface/energy';
 import type { SiScale } from '@/utils/format';
@@ -280,9 +280,12 @@ export function impactFigure(def: ImpactDef, kwh: number): SiScale {
     return { ...scaled, unit: `${scaled.unit} CO₂` };
   }
 
-  // 두 해를 넘기면 날수보다 햇수가 빨리 읽힌다
-  if (def.scale === 'days' && raw >= 730) return { amount: raw / 365, unit: '년', fractionDigits: 0 };
-  if (def.scale === 'hours' && raw >= 8_760) return { amount: raw / 8_760, unit: '년', fractionDigits: 0 };
+  // 두 해를 넘기면 날수보다 햇수가 빨리 읽힌다. 햇수도 여섯 자리가 되면 만·억으로 한 번 더 접는다
+  if (def.scale === 'days' && raw >= 730) return scaleKoCount(raw / 365, '년');
+  if (def.scale === 'hours' && raw >= 8_760) return scaleKoCount(raw / 8_760, '년');
+
+  // 그루처럼 올릴 윗단위가 없는 것도 우리말 이름으로 접는다
+  if (def.fractionDigits === 0) return scaleKoCount(raw, def.unit);
 
   return { amount: raw, unit: def.unit, fractionDigits: def.fractionDigits };
 }

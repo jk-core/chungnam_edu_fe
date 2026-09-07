@@ -8,7 +8,7 @@ import { useFullscreen } from '@/hooks/useFullscreen';
 import { useRootClass } from '@/hooks/useRootClass';
 import type { WeatherKind } from '@/interface/weather';
 import styles from './SolarEduLayout.module.scss';
-import type { ReactNode } from 'react';
+import type { CSSProperties, ReactNode } from 'react';
 
 interface SolarEduLayoutProps {
   /** 조회 대상 이름 — 학교를 지정했으면 그 학교, 아니면 도 전체 */
@@ -50,6 +50,8 @@ interface SolarEduLayoutProps {
   facts?: string[];
   /** 지금 보여 주는 문구 */
   factIndex?: number;
+  /** 한 문구가 머무는 시간(ms) — 지금 눈금이 차오르는 데 걸리는 시간이다 */
+  factMs?: number;
   /** 점을 눌러 그 문구로 건너뛴다 */
   onSelectFact?: (index: number) => void;
   children: ReactNode;
@@ -77,6 +79,7 @@ export function SolarEduLayout({
   headline,
   facts,
   factIndex,
+  factMs,
   onSelectFact,
   children,
 }: SolarEduLayoutProps) {
@@ -172,16 +175,22 @@ export function SolarEduLayout({
 
           {/* 지나간 문구가 궁금하면 눌러서 되돌려 볼 수 있다 */}
           <span className={styles.ticker__dots}>
-            {facts.map((item, index) => (
-              <button
-                key={item}
-                type="button"
-                className={index === factIndex ? styles['ticker__dot--active'] : styles.ticker__dot}
-                onClick={() => onSelectFact?.(index)}
-                aria-label={`${index + 1}번째 이야기 보기 (전체 ${facts.length}건)`}
-                aria-current={index === factIndex ? 'true' : undefined}
-              />
-            ))}
+            {facts.map((item, index) => {
+              const isOn = index === factIndex;
+
+              return (
+                /* 지금 칸은 넘어갈 때마다 새로 만든다 — 그래야 채움이 처음부터 다시 흐른다 */
+                <button
+                  key={isOn ? `on-${factIndex}` : item}
+                  type="button"
+                  className={isOn ? styles['ticker__dot--active'] : styles.ticker__dot}
+                  style={isOn && factMs ? ({ '--rotation-ms': `${factMs}ms` } as CSSProperties) : undefined}
+                  onClick={() => onSelectFact?.(index)}
+                  aria-label={`${index + 1}번째 이야기 보기 (전체 ${facts.length}건)`}
+                  aria-current={isOn ? 'true' : undefined}
+                />
+              );
+            })}
           </span>
         </p>
       ) : null}

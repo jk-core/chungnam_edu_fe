@@ -1,6 +1,7 @@
 @use "@/styles/tokens/spacing" as s;
 @use "@/styles/tokens/typography" as t;
 @use "@/styles/utils/media" as media;
+@use "@/styles/patterns/rotation" as r;
 @use "@/styles/utils/mixins" as mx;
 
 /**
@@ -280,9 +281,12 @@
       background-color: var(--solar-soft);
     }
 
+    /* 지금 이야기는 길어지고, 머무는 동안 왼쪽에서 오른쪽으로 찬다 */
     &--active {
+      @include r.fills-over-time(var(--solar));
+
       width: 18px;
-      background-color: var(--solar);
+      background-color: var(--solar-soft);
     }
   }
 
@@ -323,3 +327,5 @@
     min-height: 0;
   }
 }
+
+@include r.fill-keyframes;

@@ -63,6 +63,7 @@ export function HighBenefitCard({ stats, content }: HighBenefitCardProps) {
                     fractionDigits={figure.fractionDigits}
                     startOnView={false}
                   />
+                  {figure.countSuffix}
                   <span>{figure.unit}</span>
                 </p>
                 <p className={styles.impact__line}>{item.line}</p>

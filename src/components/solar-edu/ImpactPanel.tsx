@@ -64,6 +64,7 @@ export function ImpactPanel({ scopeLabel, stats, content }: ImpactPanelProps) {
                     fractionDigits={figure.fractionDigits}
                     startOnView={false}
                   />
+                  {figure.countSuffix}
                   <span className={styles.impactCard__unit}>{figure.unit}</span>
                 </p>
                 {content.showBasis ? <p className={styles.impactCard__basis}>{item.basis}</p> : null}

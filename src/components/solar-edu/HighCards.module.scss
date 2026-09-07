@@ -316,17 +316,23 @@
     color: var(--text-muted);
   }
 
+  /*
+    값·자릿이름·단위 셋이 한 줄에 선다.
+
+    사이를 벌리지 않는다. 벌리면 「773 만 그루」 가 되는데, 「만」 은 수사의 일부라 숫자에 붙어야
+    한다 — 떨어뜨릴 것은 단위뿐이라 그쪽에만 여백을 준다.
+  */
   &__value {
     @include t.data-lg;
 
     display: flex;
     align-items: baseline;
-    gap: 4px;
     color: var(--text-strong);
 
     span {
       @include t.label-md;
 
+      margin-left: 4px;
       font-size: 1rem;
       color: var(--text-muted);
     }

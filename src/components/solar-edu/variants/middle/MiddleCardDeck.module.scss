@@ -1,6 +1,7 @@
 @use "@/styles/tokens/spacing" as s;
 @use "@/styles/tokens/typography" as t;
 @use "@/styles/utils/media" as media;
+@use "@/styles/patterns/rotation" as r;
 @use "@/styles/utils/mixins" as mx;
 
 /*
@@ -215,11 +216,16 @@
     background-color: var(--brand-soft);
   }
 
+  /* 지금 묶음은 길어지고, 머무는 동안 왼쪽에서 오른쪽으로 찬다 */
   &--on {
+    @include r.fills-over-time(var(--brand));
+
     width: 26px;
-    background-color: var(--brand);
+    background-color: var(--brand-soft);
   }
 }
+
+@include r.fill-keyframes;
 
 @keyframes card-in {
   from {

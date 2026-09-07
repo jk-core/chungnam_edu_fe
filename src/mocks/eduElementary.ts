@@ -1,5 +1,5 @@
 import { kwhToHouseholdDays, kwhToTrees } from '@/utils/eco';
-import { formatNumber, scaleCount, scaleSi } from '@/utils/format';
+import { formatNumber, scaleCount, scaleKoCount, scaleSi } from '@/utils/format';
 import { FULL_SUN_WM2 } from './solarEdu';
 import type { ElementaryContent } from './eduContent';
 import type { EduStats } from './solarEdu';
@@ -34,6 +34,8 @@ export interface SceneReadout {
   amount: number;
   unit: string;
   fractionDigits: number;
+  /** 숫자에 바로 붙는 우리말 자릿이름 — `SiScale` 의 것을 그대로 받는다 */
+  countSuffix?: string;
 }
 
 export interface EduScene {
@@ -134,8 +136,7 @@ const IMPACT: ElementaryImpact = {
       at: { x: 52, y: 6, tail: 'bottom', tailAt: 125 },
       readout: (stats) => ({
         label: '소나무를 심은 효과',
-        amount: kwhToTrees(stats.totalKwh),
-        unit: '그루',
+        ...scaleKoCount(kwhToTrees(stats.totalKwh), '그루'),
         fractionDigits: 0,
       }),
     },

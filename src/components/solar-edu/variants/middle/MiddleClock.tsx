@@ -2,7 +2,7 @@ import { useCountUp } from '@/hooks/useCountUp';
 import { SUNRISE_HOUR, SUNSET_HOUR } from '@/mocks/generation';
 import { AIRCON_WATT } from '@/mocks/eduElementary';
 import { kwhToHouseholdDays, kwhToTrees } from '@/utils/eco';
-import { formatCapacity, formatNumber, scaleCount, scaleSi } from '@/utils/format';
+import { formatCapacity, formatKoCount, formatNumber, scaleCount, scaleSi } from '@/utils/format';
 import type { DayWeather } from '@/interface/weather';
 import type { EduStats } from '@/mocks/solarEdu';
 import { WeatherPanel } from '@/components/solar-edu/WeatherPanel';
@@ -371,7 +371,7 @@ export function MiddleClock({ stats, nowHour, weather, forecast }: MiddleClockPr
         */}
         <Card
           label="소나무를 심은 효과"
-          value={formatNumber(kwhToTrees(stats.totalKwh))}
+          value={formatKoCount(kwhToTrees(stats.totalKwh))}
           unit="그루"
           note="탄소가 그만큼 줄었어요"
           tone="ok"

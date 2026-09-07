@@ -1,6 +1,6 @@
 import type { EduStats } from '@/mocks/solarEdu';
 import { CO2_PER_KWH, CO2_PER_TREE_YEAR } from '@/utils/eco';
-import { scaleCarbon, scaleCount, scaleSi } from '@/utils/format';
+import { scaleCarbon, scaleCount, scaleKoCount, scaleSi } from '@/utils/format';
 import type { EduLevel } from '@/interface/edu';
 import { AIRCON_WATT } from './eduElementary';
 
@@ -322,6 +322,8 @@ export interface PaperScale {
   amount: number;
   unit: string;
   fractionDigits: number;
+  /** 숫자에 바로 붙는 우리말 자릿이름 — `SiScale` 의 것을 그대로 받는다 */
+  countSuffix?: string;
   note: string;
   /** 무엇으로 나눈 값인지. 고등에서만 펴 보인다 */
   basis: string;
@@ -375,13 +377,21 @@ function toScale(
   basis: string,
 ): PaperScale {
   const perGlyph = niceShare(amount);
+  /*
+    보이는 값만 만·억으로 접는다 (2026-09-07 지시).
+
+    그림 개수와 그림 하나가 뜻하는 양은 접기 전 값으로 셈해야 한다 — 「773만 그루」 를 열두 칸에
+    나누면 칸마다 64.4 가 되어, 세라고 그려 둔 그림이 도리어 셈을 요구한다.
+  */
+  const shown = fractionDigits === 0 ? scaleKoCount(amount, unit) : { amount, unit, fractionDigits };
 
   return {
     id,
     term,
-    amount,
-    unit,
-    fractionDigits,
+    amount: shown.amount,
+    unit: shown.unit,
+    fractionDigits: shown.fractionDigits,
+    countSuffix: shown.countSuffix,
     note,
     basis,
     perGlyph,

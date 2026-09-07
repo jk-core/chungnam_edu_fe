@@ -1,5 +1,5 @@
 import { kwhToHouseholdDays, kwhToTrees } from '@/utils/eco';
-import { scaleCount } from '@/utils/format';
+import { scaleCount, scaleKoCount } from '@/utils/format';
 import type { SiScale } from '@/utils/format';
 import { AIRCON_WATT } from './eduElementary';
 import type { EduStats } from './solarEdu';
@@ -72,8 +72,8 @@ const GIFTS: PictureGift[] = [
     id: 'tree',
     name: '나무',
     line: '그만큼 나무를 심은 것과 같아요',
-    // 그루는 그대로 센다 — 올릴 윗단위가 없고, 셀 수 있다는 것이 이 환산의 뜻이다
-    value: (stats) => ({ amount: kwhToTrees(stats.totalKwh), unit: '그루', fractionDigits: 0 }),
+    // 그루에는 올릴 윗단위가 없다 — 대신 우리말이 네 자리마다 갈아 끼우는 이름을 쓴다
+    value: (stats) => scaleKoCount(kwhToTrees(stats.totalKwh), '그루'),
   },
   {
     id: 'aircon',

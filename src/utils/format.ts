@@ -17,6 +17,41 @@ export interface SiScale {
   amount: number;
   unit: string;
   fractionDigits: number;
+  /**
+   * 숫자에 바로 붙는 우리말 자릿이름 — 「만」·「억」.
+   *
+   * 단위(`unit`)와 따로 두는 까닭은 붙는 자리가 다르기 때문이다. 값과 단위 사이는 한 칸을
+   * 띄우는 것이 이 시스템의 규칙이지만(「51.0 kt」), 「만」 은 수사의 일부라 숫자에 붙어야
+   * 한다 — 「773 만 그루」 가 아니라 「773만 그루」 다.
+   */
+  countSuffix?: string;
+}
+
+/**
+ * 세는 수를 만·억으로 접는다 (2026-09-07 지시).
+ *
+ * 그루·년처럼 올릴 윗단위가 없는 것들이다. 「7,726,603그루」 는 자릿수를 세어야 크기가 잡히는데,
+ * 걸어 두고 몇 걸음 떨어져서 보는 화면에서 그 셈을 할 사람은 없다 — 우리말이 원래 네 자리마다
+ * 이름을 갈아 끼우므로 「773만 그루」 로 적으면 읽는 즉시 크기가 온다.
+ *
+ * 10만이 되기 전에는 그대로 둔다. 「2만 6천」 보다 「26,068」 이 빨리 읽히고, 만 단위로 접으면
+ * 이 구간에서는 되레 정밀도만 잃는다.
+ *
+ * 만 자리에서 소수를 버리는 것은 「773.4만」 이 소수점과 만이 겹쳐 한 번 더 생각하게 만들기
+ * 때문이다. 억은 값이 커 한 자리를 남긴다 — 「1억」 과 「1.4억」 은 4천만 차이다.
+ *
+ * 접은 이름은 `countSuffix` 로 따로 돌려준다 — 숫자에 붙는 것이라 단위와 자리가 다르다.
+ */
+export function scaleKoCount(amount: number, unit: string): SiScale {
+  const size = Math.abs(amount);
+
+  if (size >= 100_000_000) {
+    return { amount: amount / 100_000_000, unit, fractionDigits: 1, countSuffix: '억' };
+  }
+
+  if (size >= 100_000) return { amount: amount / 10_000, unit, fractionDigits: 0, countSuffix: '만' };
+
+  return { amount, unit, fractionDigits: 0 };
 }
 
 /**
@@ -25,12 +60,14 @@ export interface SiScale {
  * 기준을 누적으로 옮기면서 필요해졌다. `scaleSi` 가 kW·kWh 에 하는 일을 날수·시간수에 한다.
  * 그림 판처럼 환산 레지스트리를 거치지 않고 직접 세는 자리도 이 함수를 지나야 화면마다
  * 같은 값이 다른 단위로 적히지 않는다.
+ *
+ * 햇수로 올리고도 여섯 자리가 남는 자리가 있어(도 전체 누적이면 「316,794년」) 만·억까지 잇는다.
  */
 export function scaleCount(amount: number, unit: '일' | '시간'): SiScale {
-  if (unit === '일' && amount >= 730) return { amount: amount / 365, unit: '년', fractionDigits: 0 };
-  if (unit === '시간' && amount >= 8_760) return { amount: amount / 8_760, unit: '년', fractionDigits: 0 };
+  if (unit === '일' && amount >= 730) return scaleKoCount(amount / 365, '년');
+  if (unit === '시간' && amount >= 8_760) return scaleKoCount(amount / 8_760, '년');
 
-  return { amount, unit, fractionDigits: 0 };
+  return scaleKoCount(amount, unit);
 }
 
 /**
@@ -75,11 +112,23 @@ export function formatCapacity(kw: number): ScaledValue {
 }
 
 /**
- * CO₂ 저감량(kg)을 자릿수에 맞춰 t 으로 끌어올린다.
+ * CO₂ 저감량(kg)을 자릿수에 맞춰 t · kt · Mt 으로 끌어올린다.
+ *
+ * t 에서 멈춰 두었더니 도 전체 누적에서 「50,995.6 t」 이 되어, 좁은 칸에서 숫자와 단위가
+ * 두 줄로 접혔다 (2026-09-07 지시). 발전량을 kWh 에서 MWh·GWh 로 올리는 것과 같은 이치다 —
+ * 자릿수가 넘치면 단위를 올리지 값을 늘어놓지 않는다.
+ *
+ * 소수 한 자리를 유지한다. 단위를 올릴수록 한 자리가 뜻하는 양이 커지지만, 이 화면들이
+ * 답하는 것은 「몇 kg 인가」 가 아니라 「얼마나 큰가」 라 자릿수보다 크기가 먼저다.
+ *
  * `scaleSi` 와 같은 형태로 돌려주어, 숫자를 굴려 올리는 곳이 같은 방식으로 쓸 수 있다.
  */
 export function scaleCarbon(kg: number): SiScale {
-  if (Math.abs(kg) >= 1_000) return { amount: kg / 1_000, unit: 't', fractionDigits: 1 };
+  const size = Math.abs(kg);
+
+  if (size >= 1_000_000_000) return { amount: kg / 1_000_000_000, unit: 'Mt', fractionDigits: 1 };
+  if (size >= 1_000_000) return { amount: kg / 1_000_000, unit: 'kt', fractionDigits: 1 };
+  if (size >= 1_000) return { amount: kg / 1_000, unit: 't', fractionDigits: 1 };
 
   return { amount: kg, unit: 'kg', fractionDigits: 0 };
 }
@@ -194,4 +243,11 @@ export function formatHourMinute(hours: number): string {
   if (m === 0) return `${h}시간`;
 
   return `${h}시간 ${m}분`;
+}
+
+/** 숫자와 단위를 한 덩이로 쓰는 자리를 위한 문자열 판 — 「773만」 처럼 접은 이름이 숫자에 붙는다 */
+export function formatKoCount(value: number): string {
+  const scaled = scaleKoCount(value, '');
+
+  return `${formatNumber(scaled.amount, scaled.fractionDigits)}${scaled.countSuffix ?? ''}`;
 }

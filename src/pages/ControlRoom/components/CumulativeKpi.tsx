@@ -1,6 +1,6 @@
 import dayjs from 'dayjs';
 import { CO2_PER_KWH, CUMULATIVE, pickEnergyUnit } from '@/mocks/generation';
-import { formatNumber, formatPercent } from '@/utils/format';
+import { formatCarbon, formatKoCount, formatNumber, formatPercent } from '@/utils/format';
 import { getNode, ROOT_ID } from '@/mocks/tree';
 import { getNodeStat } from '@/mocks/nodeStats';
 import { LeafIcon } from '@/components/common/Icon';
@@ -45,15 +45,6 @@ const DELTAS = PREVIOUS.map(({ period, label, unit }) => {
   };
 });
 
-/** 탄소 저감량은 kg 가 금세 여섯 자리가 된다 — 1t 을 넘으면 t 으로 접는다 */
-function carbonOf(kwh: number): { text: string; unit: string } {
-  const kg = kwh * CO2_PER_KWH;
-
-  return kg >= 1000
-    ? { text: formatNumber(kg / 1000, 1), unit: 't' }
-    : { text: formatNumber(kg), unit: 'kg' };
-}
-
 /**
  * 발전실적 (SFR-004-06/07).
  *
@@ -89,7 +80,7 @@ export function CumulativeKpi({ todayKwh, monthKwh, yearKwh, capacityKw }: Cumul
         <tbody>
           {periods.map((row) => {
             const energy = pickEnergyUnit(row.kwh);
-            const carbon = carbonOf(row.kwh);
+            const carbon = formatCarbon(row.kwh * CO2_PER_KWH);
 
             return (
               <tr key={row.key}>
@@ -103,7 +94,7 @@ export function CumulativeKpi({ todayKwh, monthKwh, yearKwh, capacityKw }: Cumul
                   <span>h</span>
                 </td>
                 <td>
-                  {carbon.text}
+                  {carbon.value}
                   <span>{carbon.unit}</span>
                 </td>
               </tr>
@@ -125,7 +116,7 @@ export function CumulativeKpi({ todayKwh, monthKwh, yearKwh, capacityKw }: Cumul
       {/* 톤은 체감이 어렵다 — 소나무 그루로 바꿔 적는다 */}
       <p className={styles.tree}>
         <span className={styles.tree__mark} aria-hidden="true"><LeafIcon width={13} height={13} /></span>
-        소나무 <strong>{formatNumber(CUMULATIVE.pineTrees)}</strong>그루 심은 효과
+        소나무 <strong>{formatKoCount(CUMULATIVE.pineTrees)}</strong>그루 심은 효과
       </p>
     </div>
   );
