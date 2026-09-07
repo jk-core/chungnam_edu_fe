@@ -208,6 +208,7 @@
   align-items: baseline;
   gap: s.$space-3;
   width: 100%;
+
   padding: s.$space-3 0 s.$space-3 s.$space-4;
   border: 0;
   border-left: 2px solid transparent;
@@ -334,18 +335,11 @@
   }
 }
 
-@keyframes mark-timer {
-  from {
-    transform: scaleY(0);
-  }
-
-  to {
-    transform: scaleY(1);
-  }
-}
-
 .tools {
   animation: rail-in 0.6s 0.24s ease-out both;
+
+  /* 기둥에 기상 칸이 들어오면서 — 남는 세로를 여기서 걷어 고르개를 바닥에 붙인다 */
+  margin-top: auto;
   display: flex;
   align-items: center;
   gap: s.$space-3;
@@ -517,6 +511,16 @@
   to {
     opacity: 1;
     transform: translateY(0);
+  }
+}
+
+@keyframes mark-timer {
+  from {
+    transform: scaleY(0);
+  }
+
+  to {
+    transform: scaleY(1);
   }
 }
 

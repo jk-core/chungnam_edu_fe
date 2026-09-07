@@ -249,7 +249,16 @@ export function ElementaryClock({ stats, content, nowHour }: ElementaryClockProp
               <span className={styles.good__art}>
                 <PictureGoodArt id={good.id} />
               </span>
-              <strong className={styles.good__name}>{good.name}</strong>
+
+              {/*
+                이름 아래에 까닭 한 줄 (2026-09-07 지시).
+                이름만 세워 두면 「조용해요」 가 표어로 읽히고 만다 — 왜 그런지가 붙어야 아이가
+                가져갈 것이 생긴다.
+              */}
+              <span className={styles.good__text}>
+                <strong className={styles.good__name}>{good.name}</strong>
+                <span className={styles.good__why}>{good.line}</span>
+              </span>
             </li>
           ))}
         </ul>

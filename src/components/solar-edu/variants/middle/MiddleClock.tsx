@@ -1,8 +1,11 @@
+import { useCountUp } from '@/hooks/useCountUp';
 import { SUNRISE_HOUR, SUNSET_HOUR } from '@/mocks/generation';
 import { AIRCON_WATT } from '@/mocks/eduElementary';
 import { kwhToHouseholdDays, kwhToTrees } from '@/utils/eco';
-import { formatCapacity, formatEnergy, formatNumber, scaleCount } from '@/utils/format';
+import { formatCapacity, formatNumber, scaleCount, scaleSi } from '@/utils/format';
+import type { DayWeather } from '@/interface/weather';
 import type { EduStats } from '@/mocks/solarEdu';
+import { WeatherPanel } from '@/components/solar-edu/WeatherPanel';
 import { CastShadow, SceneDefs } from '../../scene-art/SceneDefs';
 import { Conifer, Sun, Window } from '../../scene-art/SceneParts';
 import { PrincipleStrip } from '../shared/PrincipleStrip';
@@ -46,6 +49,14 @@ const NEEDLE_TO = TRACK - 22;
 
 /** 뿌리 쪽 반폭. 끝으로 갈수록 좁아져 가리키는 방향이 뾰족해진다 */
 const NEEDLE_HALF = 6;
+
+/**
+ * 빛이 길을 훑고 한가운데 숫자가 다 굴러 올라가는 데 걸리는 시간(ms).
+ *
+ * 둘이 같은 값을 쓴다. 따로 두면 한쪽이 먼저 멎어, 다 찬 게이지 옆에서 숫자만 계속 오르는
+ * 것이 보인다 — 둘은 같은 하나를 말하고 있으므로 같이 끝나야 한다.
+ */
+const ARC_MS = 1400;
 
 /** 해가 도는 각도 범위. 위쪽이 정오가 되도록 왼쪽 아래에서 시작해 오른쪽 아래로 진다 */
 const ARC_FROM = 150;
@@ -96,6 +107,8 @@ const HEIGHT_LESSON = [
 interface MiddleClockProps {
   stats: EduStats;
   nowHour: number;
+  weather: DayWeather;
+  forecast: DayWeather[];
 }
 
 /** 시각을 시계 위 각도로. 해 뜨는 때가 왼쪽 끝, 지는 때가 오른쪽 끝이다 */
@@ -131,7 +144,7 @@ function describeArc(radius: number, from: number, to: number): string {
  * 사실 자체가 배움이 된다 — 아침에는 막대가 왼쪽에만 있고 하교할 때는 오른쪽까지 차 있다.
  * 넘어가는 것을 기다릴 필요 없이, 언제 봐도 "지금 여기" 가 해의 자리로 바로 읽힌다.
  */
-export function MiddleClock({ stats, nowHour }: MiddleClockProps) {
+export function MiddleClock({ stats, nowHour, weather, forecast }: MiddleClockProps) {
   const sun = angleOf(nowHour);
   const sunAt = pointAt(sun, TRACK);
   const isDay = nowHour > SUNRISE_HOUR && nowHour < SUNSET_HOUR;
@@ -140,8 +153,14 @@ export function MiddleClock({ stats, nowHour }: MiddleClockProps) {
   // 하루의 어디쯤인지 — 해의 높이 설명을 고르는 자다.
   const progress = (nowHour - SUNRISE_HOUR) / (SUNSET_HOUR - SUNRISE_HOUR);
   const lesson = HEIGHT_LESSON.find((item) => progress < item.until) ?? HEIGHT_LESSON[HEIGHT_LESSON.length - 1];
-  // 도 전체를 합치면 kW·kWh 로는 시계 한가운데와 카드를 넘는다 — 자릿수에 맞춰 올린다
-  const today = formatEnergy(stats.todayKwh);
+  /*
+    한가운데 숫자가 0 에서 굴러 올라간다 (2026-09-07 지시).
+
+    단위는 먼저 정해 두고 굴리는 것은 숫자뿐이다 — 굴리는 값을 그때그때 환산하면 도중에
+    kWh 에서 MWh 로 단위가 바뀌어, 자리가 흔들리고 무엇을 세는 중인지 알 수 없게 된다.
+  */
+  const todayScale = scaleSi(stats.todayKwh, 'Wh', stats.todayKwh >= 1_000 && stats.todayKwh < 1_000_000 ? 1 : undefined);
+  const todayRolling = useCountUp(todayScale.amount, { duration: ARC_MS });
   const output = formatCapacity(stats.outputKw);
 
   /*
@@ -184,8 +203,17 @@ export function MiddleClock({ stats, nowHour }: MiddleClockProps) {
           <path d={describeArc(TRACK, ARC_FROM, ARC_TO)} stroke="var(--surface-sunken)" strokeWidth="18" strokeLinecap="round" />
 
           {/* 해가 지나온 만큼 길에 빛이 남는다 */}
+          {/*
+            해가 지나온 만큼 길에 빛이 남는다.
+
+            화면이 처음 서면 이 빛이 왼쪽 끝에서 지금 자리까지 훑어 올라간다 (2026-09-07 지시).
+            길이를 `pathLength=1` 로 못 박아 놓아, 시각이 흘러 원호가 길어져도 애니메이션 값을
+            다시 셈할 것이 없다 — 0 에서 1 로 가는 것은 늘 같다.
+          */}
           <path
+            className={styles.arc}
             d={describeArc(TRACK, ARC_FROM, sun)}
+            pathLength={1}
             stroke="url(#clock-arc)"
             strokeWidth="18"
             strokeLinecap="round"
@@ -239,7 +267,8 @@ export function MiddleClock({ stats, nowHour }: MiddleClockProps) {
 
           {/* 해 — 지금 시각에 서 있다. 이 자리가 곧 "지금" 이다 */}
           {isDay ? (
-            <g transform={`translate(${sunAt.x - CENTER} ${sunAt.y - CENTER})`}>
+            /* 빛이 다 훑고 난 뒤에 해가 앉는다 — 먼저 떠 있으면 빛이 해를 뒤늦게 쫓아가는 꼴이 된다 */
+            <g className={styles.after} transform={`translate(${sunAt.x - CENTER} ${sunAt.y - CENTER})`}>
               <Sun cx={CENTER} cy={CENTER} r={22} glowClass={styles.sunGlow} rayClass={styles.sunRays} />
             </g>
           ) : null}
@@ -256,10 +285,10 @@ export function MiddleClock({ stats, nowHour }: MiddleClockProps) {
             {isDay ? '금일 발전량' : '해가 지고 없어요'}
           </text>
           <text className={styles.core__value} x={CENTER} y={CENTER + 20} textAnchor="middle">
-            {today.value}
+            {formatNumber(todayRolling, todayScale.fractionDigits)}
           </text>
           <text className={styles.core__unit} x={CENTER} y={CENTER + 46} textAnchor="middle">
-            {today.unit}
+            {todayScale.unit}
           </text>
 
           {/*
@@ -277,7 +306,7 @@ export function MiddleClock({ stats, nowHour }: MiddleClockProps) {
             모양이 미세하게 달라지고, 회전만 바꾸면 CSS 가 그 사이를 이어 줄 수 있다.
           */}
           {isDay ? (
-            <g className={styles.needle} transform={`rotate(${sun} ${CENTER} ${CENTER})`}>
+            <g className={`${styles.needle} ${styles.after}`} transform={`rotate(${sun} ${CENTER} ${CENTER})`}>
               <polygon
                 className={styles.needle__blade}
                 points={[
@@ -317,6 +346,15 @@ export function MiddleClock({ stats, nowHour }: MiddleClockProps) {
 
       {/* 오른쪽 — 그 시계가 뜻하는 것 */}
       <div className={styles.side}>
+        {/*
+          맨 위가 기상이다 (2026-09-04 회의).
+
+          아래 넉 장은 모두 「얼마나 만들었나」 를 말한다. 그 답이 오늘따라 작은 까닭은 날씨에
+          있으므로, 까닭을 먼저 두고 결과를 잇는다 — 거꾸로 놓으면 넉 장을 다 읽고 나서야
+          까닭을 만난다.
+        */}
+        <WeatherPanel today={weather} forecast={forecast} />
+
         <Card
           label="지금 만들고 있어요"
           value={output.value}
@@ -325,14 +363,12 @@ export function MiddleClock({ stats, nowHour }: MiddleClockProps) {
           tone="solar"
           art={<SunArt />}
         />
-        <Card
-          label="발전시간"
-          value={formatNumber(stats.equivalentHours, 1)}
-          unit="시간"
-          note="가장 센 힘으로만 만들었다면 걸린 시간이에요"
-          tone="brand"
-          art={<CupArt ratio={Math.min(1, stats.equivalentHours / 8)} />}
-        />
+        {/*
+          발전시간 카드를 걷었다 (2026-09-04 회의 — 상단 요약과 하단 항목의 중복 제거).
+
+          머리줄 띠에 「발전시간 4.0시간」 이 같은 이름·같은 값으로 이미 서 있다. 넉 장을 고집하면
+          기상 띠가 들어온 만큼 넷이 모두 눌려 설명 줄이 잘리는데, 잘린 설명 넷보다 온전한 셋이 낫다.
+        */}
         <Card
           label="소나무를 심은 효과"
           value={formatNumber(kwhToTrees(stats.totalKwh))}
@@ -435,36 +471,6 @@ function SunArt() {
     <svg viewBox="0 0 72 72" fill="none" role="presentation">
       <SceneDefs />
       <Sun cx={36} cy={36} r={19} />
-    </svg>
-  );
-}
-
-/**
- * 발전시간.
- *
- * 시계판이나 모래시계를 그리면 "몇 시" 로 읽힌다. 여기서 말하는 것은 시각이 아니라 **모은 양** 이라,
- * 잔이 차오르는 모양으로 그려 두는 편이 뜻에 맞는다.
- */
-function CupArt({ ratio }: { ratio: number }) {
-  const top = 20 + (1 - ratio) * 32;
-  const cup = 'M20 16h32l-5 40H25Z';
-
-  return (
-    <svg viewBox="0 0 72 72" fill="none" role="presentation">
-      <SceneDefs />
-      <CastShadow cx={36} cy={58} rx={22} ry={5} />
-
-      <path d={cup} fill="var(--surface-sunken)" />
-      {/* 잔 모양대로 잘라 낸 뒤 그 안에서만 채운다 — 모서리를 넘어 흘러넘치지 않게 */}
-      <clipPath id="clock-cup">
-        <path d={cup} />
-      </clipPath>
-      <rect x="18" y={top} width="36" height={60 - top} fill="var(--solar)" clipPath="url(#clock-cup)" />
-      <rect x="18" y={top} width="36" height="4" fill="var(--solar-deep)" clipPath="url(#clock-cup)" />
-
-      <path d={cup} fill="url(#edu-glass)" />
-      <path d={cup} fill="none" stroke="var(--border-strong)" strokeWidth="2" strokeLinejoin="round" />
-      <path d="M16 15h40" stroke="var(--border-strong)" strokeWidth="3.5" strokeLinecap="round" />
     </svg>
   );
 }

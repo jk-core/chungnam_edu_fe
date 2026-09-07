@@ -324,8 +324,14 @@ export function ReliefHourArt() {
       <path d="M36 21h48L64 60l20 39H36L56 60Z" fill="var(--surface)" />
       <path d="M36 21h48L64 60l20 39H36L56 60Z" fill="url(#edu-shine)" />
 
-      {/* 떨어진 모래가 아래에 쌓인다 */}
-      <path d="M44 92h32L64 66Z" fill="var(--solar)" transform="scale(1 -1) translate(0 -184)" />
+      {/*
+        떨어진 모래가 아래에 쌓인다.
+
+        뒤집는 변환이 붙어 있었다 — `scale(1 -1) translate(0 -184)` 는 점을 (x, 184−y) 로 옮기므로
+        더미의 꼭짓점이 y=66 에서 y=118 로 내려가, 받침(99~108)을 뚫고 밖으로 삐져나왔다.
+        더미는 처음부터 바닥에 넓고 위로 뾰족한 모양이라 뒤집을 것이 없다.
+      */}
+      <path d="M44 92h32L64 66Z" fill="var(--solar)" />
       <path d="M46 21h28L62 46Z" fill="var(--solar)" fillOpacity="0.55" />
 
       <path

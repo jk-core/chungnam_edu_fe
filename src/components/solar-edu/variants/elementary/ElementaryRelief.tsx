@@ -1,5 +1,5 @@
 import { cn } from '@/utils/cn';
-import { formatNumber, scaleSi } from '@/utils/format';
+import { formatHourMinute, formatNumber, scaleSi } from '@/utils/format';
 import type { PictureContent } from '@/mocks/eduPicture';
 import type { EduStats } from '@/mocks/solarEdu';
 import { ReliefGiftArt, ReliefGoodArt, ReliefHourArt, ReliefPowerArt } from './art/ReliefArt';
@@ -119,11 +119,9 @@ export function ElementaryRelief({ stats, content, nowHour }: ElementaryReliefPr
                 <ReliefHourArt />
               </span>
               <span className={styles.gift__text}>
-                <strong className={styles.gift__value}>
-                  {formatNumber(stats.equivalentHours, 1)}
-                  <span className={styles.gift__unit}>시간</span>
-                </strong>
-                <span className={styles.gift__line}>오늘 가장 센 힘으로만 만들었다면</span>
+                {/* 「4.0시간」 을 시계로 읽히는 말로 (2026-09-07 지시) */}
+                <strong className={styles.gift__value}>{formatHourMinute(stats.equivalentHours)}</strong>
+                <span className={styles.gift__line}>이 시간 동안 만들었어요</span>
               </span>
             </li>
 

@@ -31,6 +31,13 @@ interface JourneySceneProps {
    */
   sunLabel?: string;
   /**
+   * 둘째 걸음의 이름표.
+   *
+   * 초등 대본은 「태양전지」 라 부르고 중등은 「태양전지판」 이다 (2026-09-07 지시) — 판이라는
+   * 말이 붙어야 지붕에 얹힌 그 물건이 곧바로 잡힌다. 이름만 밖에서 받는 까닭은 첫 걸음과 같다.
+   */
+  panelLabel?: string;
+  /**
    * 그림의 한 대목만 잘라 보일 때 그 자리.
    *
    * 네 걸음을 카드 넉 장에 나눠 세우는 판에서는 장면을 통째로 넣으면 넉 장이 모두 같은 그림이
@@ -67,7 +74,9 @@ function focusBox(focus: JourneyFocus, sunX: number): string {
   return '584 160 300 200';
 }
 
-export function JourneyScene({ step, nowHour, loadRatio, bubbleAt, bubble, sunLabel = '햇빛', focus }: JourneySceneProps) {
+export function JourneyScene({
+  step, nowHour, loadRatio, bubbleAt, bubble, sunLabel = '햇빛', panelLabel = '태양전지', focus,
+}: JourneySceneProps) {
   const progress = Math.min(1, Math.max(0, (nowHour - SUNRISE_HOUR) / (SUNSET_HOUR - SUNRISE_HOUR)));
   const isDay = nowHour > SUNRISE_HOUR && nowHour < SUNSET_HOUR;
   const sunX = 92 + progress * 150;
@@ -142,7 +151,7 @@ export function JourneyScene({ step, nowHour, loadRatio, bubbleAt, bubble, sunLa
           <path className={styles.sweep} d="M0 86 56 0h150l-56 86Z" fill="var(--paper)" fillOpacity="0.4" />
         </SolarPanel>
 
-        <SceneTag x={196} y={344} label="태양전지" />
+        <SceneTag x={196} y={344} label={panelLabel} />
       </g>
 
       {/* ── 3. 인버터 ───────────────────────────────────── */}

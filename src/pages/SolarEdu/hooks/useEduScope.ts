@@ -2,7 +2,7 @@ import { useMemo } from 'react';
 import { useParams, useSearchParams } from 'react-router-dom';
 import { buildEduStats } from '@/mocks/solarEdu';
 import { formatCapacity, formatNumber } from '@/utils/format';
-import { getDayWeather } from '@/mocks/weather';
+import { getDayWeather, getWeekWeather } from '@/mocks/weather';
 import { resolveEduLevel } from '@/mocks/eduContent';
 import { getNode } from '@/mocks/tree';
 import { getSchoolById, SCHOOLS } from '@/mocks/schools';
@@ -27,7 +27,14 @@ export function useEduScope(nowHour: number) {
 
   const node = useMemo(() => getNode(orgId), [orgId]);
   const stats = useMemo(() => buildEduStats(node, nowHour), [node, nowHour]);
-  const weather = useMemo(() => getDayWeather(node.plantId, TODAY.toDate()).kind, [node]);
+  /*
+    날씨는 배경과 기상 칸이 함께 쓴다.
+
+    전에는 종류(`kind`)만 냈는데, 기온·습도와 이레치 예보가 붙으면서 한 벌을 통째로 넘긴다 —
+    배경이 보는 날씨와 칸에 적히는 날씨가 갈리면 화면이 스스로를 부정한다.
+  */
+  const weather = useMemo(() => getDayWeather(node.plantId, TODAY.toDate()), [node]);
+  const forecast = useMemo(() => getWeekWeather(node.plantId, TODAY.toDate()), [node]);
 
   // 상황판은 학교마다 걸린다 — 어느 학교를 띄울지 여기서 고른다 (회의 결정).
   const plant = node.plantId ? getSchoolById(node.plantId) : null;
@@ -45,6 +52,7 @@ export function useEduScope(nowHour: number) {
     plant,
     stats,
     weather,
+    forecast,
     level,
     scopeInfo: plant
       ? `설비용량 ${capacityText(plant.capacityKw)} · 인버터 ${plant.inverterCount}대`

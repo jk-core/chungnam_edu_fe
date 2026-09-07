@@ -30,7 +30,7 @@ export function SolarEduScreen({ variant }: { variant: EduVariant }) {
   useAutoRefresh(REFRESH_MS);
 
   const { clock, date, nowHour } = useEduClock();
-  const { node, plant, stats, weather, level, scopeInfo } = useEduScope(nowHour);
+  const { node, plant, stats, weather, forecast, level, scopeInfo } = useEduScope(nowHour);
 
   const cell = EDU_CELLS[level][variant];
 
@@ -82,6 +82,7 @@ export function SolarEduScreen({ variant }: { variant: EduVariant }) {
         scopeInfo={scopeInfo}
         stats={stats}
         weather={weather}
+        forecast={forecast}
         clock={clock}
         date={date}
         nowHour={nowHour}
@@ -105,9 +106,9 @@ export function SolarEduScreen({ variant }: { variant: EduVariant }) {
         그런데 눈높이를 오갈 때마다 배경이 있었다 없었다 해서 같은 학교의 화면이 서로 다른 곳처럼
         보였다. 카드가 화면을 덮고 있어 숫자가 흐려지지도 않는다.
       */
-      backdrop={<SkyBackdrop nowHour={nowHour} />}
+      backdrop={<SkyBackdrop nowHour={nowHour} kind={weather.kind} />}
       levelPicker={<LevelPicker />}
-      weather={weather}
+      weather={weather.kind}
       isLive={stats.isLive}
       stoppedNote={stoppedNote}
       clock={clock}
@@ -127,6 +128,8 @@ export function SolarEduScreen({ variant }: { variant: EduVariant }) {
         scopeLabel={node.fullName}
         stats={stats}
         nowHour={nowHour}
+        today={weather}
+        forecast={forecast}
       />
     </SolarEduLayout>
   );

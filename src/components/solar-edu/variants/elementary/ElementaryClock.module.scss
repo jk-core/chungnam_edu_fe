@@ -246,10 +246,25 @@
     }
   }
 
+  &__text {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    min-width: 0;
+  }
+
+  /* 까닭 한 줄이 아래 붙으면서 이름이 자리를 조금 내준다 — 셋이 한 줄에 서야 한다 */
   &__name {
     color: var(--brand-contrast);
-    font-size: clamp(22px, 1.8vw, 32px);
+    font-size: clamp(20px, 1.5vw, 27px);
     font-weight: 800;
     line-height: 1.15;
+  }
+
+  &__why {
+    color: var(--text);
+    font-size: clamp(13px, 0.95vw, 17px);
+    font-weight: 600;
+    line-height: 1.3;
   }
 }

@@ -11,7 +11,7 @@ import type { EChartsOption } from 'echarts';
 const AXIS_FONT = { fontSize: 11, fontFamily: 'Space Grotesk, sans-serif' };
 
 /** 축과 곡선이 겹치지 않는 최소 높이 */
-const MIN_CHART_HEIGHT = 140;
+const MIN_CHART_HEIGHT = 118;
 
 interface HighProductionCardProps {
   stats: EduStats;

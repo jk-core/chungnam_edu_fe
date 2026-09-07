@@ -1,8 +1,9 @@
 import { CHAPTER_IDS, CHAPTER_MARK, type ChapterId, PAPER_SCRIPT } from '@/mocks/eduPaper';
 import type { EduLevel } from '@/interface/edu';
 import type { EduStats } from '@/mocks/solarEdu';
-import type { WeatherKind } from '@/interface/weather';
+import type { DayWeather } from '@/interface/weather';
 import { WEATHER_META } from '@/mocks/weather';
+import { WeatherPanel } from '@/components/solar-edu/WeatherPanel';
 import { useAutoPager } from '@/hooks/useAutoPager';
 import { useRootClass } from '@/hooks/useRootClass';
 import { ChapterCarbon } from './ChapterCarbon';
@@ -35,7 +36,9 @@ interface PaperBoardProps {
   scopeLabel: string;
   scopeInfo: string;
   stats: EduStats;
-  weather: WeatherKind;
+  weather: DayWeather;
+  /** 오늘부터 이레치 */
+  forecast: DayWeather[];
   clock: string;
   date: string;
   /** 지금 몇 시인지 (소수 시간). 배경의 해가 앉는 자리를 정한다. */
@@ -68,6 +71,7 @@ export function PaperBoard({
   scopeInfo,
   stats,
   weather,
+  forecast,
   clock,
   date,
   nowHour,
@@ -102,7 +106,7 @@ export function PaperBoard({
         <div className={styles.clock}>
           <p className={styles.clock__time}>{clock}</p>
           <p className={styles.clock__date}>
-            {date} · {WEATHER_META[weather].label}
+            {date} · {WEATHER_META[weather.kind].label}
           </p>
 
           {/* 계측이 끊기면 화면의 값이 언제 것인지 알 수 없다 (SFR-005-10) */}
@@ -136,6 +140,14 @@ export function PaperBoard({
             </li>
           ))}
         </ol>
+
+        {/*
+          기상은 기둥의 아래쪽에 둔다 (2026-09-04 회의).
+
+          위의 차례가 「무엇을 읽고 있나」 를 말하고 이 칸이 「지금 바깥이 어떤가」 를 말한다.
+          지면은 장이 넘어가며 바뀌지만 이 둘은 늘 같은 자리에 남아, 읽던 곳을 잃지 않게 한다.
+        */}
+        <WeatherPanel today={weather} forecast={forecast} stacked />
 
         <div className={styles.tools}>
           {scopePicker}

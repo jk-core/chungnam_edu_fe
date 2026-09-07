@@ -1,0 +1,141 @@
+@use "@/styles/tokens/spacing" as s;
+@use "@/styles/tokens/typography" as t;
+
+/*
+  오늘 날씨와 주간 예보.
+
+  왼쪽이 지금, 오른쪽이 이레다. 둘을 위아래로 쌓으면 200px 을 먹는데, 이 칸이 들어가는 자리는
+  이미 다른 칸들이 높이를 다 쓰고 남긴 틈이다 — 눕히면 절반으로 준다.
+
+  걸어 두고 몇 걸음 떨어져서 보는 화면이라 「지금」 을 크게 두고 예보는 훑기만 해도 되는 크기로
+  줄인다. 오늘 소풍을 갈지 정하는 사람은 이 앞에 서지 않는다.
+*/
+.weather {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: center;
+  gap: s.$space-4;
+  min-height: 0;
+
+  /* 이 칸이 들어가는 자리는 늘 남은 틈이다 — 안쪽 여백을 아껴 옆 칸의 설명 줄을 살린다 */
+  padding: s.$space-2 s.$space-3;
+  border: 1px solid var(--border-subtle);
+  border-radius: s.$radius-lg;
+  background-color: var(--surface);
+  box-shadow: var(--shadow-sm);
+
+  /* 세로로 긴 자리에 세울 때 — 눕힌 채로 들어가면 이레가 한 칸씩 짜부라진다 */
+  &--stacked {
+    grid-template-columns: minmax(0, 1fr);
+    align-items: stretch;
+    gap: s.$space-2;
+  }
+}
+
+// ── 지금 ──────────────────────────────────────────────────
+.now {
+  display: flex;
+  align-items: center;
+  gap: s.$space-3;
+  margin: 0;
+
+  &__icon {
+    display: inline-flex;
+    flex-shrink: 0;
+    color: var(--solar-text);
+  }
+
+  &__text {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    min-width: 0;
+  }
+
+  &__label {
+    @include t.title-md;
+
+    color: var(--text-strong);
+  }
+
+  /*
+    기온과 습도를 위아래로 놓는다.
+
+    한 줄로 이으면 「지금」 쪽이 270px 을 먹고, 눕힌 띠에서 그만큼은 곧바로 이레 몫에서 나온다 —
+    한 칸이 19px 까지 눌려 온도가 옆 날과 겹쳐 읽혔다. 세로로 세우면 폭이 절반으로 준다.
+  */
+  &__figures {
+    display: flex;
+    flex-direction: column;
+  }
+
+  &__temp {
+    @include t.title-lg;
+
+    color: var(--text-strong);
+    font-family: var(--font-data);
+    line-height: 1.15;
+  }
+
+  &__humid {
+    @include t.body-sm;
+
+    color: var(--text-muted);
+    white-space: nowrap;
+  }
+}
+
+// ── 이레 ──────────────────────────────────────────────────
+.week {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: s.$space-1;
+  margin: 0;
+  padding-left: s.$space-4;
+  border-left: 1px solid var(--border-subtle);
+  list-style: none;
+
+  /* 위아래로 쌓을 때는 가르는 선도 위로 간다 */
+  .weather--stacked & {
+    padding-top: s.$space-2;
+    padding-left: 0;
+    border-top: 1px solid var(--border-subtle);
+    border-left: 0;
+  }
+}
+
+.day {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  padding: s.$space-1 0;
+  border-radius: s.$radius-md;
+  color: var(--solar-text);
+
+  /* 오늘은 바탕을 깔아 둔다 — 요일을 세지 않아도 어디가 오늘인지 잡힌다 */
+  &--today {
+    background-color: var(--brand-soft);
+  }
+
+  /*
+    이레 눈금은 훑기만 하면 되는 글씨다.
+
+    한 칸이 40px 안팎이라 요일과 온도가 같은 폭을 다투는데, 본문 크기로 두면 「31°」 가 칸을
+    넘어 옆 날과 붙어 읽힌다. 지금 날씨는 왼쪽에서 이미 크게 말했으므로 이쪽은 줄여도 된다.
+  */
+  &__name {
+    @include t.label-sm;
+
+    color: var(--text-muted);
+  }
+
+  &__temp {
+    @include t.label-sm;
+
+    color: var(--text-strong);
+    font-family: var(--font-data);
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+  }
+}

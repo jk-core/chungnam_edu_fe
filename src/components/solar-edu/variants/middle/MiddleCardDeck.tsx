@@ -103,13 +103,14 @@ export function MiddleCardDeck({ stats, nowHour }: MiddleCardDeckProps) {
  */
 function CardArt({ scene, stats, nowHour }: { scene: CardScene; stats: EduStats; nowHour: number }) {
   if (scene.kind === 'journey') {
-    /* 이 판은 초등 대본을 읽으므로 그림도 그 어투를 따른다 — 글은 「햇님」 인데 그림만 「햇빛」 이면 어긋난다 */
+    /* 카드의 글과 그림의 이름표가 같은 말을 쓴다 — 글은 「태양전지판」 인데 그림만 「태양전지」 면 어긋난다 */
     return (
       <JourneyScene
         step={scene.step}
         nowHour={nowHour}
         loadRatio={stats.loadRatio}
-        sunLabel="햇님"
+        sunLabel="해"
+        panelLabel="태양전지판"
         focus={scene.focus}
       />
     );

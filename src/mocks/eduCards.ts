@@ -61,13 +61,64 @@ export interface EduCard {
   readout?: (stats: EduStats) => SceneReadout;
 }
 
+/*
+  중등이 읽을 말 (2026-09-07 지시).
+
+  자리와 수치는 초등 대본의 것을 그대로 쓰되 **문장만** 이 눈높이로 갈아 끼운다. 「햇님」 은
+  「해」 로, 「태양전지」 는 「태양전지판」 으로 — 회의에서 중등부터는 정식 용어를 쓰기로 했고
+  (2026-09-04), 이 나이에 「햇님」 은 낮춰 부르는 말로 읽힌다.
+
+  설명도 한 걸음 더 들어간다. 초등 쪽은 무슨 일이 일어나는지만 말하면 되지만, 이 나이는
+  **왜 그런지**를 함께 받아야 다음 걸음과 이어진다 — 「해가 높으면 많이 만든다」 에서 그치지 않고
+  빛이 똑바로 닿는다는 까닭까지 적는다.
+*/
+const MIDDLE_JOURNEY: Record<string, { title: string; line: string }> = {
+  sun: {
+    title: '해가 떴어요',
+    line: '해가 높이 뜰수록 빛이 태양전지판에 똑바로 닿아 전기를 더 많이 만들어요.',
+  },
+  panel: {
+    title: '태양전지판이 받아요',
+    line: '지붕 위 태양전지판에 햇빛이 닿으면 그 자리에서 바로 전기가 만들어져요.',
+  },
+  inverter: {
+    title: '쓸 수 있게 바꿔요',
+    line: '태양전지판이 만든 전기는 그대로 쓸 수 없어요. 인버터가 교실 콘센트에서 쓰는 형태로 바꿔 줘요.',
+  },
+  school: {
+    title: '교실에 불이 켜져요',
+    line: '바뀐 전기가 전선을 타고 교실로 와서 불을 켜고 선풍기를 돌려요.',
+  },
+};
+
+/*
+  좋은 까닭 셋 — 까닭까지 적는다 (2026-09-07 지시).
+
+  「공짜예요 · 햇님은 돈을 받지 않아요」 는 초등의 말이다. 이 나이에는 왜 공짜인지, 왜 깨끗한지가
+  한 겹 더 있어야 한다 — 연료를 사 오지 않는다는 것, 태우는 것이 없다는 것, 돌아가는 부품이
+  없다는 것이 각각의 진짜 까닭이고, 그것이 태양광과 다른 발전을 가르는 지점이기도 하다.
+*/
+const MIDDLE_BENEFIT: Record<BenefitArt, { title: string; line: string }> = {
+  free: {
+    title: '연료가 들지 않아요',
+    line: '햇빛은 날마다 그냥 오니까 사 올 것이 없어요. 발전소를 돌리는 데 드는 연료비가 0원이에요.',
+  },
+  clean: {
+    title: '공기를 더럽히지 않아요',
+    line: '태우는 것이 없으니 매연도 재도 나오지 않아요. 석탄이나 가스로 만들 때와 가장 크게 다른 점이에요.',
+  },
+  quiet: {
+    title: '소리가 나지 않아요',
+    line: '돌아가는 부품이 없어서 발전기처럼 윙윙거리지 않아요. 그래서 학교 지붕 위에 둘 수 있어요.',
+  },
+};
+
 export const EDU_CARDS: EduCard[] = [
   ...ELEMENTARY_CONTENT.scenes.map((scene, index): EduCard => ({
     id: scene.id,
     section: 'journey',
     scene: { kind: 'journey', step: index, focus: scene.id as JourneyFocus },
-    title: scene.title,
-    line: scene.line,
+    ...(MIDDLE_JOURNEY[scene.id] ?? { title: scene.title, line: scene.line }),
     readout: scene.readout,
   })),
   ...ELEMENTARY_CONTENT.impact.items.map((item): EduCard => ({
@@ -82,7 +133,6 @@ export const EDU_CARDS: EduCard[] = [
     id: benefit.id,
     section: 'benefit',
     scene: { kind: 'benefit', focus: benefit.art },
-    title: benefit.title,
-    line: benefit.line,
+    ...(MIDDLE_BENEFIT[benefit.art] ?? { title: benefit.title, line: benefit.line }),
   })),
 ];

@@ -1,6 +1,8 @@
 import { CO2_PER_KWH } from '@/utils/eco';
 import { formatNumber, formatSi, scaleCarbon, scaleSi } from '@/utils/format';
+import type { DayWeather } from '@/interface/weather';
 import type { EduStats } from '@/mocks/solarEdu';
+import { WeatherPanel } from '@/components/solar-edu/WeatherPanel';
 import { BenefitScene } from '../../scene-art/BenefitScene';
 import { ImpactArt } from '../../scene-art/ImpactArt';
 import { JourneyScene } from '../../scene-art/JourneyScene';
@@ -26,6 +28,8 @@ const ALL_STEPS = 3;
 interface HighPosterProps {
   stats: EduStats;
   nowHour: number;
+  today: DayWeather;
+  forecast: DayWeather[];
 }
 
 /**
@@ -38,7 +42,7 @@ interface HighPosterProps {
  * 벽보처럼 세운다. 말풍선이 옮겨 다니지 않으니 아이가 보고 싶은 곳을 먼저 보고, 읽고 싶은 만큼만 읽는다.
  * 그림은 여전히 살아 움직이지만 **순서를 정해 주지 않는** 것이 이 시안이 앞의 것들과 다른 점이다.
  */
-export function HighPoster({ stats, nowHour }: HighPosterProps) {
+export function HighPoster({ stats, nowHour, today, forecast }: HighPosterProps) {
   /*
     그림의 네 마디.
 
@@ -144,6 +148,15 @@ export function HighPoster({ stats, nowHour }: HighPosterProps) {
               </li>
             ))}
           </ul>
+
+          {/*
+            기상은 이 칸 맨 아래에 둔다 (2026-09-04 노트).
+
+            잰 값 석 장이 세로 가운데로 모이면서 아래가 비는 자리다. 위의 값들은 「그동안 얼마나」 를
+            말하고 이 줄은 「지금 어떤 날인가」 를 말하니, 같은 칸에서 위아래로 이어 읽힌다 —
+            오늘 발전이 적은 까닭을 묻는 사람의 눈이 두 곳을 오갈 필요가 없다.
+          */}
+          <WeatherPanel today={today} forecast={forecast} />
         </section>
 
         {/* 오른쪽 아래 — 태양광이 왜 좋은가. 넷을 한 번에 세우고 이름만 붙인다 */}

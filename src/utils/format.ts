@@ -176,3 +176,22 @@ export function clockOf(hour: number): string {
 
   return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`;
 }
+
+/**
+ * 시간(h)을 「N시간 M분」 으로.
+ *
+ * 「4.0시간」 은 소수를 읽을 줄 알아야 뜻이 잡힌다 — 초등 화면에서는 0.4시간이 24분이라는 것을
+ * 스스로 셈해야 하고, 그 셈이 이 나이의 몫이 아니다 (2026-09-07 지시). 시계로 읽히는 말로 바꾼다.
+ *
+ * 한 시간이 안 되면 시간 자리를 적지 않는다 — 「0시간 24분」 은 0 을 읽느라 한 박자 걸린다.
+ */
+export function formatHourMinute(hours: number): string {
+  const total = Math.max(0, Math.round(hours * 60));
+  const h = Math.floor(total / 60);
+  const m = total % 60;
+
+  if (h === 0) return `${m}분`;
+  if (m === 0) return `${h}시간`;
+
+  return `${h}시간 ${m}분`;
+}

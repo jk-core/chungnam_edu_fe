@@ -3,6 +3,7 @@ import { ELEMENTARY_CONTENT } from '@/mocks/eduElementary';
 import { ELEMENTARY_PICTURE } from '@/mocks/eduPicture';
 import { HIGH_CONTENT } from '@/mocks/eduContent';
 import { MIDDLE_CONTENT } from '@/mocks/eduMiddle';
+import type { DayWeather } from '@/interface/weather';
 import type { EduStats } from '@/mocks/solarEdu';
 import { ElementaryStage } from '../ElementaryStage';
 import { HighBoard } from '../HighBoard';
@@ -87,6 +88,8 @@ interface EduBoardProps {
   scopeLabel: string;
   stats: EduStats;
   nowHour: number;
+  today: DayWeather;
+  forecast: DayWeather[];
 }
 
 /**
@@ -96,7 +99,7 @@ interface EduBoardProps {
  * `EDU_CELLS` 가 정한 대본을 쓰는 칸이 여럿이라, 대본을 밖에서 받아 오면 어느 칸이 무엇을 읽는지가
  * 두 곳으로 갈라진다.
  */
-export function EduBoard({ level, variant, scopeLabel, stats, nowHour }: EduBoardProps) {
+export function EduBoard({ level, variant, scopeLabel, stats, nowHour, today, forecast }: EduBoardProps) {
   if (level === 'elementary') {
     if (variant === 'b') return <ElementaryClock stats={stats} content={ELEMENTARY_PICTURE} nowHour={nowHour} />;
     if (variant === 'c') return <ElementaryRelief stats={stats} content={ELEMENTARY_PICTURE} nowHour={nowHour} />;
@@ -108,10 +111,10 @@ export function EduBoard({ level, variant, scopeLabel, stats, nowHour }: EduBoar
     if (variant === 'c') return <MiddleCardDeck stats={stats} nowHour={nowHour} />;
 
     // 시안 a 는 골격까지 제 것이라 화면 쪽에서 이미 갈라졌다 — 여기 닿는 것은 b 뿐이다.
-    return <MiddleClock stats={stats} nowHour={nowHour} />;
+    return <MiddleClock stats={stats} nowHour={nowHour} weather={today} forecast={forecast} />;
   }
 
-  if (variant === 'a') return <HighPoster stats={stats} nowHour={nowHour} />;
+  if (variant === 'a') return <HighPoster stats={stats} nowHour={nowHour} today={today} forecast={forecast} />;
   if (variant === 'c') return <HighCards stats={stats} content={MIDDLE_CONTENT} />;
 
   return <HighBoard scopeLabel={scopeLabel} stats={stats} content={HIGH_CONTENT} />;
