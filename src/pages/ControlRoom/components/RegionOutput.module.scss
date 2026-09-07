@@ -97,11 +97,15 @@
     overflow: hidden;
   }
 
+  /*
+    막대. 시·군의 CI 색으로 긋되 뿌리 쪽을 옅게 둔다 — 단색으로 채우면 열다섯 줄이 저마다
+    다른 색의 덩어리가 되어 길이를 견주기 어렵다. 끝이 진하면 눈이 끝자리를 먼저 찾는다.
+  */
   &__bar {
     display: block;
     height: 100%;
     border-radius: s.$radius-full;
-    background: linear-gradient(90deg, var(--brand) 12%, var(--solar));
+    background: linear-gradient(90deg, rgb(from var(--row, var(--brand)) r g b / 45%) 0%, var(--row, var(--solar)) 100%);
     transition: width 0.5s cubic-bezier(0.22, 0.68, 0.32, 1);
   }
 }

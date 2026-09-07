@@ -11,6 +11,7 @@ import { AiDiagnosisPanel } from './AiDiagnosisPanel';
 import { CumulativeKpi } from './CumulativeKpi';
 import { FaultGroups } from './FaultGroups';
 import { FaultMap } from './FaultMap';
+import { RegionStatMap } from './RegionStatMap';
 import { OutputGauge } from './OutputGauge';
 import { Panel } from './Panel';
 import { RegionOutput } from './RegionOutput';
@@ -79,17 +80,50 @@ export function RegionPanel({ grow }: { grow?: boolean }) {
   );
 }
 
-/** 관내 발전소 현황 — 지도 (SFR-004-01/14). */
+/** 관내 발전소 현황을 그리는 두 방식 */
+type MapView = 'region' | 'photo';
+
+const MAP_VIEW_OPTIONS: { value: MapView; label: string }[] = [
+  { value: 'region', label: '시·군' },
+  { value: 'photo', label: '지도' },
+];
+
+/**
+ * 관내 발전소 현황 (SFR-004-01/03/14).
+ *
+ * 두 가지로 볼 수 있다. **시·군**은 도형만 남기고 그 면적을 전부 수치의 자리로 쓰고
+ * (2026-09-04 노트 — 「지도 대신 충남만 띄워서 각 지역별로 통계자료를」), **지도**는 종전대로
+ * 항공사진 위에 발전소를 점으로 찍는다.
+ *
+ * 한쪽을 지우지 않는다. 둘이 답하는 물음이 다르다 — 「어느 시·군이 얼마나」 는 도형이 답하고,
+ * 「그 학교가 실제로 어디에 있나」 는 사진이 답한다. 걸어 두는 화면의 기본값은 시·군 쪽이다.
+ * 종일 지켜보는 사람에게는 수치가 먼저이고, 사진은 한 곳을 찾을 때 꺼내 보는 것이다.
+ */
 export function MapPanel({
   plants, abnormalCount, grow,
 }: { plants: School[]; abnormalCount: number; grow?: boolean }) {
+  const [view, setView] = useState<MapView>('region');
+
   return (
     <Panel
       title="관내 발전소 현황"
-      note={`${formatNumber(plants.length)}개소 · 이상 ${formatNumber(abnormalCount)}개소`}
+      note={(
+        <span className={styles.panel__tools}>
+          <span>{`${formatNumber(plants.length)}개소 · 이상 ${formatNumber(abnormalCount)}개소`}</span>
+          <SegmentedControl
+            label="지도 표시 방식"
+            size="sm"
+            options={MAP_VIEW_OPTIONS}
+            value={view}
+            onChange={setView}
+          />
+        </span>
+      )}
       grow={grow}
     >
-      <FaultMap plants={plants} scope="all" height="100%" selectable tour />
+      {view === 'region'
+        ? <RegionStatMap plants={plants} />
+        : <FaultMap plants={plants} scope="all" height="100%" selectable tour />}
     </Panel>
   );
 }

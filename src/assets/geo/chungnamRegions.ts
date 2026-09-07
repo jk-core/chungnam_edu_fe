@@ -72,6 +72,18 @@ export const REGION_SHAPE_BOX: Record<string, { x: number; y: number; width: num
   홍성군: { x: 127.0, y: 203.9, width: 128.6, height: 89.2 },
 };
 
+/*
+  시·군마다의 충남 CI 색 (2026-09-04 노트 — 각 행정구역별 색상 반영).
+
+  도형 차례대로 여섯 색을 돌려 준다. 돌려 주기만 해도 맞닿은 시·군이 같은 색이 되지 않는다 —
+  `REGION_SHAPES` 가 북서쪽에서 시계 방향으로 훑어 내려가는 차례라, 여섯 칸 떨어진 둘은
+  지도에서도 멀다. 실제로 열다섯 곳 가운데 맞닿은 채 같은 색인 짝은 없다.
+
+  색을 지역에 못 박아 두는 까닭은 화면마다 같은 시·군이 같은 색이어야 하기 때문이다.
+  화면에서 셈하면 조회 조건에 걸린 시·군이 빠질 때 나머지의 색이 통째로 밀린다.
+*/
+export const REGION_CI_COLOR: Record<string, string> = {};
+
 export const REGION_SHAPES: RegionShape[] = [
   {
     id: 'path3882',
@@ -164,3 +176,7 @@ export const REGION_SHAPES: RegionShape[] = [
     transform: 'translate(0,-536.36218)',
   },
 ];
+
+REGION_SHAPES.forEach((shape, index) => {
+  REGION_CI_COLOR[shape.region] = `var(--ci-${(index % 6) + 1})`;
+});
