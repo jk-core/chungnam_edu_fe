@@ -11,6 +11,7 @@ import type { EduVariant } from '@/components/solar-edu/variants/EduBoard';
 import { useEduClock } from '../hooks/useEduClock';
 import { useEduScope } from '../hooks/useEduScope';
 import { LevelPicker } from './LevelPicker';
+import { WeatherPicker } from './WeatherPicker';
 import { SchoolPicker } from './SchoolPicker';
 
 /** 계측값을 다시 읽는 주기 (SFR-005-09) */
@@ -88,7 +89,13 @@ export function SolarEduScreen({ variant }: { variant: EduVariant }) {
         nowHour={nowHour}
         isLive={stats.isLive}
         scopePicker={scopePicker}
-        levelPicker={<LevelPicker />}
+        levelPicker={(
+          <>
+            <LevelPicker />
+            {/* 시연용 임시 고르개 — 실제 기상 연동이 붙으면 걷는다 */}
+            <WeatherPicker />
+          </>
+        )}
       />
     );
   }
@@ -107,7 +114,13 @@ export function SolarEduScreen({ variant }: { variant: EduVariant }) {
         보였다. 카드가 화면을 덮고 있어 숫자가 흐려지지도 않는다.
       */
       backdrop={<SkyBackdrop nowHour={nowHour} kind={weather.kind} />}
-      levelPicker={<LevelPicker />}
+      levelPicker={(
+        <>
+          <LevelPicker />
+          {/* 시연용 임시 고르개 — 실제 기상 연동이 붙으면 걷는다 */}
+          <WeatherPicker />
+        </>
+      )}
       weather={weather.kind}
       isLive={stats.isLive}
       stoppedNote={stoppedNote}
@@ -120,6 +133,7 @@ export function SolarEduScreen({ variant }: { variant: EduVariant }) {
       }
       facts={facts}
       factIndex={fact.page}
+      factMs={FACT_MS}
       onSelectFact={fact.goTo}
     >
       <EduBoard

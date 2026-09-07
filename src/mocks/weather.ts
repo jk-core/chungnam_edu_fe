@@ -37,10 +37,18 @@ const MONTH_TEMP_C = [3, 6, 12, 18, 23, 27, 30, 31, 26, 20, 12, 5];
 
 const dayCache = new Map<string, DayWeather>();
 
-/** 하루치 날씨·발전시간. 발전소를 지정하지 않으면 도 전체 기준이다. */
-export function getDayWeather(schoolId: string | null, date: Date): DayWeather {
+/**
+ * 하루치 날씨·발전시간. 발전소를 지정하지 않으면 도 전체 기준이다.
+ *
+ * `forceKind` 를 주면 그 날씨였다면 어땠을지를 낸다 — 종류만 갈아 끼우는 것이 아니라 일사량과
+ * 발전시간, 기온·습도까지 그 날씨 기준으로 다시 셈한다. 배경이 비를 그리는데 옆의 발전량은
+ * 맑은 날 값이면 화면이 스스로를 부정한다.
+ *
+ * 실제 연동이 붙으면 이 인자는 쓰이지 않는다. 시연에서 다섯 날씨를 눈으로 견주려고 둔 문이다.
+ */
+export function getDayWeather(schoolId: string | null, date: Date, forceKind?: WeatherKind): DayWeather {
   const ymd = dayjs(date).format('YYYY-MM-DD');
-  const key = `${schoolId ?? 'all'}-${ymd}`;
+  const key = `${schoolId ?? 'all'}-${ymd}-${forceKind ?? 'auto'}`;
   const cached = dayCache.get(key);
 
   if (cached) return cached;
@@ -50,7 +58,7 @@ export function getDayWeather(schoolId: string | null, date: Date): DayWeather {
   // 날씨는 지역 공통이라 발전소를 가리지 않고 날짜만으로 뽑는다.
   const weatherNext = createRandom(hashSeed(`weather-${ymd}`));
   const month = dayjs(date).month();
-  const kind = pickWeather(weatherNext, month);
+  const kind = forceKind ?? pickWeather(weatherNext, month);
   const seasonal = MONTH_FACTOR[month];
   const meta = WEATHER_META[kind];
 

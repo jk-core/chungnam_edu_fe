@@ -7,6 +7,7 @@ import { resolveEduLevel } from '@/mocks/eduContent';
 import { getNode } from '@/mocks/tree';
 import { getSchoolById, SCHOOLS } from '@/mocks/schools';
 import { TODAY } from '@/mocks/today';
+import { resolveForcedWeather } from '../components/WeatherPicker';
 
 /** 설비용량을 머리줄에 적을 때 — 자릿수가 커지면 MW 로 올린다 */
 function capacityText(kw: number) {
@@ -32,8 +33,15 @@ export function useEduScope(nowHour: number) {
 
     전에는 종류(`kind`)만 냈는데, 기온·습도와 이레치 예보가 붙으면서 한 벌을 통째로 넘긴다 —
     배경이 보는 날씨와 칸에 적히는 날씨가 갈리면 화면이 스스로를 부정한다.
+
+    `?weather=` 가 실려 있으면 오늘치만 그 날씨로 바꿔 낸다 (시연용 · 2026-09-07 지시).
+    이레 예보는 그대로 둔다 — 오늘 하루를 바꿔 보는 것이지 다음 주까지 비가 오는 것은 아니다.
   */
-  const weather = useMemo(() => getDayWeather(node.plantId, TODAY.toDate()), [node]);
+  const forcedKind = resolveForcedWeather(searchParams.get('weather'));
+  const weather = useMemo(
+    () => getDayWeather(node.plantId, TODAY.toDate(), forcedKind),
+    [node, forcedKind],
+  );
   const forecast = useMemo(() => getWeekWeather(node.plantId, TODAY.toDate()), [node]);
 
   // 상황판은 학교마다 걸린다 — 어느 학교를 띄울지 여기서 고른다 (회의 결정).
