@@ -1,8 +1,16 @@
+import { cn } from '@/utils/cn';
 import styles from './Logo.module.scss';
 
 interface LogoProps {
   /** 축약형은 상징 마크와 짧은 이름만 보여준다. */
   compact?: boolean;
+  /**
+   * 큰 자리에 세울 때.
+   *
+   * 벽에 걸어 두고 몇 걸음 떨어져 보는 화면(통합관제 상황판)이 쓴다 — 앉아서 보는 헤더의
+   * 크기 그대로 두면 그 거리에서 기관명이 먼저 사라진다 (2026-09-07 지시).
+   */
+  size?: 'md' | 'lg';
 }
 
 /**
@@ -30,9 +38,9 @@ export function LogoMark({ className }: { className?: string }) {
  * 원본 시그니처에는 기관명 글자가 함께 붙어 있지만 여기서는 마크만 쓴다 — 옆에 기관명과
  * 시스템 이름을 우리 글꼴로 세우므로, 글자를 두 벌 두면 같은 이름이 나란히 겹친다.
  */
-export function Logo({ compact = false }: LogoProps) {
+export function Logo({ compact = false, size = 'md' }: LogoProps) {
   return (
-    <span className={styles.logo}>
+    <span className={cn(styles.logo, { [styles['logo--lg']]: size === 'lg' })}>
       <LogoMark className={styles.logo__mark} />
 
       <span className={styles.logo__text}>

@@ -266,41 +266,6 @@
     min-width: 0;
   }
 
-  /*
-    기관 심볼. 가로보다 세로가 길어(438×496) 높이를 기준으로 세운다.
-    어두운 바탕에서도 공식 색 그대로 두되 흰 판을 깔아 남색 몸통이 묻히지 않게 한다.
-  */
-  &__logo {
-    flex-shrink: 0;
-    box-sizing: content-box;
-    width: auto;
-    height: 44px;
-    padding: 4px 8px;
-    border-radius: s.$radius-sm;
-
-    [data-theme="dark"] & {
-      background-color: #fff;
-    }
-  }
-
-  /*
-    스물일곱 자짜리 한 줄이라 크기를 함부로 못 올린다.
-
-    벽걸이(1600 이상)에서 32px 이면 이름만 860px 을 쓰고, 오른쪽의 검색·시계·단추가 700px 을
-    쓴다 — 1920 폭에서 겨우 맞는다. 44px 로 올리면 줄이 접혀 도로 두 줄이 되므로,
-    「크게」 의 한계가 여기다.
-  */
-  &__title {
-    @include t.title-lg;
-
-    margin: 0;
-    color: var(--text-strong);
-
-    @include media.kiosk {
-      @include t.title-xl;
-    }
-  }
-
   &__variant {
     @include t.label-sm;
 

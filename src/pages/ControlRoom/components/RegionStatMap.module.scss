@@ -44,6 +44,21 @@
       stroke: var(--cell);
       stroke-width: 2.5;
     }
+
+    /* 눌러서 갈 수 있는 면 — 짚으면 제 색이 한 단 올라와 「이건 눌린다」 가 손끝보다 먼저 읽힌다 */
+    &[data-pick] {
+      cursor: pointer;
+
+      &:hover {
+        fill: rgb(from var(--cell) r g b / 55%);
+      }
+
+      &:focus-visible {
+        outline: none;
+        stroke: var(--cell);
+        stroke-width: 3;
+      }
+    }
   }
 
   @include media.tablet {

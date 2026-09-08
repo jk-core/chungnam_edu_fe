@@ -1,15 +1,13 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useMemo } from 'react';
 import { REGION_CI_COLOR, REGION_SHAPE_BOX, REGION_SHAPES, REGION_VIEW } from '@/assets/geo/chungnamRegions';
 import { PauseIcon, PlayIcon } from '@/components/common/Icon';
 import { isAbnormal, OPERATION_LABEL, OPERATION_RANK, OPERATION_TONE } from '@/mocks/status';
 import { currentOutputOf } from '@/mocks/schoolOutput';
 import { formatCapacity, formatEnergy, formatNumber, formatPercent } from '@/utils/format';
 import type { School } from '@/interface/energy';
+import { orderRegionNames, useRegionTour } from '../utils/regionTour';
 import { StatusMix } from './StatusMix';
 import styles from './RegionStatMap.module.scss';
-
-/** 한 시·군에 머무는 시간(ms). 수치 여섯과 상태 분포를 읽고 지도에서 자리를 찾을 만큼은 준다 */
-const TOUR_MS = 8000;
 
 /** 이름표가 시·군 면 밖으로 밀려나지 않게 두는 여백 */
 const EDGE_PAD = 34;
@@ -86,15 +84,22 @@ export function RegionStatMap({ plants }: RegionStatMapProps) {
     const provinceCapacity = plants.reduce((sum, school) => sum + school.capacityKw, 0) || 1;
     const provinceToday = plants.reduce((sum, school) => sum + school.todayKwh, 0) || 1;
 
-    // 도형이 있는 열다섯 곳을 차례대로 — 조회에 걸리지 않은 시·군도 자리는 지킨다
-    return REGION_SHAPES.map((shape): RegionStat => {
-      const schools = byRegion.get(shape.region) ?? [];
+    /*
+      순회 차례는 옆 판(AI 진단)과 같은 것을 본다 (2026-09-07 지시).
+
+      전에는 도형 차례대로 돌았다 — 지도를 훑는 느낌은 좋지만, 두 판이 같은 시각에 서로 다른
+      시·군을 비추어 「왼쪽 지도의 저 곳」 과 「오른쪽 진단의 저 곳」 을 눈이 따로 좇아야 했다.
+      발전소가 없는 시·군이 순회에서 빠지는 것도 같은 규칙을 쓰기 때문이다. 도형은 열다섯을
+      그대로 다 그린다 — 도의 모양이 조회 조건에 따라 이지러질 수는 없다.
+    */
+    return orderRegionNames(plants).map((region): RegionStat => {
+      const schools = byRegion.get(region) ?? [];
       const capacityKw = schools.reduce((sum, school) => sum + school.capacityKw, 0);
       const todayKwh = schools.reduce((sum, school) => sum + school.todayKwh, 0);
       const outputKw = schools.reduce((sum, school) => sum + currentOutputOf(school), 0);
 
       return {
-        name: shape.region,
+        name: region,
         schools,
         count: schools.length,
         capacityKw,
@@ -109,20 +114,10 @@ export function RegionStatMap({ plants }: RegionStatMapProps) {
     });
   }, [plants]);
 
-  const [index, setIndex] = useState(0);
-  const [isPlaying, setIsPlaying] = useState(true);
+  // 자리는 벽시계에서 셈한다 — 옆 판(AI 진단)도 같은 식을 써서 늘 같은 시·군을 본다
+  const tour = useRegionTour(rows.length);
+  const active = rows[tour.index] ?? rows[0];
 
-  useEffect(() => {
-    if (!isPlaying) return undefined;
-
-    const timer = window.setInterval(() => {
-      setIndex((current) => (current + 1) % REGION_SHAPES.length);
-    }, TOUR_MS);
-
-    return () => window.clearInterval(timer);
-  }, [isPlaying]);
-
-  const active = rows[index] ?? rows[0];
   const capacity = formatCapacity(active.capacityKw);
   const output = formatCapacity(active.outputKw);
   const today = formatEnergy(active.todayKwh);
@@ -143,20 +138,44 @@ export function RegionStatMap({ plants }: RegionStatMapProps) {
       <svg
         className={styles.map__canvas}
         viewBox={`0 0 ${REGION_VIEW.width} ${REGION_VIEW.height}`}
-        role="img"
         aria-label={`충청남도 시·군별 현황. 지금 ${active.name}`}
       >
-        {REGION_SHAPES.map((shape) => (
-          <path
-            key={shape.id}
-            className={styles.map__cell}
-            style={{ '--cell': REGION_CI_COLOR[shape.region] } as React.CSSProperties}
-            data-on={shape.region === active.name ? '' : undefined}
-            d={shape.d}
-            transform={shape.transform}
-            vectorEffect="non-scaling-stroke"
-          />
-        ))}
+        {/*
+          면을 눌러 그 시·군으로 (2026-09-07 지시).
+
+          순회를 기다리지 않고 보고 싶은 곳으로 바로 간다. 아래 눈금으로도 갈 수 있지만 그쪽은
+          열다섯 칸이 이름 없이 늘어서 있어 어느 칸이 어디인지 세어야 한다 — 지도에서는 짚으면 된다.
+
+          발전소가 없어 순회에 들지 않은 시·군은 누를 것이 없다. 눌러도 갈 자리가 없으므로
+          단추로 만들지 않는다.
+        */}
+        {REGION_SHAPES.map((shape) => {
+          const at = rows.findIndex((row) => row.name === shape.region);
+
+          return (
+            <path
+              key={shape.id}
+              className={styles.map__cell}
+              style={{ '--cell': REGION_CI_COLOR[shape.region] } as React.CSSProperties}
+              data-on={shape.region === active.name ? '' : undefined}
+              data-pick={at >= 0 ? '' : undefined}
+              role={at >= 0 ? 'button' : undefined}
+              tabIndex={at >= 0 ? 0 : undefined}
+              aria-label={at >= 0 ? `${shape.region} 보기` : undefined}
+              aria-current={shape.region === active.name ? 'true' : undefined}
+              onClick={at >= 0 ? () => tour.goTo(at) : undefined}
+              onKeyDown={at >= 0 ? (event) => {
+                if (event.key !== 'Enter' && event.key !== ' ') return;
+
+                event.preventDefault();
+                tour.goTo(at);
+              } : undefined}
+              d={shape.d}
+              transform={shape.transform}
+              vectorEffect="non-scaling-stroke"
+            />
+          );
+        })}
 
         {/*
           이름표는 면을 다 그린 뒤에 얹는다.
@@ -302,10 +321,10 @@ export function RegionStatMap({ plants }: RegionStatMapProps) {
           <button
             type="button"
             className={styles.now__play}
-            onClick={() => setIsPlaying((playing) => !playing)}
-            aria-label={isPlaying ? '순회 멈춤' : '순회 시작'}
+            onClick={() => tour.toggle()}
+            aria-label={tour.isPlaying ? '순회 멈춤' : '순회 시작'}
           >
-            {isPlaying ? <PauseIcon width={13} height={13} /> : <PlayIcon width={13} height={13} />}
+            {tour.isPlaying ? <PauseIcon width={13} height={13} /> : <PlayIcon width={13} height={13} />}
           </button>
 
           <ol className={styles.now__dots}>
@@ -314,11 +333,11 @@ export function RegionStatMap({ plants }: RegionStatMapProps) {
                 <button
                   type="button"
                   className={styles.now__dot}
-                  data-on={at === index ? '' : undefined}
+                  data-on={at === tour.index ? '' : undefined}
                   style={{ '--dot': REGION_CI_COLOR[row.name] } as React.CSSProperties}
-                  onClick={() => setIndex(at)}
+                  onClick={() => tour.goTo(at)}
                   aria-label={row.name}
-                  aria-current={at === index ? 'true' : undefined}
+                  aria-current={at === tour.index ? 'true' : undefined}
                 />
               </li>
             ))}

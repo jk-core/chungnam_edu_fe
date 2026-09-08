@@ -8,6 +8,29 @@
   gap: s.$space-3;
   min-width: 0;
 
+  /*
+    벽에 걸어 두는 화면용 (2026-09-07 지시).
+
+    한 단씩 올린다 — 마크는 34px 에서 48px 로, 기관명은 17px 에서 24px 로, 아래 한 줄은
+    12px 에서 14px 로. 몇 걸음 떨어져서 보면 작은 쪽부터 사라지므로 셋을 함께 올려야
+    시그니처의 비례가 유지된다.
+  */
+  &--lg {
+    gap: s.$space-4;
+
+    .logo__mark {
+      height: 48px;
+    }
+
+    .logo__org {
+      @include t.title-lg;
+    }
+
+    .logo__service {
+      @include t.body-sm;
+    }
+  }
+
   // 헤더 링크에 hover 하면 마크가 살짝 떠오른다.
   &:hover {
     .logo__mark {

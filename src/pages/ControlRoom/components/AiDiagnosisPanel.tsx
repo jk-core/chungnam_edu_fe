@@ -8,6 +8,7 @@ import { withParticle } from '@/utils/korean';
 import { currentOutputOf } from '@/mocks/schoolOutput';
 import type { BadgeTone } from '@/components/common/Badge';
 import type { School } from '@/interface/energy';
+import { orderRegionNames, useRegionTour } from '../utils/regionTour';
 import styles from './AiDiagnosisPanel.module.scss';
 import { RegionBriefing } from './RegionBriefing';
 import { RegionMap } from './RegionMap';
@@ -16,11 +17,10 @@ import type { BriefLine, BriefToken } from './RegionBriefing';
 /** 화면이 한 박자 나아가는 간격(ms) */
 const TICK_MS = 700;
 
-/**
- * 지역 한 곳을 읽어 볼 시간(ms).
- * 글이 다 찍히는 데만 4초 남짓 걸리므로, 다 읽고 한 박자 쉴 만큼을 더 준다.
- */
-const REGION_MS = 16_000;
+/*
+  지역 한 곳에 머무는 시간은 옆의 시·군 지도와 나눠 쓴다 (`utils/regionTour`).
+  글이 다 찍히는 데만 4초 남짓 걸리므로, 다 읽고 한 박자 쉴 만큼이 그 값에 들어 있다.
+*/
 
 /** 지금까지 분석한 계측값 — 박자마다 이만큼씩 늘어난다 */
 const ANALYZED_BASE = 1_284_000;
@@ -50,6 +50,7 @@ interface RegionSummary {
  * 대신 가지고 있는 값(개소·설비용량·발전량·상태)만으로 지역 단위 요약을 만든다.
  */
 function summarize(plants: School[]): RegionSummary[] {
+  const order = orderRegionNames(plants);
   const buckets = new Map<string, School[]>();
 
   plants.forEach((plant) => {
@@ -79,8 +80,14 @@ function summarize(plants: School[]): RegionSummary[] {
         worst: [...abnormalRows].sort((a, b) => b.capacityKw - a.capacityKw)[0] ?? null,
       };
     })
-    // 이상이 많은 지역부터. 같으면 큰 지역이 먼저다.
-    .sort((a, b) => b.abnormal - a.abnormal || b.capacityKw - a.capacityKw);
+    /*
+      차례는 `orderRegionNames` 가 정한다 (2026-09-07 지시).
+
+      규칙은 전과 같다 — 이상이 많은 곳부터, 같으면 큰 곳부터. 다만 그 규칙을 여기에 적어 두면
+      옆의 시·군 지도가 같은 규칙을 한 번 더 적어야 하고, 한쪽만 고쳐 놓으면 두 판이 서로 다른
+      시·군을 비추게 된다.
+    */
+    .sort((a, b) => order.indexOf(a.name) - order.indexOf(b.name));
 }
 
 /**
@@ -191,9 +198,7 @@ function briefingOf(region: RegionSummary, averageHours: number): BriefLine[] {
 export function AiDiagnosisPanel({ plants }: { plants: School[] }) {
   const reduceMotion = useReducedMotion();
   const [tick, setTick] = useState(0);
-  const [cursor, setCursor] = useState(0);
   const [step, setStep] = useState(1);
-  const [isPlaying, setIsPlaying] = useState(true);
 
   useEffect(() => {
     const timer = window.setInterval(() => setTick((at) => at + 1), TICK_MS);
@@ -208,20 +213,8 @@ export function AiDiagnosisPanel({ plants }: { plants: School[] }) {
     return capacityKw > 0 ? plants.reduce((sum, plant) => sum + plant.todayKwh, 0) / capacityKw : 0;
   }, [plants]);
 
-  /*
-    자리마다 시계를 새로 건다 — 되풀이 시계 하나로 돌리면 손으로 넘긴 직후에도 가던 시계가
-    그대로 울려, 방금 넘긴 지역이 한 박자 만에 또 넘어간다.
-  */
-  useEffect(() => {
-    if (!isPlaying || regions.length === 0) return undefined;
-
-    const timer = window.setTimeout(() => {
-      setStep(1);
-      setCursor((from) => from + 1);
-    }, REGION_MS);
-
-    return () => window.clearTimeout(timer);
-  }, [isPlaying, cursor, regions.length]);
+  // 자리는 벽시계에서 셈한다 — 옆 판(시·군 지도)도 같은 식을 써서 늘 같은 시·군을 본다
+  const tour = useRegionTour(regions.length);
 
   const analyzed = ANALYZED_BASE + tick * ANALYZED_STEP;
 
@@ -233,13 +226,14 @@ export function AiDiagnosisPanel({ plants }: { plants: School[] }) {
     );
   }
 
-  const at = ((cursor % regions.length) + regions.length) % regions.length;
+  const at = tour.index;
   const region = regions[at];
   const tone = region.abnormal > 0 ? 'critical' : 'ok';
 
   const go = (delta: number) => {
+    // 미끄러지는 방향을 먼저 정해 두고 자리를 옮긴다 — 사람이 누른 쪽으로 카드가 들어온다
     setStep(delta);
-    setCursor((from) => from + delta);
+    tour.step(delta);
   };
 
   return (
@@ -271,11 +265,11 @@ export function AiDiagnosisPanel({ plants }: { plants: School[] }) {
           <button
             type="button"
             className={styles.caption__step}
-            aria-pressed={isPlaying}
-            aria-label={isPlaying ? '지역 자동 전환 정지' : '지역 자동 전환 재생'}
-            onClick={() => setIsPlaying((playing) => !playing)}
+            aria-pressed={tour.isPlaying}
+            aria-label={tour.isPlaying ? '지역 자동 전환 정지' : '지역 자동 전환 재생'}
+            onClick={tour.toggle}
           >
-            {isPlaying ? <PauseIcon width={12} height={12} /> : <PlayIcon width={12} height={12} />}
+            {tour.isPlaying ? <PauseIcon width={12} height={12} /> : <PlayIcon width={12} height={12} />}
           </button>
           <button type="button" className={styles.caption__step} aria-label="다음 지역" onClick={() => go(1)}>
             <ChevronRightIcon width={13} height={13} />

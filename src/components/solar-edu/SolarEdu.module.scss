@@ -316,11 +316,11 @@
   overflow: hidden;
   pointer-events: none;
 
-  /* 흐린 날 하늘 위에 덮는 잿빛 한 겹 */
+  /* 하늘 위에 덮는 한 겹 — 무슨 색을 얼마나 얹을지는 날씨가 정한다(`SkyBackdrop` 의 `WEATHER_SKY`) */
   &__haze {
     position: absolute;
     inset: 0;
-    background: linear-gradient(180deg, #8b98ab 0%, #b9c2cf 100%);
+    background: linear-gradient(180deg, var(--haze-top, #8b98ab) 0%, var(--haze-bottom, #b9c2cf) 100%);
   }
 
   &__sun {

@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom';
-import { LogoMark } from '@/components/layout/Logo';
+import { Logo } from '@/components/layout/Logo';
 import { CloseIcon, ExpandIcon, MoonIcon, SearchIcon, SunIcon } from '@/components/common/Icon';
 import { PATH } from '@/routes/routes';
 import { useFullscreen } from '@/hooks/useFullscreen';
@@ -70,17 +70,16 @@ export function ControlRoomLayout({
       <header className={styles.bar} aria-label={`통합관제 상황판 · ${scopeLabel}`}>
         <div className={styles.bar__left}>
           {/*
-            기관 심볼과 시스템 이름 한 줄 (2026-09-04 회의 · 조치사항 #7).
+            기관 시그니처는 서비스의 다른 화면과 같은 것을 쓴다 (2026-09-07 지시).
 
-            멀리서 보는 화면이라 무엇을 띄워 둔 것인지가 한 눈에 읽혀야 한다. 이름을 두 줄로
-            나누면 둘째 줄은 그 거리에서 아예 읽히지 않으므로, 한 줄로 붙이고 크게 세운다.
+            상황판만 제 이름을 따로 적고 있었다 — 「충청남도교육청 통합 태양광(신재생) 관리
+            시스템」 은 회의에서 나온 한 줄이지만(2026-09-04 · 조치사항 #7), 같은 시스템의
+            화면들이 저마다 다른 이름으로 스스로를 부르면 상황판만 딴 서비스로 보인다.
+            이름은 `Logo` 한 곳에서만 적는다.
           */}
           <span className={styles.bar__brand}>
-            <LogoMark className={styles.bar__logo} />
-            <h1 className={styles.bar__title}>
-              충청남도교육청 통합 태양광(신재생) 관리 시스템
-              {variantLabel ? <em className={styles.bar__variant}>{variantLabel}</em> : null}
-            </h1>
+            <Logo size="lg" />
+            {variantLabel ? <em className={styles.bar__variant}>{variantLabel}</em> : null}
           </span>
         </div>
 
