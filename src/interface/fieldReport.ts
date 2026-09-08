@@ -7,8 +7,6 @@
  */
 export type CheckResult = 'normal' | 'abnormal' | 'na';
 
-export type InspectorRole = '소유자' | '설비관리자' | '시공기업';
-
 /**
  * 점검대상 구분 (targetType).
  *
@@ -16,18 +14,6 @@ export type InspectorRole = '소유자' | '설비관리자' | '시공기업';
  * 점검인지가 보고서에 남아야 한다. 접속반은 이 프로젝트 설비 계층에 없어 두지 않는다.
  */
 export type InspectionTarget = '전체' | 'RTU' | '인버터' | '모듈 어레이' | '일사량계' | '기타';
-
-/**
- * 보고서 머리에 적는 점검자 정보 (표준 체크리스트 상단).
- *
- * 발전소 용량·주소·설치형태처럼 등록 정보에 이미 있는 값은 여기서 다시 받지 않는다 —
- * 두 곳에 적히면 어느 쪽이 맞는지 판단할 근거가 없다.
- */
-export interface ReportBasics {
-  inspectorRole: InspectorRole;
-  /** 점검자 연락처 */
-  contact: string;
-}
 
 /**
  * 보고서 상태 (SFR-021-08).
@@ -109,10 +95,10 @@ export interface FieldReport {
   /** 이번 점검이 무엇을 겨눴는지 — 작성자가 고른다 */
   targetType: InspectionTarget;
   inspector: string;
+  /** 점검자 연락처 */
+  inspectorPhone: string;
   date: string;
   state: ReportState;
-  /** 체크리스트 머리의 점검자 정보 */
-  basics: ReportBasics;
   checklist: ChecklistItem[];
   photos: ReportPhoto[];
   summary: string;

@@ -2,8 +2,6 @@ import type {
   CheckResult,
   FieldReport,
   InspectionTarget,
-  InspectorRole,
-  ReportBasics,
   ReportState,
   ReportTemplate,
   ScheduleProgress,
@@ -18,9 +16,6 @@ export const CHECK_LABEL: Record<CheckResult, string> = {
   abnormal: '미흡',
   na: '해당없음',
 };
-
-/** 머리 표의 네모칸 — 종이 양식에 적힌 순서를 그대로 쓴다 */
-export const INSPECTOR_ROLE_OPTIONS: InspectorRole[] = ['소유자', '설비관리자', '시공기업'];
 
 /** 점검대상 구분 — 작성 폼과 양식 관리가 같은 목록을 쓴다 */
 export const INSPECTION_TARGET_OPTIONS = [
@@ -179,14 +174,6 @@ function pickResult(next: () => number): CheckResult {
   return 'normal';
 }
 
-/** 머리 표 — 순번으로 돌려 고른다. 연락처가 빈 건도 하나 섞어 하이픈 표기를 보게 한다 */
-function seedBasics(order: number): ReportBasics {
-  return {
-    inspectorRole: INSPECTOR_ROLE_OPTIONS[order % INSPECTOR_ROLE_OPTIONS.length],
-    contact: order === 2 ? '' : `041-${String(500 + order)}-${String(1000 + order * 7).slice(0, 4)}`,
-  };
-}
-
 /** 시드 보고서 — 목록·이력 비교를 볼 수 있게 몇 건 깔아 둔다. */
 function buildSeed(): FieldReport[] {
   const seeds: { index: number; templateId: string; state: ReportState; daysAgo: number; inspector: string }[] = [
@@ -225,9 +212,10 @@ function buildSeed(): FieldReport[] {
       // 같은 양식이어도 현장에서 무엇을 봤는지는 갈린다 — 목록 필터가 이 값으로 돈다.
       targetType: INSPECTION_TARGET_OPTIONS[order % INSPECTION_TARGET_OPTIONS.length],
       inspector: seed.inspector,
+      // 연락처가 빈 건도 하나 섞어 하이픈 표기를 보게 한다
+      inspectorPhone: order === 2 ? '' : `041-${String(500 + order)}-${String(1000 + order * 7).slice(0, 4)}`,
       date: daysAgo(seed.daysAgo),
       state: seed.state,
-      basics: seedBasics(order),
       checklist,
       photos: abnormalCount > 0
         ? [{ id: `photo-${order}`, name: `현장사진_${daysAgo(seed.daysAgo)}.jpg`, itemId: checklist.find((item) => item.result === 'abnormal')?.id ?? null }]

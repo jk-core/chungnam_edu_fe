@@ -85,20 +85,18 @@ export function FieldReportSheet({ report }: FieldReportSheetProps) {
               <tr>
                 <th>점검 유형</th>
                 <td>{report.inspectType}점검</td>
-                <th>점검자</th>
-                <td>{report.inspector}</td>
-              </tr>
-              <tr>
                 <th>점검 대상</th>
                 <td>{report.targetType}</td>
-                <th>보고서 상태</th>
-                <td>{REPORT_STATE_LABEL[report.state]}</td>
               </tr>
               <tr>
-                <th>점검자 구분</th>
-                <td>{report.basics.inspectorRole}</td>
+                <th>점검자</th>
+                <td>{report.inspector}</td>
                 <th>점검자 연락처</th>
-                <td>{report.basics.contact || '—'}</td>
+                <td>{report.inspectorPhone || '—'}</td>
+              </tr>
+              <tr>
+                <th>보고서 상태</th>
+                <td colSpan={3}>{REPORT_STATE_LABEL[report.state]}</td>
               </tr>
             </tbody>
           </table>

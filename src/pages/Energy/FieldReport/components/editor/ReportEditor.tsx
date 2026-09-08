@@ -13,23 +13,20 @@ import type {
   CheckResult,
   FieldReport,
   InspectionTarget,
-  ReportBasics,
   ReportState,
 } from '@/interface/fieldReport';
 import type { UploadFile } from '@/components/common/Form';
 import styles from '../../FieldReport.module.scss';
 import { useFieldReports } from '../../hooks/useFieldReports';
-import { BasicsFields } from './BasicsFields';
 import { ChecklistFields } from './ChecklistFields';
 import { PhotoFields } from './PhotoFields';
 
 interface DraftState {
   id: string;
   templateId: string;
-  /** 체크리스트 머리의 점검자 정보 */
-  basics: ReportBasics;
   targetType: InspectionTarget;
   inspector: string;
+  inspectorPhone: string;
   summary: string;
   actionNote: string;
   results: Record<string, CheckResult | null>;
@@ -59,9 +56,9 @@ export function ReportEditor({ origin, onClose }: ReportEditorProps) {
     ? {
       id: origin.id,
       templateId: origin.templateId,
-      basics: origin.basics,
       targetType: origin.targetType,
       inspector: origin.inspector,
+      inspectorPhone: origin.inspectorPhone,
       summary: origin.summary,
       actionNote: origin.actionNote,
       results: Object.fromEntries(origin.checklist.map((item) => [item.id, item.result])),
@@ -81,9 +78,9 @@ export function ReportEditor({ origin, onClose }: ReportEditorProps) {
     : {
       id: nextId(),
       templateId: templates[0].id,
-      basics: { inspectorRole: '설비관리자', contact: '' },
       targetType: templates[0].targetType,
       inspector: user?.name ?? '',
+      inspectorPhone: '',
       summary: '',
       actionNote: '',
       results: {},
@@ -142,9 +139,9 @@ export function ReportEditor({ origin, onClose }: ReportEditorProps) {
       inspectType: template.inspectType,
       targetType: draft.targetType,
       inspector: draft.inspector,
+      inspectorPhone: draft.inspectorPhone,
       date: origin?.date ?? TODAY.format('YYYY-MM-DD'),
       state,
-      basics: draft.basics,
       checklist,
       photos: draft.photos.map((file) => ({
         id: file.id,
@@ -246,19 +243,22 @@ export function ReportEditor({ origin, onClose }: ReportEditorProps) {
                 width="md"
               />
               <TextField
-                label="점검일"
-                value={origin?.date ?? TODAY.format('YYYY-MM-DD')}
-                onChange={() => undefined}
-                readOnly
+                label="점검자 연락처"
+                value={draft.inspectorPhone}
+                onChange={(value) => change({ inspectorPhone: value })}
+                ime="numeric"
                 width="md"
+                placeholder="000-0000-0000"
               />
             </FormRow>
+            <TextField
+              label="점검일"
+              value={origin?.date ?? TODAY.format('YYYY-MM-DD')}
+              onChange={() => undefined}
+              readOnly
+              width="md"
+            />
           </FormSection>
-
-          <BasicsFields
-            basics={draft.basics}
-            onChange={(patch) => change({ basics: { ...draft.basics, ...patch } })}
-          />
 
           <ChecklistFields
             questions={questions}
