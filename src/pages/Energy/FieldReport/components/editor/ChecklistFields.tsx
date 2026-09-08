@@ -28,29 +28,28 @@ export function ChecklistFields({ questions, results, notes, onResult, onNote, e
       >
         {questions.map((question, index) => {
           const result = results[question.id] ?? null;
-          const isFirstOfSection = index === 0 || question.section !== questions[index - 1].section;
 
           return (
-            <div key={question.id}>
-              {isFirstOfSection ? <p className={styles.sectionHead}>{question.section}</p> : null}
-              <div className={cn(styles.checkItem, { [styles['checkItem--abnormal']]: result === 'abnormal' })}>
-                <RadioGroup
-                  legend={`${index + 1}. ${question.label}`}
-                  value={result}
-                  onChange={(value) => onResult(question.id, value)}
-                  options={CHECK_OPTIONS}
-                  required
-                  error={error?.includes(`${index + 1}번`) ? error : undefined}
+            <div
+              key={question.id}
+              className={cn(styles.checkItem, { [styles['checkItem--abnormal']]: result === 'abnormal' })}
+            >
+              <RadioGroup
+                legend={`${index + 1}. ${question.label}`}
+                value={result}
+                onChange={(value) => onResult(question.id, value)}
+                options={CHECK_OPTIONS}
+                required
+                error={error?.includes(`${index + 1}번`) ? error : undefined}
+              />
+              {result === 'abnormal' ? (
+                <TextField
+                  label="미흡 내용"
+                  value={notes[question.id] ?? ''}
+                  onChange={(value) => onNote(question.id, value)}
+                  placeholder="무엇이 어떻게 미흡한지 적어 주세요."
                 />
-                {result === 'abnormal' ? (
-                  <TextField
-                    label="미흡 내용"
-                    value={notes[question.id] ?? ''}
-                    onChange={(value) => onNote(question.id, value)}
-                    placeholder="무엇이 어떻게 미흡한지 적어 주세요."
-                  />
-                ) : null}
-              </div>
+              ) : null}
             </div>
           );
         })}

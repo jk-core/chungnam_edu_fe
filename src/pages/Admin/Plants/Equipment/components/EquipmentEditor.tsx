@@ -513,7 +513,7 @@ export function EquipmentEditor({ cid }: EquipmentEditorProps) {
             </FormRow>
 
             {hasStrings ? (
-              <div className={styles.stringFoot}>
+              <div className={styles.rowFoot}>
                 <p className={styles.toolbar__note}>
                   {rowsError?.message
                     ?? `스트링 인버터라 스트링 구조를 함께 등록합니다 — 지금 ${formatNumber(stringRows.length)}조`}

@@ -1,5 +1,5 @@
 import { useMemo } from 'react';
-import { findRepeatIssues } from '@/mocks/fieldReport';
+import { findDueTemplates, findRepeatIssues } from '@/mocks/fieldReport';
 import { useAuthUser } from '@/stores/authStore';
 import { usePlantScope } from '@/hooks/usePlantScope';
 import useFieldReportStore, { mergeFieldReports, useTemplates } from '@/stores/fieldReportStore';
@@ -38,5 +38,7 @@ export function useFieldReports() {
     reports,
     templateOf: (id: string) => templates.find((item) => item.id === id) ?? templates[0],
     repeats: findRepeatIssues(reports),
+    /** 마감이 다가오는데 아직 안 낸 점검 (SFR-021-19) */
+    dueTemplates: plant ? findDueTemplates(templates, reports) : [],
   };
 }

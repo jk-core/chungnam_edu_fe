@@ -91,18 +91,16 @@ export function ReportDetail({ report, onClose, onEdit, onManage }: ReportDetail
 
           <p className={styles.post__body}>{report.summary}</p>
 
-          {report.checklist.map((item, index) => (
-            <div key={item.id}>
-              {index === 0 || item.section !== report.checklist[index - 1].section ? (
-                <p className={styles.sectionHead}>{item.section}</p>
-              ) : null}
-              <div className={cn(styles.checkItem, { [styles['checkItem--abnormal']]: item.result === 'abnormal' })}>
-                <p className={styles.checkItem__label}>{item.label}</p>
-                <p className={styles.post__meta}>
-                  <span>{item.result ? CHECK_LABEL[item.result] : '미기재'}</span>
-                  {item.note ? <span>{item.note}</span> : null}
-                </p>
-              </div>
+          {report.checklist.map((item) => (
+            <div
+              key={item.id}
+              className={cn(styles.checkItem, { [styles['checkItem--abnormal']]: item.result === 'abnormal' })}
+            >
+              <p className={styles.checkItem__label}>{item.label}</p>
+              <p className={styles.post__meta}>
+                <span>{item.result ? CHECK_LABEL[item.result] : '미기재'}</span>
+                {item.note ? <span>{item.note}</span> : null}
+              </p>
             </div>
           ))}
 

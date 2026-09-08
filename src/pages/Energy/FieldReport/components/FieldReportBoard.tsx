@@ -9,6 +9,7 @@ import styles from '../FieldReport.module.scss';
 import { useFieldReports } from '../hooks/useFieldReports';
 import { useReportWorkflow } from '../hooks/useReportWorkflow';
 import { ReportEditor } from './editor/ReportEditor';
+import { DueNotice } from './DueNotice';
 import { FieldCompareModal } from './FieldCompareModal';
 import { InspectionSchedule } from './InspectionSchedule';
 import { RejectModal } from './RejectModal';
@@ -26,7 +27,7 @@ interface WriteIntent {
  * 목록·상세·작성이 같은 한 벌을 보므로 무엇을 열어 두었는지만 여기서 쥔다.
  */
 export function FieldReportBoard() {
-  const { plant, label, reports, repeats } = useFieldReports();
+  const { plant, label, reports, repeats, dueTemplates } = useFieldReports();
   const workflow = useReportWorkflow();
 
   const [openId, setOpenId] = useState<string | null>(null);
@@ -97,6 +98,8 @@ export function FieldReportBoard() {
         </Card>
       ) : null}
 
+      <DueNotice templates={dueTemplates} reports={reports} />
+
       <RepeatNotice issues={repeats} />
 
       <ReportList reports={reports} picked={picked} onTogglePick={togglePick} onOpen={setOpenId} />
@@ -130,7 +133,7 @@ export function FieldReportBoard() {
       />
 
       {/* 점검 일정은 현장 점검과 한 흐름이라 보고서 아래 붙여 둔다 (SFR-021-19). */}
-      <InspectionSchedule />
+      <InspectionSchedule reports={reports} />
     </div>
   );
 }

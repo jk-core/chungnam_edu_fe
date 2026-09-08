@@ -2,24 +2,20 @@ import type {
   CheckResult,
   FieldReport,
   InspectionTarget,
-  InspectorRole,
-  ReportBasics,
   ReportState,
   ReportTemplate,
+  ScheduleProgress,
   TemplateRevision,
 } from '@/interface/fieldReport';
 import { SCHOOLS } from './schools';
 import { createRandom, hashSeed, pickNumber } from './random';
-import { daysAgo, stampAgo } from './today';
+import { daysAgo, daysAhead, stampAgo, TODAY } from './today';
 
 export const CHECK_LABEL: Record<CheckResult, string> = {
   normal: '양호',
   abnormal: '미흡',
   na: '해당없음',
 };
-
-/** 머리 표의 네모칸 — 종이 양식에 적힌 순서를 그대로 쓴다 */
-export const INSPECTOR_ROLE_OPTIONS: InspectorRole[] = ['소유자', '설비관리자', '시공기업'];
 
 /** 점검대상 구분 — 작성 폼과 양식 관리가 같은 목록을 쓴다 */
 export const INSPECTION_TARGET_OPTIONS = [
@@ -65,9 +61,6 @@ export const MANAGE_ACTIONS: { state: ReportState; label: string }[] = [
  *
  * 「자가용 태양광 설비 안전점검 체크리스트」 를 그대로 옮겼다. 현장에서 쓰는 종이와 문항도
  * 순서도 같아야 점검자가 옮겨 적을 때 줄을 세지 않는다.
- *
- * 종이의 「구분」 칸이 여기서는 대분류가 된다 — 구분마다 문항이 하나뿐이라 분류가 과해 보이지만,
- * 표를 그대로 옮기는 쪽이 낫다. 구분을 떼고 문항만 늘어놓으면 종이와 나란히 놓고 대조할 수 없다.
  */
 export const CHECKLIST_TEMPLATES: ReportTemplate[] = [
   {
@@ -77,29 +70,78 @@ export const CHECKLIST_TEMPLATES: ReportTemplate[] = [
     label: '자가용 태양광 설비 안전점검 체크리스트',
     version: 1,
     revisedAt: daysAgo(30),
-    sections: [
-      { title: '가동', items: ['시공기준에 적합하게 모듈, 인버터, 접속함 등은 정상적으로 운영 중인가?'] },
-      { title: '모듈', items: ['외관상 모듈 파손이나 균열이 있는가?'] },
-      { title: '결속', items: ['모듈과 지지대 사이의 결속은 양호한가?'] },
-      { title: '지지대', items: ['각 지지대의 휨, 균열 등이 있는가?'] },
-      { title: '기초', items: ['기초부위(콘크리트 등)의 균열 및 파손이 있는가?'] },
-      { title: '인버터·접속함', items: ['인버터 및 접속함 내부상태는 양호한가?'] },
-      { title: '배수·방수', items: ['설비 주변 배수 및 지붕방수 등에 문제는 없는가?'] },
-      { title: '주변', items: ['태양광 설비 주변 정리 상태는 양호한가?'] },
+    startDate: daysAgo(10),
+    dueDate: daysAhead(5),
+    items: [
+      '시공기준에 적합하게 모듈, 인버터, 접속함 등은 정상적으로 운영 중인가?',
+      '외관상 모듈 파손이나 균열이 있는가?',
+      '모듈과 지지대 사이의 결속은 양호한가?',
+      '각 지지대의 휨, 균열 등이 있는가?',
+      '기초부위(콘크리트 등)의 균열 및 파손이 있는가?',
+      '인버터 및 접속함 내부상태는 양호한가?',
+      '설비 주변 배수 및 지붕방수 등에 문제는 없는가?',
+      '태양광 설비 주변 정리 상태는 양호한가?',
+    ],
+  },
+  {
+    id: 'TPL-STORM',
+    inspectType: '특별',
+    targetType: '모듈 어레이',
+    label: '풍수해 대비 특별점검표',
+    version: 1,
+    revisedAt: daysAgo(70),
+    startDate: daysAgo(60),
+    dueDate: daysAgo(20),
+    items: [
+      '강풍에 대비해 모듈 체결 볼트가 조여져 있는가?',
+      '집중호우에 대비해 배수로가 막힘 없이 트여 있는가?',
+      '접속함 침수 흔적이나 결로가 있는가?',
     ],
   },
 ];
 
 export const getTemplate = (id: string) => CHECKLIST_TEMPLATES.find((item) => item.id === id) ?? CHECKLIST_TEMPLATES[0];
 
-/** 양식의 모든 문항을 대분류를 달고 한 줄로 편다 — 화면과 시드가 함께 쓴다. */
-export function flattenTemplate(template: ReportTemplate): { id: string; section: string; label: string }[] {
-  return template.sections.flatMap((section, sectionIndex) =>
-    section.items.map((label, itemIndex) => ({
-      id: `${template.id}-${sectionIndex}-${itemIndex}`,
-      section: section.title,
-      label,
-    })));
+/** 양식의 문항에 id 를 달아 돌려준다 — 화면과 시드가 함께 쓴다. */
+export function templateQuestions(template: ReportTemplate): { id: string; label: string }[] {
+  return template.items.map((label, index) => ({ id: `${template.id}-${index}`, label }));
+}
+
+/** 마감이 이 안으로 들어온 점검을 「임박」으로 본다 (SFR-021-19). */
+export const DUE_SOON_DAYS = 7;
+
+/**
+ * 이 발전소가 이번 회차를 냈는가 (SFR-021-19).
+ *
+ * 시작일~마감기한 사이에 낸 보고서가 있으면 완료다 — 그 구간이 없으면 지난 회차에 낸 것과
+ * 이번에 낸 것을 가를 수 없다. 임시저장과 반려는 아직 낼 것이 남아 있어 낸 것으로 세지 않는다.
+ */
+export function scheduleProgress(template: ReportTemplate, reports: FieldReport[]): ScheduleProgress {
+  const done = reports.some((report) => report.templateId === template.id
+    && report.state !== 'draft'
+    && report.state !== 'rejected'
+    && report.date >= template.startDate
+    && report.date <= template.dueDate);
+
+  if (done) return 'done';
+
+  return TODAY.format('YYYY-MM-DD') > template.dueDate ? 'overdue' : 'scheduled';
+}
+
+/**
+ * 아직 안 낸 점검 가운데 마감이 임박했거나 이미 지난 것 (SFR-021-19).
+ *
+ * 시작 전인 것은 세지 않는다 — 아직 쓸 수 없는 것을 재촉할 이유가 없다.
+ * 마감이 지난 것을 빼지 않는다: 재촉이 가장 급한 자리가 거기다.
+ */
+export function findDueTemplates(templates: ReportTemplate[], reports: FieldReport[]): ReportTemplate[] {
+  const today = TODAY.format('YYYY-MM-DD');
+  const limit = daysAhead(DUE_SOON_DAYS);
+
+  return templates
+    .filter((template) => template.startDate <= today && template.dueDate <= limit)
+    .filter((template) => scheduleProgress(template, reports) !== 'done')
+    .sort((a, b) => a.dueDate.localeCompare(b.dueDate));
 }
 
 /** 양식 개정 이력 (SFR-021-14) — 관리자 콘솔에서 새 판을 내면 이 위에 쌓인다. */
@@ -124,14 +166,6 @@ function pickResult(next: () => number): CheckResult {
   return 'normal';
 }
 
-/** 머리 표 — 순번으로 돌려 고른다. 연락처가 빈 건도 하나 섞어 하이픈 표기를 보게 한다 */
-function seedBasics(order: number): ReportBasics {
-  return {
-    inspectorRole: INSPECTOR_ROLE_OPTIONS[order % INSPECTOR_ROLE_OPTIONS.length],
-    contact: order === 2 ? '' : `041-${String(500 + order)}-${String(1000 + order * 7).slice(0, 4)}`,
-  };
-}
-
 /** 시드 보고서 — 목록·이력 비교를 볼 수 있게 몇 건 깔아 둔다. */
 function buildSeed(): FieldReport[] {
   const seeds: { index: number; templateId: string; state: ReportState; daysAgo: number; inspector: string }[] = [
@@ -148,7 +182,7 @@ function buildSeed(): FieldReport[] {
     const school = SCHOOLS[seed.index % SCHOOLS.length];
     const template = getTemplate(seed.templateId);
     const next = createRandom(hashSeed(`field-${order}-${school.id}`));
-    const checklist = flattenTemplate(template).map((item, itemIndex) => {
+    const checklist = templateQuestions(template).map((item, itemIndex) => {
       const result = seed.state === 'draft' && itemIndex > 1 ? null : pickResult(next);
 
       return {
@@ -170,9 +204,10 @@ function buildSeed(): FieldReport[] {
       // 같은 양식이어도 현장에서 무엇을 봤는지는 갈린다 — 목록 필터가 이 값으로 돈다.
       targetType: INSPECTION_TARGET_OPTIONS[order % INSPECTION_TARGET_OPTIONS.length],
       inspector: seed.inspector,
+      // 연락처가 빈 건도 하나 섞어 하이픈 표기를 보게 한다
+      inspectorPhone: order === 2 ? '' : `041-${String(500 + order)}-${String(1000 + order * 7).slice(0, 4)}`,
       date: daysAgo(seed.daysAgo),
       state: seed.state,
-      basics: seedBasics(order),
       checklist,
       photos: abnormalCount > 0
         ? [{ id: `photo-${order}`, name: `현장사진_${daysAgo(seed.daysAgo)}.jpg`, itemId: checklist.find((item) => item.result === 'abnormal')?.id ?? null }]

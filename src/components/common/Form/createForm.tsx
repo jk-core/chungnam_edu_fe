@@ -54,12 +54,15 @@ export function createFields<T extends FieldValues>() {
     required,
     optional,
     hint,
+    hideLabel,
     transform,
     ...control
   }: FieldProps & {
     name: FieldPathByValue<T, string>;
     /** 적는 대로 값을 다듬는다 — 연락처 하이픈이 이 자리다 */
     transform?: (value: string) => string;
+    /** 바깥 제목이 이미 같은 말을 하고 있을 때 */
+    hideLabel?: boolean;
     ime?: ImeMode;
     width?: FieldWidth;
     maxLength?: number;
@@ -73,7 +76,14 @@ export function createFields<T extends FieldValues>() {
         name={name}
         control={form}
         render={({ field }) => (
-          <FormField label={label} required={required} optional={optional} hint={hint} error={error}>
+          <FormField
+            label={label}
+            required={required}
+            optional={optional}
+            hint={hint}
+            hideLabel={hideLabel}
+            error={error}
+          >
             <TextControl
               {...control}
               value={field.value}
