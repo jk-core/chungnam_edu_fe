@@ -1,6 +1,6 @@
-import { NOW } from '@/mocks/today';
+import { entry } from '@/pages/Admin/_shared/changeLog';
 import { useAuthUser } from '@/stores/authStore';
-import type { AssetChange } from '@/interface/asset';
+import type { ChangeLog } from '@/interface/changeLog';
 
 /**
  * 발전소 변경 이력 한 줄 만들기 (SFR-016-06).
@@ -14,16 +14,10 @@ export function usePlantChangeLog() {
     field: string,
     before: string,
     after: string,
-    /** 한 번에 여러 줄을 남길 때 서로 다른 id 를 갖게 하는 꼬리 */
-    suffix: string | number = '',
-  ): AssetChange => ({
-    id: `AC-${NOW.format('MMDDHHmm')}-${plant.id}${suffix === '' ? '' : `-${suffix}`}`,
-    plantId: plant.id,
-    plantName: plant.name,
-    at: NOW.format('YYYY-MM-DD HH:mm'),
-    actor: actor?.name ?? '관리자',
+  ): ChangeLog => entry(
+    { targetType: 'powerPlant', id: plant.id, name: plant.name, actor: actor?.name ?? '관리자' },
     field,
     before,
     after,
-  });
+  );
 }

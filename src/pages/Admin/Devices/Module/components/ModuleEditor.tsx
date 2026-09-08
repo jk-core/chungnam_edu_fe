@@ -5,7 +5,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { Button } from '@/components/common/Button';
 import { CELL_TYPE_LABEL } from '@/mocks/moduleProducts';
 import { ConfirmDialog } from '@/components/common/ConfirmDialog';
-import { createdEntry, deletedEntry, diffEntries } from '@/pages/Admin/_shared/device/deviceChangeLog';
+import { createdEntry, deletedEntry, diffEntries } from '@/pages/Admin/_shared/changeLog';
 import { createForm, FormRow, FormSection } from '@/components/common/Form';
 import { formatNumber } from '@/utils/format';
 import { FormPage } from '@/pages/Admin/_shared/FormPage';
@@ -86,7 +86,7 @@ export function ModuleEditor({ moduleId }: ModuleEditorProps) {
       id: target?.id ?? nextId('MOD'),
       moduleId: target?.moduleId ?? nextSeq(),
     };
-    const logTarget = { kind: 'module' as const, id: saved.id, name: saved.name, actor: actor?.name ?? '관리자' };
+    const logTarget = { targetType: 'module' as const, id: saved.id, name: saved.name, actor: actor?.name ?? '관리자' };
 
     const entries = isNew
       ? createdEntry(logTarget, `${saved.maker} · ${formatNumber(saved.wattPerPanel)}W`)
@@ -114,7 +114,7 @@ export function ModuleEditor({ moduleId }: ModuleEditorProps) {
     if (!target) return;
 
     removeModule(target.id, deletedEntry(
-      { kind: 'module', id: target.id, name: target.name, actor: actor?.name ?? '관리자' },
+      { targetType: 'module', id: target.id, name: target.name, actor: actor?.name ?? '관리자' },
       `${target.maker} · ${formatNumber(target.wattPerPanel)}W`,
     ));
     toast.success(MSG.deleteSuccess(target.name));

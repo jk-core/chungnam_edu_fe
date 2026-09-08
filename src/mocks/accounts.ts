@@ -1,4 +1,5 @@
-import type { AuthUser, LoginPolicy, ManagedUser, Role, UserChange } from '@/interface/account';
+import type { AuthUser, LoginPolicy, ManagedUser, Role } from '@/interface/account';
+import type { ChangeLog } from '@/interface/changeLog';
 import { getSchoolById, SCHOOLS } from './schools';
 import { createRandom, hashSeed, pickNumber, pickOne } from './random';
 import { stampAgo } from './today';
@@ -180,10 +181,10 @@ export const SEED_USERS: ManagedUser[] = buildManagedUsers();
  * 담당자 변경 이력 시드 (SFR-018-04).
  * 학교는 인사이동으로 담당자가 자주 바뀌므로, 최근 몇 건을 미리 깔아 둔다.
  */
-export const SEED_USER_CHANGES: UserChange[] = (() => {
+export const SEED_USER_CHANGES: ChangeLog[] = (() => {
   const targets = SEED_USERS.filter((user) => user.role === 'institution').slice(1, 5);
 
-  const rows: (Omit<UserChange, 'id' | 'userId' | 'userName'> & { index: number })[] = [
+  const rows: (Omit<ChangeLog, 'id' | 'targetType' | 'targetId' | 'targetName'> & { index: number })[] = [
     { index: 0, at: stampAgo(4, '14:20'), actor: '김도현', field: '연락처', before: '041-000-0000', after: targets[0]?.phone ?? '-' },
     { index: 1, at: stampAgo(9, '11:05'), actor: '김도현', field: '담당자', before: '전임 담당자', after: targets[1]?.name ?? '-' },
     {
@@ -202,8 +203,9 @@ export const SEED_USER_CHANGES: UserChange[] = (() => {
     .map(({ index, ...rest }) => ({
       ...rest,
       id: `UC-26${String(10 + index)}`,
-      userId: targets[index].id,
-      userName: targets[index].name,
+      targetType: 'user' as const,
+      targetId: targets[index].id,
+      targetName: targets[index].name,
     }));
 })();
 

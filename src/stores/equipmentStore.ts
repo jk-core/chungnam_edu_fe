@@ -1,13 +1,14 @@
 import { create } from 'zustand';
 import { createJSONStorage, persist } from 'zustand/middleware';
+import { useMemo } from 'react';
 import type {
-  DeviceChange,
   EquipmentMaster,
   InverterProduct,
   ModuleProduct,
   Pyranometer,
   StringMaster,
 } from '@/interface/deviceMaster';
+import type { ChangeLog, ChangeTarget } from '@/interface/changeLog';
 import { SEED_DEVICE_CHANGES, SEED_EQUIPMENT, SEED_INVERTER_PRODUCTS, SEED_STRINGS } from '@/mocks/deviceMaster';
 import { SEED_MODULES } from '@/mocks/moduleProducts';
 import { SEED_PYRANOMETERS } from '@/mocks/pyranometers';
@@ -43,23 +44,23 @@ interface EquipmentState {
   pyranometerDeleted: string[];
 
   /** 갈래가 함께 쓰는 변경 이력 (SFR-016-06) */
-  deviceChanges: DeviceChange[];
+  deviceChanges: ChangeLog[];
 
-  saveEquipment: (item: EquipmentMaster, entries: DeviceChange[], isNew: boolean) => void;
-  removeEquipment: (id: string, entry: DeviceChange) => void;
+  saveEquipment: (item: EquipmentMaster, entries: ChangeLog[], isNew: boolean) => void;
+  removeEquipment: (id: string, entry: ChangeLog) => void;
 
-  saveInverter: (item: InverterProduct, entries: DeviceChange[], isNew: boolean) => void;
-  removeInverter: (id: string, entry: DeviceChange) => void;
+  saveInverter: (item: InverterProduct, entries: ChangeLog[], isNew: boolean) => void;
+  removeInverter: (id: string, entry: ChangeLog) => void;
 
-  saveModule: (item: ModuleProduct, entries: DeviceChange[], isNew: boolean) => void;
-  removeModule: (id: string, entry: DeviceChange) => void;
+  saveModule: (item: ModuleProduct, entries: ChangeLog[], isNew: boolean) => void;
+  removeModule: (id: string, entry: ChangeLog) => void;
 
   /** 스트링은 인버터 단위로 한꺼번에 저장한다 */
-  saveStrings: (inverterId: string, list: StringMaster[], entries: DeviceChange[]) => void;
-  removeString: (id: string, entry: DeviceChange) => void;
+  saveStrings: (inverterId: string, list: StringMaster[], entries: ChangeLog[]) => void;
+  removeString: (id: string, entry: ChangeLog) => void;
 
-  savePyranometer: (item: Pyranometer, entries: DeviceChange[], isNew: boolean) => void;
-  removePyranometer: (id: string, entry: DeviceChange) => void;
+  savePyranometer: (item: Pyranometer, entries: ChangeLog[], isNew: boolean) => void;
+  removePyranometer: (id: string, entry: ChangeLog) => void;
 
   nextId: (prefix: string) => string;
   /** 서버가 새로 매길 숫자 번호를 흉내 낸다 (cid·moduleId·inverterId·stringId·irradId) */
@@ -208,15 +209,16 @@ const useEquipmentStore = create<EquipmentState>()(
       storage: createJSONStorage(() => localStorage),
       /*
         1 판에서 `inverter*` 는 설비를 담았고 2 판에서는 인버터 제품을 담는다.
-        같은 이름에 다른 것이 들어 있으므로 옛 값을 그대로 읽으면 제품 목록에 설비가 섞인다 —
-        판이 다르면 그 세 칸만 비우고 나머지 저장분은 살린다.
+        같은 이름에 다른 것이 들어 있으므로 옛 값을 그대로 읽으면 제품 목록에 설비가 섞인다.
+        3 판에서 이력이 `kind` 대신 `targetType` 을 갖는다 — 옛 줄은 대상 구분이 없어 안 걸린다.
       */
-      version: 2,
+      version: 3,
       migrate: (persisted) => ({
         ...(persisted as EquipmentState),
         inverterCreated: [],
         inverterPatched: {},
         inverterDeleted: [],
+        deviceChanges: [],
       }),
     },
   ),
@@ -285,9 +287,14 @@ export function mergePyranometers(
   return merge(SEED_PYRANOMETERS, created, patched, deleted, (item) => item.id);
 }
 
-/** 시드 + 저장분이 합쳐진 장비 변경 이력 */
-export function mergeDeviceChanges(changes: DeviceChange[]): DeviceChange[] {
-  return [...changes, ...SEED_DEVICE_CHANGES];
+/** 시드 + 저장분이 합쳐진 장비 변경 이력. 갈래마다 자기 줄만 걸러 본다 (SFR-016-06) */
+export function useDeviceChanges(targetType: ChangeTarget): ChangeLog[] {
+  const deviceChanges = useEquipmentStore((state) => state.deviceChanges);
+
+  return useMemo(
+    () => [...deviceChanges, ...SEED_DEVICE_CHANGES].filter((item) => item.targetType === targetType),
+    [deviceChanges, targetType],
+  );
 }
 
 export default useEquipmentStore;

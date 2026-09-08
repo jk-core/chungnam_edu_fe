@@ -46,21 +46,6 @@ export interface ManagedUser {
   locked: boolean;
 }
 
-/**
- * 담당자 정보 변경 이력 (SFR-018-04).
- * 발전소 이력(AssetChange)과 같은 결로 필드 단위 전/후를 남긴다.
- */
-export interface UserChange {
-  id: string;
-  userId: string;
-  userName: string;
-  at: string;
-  actor: string;
-  field: string;
-  before: string;
-  after: string;
-}
-
 /** 로그인 정책 (SFR-026) */
 export interface LoginPolicy {
   /** 비밀번호 재설정 주기(일) */

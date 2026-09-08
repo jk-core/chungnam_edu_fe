@@ -4,7 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Button } from '@/components/common/Button';
 import { ConfirmDialog } from '@/components/common/ConfirmDialog';
-import { createdEntry, deletedEntry, diffEntries } from '@/pages/Admin/_shared/device/deviceChangeLog';
+import { createdEntry, deletedEntry, diffEntries } from '@/pages/Admin/_shared/changeLog';
 import { createForm } from '@/components/common/Form';
 import { formatNumber } from '@/utils/format';
 import { FormPage } from '@/pages/Admin/_shared/FormPage';
@@ -95,7 +95,7 @@ export function StringSheet({ cid }: StringSheetProps) {
 
     if (!isEdit) {
       const entries = built.flatMap((row) => createdEntry(
-        { kind: 'string', id: row.id, name: row.name, actor: actor?.name ?? '관리자' },
+        { targetType: 'string', id: row.id, name: row.name, actor: actor?.name ?? '관리자' },
         `${owner?.name ?? ''} · 순번 ${row.seq} · ${row.seriesCount}직렬 × ${row.parallelCount}병렬`,
       ));
 
@@ -108,7 +108,7 @@ export function StringSheet({ cid }: StringSheetProps) {
 
       // 설비 한 대를 대상으로 남기고, 줄마다 "순번 N 스트링" 으로 묶는다 (SFR-016-06).
       const entries = diffEntries(
-        { kind: 'string', id: values.inverterId, name: owner?.name ?? '설비', actor: actor?.name ?? '관리자' },
+        { targetType: 'string', id: values.inverterId, name: owner?.name ?? '설비', actor: actor?.name ?? '관리자' },
         ids.map((id) => {
           const prev = before.get(id);
           const next = after.get(id);
@@ -133,7 +133,7 @@ export function StringSheet({ cid }: StringSheetProps) {
   /** 이 설비의 스트링을 통째로 비운다 — 한 조만 지우려면 편집판에서 그 줄을 뺀다. */
   const clearAll = () => {
     const entries = listOf(inverterId).map((row) => deletedEntry(
-      { kind: 'string', id: row.id, name: row.name, actor: actor?.name ?? '관리자' },
+      { targetType: 'string', id: row.id, name: row.name, actor: actor?.name ?? '관리자' },
       `${owner?.name ?? ''} · ${summarizeString(row)}`,
     ));
 

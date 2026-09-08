@@ -21,7 +21,8 @@ import { useManagedUsers, usePlantAssets } from '@/hooks/usePlantAssets';
 import { usePyranometerRows } from '@/pages/Admin/Plants/Pyranometer/hooks/usePyranometerRows';
 import useAssetStore from '@/stores/assetStore';
 import type { PlantFormValues } from '@/service/plant/type';
-import type { AssetChange, PlantAsset } from '@/interface/asset';
+import type { ChangeLog } from '@/interface/changeLog';
+import type { PlantAsset } from '@/interface/asset';
 import styles from '@/pages/Admin/Admin.module.scss';
 import { usePlantChangeLog } from '../hooks/usePlantChangeLog';
 import { usePlantCapacity } from '../hooks/usePlantData';
@@ -136,7 +137,7 @@ export function PlantEditor({ powerPlantId }: { powerPlantId: number | null }) {
 
     // 무엇이 바뀌었는지 필드 단위로 이력에 남긴다 (SFR-016-06).
     const plant = { id: asset.plantId, name: asset.plantName };
-    const entries: AssetChange[] = [
+    const entries: ChangeLog[] = [
       ['발전소 이름', asset.plantName, next.plantName ?? ''],
       ['구분', asset.plantType, next.plantType ?? ''],
       ['주소', asset.address, next.address ?? ''],
@@ -151,7 +152,7 @@ export function PlantEditor({ powerPlantId }: { powerPlantId: number | null }) {
       ['비고', asset.etc || '—', next.etc || '—'],
     ]
       .filter(([, before, after]) => before !== after)
-      .map(([field, before, after], index) => entryOf(plant, field, before, after, index));
+      .map(([field, before, after]) => entryOf(plant, field, before, after));
 
     if (entries.length === 0) {
       toast.info('바뀐 내용이 없습니다.');
@@ -173,8 +174,6 @@ export function PlantEditor({ powerPlantId }: { powerPlantId: number | null }) {
       '삭제',
       `${capacity.value}${capacity.unit} · ${regionNameOfCode(asset.regionCode)}`,
       '—',
-      // 같은 발전소의 등록 이력과 id 가 겹치지 않게 갈래를 붙인다 — 목록 key 로 쓰인다.
-      'del',
     ));
     toast.success(MSG.deleteSuccess(asset.plantName));
     navigate(backTo);
