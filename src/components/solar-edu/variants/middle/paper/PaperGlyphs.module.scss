@@ -1,0 +1,25 @@
+/*
+  두 겹으로 그리는 아이콘.
+
+  아래 면(`soft`)이 덩어리를 만들고 위 선(`line`)이 형태를 짚는다.
+  둘 다 쓰는 자리의 색을 물려받으므로, 색은 여기서 정하지 않는다.
+*/
+.glyph {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.soft {
+  fill: currentcolor;
+  stroke: none;
+  opacity: 0.16;
+}
+
+.line {
+  fill: none;
+  stroke: currentcolor;
+  stroke-width: 1.7;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}

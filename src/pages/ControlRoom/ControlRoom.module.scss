@@ -146,16 +146,34 @@
     margin-bottom: s.$space-3;
   }
 
+  /*
+    판 이름 (2026-09-04 회의 · 조치사항 #7 — 섹션명 확대).
+
+    14px 은 앉아서 보는 화면의 크기다. 벽에 걸어 두고 몇 걸음 떨어져서 보면 판 이름이 먼저
+    사라져, 무슨 값이 늘어서 있는지 모르는 채 숫자만 보게 된다. 판 안의 값들보다는 작게 두되
+    한 단 올린다 — 이름이 값보다 커지면 이름부터 읽게 된다.
+  */
   &__title {
-    @include t.label-md;
+    @include t.title-sm;
 
     color: var(--text-strong);
+
+    @include media.kiosk {
+      @include t.title-md;
+    }
   }
 
   &__note {
     @include t.caption;
 
     color: var(--text-faint);
+  }
+
+  /* 제목 줄 오른쪽에 설명과 고르개가 함께 설 때 */
+  &__tools {
+    display: inline-flex;
+    align-items: center;
+    gap: s.$space-3;
   }
 }
 

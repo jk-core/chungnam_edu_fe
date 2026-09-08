@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { EChart } from '@/components/common/EChart';
 import { LEGEND_GRID_TOP, topLegend } from '@/utils/chart';
-import { formatNumber } from '@/utils/format';
+import { energyText } from '@/mocks/eduContent';
 import { useChartPalette } from '@/hooks/useChartPalette';
 import type { EduStats } from '@/mocks/solarEdu';
 import styles from './DayCurve.module.scss';
@@ -9,12 +9,16 @@ import type { EChartsOption } from 'echarts';
 
 const AXIS_FONT = { fontSize: 11, fontFamily: 'Space Grotesk, sans-serif' };
 
-/** 좁은 화면에서도 축과 범례가 겹치지 않는 최소 높이 */
+/**
+ * 좁은 화면에서도 축과 범례가 겹치지 않는 최소 높이.
+ * `DayCurve.module.scss` 의 `.slot` 바닥과 같은 값이어야 한다 — 한쪽만 고치면 그림이
+ * 칸 밖으로 나와 아래 글 위에 겹쳐 그려진다.
+ */
 const MIN_HEIGHT = 140;
 
 interface DayCurveProps {
   stats: EduStats;
-  /** 일사강도 점선을 함께 그릴지 */
+  /** 일사량 점선을 함께 그릴지 */
   showIrradiance?: boolean;
   /** 지금 이 순간을 짚는 세로선을 세울지 */
   showNow?: boolean;
@@ -63,7 +67,7 @@ export function DayCurve({ stats, showIrradiance = false, showNow = true }: DayC
       borderWidth: 1,
       textStyle: { color: palette.text, fontSize: 12, fontFamily: 'Pretendard Variable, sans-serif' },
     },
-    legend: showIrradiance ? topLegend(palette, ['발전량', '일사강도']) : { show: false },
+    legend: showIrradiance ? topLegend(palette, ['발전량', '일사량']) : { show: false },
     xAxis: {
       type: 'category',
       boundaryGap: false,
@@ -72,7 +76,7 @@ export function DayCurve({ stats, showIrradiance = false, showNow = true }: DayC
       axisTick: { show: false },
       axisLabel: { color: palette.axis, interval: 2, ...AXIS_FONT },
     },
-    // 일사강도를 끄면 보조축도 함께 지운다 — 남겨 두면 series 의 yAxisIndex 가 빈 축을 가리킨다.
+    // 일사량을 끄면 보조축도 함께 지운다 — 남겨 두면 series 의 yAxisIndex 가 빈 축을 가리킨다.
     yAxis: showIrradiance
       ? [{ type: 'value', show: false }, { type: 'value', show: false }]
       : [{ type: 'value', show: false }],
@@ -113,7 +117,7 @@ export function DayCurve({ stats, showIrradiance = false, showNow = true }: DayC
       },
       ...(showIrradiance
         ? [{
-          name: '일사강도',
+          name: '일사량',
           type: 'line' as const,
           yAxisIndex: 1,
           smooth: true,
@@ -132,7 +136,7 @@ export function DayCurve({ stats, showIrradiance = false, showNow = true }: DayC
         className={styles.canvas}
         option={option}
         height={height}
-        summary={`시간대별 발전량. 금일 합계 ${formatNumber(stats.dayKwh)}kWh.`}
+        summary={`시간대별 발전량. 금일 합계 ${energyText(stats.dayKwh)}.`}
       />
     </div>
   );

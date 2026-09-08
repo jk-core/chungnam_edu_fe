@@ -1,0 +1,240 @@
+@use "@/styles/tokens/spacing" as s;
+@use "@/styles/tokens/typography" as t;
+@use "@/styles/utils/media" as media;
+@use "@/styles/patterns/rotation" as r;
+@use "@/styles/utils/mixins" as mx;
+
+/*
+  한 장씩 넘겨 읽는 판.
+
+  왼쪽이 그림, 오른쪽이 글, 아래가 몇 번째인지다. 글을 그림 밖에 두었으므로 글씨 크기가
+  그림 크기에 매이지 않는다 — 이 판이 다른 시안과 갈리는 지점이자, 멀리서 읽히는 이유다.
+
+  그림 쪽을 더 넓게 가져간다. 글은 세 줄 남짓이라 넓어져도 남는 자리가 여백이 될 뿐이지만,
+  그림은 넓어진 만큼 커진다.
+*/
+
+/*
+  묶음으로 넘겨 읽는 판.
+
+  낱장으로 넘기던 것을 묶음 단위로 바꿨다 (2026-09-04 지시). 열 장을 하나씩 돌면 한 바퀴가
+  너무 길어 지나가는 사람이 이야기의 한 조각만 보고 가는데, 묶음으로 세우면 「전기가 오는 길」
+  네 걸음이 한 화면에 함께 서서 그 자체로 한 이야기가 된다.
+
+  카드는 가로로 나란히 두고 그림·제목·설명·수치를 세로로 쌓는다. 넷이 같은 골격이라
+  눈이 한 장을 읽는 법을 익히면 나머지는 훑기만 하면 된다.
+*/
+.deck {
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr) auto;
+  gap: s.$space-4;
+  height: 100%;
+  min-height: 0;
+  padding: s.$space-4 s.$space-6;
+  border: 1px solid var(--border-subtle);
+  border-radius: s.$radius-lg;
+  background-color: var(--surface);
+  box-shadow: var(--shadow-sm);
+
+  @include media.tablet {
+    height: auto;
+  }
+
+  &__head {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: s.$space-4;
+    margin: 0;
+  }
+
+  &__section {
+    @include t.title-lg;
+
+    color: var(--text-strong);
+  }
+
+  &__count {
+    @include t.label-md;
+
+    color: var(--text-muted);
+    font-family: var(--font-data);
+  }
+
+  /* 묶음이 넘어갈 때 통째로 밀려 올라온다 — 바뀐 것이 눈에 걸려야 다시 읽는다 */
+  &__list {
+    display: grid;
+    grid-auto-flow: column;
+    grid-auto-columns: minmax(0, 1fr);
+    gap: s.$space-4;
+    margin: 0;
+    min-height: 0;
+    padding: 0;
+    list-style: none;
+    animation: card-in 0.45s ease both;
+
+    @include media.tablet {
+      grid-auto-flow: row;
+    }
+
+    @include media.reduced-motion {
+      animation: none;
+    }
+  }
+}
+
+/* 카드 한 장 — 그림, 제목, 설명, 수치를 세로로 */
+.card {
+  display: grid;
+  grid-template-rows: minmax(0, 1fr) auto auto auto;
+  gap: s.$space-2;
+  min-height: 0;
+  padding: s.$space-3;
+  border-radius: s.$radius-lg;
+  background-color: var(--surface-sunken);
+
+  &__art {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 0;
+
+    > svg {
+      width: 100%;
+      height: 100%;
+      max-height: 100%;
+    }
+  }
+
+  &__title {
+    @include t.title-md;
+
+    margin: 0;
+    color: var(--text-strong);
+  }
+
+  &__line {
+    @include t.body-md;
+
+    margin: 0;
+    color: var(--text);
+  }
+}
+
+/*
+  낱개 그림 한 장.
+
+  장면 그림(`JourneyScene`)은 제 뷰박스가 넓어 칸을 가로로 채우지만, 낱개 그림은 세로로 긴
+  상자라 높이에 맞추고 남는 가로를 여백으로 둔다 — 폭에 맞추면 카드를 넘겨 아래 글을 밀어낸다.
+*/
+.icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  min-height: 0;
+
+  > svg {
+    width: auto;
+    height: 100%;
+    max-width: 100%;
+  }
+}
+
+/*
+  카드마다 붙는 수치 한 줄.
+
+  이름과 값을 좌우로 벌린다 — 붙여 두면 「일사량17점」 처럼 한 낱말로 읽힌다.
+  카드 폭이 좁아지면 값이 아래로 내려앉게 두어, 어느 폭에서도 둘이 겹치지 않는다.
+*/
+.readout {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: s.$space-2;
+  flex-wrap: wrap;
+  margin: 0;
+  padding: s.$space-2 s.$space-3;
+  border-radius: s.$radius-md;
+  background-color: var(--surface);
+
+  &__label {
+    @include t.label-md;
+
+    color: var(--text-muted);
+  }
+
+  &__value {
+    display: flex;
+    align-items: baseline;
+    gap: 2px;
+    color: var(--brand-contrast);
+    font-family: var(--font-data);
+    font-size: clamp(20px, 1.6vw, 30px);
+    font-weight: 700;
+    line-height: 1.1;
+  }
+
+  &__unit {
+    @include t.label-md;
+
+    color: var(--text-muted);
+  }
+}
+
+.dots {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: s.$space-6;
+  grid-column: 1 / -1;
+
+  &__group {
+    display: flex;
+    align-items: center;
+    gap: s.$space-2;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+}
+
+.dot {
+  @include mx.press;
+
+  display: block;
+  width: 8px;
+  height: 8px;
+  padding: 0;
+  border: 0;
+  border-radius: s.$radius-full;
+  background-color: var(--border-strong);
+  cursor: pointer;
+  transition: background-color 0.3s ease, width 0.3s ease;
+
+  &:hover {
+    background-color: var(--brand-soft);
+  }
+
+  /* 지금 묶음은 길어지고, 머무는 동안 왼쪽에서 오른쪽으로 찬다 */
+  &--on {
+    @include r.fills-over-time(var(--brand));
+
+    width: 26px;
+    background-color: var(--brand-soft);
+  }
+}
+
+@include r.fill-keyframes;
+
+@keyframes card-in {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}

@@ -81,19 +81,30 @@
       눈금 간격이 다른 것처럼 보이게 했다. 위아래로만 도는 결은 그대로 둔다 — 가로줄 전체가
       같은 자리에서 같은 만큼 옅어지므로 간격이 달라 보이지 않는다.
     */
+    /*
+      바탕에 도는 충남 CI 결 (2026-09-04 회의 · 조치사항 #8 — 배경 그라데이션).
+
+      네 모서리에서 아주 옅게 번져 들어온다. 위쪽 두 색은 머리띠가 쓰는 파랑·청록이라 띠에서
+      바탕으로 색이 이어지고, 아래쪽 둘은 반대편 주황·민트라 판이 놓이지 않은 구석이 회색으로
+      죽지 않는다. 6% 를 넘기면 판 위의 상태색(경고 주황·위험 빨강)과 다투기 시작한다.
+    */
+    radial-gradient(60% 46% at 6% 0%, rgb(from var(--ci-4) r g b / 6%) 0%, transparent 100%),
+    radial-gradient(52% 40% at 96% 4%, rgb(from var(--ci-2) r g b / 5%) 0%, transparent 100%),
+    radial-gradient(58% 42% at 2% 100%, rgb(from var(--ci-6) r g b / 4%) 0%, transparent 100%),
+    radial-gradient(58% 42% at 100% 96%, rgb(from var(--ci-1) r g b / 4%) 0%, transparent 100%),
+
     linear-gradient(180deg, var(--sky-top) 0%, var(--paper) 46%);
   background-origin: border-box;
-  background-position:
-    0 0,
-    0 0,
-    0 0,
-    0 0,
-    0 0;
+  background-position: 0 0;
   background-size:
     var(--grid-major) var(--grid-major),
     var(--grid-major) var(--grid-major),
     var(--grid-major) var(--grid-major),
     var(--grid-major) var(--grid-major),
+    auto,
+    auto,
+    auto,
+    auto,
     auto;
 
   /*
@@ -213,6 +224,7 @@
 */
 
 .bar {
+  position: relative;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -221,34 +233,51 @@
   padding-bottom: s.$space-4;
   border-bottom: 1px solid var(--border-subtle);
 
+  /*
+    머리를 받치는 충남 CI 여섯 색 띠 (2026-09-04 회의 · 조치사항 #8).
+
+    경계선 하나를 색으로 갈아 끼운 것뿐이라 자리를 더 먹지 않는다. 여섯을 고르게 나누지 않고
+    왼쪽을 넓게 잡았다 — 로고와 이름이 서는 쪽에 색이 모여야 「이 기관의 화면」 으로 읽히고,
+    오른쪽 끝까지 같은 굵기로 이으면 그저 무지개 줄이 된다.
+  */
+  &::after {
+    content: "";
+    position: absolute;
+    right: 0;
+    bottom: -1px;
+    left: 0;
+    height: 2px;
+    background: linear-gradient(
+      90deg,
+      var(--ci-4) 0%,
+      var(--ci-2) 14%,
+      var(--ci-6) 26%,
+      var(--ci-1) 38%,
+      var(--ci-5) 48%,
+      var(--ci-3) 58%,
+      transparent 100%
+    );
+  }
+
   &__brand {
     display: flex;
     align-items: center;
-    gap: s.$space-3;
-  }
-
-  &__title {
-    @include t.title-md;
-
-    color: var(--text-strong);
-  }
-
-  &__scope {
-    @include t.caption;
-
-    display: block;
-    margin-top: 1px;
-    color: var(--text-muted);
+    gap: s.$space-4;
+    min-width: 0;
   }
 
   &__variant {
-    margin-left: s.$space-2;
+    @include t.label-sm;
+
+    display: inline-block;
+    margin-left: s.$space-3;
     padding: 1px s.$space-2;
     border: 1px solid var(--brand-soft-border);
     border-radius: s.$radius-full;
     background-color: var(--brand-soft);
     color: var(--brand-contrast);
     font-style: normal;
+    vertical-align: middle;
   }
 
   &__clock {

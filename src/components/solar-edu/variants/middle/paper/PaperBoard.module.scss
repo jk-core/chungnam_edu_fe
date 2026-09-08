@@ -1,0 +1,571 @@
+@use "@/styles/tokens/spacing" as s;
+@use "@/styles/tokens/typography" as t;
+@use "@/styles/utils/media" as media;
+@use "@/styles/utils/mixins" as mx;
+
+/*
+  시안 E 「네 개의 질문」 의 골격.
+
+  다른 교육 화면이 공용 레이아웃(헤더·요약 띠·티커) 위에 본문을 얹는 것과 달리 여기서는
+  화면 전체를 세운다. 위에 요약 띠를 두면 1장이 그 띠를 한 번 더 말하는 꼴이 되기 때문이다.
+
+  왼쪽은 궤도, 오른쪽은 지면. 둘 사이는 실선 하나로만 가르고 카드나 상자는 두지 않는다 —
+  이 판의 성격이 「읽는 지면」 이라 구획을 여백과 활자가 맡는다.
+*/
+.paper {
+  display: grid;
+  grid-template-columns: 16rem minmax(0, 1fr);
+  gap: s.$space-7;
+  width: 100%;
+  min-height: 100vh;
+  padding: s.$space-8 s.$space-9;
+  background-color: var(--paper);
+
+  @include media.kiosk {
+    /* 벽걸이 화면에서는 한 장이 화면을 채운다 — 넘겨 줄 사람이 없으므로 굴리지 않는다 */
+    grid-template-columns: 20rem minmax(0, 1fr);
+    gap: s.$space-9;
+    height: max(100vh, 1080px);
+    overflow: hidden;
+    padding: s.$space-9 s.$space-10;
+  }
+
+  @include media.tablet {
+    grid-template-columns: 1fr;
+    gap: s.$space-7;
+    padding: s.$space-6 s.$space-5;
+  }
+
+  /*
+    초등은 궤도가 위로 올라가 지면이 화면을 통째로 쓴다.
+    그림과 글씨가 가장 커야 하는 눈높이라, 왼쪽에 붙박이 기둥을 두면 그만큼을 잃는다.
+  */
+  &[data-level="elementary"] {
+    grid-template-columns: minmax(0, 1fr);
+
+    /*
+      궤도가 제 높이만 갖고 남는 자리는 모두 지면 몫이다.
+
+      두 줄을 모두 `auto` 로 두면 격자가 남는 세로를 두 줄에 나눠 주는데, 그 몫이 지면 내용에
+      따라 달라져 장이 넘어갈 때마다 위쪽 궤도가 함께 오르내린다. 궤도는 늘 같은 자리에 있어야
+      읽는 사람이 차례를 눈으로 좇을 수 있다.
+    */
+    grid-template-rows: auto minmax(0, 1fr);
+    gap: s.$space-6;
+
+    @include media.kiosk {
+      grid-template-columns: minmax(0, 1fr);
+      gap: s.$space-6;
+    }
+  }
+
+  /* 고등은 궤도를 좁혀 지면에 자리를 넘긴다 — 읽을 것이 가장 많은 눈높이다 */
+  &[data-level="high"] {
+    grid-template-columns: 14rem minmax(0, 1fr);
+
+    @include media.kiosk {
+      grid-template-columns: 15rem minmax(0, 1fr);
+      gap: s.$space-8;
+    }
+  }
+}
+
+// ── 왼쪽 궤도 ─────────────────────────────────────────────
+
+/* 배경이 화면에 고정으로 깔리므로, 글이 담기는 두 칸은 그 위에 자리를 잡는다 */
+.rail {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  gap: s.$space-7;
+  min-width: 0;
+  padding-right: s.$space-7;
+  border-right: 1px solid var(--border-subtle);
+
+  @include media.tablet {
+    gap: s.$space-5;
+    padding-right: 0;
+    padding-bottom: s.$space-5;
+    border-right: 0;
+    border-bottom: 1px solid var(--border-subtle);
+  }
+
+  /* 초등 — 세로 기둥이 아니라 머리에 걸리는 가로 띠가 된다 */
+  [data-level="elementary"] & {
+    flex-flow: row wrap;
+    align-items: center;
+    gap: s.$space-4 s.$space-8;
+    padding: 0 0 s.$space-5;
+    border-right: 0;
+    border-bottom: 1px solid var(--border-subtle);
+  }
+}
+
+.scope {
+  animation: rail-in 0.6s ease-out both;
+  display: flex;
+  flex-direction: column;
+  gap: s.$space-2;
+
+  &__variant {
+    @include t.eyebrow;
+
+    color: var(--brand);
+
+    // 시안 문자는 주소(`/solar-edu/a`)에 그대로 쓰이므로 대문자로 바꾸지 않는다.
+    text-transform: none;
+  }
+
+  &__title {
+    @include t.title-xl;
+
+    color: var(--text-strong);
+
+    /*
+      초등이라고 학교 이름까지 키우지는 않는다.
+      궤도가 위에 눕는 눈높이라 여기서 먹는 세로가 그대로 아래 그림에서 빠진다 —
+      이 판에서 커야 하는 것은 계통도 쪽이다.
+    */
+    [data-level="high"] & {
+      @include t.title-lg;
+    }
+  }
+
+  &__info {
+    @include t.body-sm;
+
+    color: var(--text-muted);
+  }
+}
+
+.clock {
+  animation: rail-in 0.6s 0.08s ease-out both;
+  display: flex;
+  flex-direction: column;
+  gap: s.$space-1;
+
+  &__time {
+    @include t.data-xl;
+
+    color: var(--text-strong);
+    line-height: 1;
+  }
+
+  &__date {
+    @include t.body-sm;
+
+    color: var(--text-muted);
+  }
+
+  &__offline {
+    @include t.body-sm;
+
+    margin-top: s.$space-2;
+    padding-left: s.$space-3;
+    border-left: 3px solid var(--caution);
+    color: var(--caution-text);
+  }
+}
+
+/*
+  네 장의 차례.
+  지금 장에만 왼쪽에 굵은 선이 서고, 그 아래를 시간 눈금이 채운다 —
+  걸어 두는 화면이라 "언제 넘어가는지" 가 보여야 다음 장을 기다릴 수 있다.
+*/
+.marks {
+  animation: rail-in 0.6s 0.16s ease-out both;
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  gap: s.$space-1;
+  min-height: 0;
+  list-style: none;
+
+  @include media.tablet {
+    flex: none;
+    flex-flow: row wrap;
+    gap: s.$space-2;
+  }
+
+  /*
+    초등은 눈금이 제 줄을 통째로 갖는다.
+    학교 이름·시계·고르개와 한 줄에 밀어 넣으면 네 눈금이 둘로 접혀 차례가 끊긴다.
+    대신 고르개를 첫 줄로 올려, 궤도 전체가 두 줄을 넘지 않게 한다 — 궤도가 세로를 먹는 만큼
+    아래 지면이 줄어든다.
+  */
+  [data-level="elementary"] & {
+    order: 2;
+    flex: 0 0 100%;
+    flex-flow: row wrap;
+    gap: s.$space-2 s.$space-6;
+  }
+}
+
+.mark {
+  position: relative;
+  display: flex;
+  align-items: baseline;
+  gap: s.$space-3;
+  width: 100%;
+
+  padding: s.$space-3 0 s.$space-3 s.$space-4;
+  border: 0;
+  border-left: 2px solid transparent;
+  background: none;
+  color: var(--text-muted);
+  cursor: pointer;
+  text-align: left;
+  transition: color 0.24s ease, border-color 0.24s ease, transform 0.24s ease, opacity 0.24s ease;
+
+  /* 지나간 장과 아직 오지 않은 장은 한 걸음 물러나 있다 */
+  opacity: 0.72;
+
+  &:hover {
+    color: var(--text);
+    opacity: 1;
+  }
+
+  @include mx.keyboard-focus {
+    outline: 2px solid var(--brand);
+    outline-offset: 2px;
+  }
+
+  &[data-current="true"] {
+    border-left-color: transparent;
+    color: var(--text-strong);
+    opacity: 1;
+    transform: translateX(4px);
+
+    /*
+      아직 지나지 않은 자리.
+
+      차오르는 막대만 두면 「얼마나 왔는지」 는 보여도 「얼마나 남았는지」 가 보이지 않는다.
+      지나갈 길을 옅게 깔아 두면 둘이 한눈에 잡혀, 지나가던 사람이 서서 기다릴지를 정한다.
+    */
+    &::before {
+      position: absolute;
+      content: '';
+      top: 0;
+      bottom: 0;
+      left: -6px;
+      width: 6px;
+      border-radius: s.$radius-full;
+      background-color: var(--border);
+    }
+  }
+
+  &__no {
+    @include t.eyebrow;
+
+    flex-shrink: 0;
+    font-family: var(--font-data);
+  }
+
+  &__name {
+    @include t.title-md;
+
+    color: inherit;
+
+    [data-level="elementary"] & {
+      @include t.title-lg;
+    }
+
+    [data-level="high"] & {
+      @include t.title-sm;
+    }
+  }
+
+  /*
+    남은 시간 — 왼쪽 선을 따라 차오른다.
+
+    2px 실선으로 두었더니 벽에 걸고 보면 있는지도 알 수 없었다 (2026-09-04 회의). 굵기를 세 배로
+    올리고 지나갈 자리를 옅게 깔아, 차오르는 만큼과 남은 만큼이 함께 보이게 했다 — 지나가는 사람이
+    「곧 넘어가겠구나」 를 알면 서서 기다린다.
+  */
+  &__timer {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: -6px;
+    width: 6px;
+    border-radius: s.$radius-full;
+    background-color: var(--solar);
+    animation: mark-timer linear both;
+    transform-origin: top;
+
+    @include media.reduced-motion {
+      animation: none;
+    }
+  }
+
+  @include media.tablet {
+    width: auto;
+    padding: s.$space-2 s.$space-3;
+    border-left: 0;
+    border-bottom: 2px solid transparent;
+
+    &[data-current="true"] {
+      border-bottom-color: var(--brand);
+    }
+
+    &__timer {
+      display: none;
+    }
+  }
+
+  /* 초등 — 눈금이 가로로 서므로 남은 시간도 가로로 찬다 */
+  [data-level="elementary"] & {
+    width: auto;
+    padding: s.$space-2 s.$space-1 s.$space-3;
+    border-left: 0;
+    border-bottom: 3px solid transparent;
+
+    &[data-current="true"] {
+      border-bottom-color: var(--brand);
+    }
+  }
+
+  [data-level="elementary"] &__timer {
+    inset: auto 0 -3px;
+    width: auto;
+    height: 3px;
+    animation-name: mark-timer-x;
+    transform-origin: left;
+  }
+}
+
+.tools {
+  animation: rail-in 0.6s 0.24s ease-out both;
+
+  /* 기둥에 기상 칸이 들어오면서 — 남는 세로를 여기서 걷어 고르개를 바닥에 붙인다 */
+  margin-top: auto;
+  display: flex;
+  align-items: center;
+  gap: s.$space-3;
+  flex-wrap: wrap;
+
+  /* 초등 — 눈금이 아래 줄을 쓰므로 고르개는 첫 줄 오른쪽 끝에 붙는다 */
+  [data-level="elementary"] & {
+    order: 1;
+    margin-left: auto;
+  }
+}
+
+// ── 오른쪽 지면 ───────────────────────────────────────────
+.sheet {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  gap: s.$space-6;
+  min-width: 0;
+  min-height: 0;
+
+  &__banner {
+    @include t.body-md;
+
+    flex-shrink: 0;
+    color: var(--text-muted);
+
+    /* 초등은 궤도가 위에서 이미 네 차례를 보이므로 같은 말을 한 번 더 하지 않는다 */
+    [data-level="elementary"] & {
+      display: none;
+    }
+  }
+}
+
+/*
+  장 하나.
+
+  좁은 화면에서는 네 장이 그대로 이어져 긴 지면이 되고, 벽걸이 화면에서만 지금 장 하나가
+  남아 화면을 채운다. 같은 마크업이 두 가지로 읽히므로 장을 지웠다 그렸다 하지 않는다.
+*/
+.chapter {
+  display: flex;
+  flex-direction: column;
+  gap: s.$space-6;
+  min-height: 0;
+  padding-bottom: s.$space-8;
+
+  /* 고등은 머리와 본문 사이를 좁혀 본문에 자리를 넘긴다 */
+  [data-level="high"] & {
+    gap: s.$space-5;
+  }
+
+  &__head {
+    display: flex;
+    flex-direction: column;
+    gap: s.$space-2;
+    flex-shrink: 0;
+  }
+
+  &__mark {
+    @include t.eyebrow;
+
+    display: flex;
+    align-items: center;
+    gap: s.$space-3;
+    color: var(--brand);
+    font-family: var(--font-data);
+  }
+
+  /*
+    장 그림.
+
+    질문보다 앞서 눈에 들어오되 질문을 누르지는 않는 크기로 둔다. 이 줄의 높이가 곧 머리의
+    높이라, 크게 잡으면 그만큼 본문이 밀려 내려가 아래가 잘린다 — 눈금 글씨보다 한 뼘 큰
+    정도가 한계다.
+  */
+  &__icon {
+    display: flex;
+    width: 26px;
+    height: 26px;
+    flex-shrink: 0;
+
+    [data-level="elementary"] & {
+      width: 30px;
+      height: 30px;
+    }
+
+    [data-level="high"] & {
+      width: 22px;
+      height: 22px;
+    }
+  }
+
+  &__question {
+    @include t.display-lg;
+
+    color: var(--text-strong);
+
+    [data-level="elementary"] & {
+      @include t.display-xl;
+    }
+
+    [data-level="high"] & {
+      @include t.title-xl;
+    }
+  }
+
+  &__lead {
+    @include t.body-lg;
+
+    color: var(--text-muted);
+
+    [data-level="high"] & {
+      @include t.body-md;
+    }
+  }
+
+  &__body {
+    flex: 1;
+    min-height: 0;
+  }
+
+  /*
+    장이 바뀌면 글이 아래에서 올라온다.
+
+    벽걸이 화면에서는 지금 장만 그려지므로, 다시 그려질 때 이 움직임이 저절로 다시 돈다 —
+    넘어간 것을 알아채지 못하면 걸어 두는 화면에서는 값이 멈춘 것처럼 보인다.
+    머리와 본문에 시차를 두어 질문을 먼저 읽게 한다.
+  */
+  &[data-current="true"] &__head {
+    animation: chapter-rise 0.55s ease-out both;
+  }
+
+  &[data-current="true"] &__body {
+    animation: chapter-rise 0.7s 0.14s ease-out both;
+  }
+
+  /* 장 그림은 질문보다 한 박자 먼저 튀어 오른다 */
+  &[data-current="true"] &__icon {
+    animation: icon-pop 0.5s 0.06s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+  }
+
+  @include media.reduced-motion {
+    &[data-current="true"] &__head,
+&[data-current="true"] &__body,
+&[data-current="true"] &__icon {
+      animation: none;
+    }
+  }
+
+  @include media.kiosk {
+    display: none;
+    flex: 1;
+    padding-bottom: 0;
+
+    &[data-current="true"] {
+      display: flex;
+    }
+  }
+}
+
+@keyframes chapter-rise {
+  from {
+    opacity: 0;
+    transform: translateY(18px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes mark-timer {
+  from {
+    transform: scaleY(0);
+  }
+
+  to {
+    transform: scaleY(1);
+  }
+}
+
+/* 초등의 가로 눈금 — 세로로 차는 대신 왼쪽에서 오른쪽으로 찬다 */
+@keyframes mark-timer-x {
+  from {
+    transform: scaleX(0);
+  }
+
+  to {
+    transform: scaleX(1);
+  }
+}
+
+/* 화면이 처음 설 때 궤도가 위에서 아래로 한 번 흘러 들어온다 */
+@keyframes rail-in {
+  from {
+    opacity: 0;
+    transform: translateY(-12px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* 장 그림은 살짝 지나쳤다 제자리로 돌아온다 — 그래야 「튀어 오른다」 로 읽힌다 */
+@keyframes icon-pop {
+  from {
+    opacity: 0;
+    transform: scale(0.4) rotate(-12deg);
+  }
+
+  to {
+    opacity: 1;
+    transform: scale(1) rotate(0deg);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .scope,
+.clock,
+.marks,
+.tools {
+    animation: none;
+  }
+}

@@ -3,10 +3,12 @@ import { OPERATION_LABEL, OPERATION_TONE } from '@/mocks/status';
 import { Badge } from '@/components/common/Badge';
 import { useAutoPager } from '@/hooks/useAutoPager';
 import type { School } from '@/interface/energy';
+import { REGION_CI_COLOR } from '@/assets/geo/chungnamRegions';
 import { aggregate } from '../utils/aggregate';
 import { PagerBar } from './PagerBar';
 import styles from './AggregationPanel.module.scss';
 import type { Axis } from '../utils/aggregate';
+import type { CSSProperties } from 'react';
 
 /** 한 쪽이 머무는 시간 — 표를 읽어 내려갈 만큼은 준다 */
 const PAGE_MS = 7000;
@@ -142,7 +144,14 @@ export function AggregationPanel({ schools, axis }: AggregationPanelProps) {
                       글자가 묻힌다.
                     */}
                     <span className={styles.bar} data-over={ratio >= COVER_RATIO ? '' : undefined}>
-                      <span className={styles.bar__fill} style={{ width: `${ratio * 100}%` }} />
+                      {/* 지역별로 볼 때만 시·군의 CI 색을 받는다 — 다른 축에서는 시·군이 뜻을 갖지 않는다 */}
+                      <span
+                        className={styles.bar__fill}
+                        style={{
+                          width: `${ratio * 100}%`,
+                          ...(axis === 'region' ? { '--row': REGION_CI_COLOR[row.name] } : {}),
+                        } as CSSProperties}
+                      />
                       <span className={styles.bar__value}>
                         {formatNumber(hoursOf(row), 1)}<span className={styles.bar__unit}>h</span>
                       </span>

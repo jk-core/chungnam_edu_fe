@@ -12,7 +12,14 @@
 .grid {
   display: grid;
   grid-template-columns: minmax(0, 1.35fr) minmax(0, 1fr);
-  grid-template-rows: minmax(0, 1.05fr) minmax(0, 1fr);
+
+  /*
+    아래 칸(발전량)이 위 칸(원리)보다 높다.
+    글씨를 키운 뒤로 아래 칸의 설명 두 덩이가 두 줄씩 되어, 위가 더 넓던 때는 차트가 제 바닥에도
+    못 미쳐 글 위로 넘쳐 그려졌다. 위 칸은 그림이 줄어드는 것으로 버티고, 아래 칸은 차트가
+    더 줄면 눈금이 읽히지 않으므로 아래에 더 준다.
+  */
+  grid-template-rows: minmax(0, 1fr) minmax(0, 1.12fr);
   gap: s.$space-4;
   height: 100%;
   min-height: 0;
@@ -38,17 +45,26 @@
 .card {
   display: flex;
   flex-direction: column;
-  gap: s.$space-3;
+
+  /* 안팎의 여백을 한 단씩 좁혔다 — 세 카드 모두 본문이 칸을 넘겨 글이 그림 위로 흘렀다 */
+  gap: s.$space-2;
   min-height: 0;
 
   /* 칸이 좁아져 내용이 넘칠 때 아래 티커를 침범하지 않게 카드 안에서 끊는다 */
   overflow: hidden;
-  padding: s.$space-4 s.$space-5;
+  padding: s.$space-3 s.$space-5;
   border: 1px solid var(--border-subtle);
   border-radius: s.$radius-lg;
   background-color: var(--surface);
   box-shadow: var(--shadow-sm);
 
+  /*
+    카드 머리를 한 단 낮췄다 (2026-09-07 지시 — 글자와 그림이 겹친다).
+
+    이름과 한 줄이 67px 을 먹으면서 아래 본문이 제 바닥에도 못 미쳤다. 세 카드가 모두 37~61px
+    씩 넘쳐 그림 위로 글이 흘렀다. 이름은 무엇을 보는 칸인지만 알려 주면 되므로, 넘치는 쪽을
+    살리고 이쪽이 자리를 내준다.
+  */
   &__head {
     @include t.title-sm;
 
@@ -59,8 +75,9 @@
     color: var(--text-strong);
   }
 
+  /* 카드 이름 아래 한 줄 — 캡션으로 두면 걸어 두고 몇 걸음 떨어져서는 읽히지 않는다 */
   &__note {
-    @include t.caption;
+    @include t.body-sm;
 
     color: var(--text-muted);
   }
@@ -79,7 +96,8 @@
   }
 
   &__art {
-    min-height: 150px;
+    /* 카드가 주는 높이 안에서 그림이 줄어들 여지를 남긴다 — 못 박아 두면 글 위로 넘친다 */
+    min-height: 120px;
     height: 100%;
     border-radius: s.$radius-md;
     background: linear-gradient(180deg, var(--sky-top) 0%, var(--surface-sunken) 100%);
@@ -113,7 +131,7 @@
     background-color: var(--brand);
     color: var(--text-on-brand);
     font-family: "Space Grotesk", sans-serif;
-    font-size: 13px;
+    font-size: 0.8125rem;
   }
 
   &__body {
@@ -166,7 +184,17 @@
 
   &__chart {
     position: relative;
-    min-height: 140px;
+
+    /*
+      띄워 놓은 캔버스가 칸을 넘지 못하게 자른다.
+
+      echarts 는 넘겨준 높이로 캔버스를 그리는데, 칸이 줄어드는 순간과 다시 그리는 순간 사이에
+      옛 높이가 남아 아래로 삐져나온다. 곡선 아래로 26px 의 축 여백이 있어 잘려도 그림은 상하지 않는다.
+    */
+    overflow: hidden;
+
+    /* `MiddleProductionCard` 의 `MIN_CHART_HEIGHT` 와 같은 값 — 어긋나면 그림이 칸 밖으로 나간다 */
+    min-height: 118px;
     border-radius: s.$radius-md;
     background-color: var(--surface-sunken);
   }
@@ -177,7 +205,7 @@
   }
 
   &__sun {
-    min-height: 140px;
+    min-height: 118px;
     border-radius: s.$radius-md;
     background: linear-gradient(180deg, var(--sky-top) 0%, var(--surface-sunken) 100%);
   }
@@ -212,10 +240,19 @@
   }
 }
 
+/*
+  넉 장을 세로로 세운다.
+
+  칸 높이의 아래끝을 내용에 맞춘다(`min-content`). 넷을 똑같은 높이로 못 박아 두었더니
+  설명이 두 줄이 되는 칸에서 글이 상자 밖으로 넘쳐 아래 상자 위에 겹쳐 그려졌다 —
+  글씨를 키우고 나서는 어느 칸이 두 줄이 될지 폭에 따라 달라지므로, 높이를 고정할 수 없다.
+  남는 자리는 그대로 넷이 고르게 나눠 갖는다. 사이는 좁게 둔다 — 넷이 한 칸에 다 서야 하고,
+  넓히면 마지막 장이 칸 밖으로 밀린다.
+*/
 .benefit {
   display: grid;
-  grid-auto-rows: minmax(0, 1fr);
-  gap: s.$space-2;
+  grid-auto-rows: minmax(min-content, 1fr);
+  gap: s.$space-1;
   flex: 1;
   min-height: 0;
   list-style: none;
@@ -225,7 +262,7 @@
 
     flex: none;
     margin-top: s.$space-2;
-    font-size: 14px;
+    font-size: 0.875rem;
     padding: s.$space-2 s.$space-3;
     border-radius: s.$radius-sm;
     background-color: var(--ok-soft);
@@ -239,7 +276,7 @@
   align-items: center;
   gap: s.$space-3;
   min-height: 0;
-  padding: s.$space-2 s.$space-3;
+  padding: s.$space-1 s.$space-3;
   border: 1px solid var(--border-subtle);
   border-radius: s.$radius-md;
   background-color: var(--surface-sunken);
@@ -275,22 +312,28 @@
   &__label {
     @include t.label-md;
 
-    font-size: 16px;
+    font-size: 1rem;
     color: var(--text-muted);
   }
 
+  /*
+    값·자릿이름·단위 셋이 한 줄에 선다.
+
+    사이를 벌리지 않는다. 벌리면 「773 만 그루」 가 되는데, 「만」 은 수사의 일부라 숫자에 붙어야
+    한다 — 떨어뜨릴 것은 단위뿐이라 그쪽에만 여백을 준다.
+  */
   &__value {
     @include t.data-lg;
 
     display: flex;
     align-items: baseline;
-    gap: 4px;
     color: var(--text-strong);
 
     span {
       @include t.label-md;
 
-      font-size: 16px;
+      margin-left: 4px;
+      font-size: 1rem;
       color: var(--text-muted);
     }
   }
@@ -299,7 +342,7 @@
     @include t.body-sm;
 
     margin-top: 2px;
-    font-size: 15px;
+    font-size: 0.9375rem;
     line-height: 1.5;
     color: var(--text-muted);
   }

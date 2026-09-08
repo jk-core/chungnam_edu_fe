@@ -1,8 +1,8 @@
 import { CO2_PER_KWH, CO2_PER_TREE_YEAR, kwhToHouseholdDays } from '@/utils/eco';
-import { formatNumber } from '@/utils/format';
-import type { AnalysisStage } from '@/interface/diagnosis';
+import { formatCapacity, formatEnergy, formatNumber, scaleCarbon, scaleKoCount, scaleSi } from '@/utils/format';
 import type { EduLevel } from '@/interface/edu';
 import type { School, SchoolLevel } from '@/interface/energy';
+import type { SiScale } from '@/utils/format';
 import { ELEMENTARY_CONTENT } from './eduElementary';
 import { FULL_SUN_WM2 } from './solarEdu';
 import { MIDDLE_CONTENT } from './eduMiddle';
@@ -61,15 +61,37 @@ export function resolveEduLevel(plant: School | null, param: string | null): Edu
 
 // ── 지표 레지스트리 ────────────────────────────────────────
 
-export type StatId = 'today' | 'powerTime' | 'co2' | 'irradiance' | 'capacity';
+export type StatId = 'today' | 'total' | 'powerTime' | 'co2' | 'irradiance' | 'capacity';
 
 export interface StatDef {
   label: string;
   value: (stats: EduStats) => number;
+  /**
+   * 자릿수가 커지면 단위를 올려 보일 값인지.
+   *
+   * 도 전체를 합치면 kW·kWh 로는 다섯 자리를 넘겨 칸 밖으로 나간다. 여기에 종류만 적어 두면
+   * 그리는 쪽이 `statFigure` 로 M·G·t 까지 올려 준다. 발전시간(시간)·일사량(점)처럼
+   * SI 가 아닌 값은 적지 않는다.
+   */
+  scale?: 'W' | 'Wh' | 'carbon';
+  /** `scale` 이 없을 때 그대로 붙는 단위 */
   unit: string;
   fractionDigits: number;
   /** 단위를 몰라도 크기를 가늠할 수 있게 하는 한 줄 */
   note: (stats: EduStats) => string;
+}
+
+/**
+ * 지표 한 칸에 실제로 그릴 숫자와 단위.
+ * 숫자를 굴려 올리는 곳도 그대로 쓸 수 있게 문자열이 아니라 값으로 돌려준다.
+ */
+export function statFigure(def: StatDef, stats: EduStats): SiScale {
+  const raw = def.value(stats);
+
+  if (def.scale === 'carbon') return scaleCarbon(raw);
+  if (def.scale) return scaleSi(raw, def.scale);
+
+  return { amount: raw, unit: def.unit, fractionDigits: def.fractionDigits };
 }
 
 /*
@@ -85,30 +107,50 @@ export const STAT_DEFS: Record<StatId, StatDef> = {
   today: {
     label: '금일 발전량',
     value: (stats) => stats.todayKwh,
+    scale: 'Wh',
     unit: 'kWh',
     fractionDigits: 0,
-    note: (stats) => `4인 가구 ${formatNumber(kwhToHouseholdDays(stats.todayKwh))}가구의 하루 사용량에 해당한다`,
+    note: (stats) => `4인 가구 ${formatNumber(kwhToHouseholdDays(stats.todayKwh))}가구가 하루에 쓰는 양이다`,
   },
+  /*
+    누적 발전량 (2026-09-04 회의).
+
+    금일만 보이면 인버터가 멎거나 통신이 끊긴 날 화면의 모든 값이 0 이 된다. 누적은 그런 날에도
+    남아 있고 수치가 커서 임팩트도 크다 — 그래서 환산 지표(나무·조명 따위)의 기준도 이쪽으로 옮겼다.
+  */
+  total: {
+    label: '누적 발전량',
+    value: (stats) => stats.totalKwh,
+    scale: 'Wh',
+    unit: 'kWh',
+    fractionDigits: 0,
+    note: () => '설치한 뒤로 지금까지 만든 전기를 모두 더한 양이다',
+  },
+  /*
+    「일사강도」 가 아니라 「일사량」 으로 부른다 (2026-09-04 회의).
+    과학 교과와 맞추는 이름이고, 점수 옆에 실제 수치와 단위(W/m²)를 함께 노출한다.
+  */
   irradiance: {
-    label: '일사강도',
+    label: '일사량',
     value: (stats) => (stats.irradianceNow / FULL_SUN_WM2) * 100,
     unit: '점',
     fractionDigits: 0,
-    note: (stats) => `${formatNumber(stats.irradianceNow)} W/m². 맑은 날 정오의 햇빛 1,000W/m² 를 100점으로 놓고 환산한 값이다`,
+    note: (stats) => `맑은 날 정오의 햇빛을 100점으로 놓고 본 값이다 (${formatNumber(stats.irradianceNow)} W/m²)`,
   },
   powerTime: {
     label: '발전시간',
     value: (stats) => stats.equivalentHours,
     unit: '시간',
     fractionDigits: 1,
-    note: () => '발전량을 설비용량으로 나눈 값이다. 용량이 달라도 비교가 가능한 지표이다',
+    note: () => '발전량을 설비용량으로 나눈 값이다. 설비 크기가 달라도 견줄 수 있다',
   },
   co2: {
     label: '탄소 저감량',
     value: (stats) => stats.todayKwh * CO2_PER_KWH,
+    scale: 'carbon',
     unit: 'kg',
     fractionDigits: 0,
-    note: () => '같은 양의 전기를 화석연료로 생산할 때 대비, 이만큼의 온실가스를 감축했다',
+    note: () => '화석연료로 만들었을 때와 견주어 줄어든 양이다',
   },
   /*
     설비용량.
@@ -118,11 +160,31 @@ export const STAT_DEFS: Record<StatId, StatDef> = {
   capacity: {
     label: '설비용량',
     value: (stats) => stats.capacityKw,
+    scale: 'W',
     unit: 'kW',
     fractionDigits: 1,
-    note: () => '최적의 조건이 갖춰졌을 때 낼 수 있는 최대 출력이다',
+    note: () => '한꺼번에 낼 수 있는 가장 큰 출력이다',
   },
 };
+
+/*
+  문장 안에 수치를 넣을 때 쓰는 표기.
+  큰 숫자만 M·G 로 올리고 문장 속 수치는 kW 로 두면, 같은 화면에서 같은 값이 두 단위로 읽힌다.
+*/
+
+/** 설비용량을 문장에 넣을 때 — 「18.8MW」 */
+export function capacityText(stats: EduStats): string {
+  const { value, unit } = formatCapacity(stats.capacityKw);
+
+  return `${value}${unit}`;
+}
+
+/** 발전량을 문장에 넣을 때 — 「74.2MWh」 */
+export function energyText(kwh: number): string {
+  const { value, unit } = formatEnergy(kwh);
+
+  return `${value}${unit}`;
+}
 
 /** 수준이 덮어쓸 수 있는 부분만 */
 export interface StatCopy {
@@ -138,6 +200,13 @@ export interface ImpactDef {
   label: string;
   /** 1kWh 당 환산값 */
   perKwh: number;
+  /**
+   * 자릿수가 커지면 단위를 올려 보일 값인지.
+   *
+   * 기준을 누적으로 옮기고 나서 필요해졌다 — 하루치로 「6,360일」 이던 값이 「9,514,692일」 이 되면
+   * 자릿수를 세다 읽기를 포기한다. 그루처럼 그대로 세는 편이 나은 것은 적지 않는다.
+   */
+  scale?: 'carbon' | 'days' | 'hours';
   unit: string;
   basis: string;
   fractionDigits: number;
@@ -154,31 +223,34 @@ export const IMPACT_DEFS: Record<ImpactId, ImpactDef> = {
   co2: {
     label: '탄소 저감량',
     perKwh: CO2_PER_KWH,
+    scale: 'carbon',
     unit: 'kg CO₂',
-    basis: `배출계수 ${CO2_PER_KWH}kgCO₂/kWh 기준`,
+    basis: `전기 1kWh 를 화석연료로 만들 때 나오는 ${CO2_PER_KWH}kg 기준`,
     fractionDigits: 0,
-    line: '여기서 생산한 만큼 화석연료 발전을 대체해, 그만큼 석탄과 가스를 태우지 않아도 된다',
+    line: '여기서 만든 만큼 화석연료 발전이 줄어, 그만큼 석탄과 가스를 태우지 않아도 된다',
   },
   tree: {
     label: '소나무로 환산하면',
     // 줄인 CO₂ 를 소나무가 1년 동안 마시는 양으로 나눈다. 계수는 utils/eco 와 한 곳을 본다.
     perKwh: CO2_PER_KWH / CO2_PER_TREE_YEAR,
     unit: '그루',
-    basis: `탄소흡수량 연간 ${CO2_PER_TREE_YEAR}kg 기준`,
+    basis: `소나무 한 그루가 1년에 흡수하는 ${CO2_PER_TREE_YEAR}kg 기준`,
     fractionDigits: 0,
-    line: '줄인 탄소를 소나무가 1년에 흡수하는 양으로 나눈 값이다. 소나무를 몇 그루 심은 것과 같은 효과인지 보여 준다',
+    line: '줄인 탄소를 소나무가 1년에 흡수하는 양으로 나눈 값이다. 소나무를 몇 그루 심은 것과 같다',
   },
   household: {
     label: '4인 가구 사용일수',
     perKwh: 1 / (350 / 30),
+    scale: 'days',
     unit: '일',
-    basis: '4인 가구 일 11.7kWh 기준',
+    basis: '4인 가구가 하루에 쓰는 11.7kWh 기준',
     fractionDigits: 1,
-    line: '4인 가구 한 곳이 며칠 동안 쓸 수 있는 양인지 계산한 값이다',
+    line: '4인 가구 한 집이 며칠 동안 쓸 수 있는 양인지 나눠 본 값이다',
   },
   led: {
     label: '교실 조명 점등 시간',
     perKwh: 25,
+    scale: 'hours',
     unit: '시간',
     basis: '40W 조명 기준',
     fractionDigits: 0,
@@ -192,6 +264,32 @@ export interface ImpactCopy {
   line?: string;
 }
 
+/**
+ * 환산 카드 한 장에 실제로 그릴 숫자와 단위.
+ *
+ * 기준은 **누적 발전량**이다 (2026-09-04 회의). 금일로 세면 인버터가 멎은 날 넉 장이 모두 0 이
+ * 되는데, 걸어 두는 화면에서 그것은 「오늘 아무것도 못 했다」 가 아니라 「고장 났다」 로 읽힌다.
+ * 탄소는 도 전체를 합치면 t 이 되므로 「kg CO₂」 의 앞머리만 갈아 끼운다.
+ */
+export function impactFigure(def: ImpactDef, kwh: number): SiScale {
+  const raw = kwh * def.perKwh;
+
+  if (def.scale === 'carbon') {
+    const scaled = scaleCarbon(raw);
+
+    return { ...scaled, unit: `${scaled.unit} CO₂` };
+  }
+
+  // 두 해를 넘기면 날수보다 햇수가 빨리 읽힌다. 햇수도 여섯 자리가 되면 만·억으로 한 번 더 접는다
+  if (def.scale === 'days' && raw >= 730) return scaleKoCount(raw / 365, '년');
+  if (def.scale === 'hours' && raw >= 8_760) return scaleKoCount(raw / 8_760, '년');
+
+  // 그루처럼 올릴 윗단위가 없는 것도 우리말 이름으로 접는다
+  if (def.fractionDigits === 0) return scaleKoCount(raw, def.unit);
+
+  return { amount: raw, unit: def.unit, fractionDigits: def.fractionDigits };
+}
+
 // ── 조각 타입 ──────────────────────────────────────────────
 /*
   패널들이 `EduContent['day']` 처럼 인덱싱해 쓰던 것을 조각 타입으로 꺼내 둔다.
@@ -202,13 +300,6 @@ export interface ImpactCopy {
 export interface EduNote {
   id: string;
   term: string;
-  body: string;
-}
-
-/** 계통도 아래 세 가지 이야기 (SFR-005-01/02) */
-export interface EduTopic {
-  id: 'meaning' | 'principle' | 'effect';
-  title: string;
   body: string;
 }
 
@@ -249,7 +340,6 @@ export interface ImpactContent {
 export interface JourneyContent {
   head: string;
   note: string;
-  topics: EduTopic[];
 }
 
 /** 설비 그림에서 지금 들여다보는 자리 */
@@ -270,30 +360,17 @@ export const PLANT_SPOT_LABEL: Record<PlantSpot, string> = {
 };
 
 /**
- * 단계 하나가 담는 것.
+ * 자리마다 무슨 일이 일어나는가 (고등 전용).
  *
- * 같은 자리를 두고 두 가지를 나란히 말한다 — 여기서 **무슨 일이 일어나는가**(태양광 원리)와,
- * AI 는 **그 자리에서 무엇을 보는가**(진단 원리). 둘을 붙여 두어야 학생이 "AI 가 왜 저기를 보는지" 를 안다.
+ * 한때 AI 진단 절차를 나란히 적었다. 학생이 배워야 할 것은 진단 절차가 아니라 발전 원리라
+ * 그쪽을 걷어냈고(2026-08-24), 남은 것은 자리와 거기서 일어나는 일뿐이다. 그래서 진단 단계로
+ * 묶여 있던 것을 **자리로** 다시 묶었다 — 그리는 쪽이 자리로 찾아 쓰기 때문이다.
  */
-export interface EduAiStage {
-  label: string;
-  /** 이 단계가 학생에게 가르치는 것 */
-  teach: string;
-  /** 설비 그림에서 밝아지는 자리 */
-  spot: PlantSpot;
-  /** 그 자리에서 일어나는 일 */
-  physics: string;
-  /** AI 가 그 자리에서 보는 것 */
-  diagnosis: string;
-}
-
-/** AI 가 무엇을 하고 있는지 학생에게 설명하는 말 (고등 전용) */
-export interface EduAiContent {
+export interface EduStageContent {
   head: string;
   note: string;
-  stages: Record<AnalysisStage, EduAiStage>;
-  /** 패널 맨 아래에 남기는 한 줄 — 이 화면이 무엇을 보여 준 것인지 */
-  footer: string;
+  /** 설비 그림의 자리마다, 거기서 일어나는 일 */
+  spots: Record<PlantSpot, string>;
 }
 
 // ── 수준별 콘텐츠 ──────────────────────────────────────────
@@ -341,160 +418,147 @@ export interface HighContent extends EduContentBase {
   day: DayContent;
   impact: ImpactContent;
   journey: JourneyContent;
-  ai: EduAiContent;
+  stage: EduStageContent;
 }
 
 export type EduContent = ElementaryContent | MiddleContent | HighContent;
 
 /*
-  고등 — 지금까지 쓰던 판.
-  비유 대신 물리적 원리와 정량 지표를 쓰고, 단위·계수·계산식을 감추지 않는다.
+  고등 — 세 판 가운데 가장 많은 것을 보여 주는 판.
+
+  한때 물리 용어와 계산식을 그대로 적었는데(PN 접합·광기전력 효과·공기질량·MPPT·바이패스 다이오드),
+  고등학생이 걸음을 멈추고 읽기에는 어려워 읽히지 않았다. 그래서 다루는 개념은 그대로 두고
+  말만 중학교 과학 수준으로 낮췄다 — 덜어낸 것은 지식이 아니라 전문 용어다 (2026-08-31 검토 의견).
+
+  세 번째로 훑었다 (2026-09-04 지시). 이번에 걷어낸 것은 **읽는 사람이 이미 아는 것으로 바꿀 수
+  있었던 말**이다 — 「고도」 를 해의 높이로, 「수직에 가깝게」 를 똑바로 내리쬔다로, 「직류·교류」 를
+  흐르는 방향이 어떻게 다른지로, 「전자」 를 아주 작은 알갱이로 풀어 적었다. 개념은 그대로 넷이고
+  줄 수도 그대로다.
+
+  문체는 서술체, 지표 이름은 표준 용어 그대로다. 쉬워져야 할 것은 설명이지 이름이 아니다.
 */
-const HIGH: HighContent = {
+export const HIGH_CONTENT: HighContent = {
   level: 'high',
   emphasis: 'normal',
   headline: {
     mainLabel: '실시간 출력',
     mainNote: (stats) =>
-      `설비용량 ${formatNumber(stats.capacityKw)}kW 로 낼 수 있는 최대치 대비 현재의 출력을 나타낸다`,
-    statIds: ['today', 'powerTime', 'co2', 'irradiance', 'capacity'],
+      `한 번에 만들 수 있는 최대치 ${capacityText(stats)} 가운데 지금 내고 있는 만큼이다`,
+    statIds: ['today', 'total', 'powerTime', 'co2', 'irradiance', 'capacity'],
     // 기본 문구가 이미 서술체이자 표준 용어라 덮어쓸 것이 없다.
   },
+  /*
+    두 마디를 한 문장씩으로 줄였다 (2026-09-07 지시 — 내용이 넘친다).
+
+    설명이 두 문장씩이라 넉 줄이 되었고, 칸이 주는 높이보다 21px 이 길어 둘째 마디의 끝이
+    잘렸다. 두 문장 가운데 앞은 「무슨 일이 일어나나」, 뒤는 「그래서 어떻게 되나」 였는데,
+    둘을 한 문장으로 이으면 인과가 오히려 또렷해진다 — 잘라 낸 것은 뜻이 아니라 마침표다.
+
+    판 이름 아래 한 줄도 걷었다. 「해의 높이가 시각마다 달라지고, 그에 따라 햇빛의 힘도
+    달라진다」 는 아래 두 마디가 그대로 하는 말이라, 같은 이야기를 세 번 하고 있었다.
+  */
   sunPath: {
-    head: '태양의 하루 고도',
-    note: '햇빛이 들어오는 각도는 시각마다 달라진다',
+    head: '해가 하루 동안 지나는 길',
+    note: '해의 높이가 햇빛의 힘을 정한다',
     notes: [
       {
         id: 'angle',
-        term: '고도가 높을수록 발전량이 늘어난다',
-        body:
-          '태양 고도가 높으면 햇빛이 모듈에 가깝게 수직으로 들어온다. 같은 양의 빛이 좁은 면적에 모이므로 '
-          + '1m² 가 받는 에너지가 커진다. 정오 무렵에 발전량이 가장 큰 이유다.',
+        term: '해가 높이 뜰수록 많이 만든다',
+        body: '해가 머리 위에 오면 햇빛이 지붕에 똑바로 내리쬐어, 같은 빛이 좁은 자리에 모인다.',
       },
       {
         id: 'airmass',
-        term: '아침·저녁에는 통과하는 대기층이 두꺼워진다',
-        body:
-          '태양 고도가 낮으면 햇빛이 지나야 할 대기층이 길어진다. 그 사이 먼지와 공기 분자에 산란되어, '
-          + '모듈에 닿기 전에 이미 에너지를 잃는다.',
+        term: '아침저녁 햇빛은 힘이 약하다',
+        body: '해가 낮으면 햇빛이 공기를 더 길게 지나오며 먼지에 부딪혀 흩어진다.',
       },
     ],
   },
   day: {
     head: '금일 시간대별 발전량',
-    note: (stats) => `하루 합계 ${formatNumber(stats.dayKwh)}kWh. 색이 칠해진 면적이 발전량이다`,
+    note: (stats) => `하루 합계 ${energyText(stats.dayKwh)}. 색이 칠해진 면적이 발전량이다`,
     showIrradiance: true,
     notes: [
       {
         id: 'shape',
-        term: '곡선의 모양은 태양의 고도와 같다',
-        body:
-          '차트가 가장 높은 시각이 태양이 가장 높이 뜬 때다. 태양 고도 그래프의 변화가 그대로 차트 모양이 된다. '
-          + '발전량을 정하는 것은 설비 성능이 아니라 그 시각에 들어온 태양복사에너지의 양이다.',
+        term: '차트가 가장 높은 때가 해가 가장 높은 때다',
+        body: '오늘 얼마나 만드는지는 설비가 좋고 나쁨이 아니라, 그 시각에 들어온 햇빛의 양이 정한다.',
       },
       {
         id: 'cloud',
-        term: '두 그래프가 같이 떨어졌다면 날씨 때문이다',
-        body:
-          '차트가 잠깐 뚝 떨어진 구간은 대개 구름이 해를 잠시 가린 순간이다. 일사량 그래프까지 같이 내려갔다면 '
-          + '날씨 때문이고, 일사량은 그대로인데 발전량만 떨어졌다면 표면 오염·그늘·고장을 살펴야 한다.',
+        term: '둘이 함께 내려갔다면 날씨 탓이다',
+        body: '햇빛 세기는 그대로인데 발전량만 내려갔다면 먼지·그늘·고장을 살펴봐야 한다.',
       },
     ],
   },
   impact: {
     head: '환산해 본 의미',
-    // 대상 이름의 받침에 따라 조사가 달라지지 않도록 "에서" 로 받는다
-    note: (scopeLabel, stats) =>
-      `${scopeLabel}에서 오늘 만든 ${formatNumber(stats.dayKwh)}kWh 가 어느 정도인지 일상지표로 바꾸면 다음과 같다`,
-    caption: '발전시간이 길었던 날일수록 이 값들도 함께 커진다',
-    // 가운데 열을 AI 판단에 내주면서 이 칸이 좁아졌다 — 넉 장은 눌려 읽히지 않아 석 장으로 줄인다.
-    itemIds: ['co2', 'tree', 'led'],
-    showBasis: true,
+    /*
+      한 줄로 줄였다 (2026-09-07 지시 — 나무를 키우려면).
+
+      세 줄짜리 설명이 판 높이의 절반을 먹어 그림에 129px 밖에 남지 않았다. 「얼마나 되는 양인지
+      익숙한 것으로 바꿔 보면」 은 판 이름(환산해 본 의미)이 이미 하는 말이라, 값과 대상만 남긴다.
+      대상 이름의 받침에 따라 조사가 달라지지 않도록 "에서" 로 받는다.
+    */
+    note: (scopeLabel, stats) => `${scopeLabel}에서 그동안 만든 ${energyText(stats.totalKwh)}`,
+    // 좁은 칸에서 두 줄이 되어 카드를 6px 밀어냈다 — 「날마다 늘어난다」 는 「쌓인」 에 이미 들어 있다
+    caption: '설치한 뒤로 쌓인 값이다',
+    /*
+      한 장만 남긴다 (2026-09-04 회의).
+
+      석 장을 늘어놓아도 셋 다 같은 말을 다른 단위로 되풀이할 뿐이다. 임팩트가 가장 큰 탄소 하나로
+      모으고, 비운 자리는 기상 칸이 받는다 — 상황판에서 「오늘 왜 적게 만들었나」 에 답하는 것은
+      환산이 아니라 날씨다.
+    */
+    itemIds: ['co2'],
+    /*
+      계산 근거 줄은 걷어냈다 (2026-08-31 검토 의견).
+      「배출계수 0.4594kgCO₂/kWh 기준」 같은 줄은 눈높이를 중학교 수준으로 내리면서 남길 자리가
+      아니고, 무엇을 어떻게 셈했는지는 카드마다 붙는 한 줄과 아래 캡션이 이미 말한다.
+      비운 세 줄만큼 아래 계통 칸이 제 높이를 되찾기도 한다 — 글씨를 키운 뒤로는 그쪽이 잘렸다.
+    */
+    showBasis: false,
   },
+  /*
+    가운데 칸이 자리를 하나씩 당겨 보는 동안, 이쪽은 넷이 한 줄로 이어져 있다는 것을 보여 준다.
+    제목을 「햇빛이 전기가 되기까지」 로 두었더니 가운데 칸과 같은 말이 한 화면에 두 번 나와,
+    두 칸이 같은 것을 두 번 말하는 것처럼 보였다.
+  */
   journey: {
-    head: '햇빛이 전기가 되기까지',
-    note: '지붕에서 교실까지 네 단계로 이어진다',
-    topics: [
-      {
-        id: 'principle',
-        title: '발전 원리',
-        body:
-          '태양전지가 빛을 흡수하면 전자가 여기되어 자유로워지고, PN 접합의 전위차가 그 전자를 한 방향으로 '
-          + '이동시켜 전류를 만든다(광기전력 효과). 이렇게 얻은 직류를 인버터가 교류로 변환해 학교로 보낸다.',
-      },
-      {
-        id: 'effect',
-        title: '무엇이 달라지는가',
-        body:
-          '여기서 생산한 만큼 화력발전소의 발전량이 줄어든다. 태우지 않은 연료가 곧 줄어든 온실가스이고, '
-          + '그루 수는 그 양을 소나무가 1년 동안 흡수하는 양으로 환산한 값이다.',
-      },
-    ],
+    head: '전체 흐름 한눈에 보기',
+    note: '지붕에서 교실까지, 네 단계가 한 줄로 이어진다',
   },
-  ai: {
-    head: '햇빛이 전기가 되기까지, 단계마다 무슨 일이 일어나는가',
-    note: '태양전지 셀에서 학교까지, 전기가 만들어져 흘러가는 네 자리를 차례로 살펴본다',
-    stages: {
-      scan: {
-        label: '계측값 수집',
-        teach: '진단은 추정이 아니라 관측에서 출발한다. 하루치 계측값을 빠짐없이 읽어 들인다.',
-        spot: 'cell',
-        physics:
-          '태양전지가 빛을 흡수하면 반도체 안의 전자가 에너지를 얻어 자유로워진다. PN 접합의 전위차가 그 전자를 '
-          + '한 방향으로만 이동시키므로 전류가 된다. 발전이 실제로 일어나는 지점이 여기다.',
-        diagnosis:
-          '진단의 출발점도 여기서 나온 값이다. 셀이 생산한 전력을 시간대별로 빠짐없이 읽어 들인다 — '
-          + '빠진 값이나 튀는 값이 섞이면 그 뒤의 판단이 전부 어긋난다.',
-      },
-      classify: {
-        label: '정상 범위와 대조',
-        teach: '판단은 비교에서 나온다. 같은 햇빛 조건이라면 나와야 할 값과 실제 측정값을 비교한다.',
-        spot: 'module',
-        physics:
-          '모듈 여러 장을 직렬로 이어 전압을 높인다. 직렬이므로 한 장에만 음영이 져도 스트링 전체의 출력이 '
-          + '함께 떨어진다. 모듈에 바이패스 다이오드를 넣는 것도 이 때문이다.',
-        diagnosis:
-          '금일 발전 곡선의 형상을 본다. 음영은 특정 시각만 국소적으로 패이고, 오염은 하루 내내 고르게 낮으며, '
-          + '구름은 일사량 곡선까지 함께 내려간다. 형상이 다르므로 원인을 구분할 수 있다.',
-      },
-      reason: {
-        label: '편차 원인 분해',
-        teach: '숫자만 있으면 무엇을 해야 할지 알 수 없다. 기대치와 차이가 난 이유를 문장으로 적어 남긴다.',
-        spot: 'inverter',
-        physics:
-          '모듈이 생산한 직류를 인버터가 교류로 변환해 학교로 보낸다. 이때 전압과 전류의 곱이 최대가 되는 '
-          + '지점을 계속 추종하여(MPPT) 손실을 줄인다.',
-        diagnosis:
-          '기대치와의 편차를 일사·온도·변환 효율의 몫으로 나눈다. 어느 항목에서 얼마가 새는지까지 갈라 놓아야 '
-          + '어디를 손볼지 정할 수 있다.',
-      },
-      done: {
-        label: '판정 및 근거 기록',
-        teach: '무엇을 근거로 그렇게 판단했는지가 남아야 사람이 확인할 수 있다.',
-        spot: 'grid',
-        physics:
-          '생산한 전력은 학교가 그대로 소비한다. 쓰는 곳에서 바로 생산하므로 송전 손실이 없고, '
-          + '그만큼 밖에서 끌어다 쓰는 전력이 줄어든다.',
-        diagnosis:
-          '판정과 함께 근거를 문장으로 남긴다. 근거 없이 경보만 울리면 사람이 신뢰하지 않고, '
-          + '사람이 믿지 못하는 진단은 실제 조치로 이어지지 않는다.',
-      },
+  stage: {
+    head: '햇빛이 전기가 되기까지',
+    note: '태양전지에서 학교까지, 전기가 만들어져 흘러가는 네 곳을 차례로 본다',
+    spots: {
+      cell:
+        '지붕에 깔린 얇고 검푸른 판이 태양전지다. 햇빛이 닿으면 판 안에 있는 아주 작은 알갱이(전자)가 '
+        + '힘을 얻어 한쪽으로 밀려 나가는데, 그것이 줄지어 흐르는 것이 곧 전기다. '
+        + '전기가 실제로 만들어지는 자리가 여기다.',
+      module:
+        '태양전지 여러 장을 한 판으로 묶은 것이 모듈이고, 모듈을 한 줄로 이어 놓은 것이 스트링이다. '
+        + '한 줄로 이어져 있어서 그중 한 장만 그늘이 져도 그 줄 전체가 함께 힘을 잃는다.',
+      // 직류와 교류가 어떻게 다른지까지 풀면 이 자리만 세 문장이 된다. 하는 일 한 줄로 족하다.
+      inverter: '지붕에서 만든 전기를 인버터가 교실 콘센트에서 쓸 수 있는 형태로 바꾼다.',
+      grid:
+        '바뀐 전기는 학교가 그대로 쓴다. 쓰는 곳에서 바로 만드니 멀리 보내며 잃는 전기가 없고, '
+        + '그만큼 밖에서 사 오는 전기가 줄어든다.',
     },
-    footer: '전국의 태양광 발전소를 이 절차로 하루 한 번 점검한다.',
   },
   facts: [
-    '태양전지는 온도가 높을수록 효율이 떨어진다. 일사량이 가장 큰 한여름에 오히려 효율이 떨어지는 이유다.',
-    '모듈에 먼지가 쌓이면 발전량이 일정 비율 감소하고, 비가 내리면 다시 회복된다.',
-    '직렬로 이은 모듈 하나에만 그늘이 져도 스트링 전체의 출력이 그 모듈에 맞춰 함께 떨어진다.',
-    '모듈에 든 바이패스 다이오드는 음영이 진 셀 구간을 우회해 전류를 흘려보낸다.',
-    'kW는 순간적인 전력을, kWh는 일정시간동안 누적된 전력량을 의미한다. 속도-거리의 관계와 같다.',
+    '태양전지는 뜨거우면 오히려 힘이 떨어진다. 그래서 한여름보다 볕 좋은 봄·가을에 전기가 더 나온다.',
+    '판에 먼지가 쌓이면 만드는 전기가 줄고, 비가 내려 씻기면 다시 돌아온다.',
+    '한 줄로 이은 판 가운데 하나만 그늘이 져도 그 줄 전체가 함께 힘을 잃는다.',
+    '지붕에 놓으면 따로 땅이 들지 않고, 여름에는 지붕에 그늘을 만들어 건물 온도도 낮춰 준다.',
+    'kW 는 지금 이 순간의 힘, kWh 는 그 힘으로 일정 시간 동안 만든 전기의 양이다. 속도와 거리의 관계와 같다.',
+    '1,000kW 는 1MW, 1,000MW 는 1GW 다. 여러 학교를 합쳐 보면 단위가 이렇게 올라간다.',
   ],
 };
 
 export const EDU_CONTENT: Record<EduLevel, EduContent> = {
   elementary: ELEMENTARY_CONTENT,
   middle: MIDDLE_CONTENT,
-  high: HIGH,
+  high: HIGH_CONTENT,
 };
 
 export function getEduContent(level: EduLevel): EduContent {

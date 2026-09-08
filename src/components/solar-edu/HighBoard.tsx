@@ -33,11 +33,18 @@ export function HighBoard({ scopeLabel, stats, content }: HighBoardProps) {
       </div>
 
       <div className={styles.center}>
-        <StagePanel content={content.ai} />
+        <StagePanel content={content.stage} />
       </div>
 
       <div className={cn(styles.column, styles['column--story'])}>
         <ImpactPanel scopeLabel={scopeLabel} stats={stats} content={content.impact} />
+        {/*
+          기상 칸을 걷었다 (2026-09-07 지시).
+
+          이 판에는 이미 하루 발전 곡선과 해의 고도가 있어 「오늘 하늘이 어땠나」 를 그 둘이
+          말한다. 이레 예보까지 얹으면 같은 이야기가 세 번 되고, 무엇보다 이 열에서 계통도가
+          그만큼 눌렸다 — 비운 높이는 계통도가 받는다.
+        */}
         <JourneyPanel stats={stats} content={content.journey} />
       </div>
     </div>

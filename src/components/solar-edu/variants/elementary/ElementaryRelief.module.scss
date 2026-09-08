@@ -1,0 +1,334 @@
+@use "@/styles/tokens/spacing" as s;
+@use "@/styles/tokens/typography" as t;
+@use "@/styles/utils/media" as media;
+
+/**
+ * 초등 시안 c — 한 장에 다, 입체.
+ *
+ * 위가 큰 그림 한 장과 그것을 읽는 네 마디, 아래가 무엇이 좋아졌나와 왜 좋은가다.
+ * 위를 크게 잡는다 — 이 화면이 처음 가르치려는 것이 그 길이고 아래 둘은 그 결과다.
+ */
+.poster {
+  display: flex;
+  flex-direction: column;
+  gap: s.$space-4;
+  height: 100%;
+}
+
+.head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: s.$space-4;
+  flex-shrink: 0;
+  margin-bottom: s.$space-2;
+
+  /*
+    칸 이름표.
+
+    처음에는 눈썹 크기(11px)로 눌러 두었다. 어른이 읽는 줄이니 그림보다 앞에 서면 안 된다고
+    보았는데, 벽에 걸고 보니 있으나 마나 한 회색 실오라기가 됐다 — 세 칸이 각각 무슨 이야기인지가
+    이 줄에만 적혀 있으므로, 읽히지 않으면 화면이 세 덩이로 흩어진다.
+
+    제목 크기로 올리고 색을 살린다. 그림보다 앞에 서지 않게 하는 몫은 크기가 아니라 자리가 맡는다 —
+    칸 맨 위 왼쪽에 한 줄로만 서므로 그림과 다툴 일이 없다.
+  */
+  &__label {
+    @include t.title-lg;
+
+    flex-shrink: 0;
+    margin-bottom: s.$space-2;
+    color: var(--brand-contrast);
+  }
+}
+
+.now {
+  @include t.caption;
+
+  display: flex;
+  align-items: baseline;
+  gap: s.$space-2;
+  color: var(--text-muted);
+
+  strong {
+    @include t.data-md;
+
+    color: var(--brand-contrast);
+  }
+}
+
+// ── 위 · 전기가 오는 길 ────────────────────────────────────
+
+.scene {
+  display: flex;
+  flex-direction: column;
+  flex: 1.5;
+  min-height: 0;
+
+  &__canvas {
+    flex: 1;
+    min-height: 0;
+
+    svg {
+      display: block;
+      width: 100%;
+      height: 100%;
+    }
+  }
+}
+
+/*
+  그림 아래 네 마디.
+
+  네 칸을 같은 몫으로 나눠 그림 속 차례와 왼쪽부터 짝이 맞게 둔다. 칸을 네모로 두르지 않는다 —
+  위가 이미 큰 그림 한 장이라, 여기까지 카드로 만들면 그림이 카드에 둘러싸여 갇힌다.
+*/
+.marks {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: s.$space-4;
+  flex-shrink: 0;
+  margin-top: s.$space-3;
+  list-style: none;
+
+  @include media.tablet {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+.mark {
+  display: flex;
+  align-items: center;
+  gap: s.$space-3;
+
+  &__no {
+    display: grid;
+    place-items: center;
+    flex-shrink: 0;
+    width: 42px;
+    height: 42px;
+    border: 4px solid var(--brand-contrast);
+    border-radius: s.$radius-full;
+    background-color: var(--surface);
+    color: var(--brand-contrast);
+    font-size: 23px;
+    font-weight: 800;
+  }
+
+  &__text {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+  }
+
+  &__word {
+    color: var(--brand-contrast);
+    font-size: clamp(26px, 2.2vw, 42px);
+    font-weight: 800;
+    line-height: 1.15;
+    letter-spacing: -0.02em;
+  }
+
+  /*
+    설명 한 줄.
+
+    캡션 크기(12px)로 두었더니 벽에 걸어 놓고 몇 걸음 떨어져서는 읽히지 않았다. 이 줄은
+    선생님이 아이에게 읽어 주는 줄이라 **읽는 사람이 화면 앞까지 오지 않는다** — 앉아서 보는
+    화면의 캡션과 같은 크기를 쓸 이유가 없다. 이 띠는 화면 폭을 넷으로 나눠 쓰므로 여유가 있다.
+  */
+  &__line {
+    @include t.body-lg;
+
+    color: var(--text);
+  }
+}
+
+// ── 아래 두 칸 ─────────────────────────────────────────────
+
+.bottom {
+  display: flex;
+  gap: s.$space-4;
+  flex: 1;
+  min-height: 0;
+}
+
+/* 왼쪽이 넉 칸, 오른쪽이 석 줄이라 폭을 반씩 나누면 오른쪽에 빈자리가 남는다 */
+.gifts {
+  display: flex;
+  flex-direction: column;
+  flex: 1.7;
+  min-width: 0;
+
+  &__list {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: s.$space-3;
+    flex: 1;
+    min-height: 0;
+    list-style: none;
+  }
+}
+
+/*
+  환산 한 칸 — 그림, 수, 한 줄을 세로로 쌓는다.
+  숫자만 늘어놓으면 표가 되고, 그림이 앞에 서면 무엇에 빗댄 수인지가 읽기 전에 들어온다.
+*/
+
+/*
+  환산 한 칸 — 그림, 수, 설명.
+
+  세 줄을 flex 로 쌓았더니 설명이 두 줄인 칸만 수가 위로 밀려, 나란히 선 석 장의 숫자가
+  높이가 어긋났다. 행을 격자로 고정하고 설명 자리에 두 줄만큼을 미리 비워 둔다 —
+  글이 한 줄이든 두 줄이든 그림과 수는 늘 같은 자리에 선다.
+*/
+.gift {
+  display: grid;
+
+  /* 글 묶음은 두 줄만큼으로 못 박는다 — 이 행이 늘면 그만큼 그림 행이 줄어 숫자 자리가 어긋난다 */
+  grid-template-rows: minmax(0, 1fr) 4.6em;
+  place-items: center;
+  gap: s.$space-1;
+  min-height: 0;
+  padding: s.$space-3 s.$space-2;
+  border: 4px solid var(--border);
+  border-radius: s.$radius-lg;
+  background-color: rgb(255 255 255 / 78%);
+  text-align: center;
+
+  /*
+    그림은 **행 높이**에 맞춘다.
+
+    폭에 맞춰 정사각으로 두었더니 칸이 넓은 화면에서 그림이 제 행을 넘겨 아래 숫자를 덮었다.
+    높이를 기준으로 잡으면 행이 정한 만큼만 커지고, 남는 가로는 여백이 된다.
+  */
+  &__art {
+    min-height: 0;
+    height: 100%;
+    aspect-ratio: 1;
+
+    svg {
+      display: block;
+      width: 100%;
+      height: 100%;
+    }
+  }
+
+  &__text {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    min-width: 0;
+  }
+
+  &__value {
+    display: flex;
+    align-items: baseline;
+    gap: s.$space-1;
+    color: var(--brand-contrast);
+    font-size: clamp(28px, 2.6vw, 50px);
+    font-weight: 800;
+    line-height: 1.05;
+    letter-spacing: -0.02em;
+  }
+
+  &__unit {
+    font-size: clamp(15px, 1.2vw, 22px);
+    font-weight: 700;
+    color: var(--text-muted);
+  }
+
+  /* 아래 왼쪽 칸을 다시 셋으로 나눠 쓰는 자리라 가장 좁다 — 한 단계만 올린다 */
+  &__line {
+    @include t.body-md;
+
+    color: var(--text);
+  }
+
+  /*
+    바뀌기 전의 값.
+
+    행 구성은 옆의 두 칸과 똑같이 둔다 — 그림, 수, 한 줄이 같은 높이에 서야 셋이 한 줄로 읽힌다.
+    다른 것은 색뿐이다. 모양까지 같으면 「셋 가운데 하나」 로 읽히고, 색이 달라야 「이것이 저 둘로
+    바뀌었다」 로 읽힌다.
+  */
+  &--source {
+    border-color: var(--brand);
+    background-color: var(--brand-soft);
+
+    .gift__value {
+      color: var(--brand-contrast);
+    }
+  }
+}
+
+.goods {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-width: 0;
+
+  /*
+    셋을 세로로 쌓는다.
+
+    가로 셋으로 두었더니 이 칸이 화면의 절반을 다시 셋으로 나누게 되어, 「공짜」 두 글자가
+    한 글자씩 세로로 쪼개졌다. 항목이 셋뿐이라 세로로 쌓아도 자리가 남고, 그림 옆에 이름과
+    한 줄이 나란히 서서 오히려 읽기 쉽다.
+  */
+  &__list {
+    display: grid;
+    grid-auto-rows: minmax(0, 1fr);
+    flex: 1;
+    min-height: 0;
+    padding: s.$space-2;
+    border: 4px solid var(--border);
+    border-radius: s.$radius-lg;
+    background-color: rgb(255 255 255 / 78%);
+    list-style: none;
+  }
+}
+
+/*
+  좋은 점 한 마디.
+
+  셋을 각자 테두리에 넣었다가 한 칸으로 합쳤다 (2026-09-04 지시) — 「공짜예요, 깨끗해요,
+  조용해요」 가 이어 읽히면 세 가지가 아니라 한 가지 이야기가 된다. 테두리는 묶음이 두르고
+  안쪽은 그림과 한 마디만 남긴다.
+*/
+.good {
+  display: flex;
+  align-items: center;
+  gap: s.$space-3;
+  min-height: 0;
+  padding: s.$space-1 s.$space-2;
+
+  &__art {
+    flex-shrink: 0;
+    height: 82%;
+    aspect-ratio: 1;
+
+    svg {
+      display: block;
+      width: 100%;
+      height: 100%;
+    }
+  }
+
+  &__text {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+  }
+
+  &__word {
+    color: var(--brand-contrast);
+    font-size: clamp(24px, 2vw, 38px);
+    font-weight: 800;
+    line-height: 1.15;
+  }
+
+  &__line {
+    @include t.body-md;
+
+    color: var(--text);
+  }
+}

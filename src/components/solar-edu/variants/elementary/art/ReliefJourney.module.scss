@@ -1,0 +1,32 @@
+@use "@/styles/utils/media" as media;
+
+/**
+ * 전기가 오는 길 — 입체 한 장.
+ * 자리 잡기(크기·여백)는 여기서 하지 않고 이 그림을 쓰는 판이 정한다.
+ */
+
+// 교실에 불이 들어오는 순간 퍼지는 빛
+.burst {
+  animation: relief-burst 3.4s ease-in-out infinite;
+  transform-box: fill-box;
+  transform-origin: center;
+}
+
+@keyframes relief-burst {
+  0%,
+  100% {
+    opacity: 0.35;
+    transform: scale(0.9);
+  }
+
+  50% {
+    opacity: 1;
+    transform: scale(1.06);
+  }
+}
+
+@include media.reduced-motion {
+  .burst {
+    animation: none;
+  }
+}

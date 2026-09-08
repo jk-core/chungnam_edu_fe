@@ -2,12 +2,12 @@ import { useAutoPager } from '@/hooks/useAutoPager';
 import type { EduStats } from '@/mocks/solarEdu';
 import type { MiddlePrincipleContent } from '@/mocks/eduMiddle';
 import { JourneyOverviewArt } from './JourneyOverviewArt';
-import styles from './MiddleBoard.module.scss';
+import styles from './HighCards.module.scss';
 
 /** 한 단계를 짚고 머무는 시간 */
 const STEP_MS = 11_000;
 
-interface MiddlePrincipleCardProps {
+interface HighPrincipleCardProps {
   stats: EduStats;
   content: MiddlePrincipleContent;
 }
@@ -19,7 +19,7 @@ interface MiddlePrincipleCardProps {
  * 그 단계 이야기만 아래에 펼쳐, 화면이 스스로 한 토막씩 설명하게 했다. 나머지 단계는 지우지 않고 흐리게만
  * 두어, 지금 보는 곳이 전체 어디쯤인지도 함께 보인다.
  */
-export function MiddlePrincipleCard({ stats, content }: MiddlePrincipleCardProps) {
+export function HighPrincipleCard({ stats, content }: HighPrincipleCardProps) {
   const pager = useAutoPager({ total: content.stages.length, perPage: 1, intervalMs: STEP_MS });
   const stage = content.stages[pager.page];
 

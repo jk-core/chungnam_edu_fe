@@ -1,0 +1,362 @@
+@use "@/styles/tokens/spacing" as s;
+@use "@/styles/tokens/typography" as t;
+@use "@/styles/utils/media" as media;
+
+/*
+  우리 학교의 하루.
+
+  왼쪽이 시계, 오른쪽이 그 시계가 뜻하는 것. 시계에 넉넉한 자리를 주는 것이 이 시안의 전부라
+  오른쪽은 고정 폭으로 못 박고 남는 폭을 전부 시계에 넘긴다.
+*/
+.board {
+  display: grid;
+
+  /*
+    시계는 둥근 판이라 칸을 넓게 줘도 좌우가 하늘로 남는다. 넓힌 만큼 원판이 커지는 것이 아니라
+    빈자리만 늘어나므로, 남는 폭은 옆의 숫자 칸에 넘긴다 — 그쪽은 넓어진 만큼 글씨가 커진다.
+  */
+  grid-template-columns: minmax(0, 1fr) 420px;
+
+  /* 원리 띠는 제 높이만 쓰고, 남는 높이는 전부 시계와 숫자에 준다 */
+  grid-template-rows: minmax(0, 1fr) auto;
+  gap: s.$space-3;
+  height: 100%;
+  min-height: 0;
+
+  @include media.kiosk {
+    grid-template-columns: minmax(0, 1fr) 500px;
+    gap: s.$space-4;
+  }
+
+  @include media.tablet {
+    grid-template-columns: 1fr;
+    grid-template-rows: none;
+    height: auto;
+  }
+}
+
+/* 아래를 가로지른다 — 왼쪽 시계와 오른쪽 숫자가 모두 이 원리에서 나온 것이기 때문이다 */
+.principle {
+  display: flex;
+  grid-column: 1 / -1;
+
+  > * {
+    flex: 1;
+  }
+}
+
+.clock {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: s.$space-2;
+  min-height: 0;
+  padding: s.$space-3;
+  border: 1px solid var(--border-subtle);
+  border-radius: s.$radius-lg;
+
+  /* 하늘에서 땅으로 — 시계가 바깥 하늘에 떠 있는 것으로 읽히게 한다 */
+  background: linear-gradient(180deg, color-mix(in srgb, var(--brand-soft) 60%, transparent), var(--surface));
+  box-shadow: var(--shadow-sm);
+
+  &__svg {
+    width: 100%;
+    flex: 1;
+    min-height: 0;
+  }
+}
+
+/*
+  시각마다 바뀌는 설명.
+  걸어 두는 화면이라 같은 자리가 하루에 다섯 번 다른 말을 한다 — 아침에 본 아이와 점심에 본 아이가
+  서로 다른 것을 배운다.
+*/
+.lesson {
+  @include t.body-sm;
+
+  flex: none;
+  max-width: 620px;
+  padding: s.$space-2 s.$space-4;
+  border-radius: s.$radius-md;
+  background-color: color-mix(in srgb, var(--solar) 12%, var(--surface));
+  color: var(--text-muted);
+  text-align: center;
+
+  strong {
+    @include t.label-md;
+
+    display: block;
+    color: var(--solar-text);
+  }
+}
+
+.bar {
+  stroke-width: 9;
+  stroke-linecap: round;
+
+  &--todo {
+    stroke: var(--border-strong);
+    opacity: 0.32;
+  }
+}
+
+.tick {
+  fill: var(--text-muted);
+  font-family: var(--font-sans);
+  font-size: 15px;
+  font-weight: 600;
+}
+
+/*
+  가운데 판의 글자.
+
+  SVG 안의 글자는 `color` 가 아니라 `fill` 로 칠해진다. 이 세 줄은 클래스가 아예 없어 뿌리
+  `<svg fill="none">` 을 그대로 물려받았고, 그래서 판 한가운데가 내내 비어 있었다.
+*/
+.core {
+  &__label {
+    fill: var(--text-muted);
+    font-family: var(--font-sans);
+    font-size: 14px;
+    font-weight: 600;
+  }
+
+  &__value {
+    fill: var(--text-strong);
+    font-family: var(--font-data);
+    font-size: 34px;
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+  }
+
+  &__unit {
+    fill: var(--text-muted);
+    font-family: var(--font-sans);
+    font-size: 15px;
+    font-weight: 600;
+  }
+}
+
+// ── 해 ─────────────────────────────────────────────────────
+
+/* 걸어 두는 화면이라 움직임은 전부 CSS 로 둔다 — 문서가 가려져도 계속 돈다 */
+
+/*
+  「지금」 을 가리키는 바늘.
+
+  막대 띠 위를 가로지르므로 막대와 같은 주황으로 두면 어디까지가 바늘인지 사라진다. 파랑으로
+  긋고 흰 테를 둘러, 흰 판 위에서도 주황 막대 위에서도 윤곽이 끊기지 않게 한다.
+*/
+.needle {
+  transition: transform 0.8s cubic-bezier(0.22, 0.68, 0.32, 1);
+
+  &__blade {
+    fill: var(--brand);
+    stroke: var(--surface);
+    stroke-width: 2;
+    stroke-linejoin: round;
+  }
+
+  @include media.reduced-motion {
+    transition: none;
+  }
+}
+
+.sunGlow {
+  animation: clock-breathe 3.4s ease-in-out infinite;
+  transform-box: fill-box;
+  transform-origin: center;
+}
+
+.sunRays {
+  animation: clock-turn 26s linear infinite;
+}
+
+@keyframes clock-breathe {
+  0%,
+  100% {
+    opacity: 0.7;
+    transform: scale(1);
+  }
+
+  50% {
+    opacity: 1;
+    transform: scale(1.12);
+  }
+}
+
+@keyframes clock-turn {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@include media.reduced-motion {
+  .sunGlow,
+  .sunRays {
+    animation: none;
+  }
+}
+
+// ── 오른쪽 ─────────────────────────────────────────────────
+
+/*
+  오른쪽 숫자 칸.
+
+  카드 넷이 칸 높이를 거의 꽉 채운다 — 사이를 넓게 두면 그만큼 카드가 눌려 설명 줄이 잘린다.
+  여백보다 글이 먼저다.
+*/
+.side {
+  display: flex;
+  flex-direction: column;
+
+  /* 기상 띠가 맨 위에 들어오면서 넉 장이 26px 만큼 눌렸다 — 사이를 좁혀 설명 줄을 되살린다 */
+  gap: s.$space-1;
+  min-height: 0;
+}
+
+.card {
+  display: grid;
+  grid-template-columns: 68px minmax(0, 1fr);
+  align-items: center;
+  gap: s.$space-3;
+  flex: 1;
+
+  /* 없으면 칸이 모자랄 때 줄어들지 못하고 넘쳐 아래 띠와 겹친다 */
+  min-height: 0;
+  padding: s.$space-3;
+  border: 1px solid var(--border-subtle);
+  border-radius: s.$radius-lg;
+  background: linear-gradient(
+    130deg,
+    color-mix(in srgb, var(--tone) 10%, var(--surface)),
+    var(--surface) 62%
+  );
+  box-shadow: var(--shadow-sm);
+
+  &[data-tone="solar"] {
+    --tone: var(--solar);
+  }
+
+  &[data-tone="brand"] {
+    --tone: var(--brand);
+  }
+
+  &[data-tone="ok"] {
+    --tone: var(--ok);
+  }
+
+  @include media.kiosk {
+    grid-template-columns: 80px minmax(0, 1fr);
+  }
+
+  &__art {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    aspect-ratio: 1;
+    border-radius: 50%;
+    background-color: color-mix(in srgb, var(--tone) 14%, var(--surface));
+
+    svg {
+      width: 78%;
+      height: 78%;
+    }
+  }
+
+  &__text {
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+    min-width: 0;
+  }
+
+  &__label {
+    @include t.label-md;
+
+    color: var(--text-muted);
+  }
+
+  &__value {
+    display: flex;
+    align-items: baseline;
+    gap: s.$space-1;
+    color: var(--text-strong);
+    font-family: var(--font-data);
+    font-size: 2.25rem;
+    font-weight: 700;
+    line-height: 1.05;
+    font-variant-numeric: tabular-nums;
+
+    span {
+      @include t.label-md;
+
+      color: var(--text-muted);
+      font-weight: 500;
+    }
+  }
+
+  &__note {
+    @include t.body-sm;
+
+    color: var(--text-faint);
+  }
+}
+
+.caption {
+  @include t.body-sm;
+
+  padding: s.$space-2 s.$space-3;
+  border-radius: s.$radius-md;
+  background-color: var(--solar-soft);
+  color: var(--solar-text);
+  text-align: center;
+}
+
+/*
+  처음 설 때 빛이 길을 훑고 올라간다 (2026-09-07 지시).
+
+  걸어 두는 화면이 켜지는 순간 「오늘 여기까지 왔다」 가 눈으로 그려진다 — 다 그려진 원호를
+  가만히 내놓으면 그것이 오늘 쌓인 것인지 늘 그 자리인지 알 수 없다.
+
+  길이는 `pathLength=1` 로 못 박혀 있어 1 에서 0 으로 가는 것이 곧 「비었다 → 다 찼다」 이다.
+  시각이 흘러 원호가 길어져도 이 값은 손댈 것이 없다.
+*/
+.arc {
+  stroke-dasharray: 1;
+  animation: arc-fill 1.4s cubic-bezier(0.22, 0.68, 0.32, 1) both;
+
+  @include media.reduced-motion {
+    animation: none;
+  }
+}
+
+/* 해와 바늘은 빛이 다 훑은 뒤에 앉는다 — 먼저 떠 있으면 빛이 해를 뒤늦게 쫓아가는 꼴이 된다 */
+.after {
+  animation: arc-after 0.45s ease-out 1.15s both;
+
+  @include media.reduced-motion {
+    animation: none;
+  }
+}
+
+@keyframes arc-fill {
+  from {
+    stroke-dashoffset: 1;
+  }
+
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+@keyframes arc-after {
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
+}

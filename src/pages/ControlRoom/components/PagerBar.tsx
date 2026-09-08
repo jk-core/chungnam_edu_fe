@@ -48,7 +48,7 @@ export function PagerBar({ page, pageCount, turnKey, intervalMs, total, controls
       [styles['pager__dot--active']]: isActive,
       [styles['pager__dot--held']]: isActive && controls?.paused,
     });
-    const style = isActive ? ({ '--page-ms': `${intervalMs}ms` } as CSSProperties) : undefined;
+    const style = isActive ? ({ '--rotation-ms': `${intervalMs}ms` } as CSSProperties) : undefined;
 
     if (!controls) return <span key={key} className={className} style={style} />;
 

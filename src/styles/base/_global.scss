@@ -50,6 +50,23 @@ html {
   text-size-adjust: 100%;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+
+  /*
+    교육용 대시보드만 글씨 기준을 키운다 (SFR-005-04).
+
+    복도·강당 모니터에 걸어 두고 멀리서 읽는 화면이라, 실무자가 가까이서 보는 관리 화면과
+    같은 크기로는 읽히지 않는다. 타이포 믹스인이 모두 `rem` 이라 뿌리 하나만 올리면
+    초·중·고 세 판이 지금의 비율을 지킨 채 함께 커진다 — 배율을 다시 손볼 곳도 여기 한 곳이다.
+
+    간격 토큰은 `px` 라 판과 카드의 골격은 그대로 있고 글씨만 커진다.
+    클래스는 교육 화면이 떠 있는 동안에만 붙는다 (`useRootClass`).
+
+    아래 `html, body` 가 본문 크기(0.9375rem)를 뿌리에도 얹어 두어 다른 화면의 기준은 15px 이다.
+    여기서 그것까지 덮으므로 교육 화면의 기준은 20px 이 되고, 설명 한 줄이 11px 에서 15px 로 선다.
+  */
+  &.solar-edu {
+    font-size: 125%;
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {

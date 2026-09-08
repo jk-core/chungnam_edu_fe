@@ -113,7 +113,7 @@ export const RatioIcon = (props: IconProps) => (
   </Base>
 );
 
-/** 일사강도 — 해에서 내리꽂히는 빛 */
+/** 일사량 — 해에서 내리꽂히는 빛 */
 export const IrradianceIcon = (props: IconProps) => (
   <Base {...props}>
     <circle cx="12" cy="6.2" r="3.6" />
@@ -211,13 +211,6 @@ export const FlowIcon = (props: IconProps) => (
     <path d="M9.2 12 8 10.6M9.2 12 8 13.4M16.6 12l-1.2-1.4M16.6 12l-1.2 1.4" strokeWidth="1.2" />
   </Base>
 );
-
-/** 계통도 아래 세 가지 이야기 */
-export const TOPIC_ICONS: Record<string, ReactNode> = {
-  meaning: <SchoolIcon />,
-  principle: <FlowIcon />,
-  effect: <LeafIcon />,
-};
 
 /** 전기가 되기까지의 단계 */
 export const JOURNEY_ICONS: Record<string, ReactNode> = {

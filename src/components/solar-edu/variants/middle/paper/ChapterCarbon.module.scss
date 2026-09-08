@@ -1,0 +1,267 @@
+@use "@/styles/tokens/spacing" as s;
+@use "@/styles/tokens/typography" as t;
+@use "@/styles/utils/media" as media;
+
+/*
+  3장 — 같은 양을 세 가지 잣대로 바꿔 본다.
+
+  왼쪽에 오늘 줄인 탄소를 크게 세우고, 오른쪽에 그것을 바꿔 놓은 세 줄을 둔다.
+  잣대끼리는 실선으로만 가른다 — 상자에 담으면 셋이 견주는 값처럼 보이는데,
+  실은 같은 하나를 세 번 다르게 적은 것이다.
+*/
+.carbon {
+  display: grid;
+  gap: s.$space-7;
+
+  /* 좌우로 가르는 것은 벽걸이 화면에서만이다 — 좁은 폭에서는 설명 칸이 남지 않는다 */
+  @include media.kiosk {
+    grid-template-columns: minmax(0, 0.7fr) minmax(0, 1fr);
+    gap: s.$space-9;
+    height: 100%;
+    min-height: 0;
+  }
+}
+
+.total {
+  animation: item-in 0.6s ease-out both;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: s.$space-4;
+  min-width: 0;
+  padding-bottom: s.$space-5;
+
+  /* 큰 수치 뒤에 도는 후광. 줄어든 만큼 맑아진다는 것을 색으로만 말한다 */
+  &::before {
+    content: "";
+    position: absolute;
+    top: 50%;
+    left: -12%;
+    width: 24rem;
+    height: 24rem;
+    margin-top: -12rem;
+    border-radius: 50%;
+    background: radial-gradient(circle, color-mix(in srgb, var(--ok) 22%, transparent) 0%, transparent 68%);
+    animation: total-breathe 9s ease-in-out infinite alternate;
+    pointer-events: none;
+
+    @include media.reduced-motion {
+      animation: none;
+    }
+  }
+
+  &__term {
+    @include t.eyebrow;
+
+    color: var(--text-muted);
+  }
+
+  &__figure {
+    @include t.display-xl;
+
+    display: flex;
+    align-items: baseline;
+    gap: s.$space-3;
+    color: var(--ok-text);
+    font-family: var(--font-data);
+    line-height: 1;
+  }
+
+  &__unit {
+    @include t.title-lg;
+
+    color: var(--text-muted);
+  }
+
+  &__note {
+    @include t.body-lg;
+
+    color: var(--text);
+  }
+
+  /* 고등만 — 이 값이 어떻게 나왔는지 */
+  &__basis {
+    @include t.caption;
+
+    color: var(--text-muted);
+  }
+}
+
+.scales {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  min-width: 0;
+  list-style: none;
+}
+
+/*
+  잣대 한 줄.
+  용어와 수치가 한 줄에 서고, 그 아래 그림이 늘어선다. 그림 오른쪽 끝에 몫을 적어
+  「무엇을 몇 개로 나눈 것인지」 가 그림과 같은 줄에서 읽히게 한다.
+*/
+.scale {
+  animation: item-in 0.55s ease-out both;
+
+  &:nth-child(1) {
+    animation-delay: 0.18s;
+  }
+
+  &:nth-child(2) {
+    animation-delay: 0.28s;
+  }
+
+  &:nth-child(3) {
+    animation-delay: 0.38s;
+  }
+
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: baseline;
+  gap: s.$space-2 s.$space-4;
+  padding: s.$space-5 0;
+  border-top: 1px solid var(--border-subtle);
+
+  /* 초등은 글씨와 그림이 커진 만큼 줄 사이를 좁힌다 */
+  [data-level="elementary"] & {
+    padding: s.$space-3 0;
+  }
+
+  &:last-child {
+    border-bottom: 1px solid var(--border-subtle);
+  }
+
+  &__term {
+    @include t.label-md;
+
+    color: var(--text-muted);
+  }
+
+  &__figure {
+    @include t.data-xl;
+
+    display: flex;
+    align-items: baseline;
+    gap: 4px;
+    justify-self: end;
+    color: var(--text-strong);
+  }
+
+  &__unit {
+    @include t.label-md;
+
+    color: var(--text-muted);
+  }
+
+  /* 그림 줄 — 하나가 맡는 몫이 정해져 있어 개수가 곧 크기다 */
+  &__glyphs {
+    display: flex;
+    align-items: center;
+    gap: s.$space-2;
+    flex-wrap: wrap;
+    color: var(--ok);
+  }
+
+  &__glyph {
+    display: flex;
+
+    /* 그림은 줄이 자리를 잡은 뒤에 하나씩 떨어진다 */
+    animation: glyph-drop 0.5s 0.35s ease-out both;
+
+    svg {
+      width: 26px;
+      height: 26px;
+    }
+
+    [data-level="elementary"] & svg {
+      width: 36px;
+      height: 36px;
+    }
+
+    [data-level="high"] & svg {
+      width: 20px;
+      height: 20px;
+    }
+
+    @include media.reduced-motion {
+      animation: none;
+    }
+  }
+
+  &__legend {
+    @include t.caption;
+
+    justify-self: end;
+    color: var(--text-muted);
+    font-family: var(--font-data);
+  }
+
+  &__note {
+    @include t.body-sm;
+
+    grid-column: 1 / -1;
+    color: var(--text-muted);
+
+    [data-level="elementary"] & {
+      @include t.body-md;
+    }
+  }
+
+  /* 고등만 — 무엇으로 나눈 값인지 */
+  &__basis {
+    @include t.caption;
+
+    grid-column: 1 / -1;
+    color: var(--text-muted);
+  }
+}
+
+@keyframes total-breathe {
+  from {
+    transform: scale(0.86);
+    opacity: 0.6;
+  }
+
+  to {
+    transform: scale(1.08);
+    opacity: 1;
+  }
+}
+
+@keyframes glyph-drop {
+  from {
+    opacity: 0;
+    transform: translateY(-8px) scale(0.7);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+/*
+  줄이 차례로 올라온다.
+
+  넷이 한꺼번에 뜨면 어디부터 읽을지가 없어진다. 아주 짧은 시차를 두면 눈이 위에서 아래로
+  한 번 훑고 지나가, 읽는 순서가 저절로 잡힌다.
+*/
+@keyframes item-in {
+  from {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .total,
+.scale {
+    animation: none;
+  }
+}

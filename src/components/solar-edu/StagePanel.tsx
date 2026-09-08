@@ -1,7 +1,7 @@
 import { PLANT_SPOT_LABEL, PLANT_SPOTS } from '@/mocks/eduContent';
 import { cn } from '@/utils/cn';
 import { useAutoPager } from '@/hooks/useAutoPager';
-import type { EduAiContent, EduAiStage, PlantSpot } from '@/mocks/eduContent';
+import type { EduStageContent } from '@/mocks/eduContent';
 import { PlantScanScene } from './ai/PlantScanScene';
 import styles from './StagePanel.module.scss';
 
@@ -9,7 +9,7 @@ import styles from './StagePanel.module.scss';
 const STEP_MS = 11_000;
 
 interface StagePanelProps {
-  content: EduAiContent;
+  content: EduStageContent;
 }
 
 /**
@@ -23,18 +23,8 @@ interface StagePanelProps {
  * 한 단계는 읽고 가고, 붙잡고 보는 사람은 원하는 자리로 바로 갈 수 있다.
  */
 export function StagePanel({ content }: StagePanelProps) {
-  /*
-    설명 덩이는 자리(spot)로 찾는다.
-    `content.stages` 는 다른 화면이 쓰는 진단 단계 이름으로 묶여 있는데, 여기서 읽는 것은
-    그중 설비 자리와 그 자리에서 일어나는 일뿐이다. 자리로 다시 묶어 두면 이 칸은 진단 단계가
-    무엇이든 상관없이 전기가 흐르는 차례대로만 읽는다.
-  */
-  const bySpot = new Map<PlantSpot, EduAiStage>(
-    Object.values(content.stages).map((item) => [item.spot, item]),
-  );
   const pager = useAutoPager({ total: PLANT_SPOTS.length, perPage: 1, intervalMs: STEP_MS });
   const spot = PLANT_SPOTS[Math.min(pager.page, PLANT_SPOTS.length - 1)];
-  const stage = bySpot.get(spot);
 
   return (
     <section className={styles.panel} aria-label="태양광 발전 단계별 설명">
@@ -71,7 +61,7 @@ export function StagePanel({ content }: StagePanelProps) {
       {/* 단계가 넘어갈 때 글이 새로 들어오도록 key 를 건다 */}
       <div key={spot} className={styles.lesson}>
         <p className={styles.lesson__part}>{PLANT_SPOT_LABEL[spot]}</p>
-        <p className={styles.lesson__body}>{stage?.physics}</p>
+        <p className={styles.lesson__body}>{content.spots[spot]}</p>
       </div>
     </section>
   );

@@ -1,14 +1,20 @@
 import { Link } from 'react-router-dom';
-import { AiOrbit } from '@/components/common/AiOrbit';
-import { CloseIcon, ExpandIcon, SearchIcon } from '@/components/common/Icon';
+import { Logo } from '@/components/layout/Logo';
+import { CloseIcon, ExpandIcon, MoonIcon, SearchIcon, SunIcon } from '@/components/common/Icon';
 import { PATH } from '@/routes/routes';
 import { useFullscreen } from '@/hooks/useFullscreen';
 import { RoomClock } from './RoomClock';
+import { useRoomTheme } from './useRoomTheme';
 import styles from './ControlRoomLayout.module.scss';
 import type { ReactNode } from 'react';
 
 interface ControlRoomLayoutProps {
-  /** 보고 있는 대상 이름 — 이 화면은 늘 도 전체다 */
+  /**
+   * 보고 있는 대상 이름 — 이 화면은 늘 도 전체다.
+   *
+   * 머리에 적지 않는다 (2026-09-04 회의 — 둘째 줄 삭제). 시스템 이름 한 줄만 크게 세우고,
+   * 무엇을 보고 있는지는 판마다 제 이름 옆에서 말한다. 보조기술이 읽을 이름으로만 남긴다.
+   */
   scopeLabel: string;
   /**
    * 어느 시안을 보고 있는지.
@@ -50,6 +56,7 @@ export function ControlRoomLayout({
   children,
 }: ControlRoomLayoutProps) {
   const { isFullscreen, toggle: toggleFullscreen } = useFullscreen();
+  const { theme, toggle: toggleTheme } = useRoomTheme();
 
   return (
     /* 결을 화면 전체가 물려받는다 — 바탕과 가장자리가 같은 색으로 함께 점등한다 */
@@ -60,17 +67,19 @@ export function ControlRoomLayout({
         {alertTone ? <span className={styles.edge} aria-hidden="true" /> : null}
       */}
 
-      <header className={styles.bar}>
+      <header className={styles.bar} aria-label={`통합관제 상황판 · ${scopeLabel}`}>
         <div className={styles.bar__left}>
+          {/*
+            기관 시그니처는 서비스의 다른 화면과 같은 것을 쓴다 (2026-09-07 지시).
+
+            상황판만 제 이름을 따로 적고 있었다 — 「충청남도교육청 통합 태양광(신재생) 관리
+            시스템」 은 회의에서 나온 한 줄이지만(2026-09-04 · 조치사항 #7), 같은 시스템의
+            화면들이 저마다 다른 이름으로 스스로를 부르면 상황판만 딴 서비스로 보인다.
+            이름은 `Logo` 한 곳에서만 적는다.
+          */}
           <span className={styles.bar__brand}>
-            <AiOrbit size={40} active />
-            <span>
-              <span className={styles.bar__title}>통합관제 상황판</span>
-              <span className={styles.bar__scope}>
-                {scopeLabel}
-                {variantLabel ? <em className={styles.bar__variant}>{variantLabel}</em> : null}
-              </span>
-            </span>
+            <Logo size="lg" />
+            {variantLabel ? <em className={styles.bar__variant}>{variantLabel}</em> : null}
           </span>
         </div>
 
@@ -94,6 +103,16 @@ export function ControlRoomLayout({
           </span>
 
           <RoomClock />
+
+          {/* 어두운 화면이 기본이지만 고를 수 있게 둔다 (2026-09-04 회의) */}
+          <button
+            type="button"
+            className={styles.bar__action}
+            onClick={toggleTheme}
+            aria-label={theme === 'dark' ? '밝은 화면으로 전환' : '어두운 화면으로 전환'}
+          >
+            {theme === 'dark' ? <SunIcon width={16} height={16} /> : <MoonIcon width={16} height={16} />}
+          </button>
 
           <button type="button" className={styles.bar__action} onClick={toggleFullscreen}>
             <ExpandIcon width={16} height={16} />

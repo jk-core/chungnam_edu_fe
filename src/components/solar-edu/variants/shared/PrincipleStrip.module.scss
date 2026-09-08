@@ -7,7 +7,9 @@
   flex-direction: column;
   gap: s.$space-2;
   min-height: 0;
-  padding: s.$space-3 s.$space-4;
+
+  /* 네 마디는 한 줄로 서므로 세로 여백을 줄여도 읽히는 것은 그대로다 — 남는 높이는 본문이 쓴다 */
+  padding: s.$space-2 s.$space-4;
   border: 1px solid var(--border-subtle);
   border-radius: s.$radius-lg;
 
@@ -42,7 +44,7 @@
   align-items: center;
   gap: s.$space-3;
   min-width: 0;
-  padding: s.$space-2 s.$space-3;
+  padding: 6px s.$space-3;
   border: 1px solid color-mix(in srgb, var(--tone) 24%, var(--border-subtle));
   border-radius: s.$radius-md;
   background: linear-gradient(
@@ -118,7 +120,7 @@
     gap: s.$space-1;
     color: var(--text-strong);
     font-family: var(--font-data);
-    font-size: 26px;
+    font-size: 1.375rem;
     font-weight: 700;
     line-height: 1.15;
     font-variant-numeric: tabular-nums;
@@ -134,12 +136,6 @@
     @include t.caption;
 
     color: var(--text);
-  }
-
-  &__foot {
-    @include t.caption;
-
-    color: var(--text-faint);
   }
 }
 

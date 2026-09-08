@@ -1,3 +1,4 @@
+import { REGION_CI_COLOR } from '@/assets/geo/chungnamRegions';
 import { formatNumber } from '@/utils/format';
 import { getRegionHours } from '../utils/regionHours';
 import styles from './RegionOutput.module.scss';
@@ -13,6 +14,10 @@ const FLOOR = 0.18;
 
 /**
  * 지역별 금일 발전시간 (SFR-004-09).
+ *
+ * 막대는 그 시·군의 충남 CI 색으로 긋는다 (2026-09-04 회의 · 조치사항 #8). 값의 크기를 뜻하지
+ * 않는다 — 크기는 길이가 말한다. 같은 색이 지도에서도 그 시·군을 칠하고 있어, 「위 지도에서
+ * 물든 곳이 이 표의 어느 줄인가」 를 눈이 색 하나로 잇는다.
  *
  * 발전량으로 견주면 개소 수가 곧 순위가 된다 — 계룡시(7개소)는 아무리 잘 내도 늘 맨 아래고,
  * 천안시(68개소)는 늘 맨 위다. 설비용량으로 나눈 발전시간이라야 큰 지역과 작은 지역이 같은
@@ -34,7 +39,13 @@ export function RegionOutput() {
         const ratio = FLOOR + (1 - FLOOR) * ((item.hours - worst) / spread);
 
         return (
-          <li key={item.code} className={styles.region__row} data-lead={index === 0 ? '' : undefined}>
+          <li
+            key={item.code}
+            className={styles.region__row}
+            data-lead={index === 0 ? '' : undefined}
+            /* 지도에서 그 시·군이 입은 색 그대로 — 위 지도와 이 순위표가 색으로 이어진다 */
+            style={{ '--row': REGION_CI_COLOR[item.name] } as React.CSSProperties}
+          >
             <p className={styles.region__head}>
               <span className={styles.region__rank}>{index + 1}</span>
               <span className={styles.region__name}>{item.name}</span>

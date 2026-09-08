@@ -1,0 +1,61 @@
+@use "@/styles/utils/media" as media;
+
+/*
+  저절로 넘어가는 배너의 단계 표시.
+
+  점 눈금은 「몇 가운데 어디」 까지만 말한다. 남은 시간을 함께 말하려면 지금 칸이 머무는 동안
+  차오르면 된다 — 걸어 두는 화면 앞에 선 사람이 「지금 읽을지 다음 것을 볼지」 를 스스로 고를 수
+  있게 된다 (2026-09-07 지시).
+
+  화면마다 따로 그리면 같은 뜻이 자리마다 다른 모양이 되므로 규칙을 한 곳에 둔다. CSS 모듈은
+  파일 사이에서 클래스를 나눠 쓸 수 없어, 클래스가 아니라 규칙 자체를 믹스인으로 공유한다.
+
+  쓰는 쪽은 두 가지를 한다 — 파일에 `fill-keyframes` 를 한 번 깔고, 활성 칸에
+  `fills-over-time` 을 건다. 그리고 그 칸에 머무는 시간을 `--rotation-ms` 로 넘기고,
+  넘어갈 때마다 `key` 를 갈아 요소를 새로 만든다. CSS 애니메이션은 같은 요소에 다시 걸어도
+  되감기지 않으므로, 되감는 유일한 방법이 새로 만드는 것이다.
+*/
+
+/** 파일마다 한 번. 여러 번 부르면 같은 이름의 키프레임이 겹친다 */
+@mixin fill-keyframes {
+  @keyframes rotation-dot-fill {
+    from {
+      transform: scaleX(0);
+    }
+
+    to {
+      transform: scaleX(1);
+    }
+  }
+}
+
+/**
+ * 지금 칸이 머무는 시간 동안 왼쪽에서 오른쪽으로 찬다.
+ *
+ * 채움을 `::after` 로 얹고 바탕은 그대로 둔다 — 지나갈 자리가 남아 있어야 「얼마나 남았나」 가
+ * 보이고, 바탕까지 물들이면 어디까지 왔는지만 남는다.
+ *
+ * 움직임을 줄여 달라고 한 사람에게는 채운 채로 보인다. 어느 칸이 지금인지는 여전히 알아야 한다.
+ */
+@mixin fills-over-time($color: var(--brand)) {
+  position: relative;
+  overflow: hidden;
+
+  &::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    background-color: $color;
+    transform-origin: left;
+    animation: rotation-dot-fill var(--rotation-ms, 7s) linear forwards;
+  }
+
+  @include media.reduced-motion {
+    background-color: $color;
+
+    &::after {
+      animation: none;
+    }
+  }
+}

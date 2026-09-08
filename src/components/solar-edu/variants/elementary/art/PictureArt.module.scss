@@ -1,0 +1,194 @@
+@use "@/styles/tokens/spacing" as s;
+@use "@/styles/utils/media" as media;
+
+/**
+ * 그림이 본문인 초등 판(시안 b·c)의 움직임.
+ *
+ * 이 화면에서 움직임은 장식이 아니라 본문이다 — 글을 걷어낸 자리를 대신 채우는 것이 움직임이라,
+ * 여기 있는 것 가운데 꺼도 되는 것은 없다. 다만 주기는 모두 느리게 잡았다. 빠른 움직임은
+ * 시선을 붙잡되 오래 걸어 두면 피곤하고, 복도 화면은 하루 종일 돌아간다.
+ *
+ * 움직임을 줄여 달라는 설정에서는 자리만 잡고 멈춘다. 멈춰도 그림은 그대로 남으므로
+ * 무엇을 보여 주는 화면인지는 변하지 않는다.
+ */
+
+// ── 햇님 ───────────────────────────────────────────────────
+
+// 빛살이 도는 것과 몸이 뜨는 것의 주기를 나누어떨어지지 않게 두어, 같은 자리로 돌아오는 순간을 감춘다
+.spin {
+  animation: picture-spin 34s linear infinite;
+}
+
+.bob {
+  animation: picture-bob 5.2s ease-in-out infinite;
+}
+
+.halo {
+  animation: picture-halo 4.1s ease-in-out infinite;
+  transform-box: fill-box;
+  transform-origin: center;
+}
+
+@keyframes picture-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes picture-bob {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+
+  50% {
+    transform: translateY(-14px);
+  }
+}
+
+@keyframes picture-halo {
+  0%,
+  100% {
+    opacity: 0.5;
+    transform: scale(1);
+  }
+
+  50% {
+    opacity: 1;
+    transform: scale(1.08);
+  }
+}
+
+// ── 학교 ───────────────────────────────────────────────────
+
+// 창이 하나씩 차례로 밝아진다 — 전기가 지금 쓰이고 있다는 표시다
+.window {
+  animation: picture-window 3.6s ease-in-out infinite;
+}
+
+// 지붕 판 위를 훑고 지나는 빛
+.panelGlint {
+  animation: picture-glint 3.2s ease-in-out infinite;
+}
+
+@keyframes picture-window {
+  0%,
+  100% {
+    opacity: 0.45;
+  }
+
+  50% {
+    opacity: 1;
+  }
+}
+
+@keyframes picture-glint {
+  0%,
+  100% {
+    fill: var(--brand-contrast);
+  }
+
+  50% {
+    fill: var(--brand);
+  }
+}
+
+// ── 2장·3장의 그림 ────────────────────────────────────────
+
+// 나뭇잎이 바람에 흔들린다
+.sway {
+  animation: picture-sway 6.4s ease-in-out infinite;
+  transform-box: fill-box;
+  transform-origin: bottom center;
+}
+
+// 에어컨에서 나오는 바람이 아래로 흘러내린다
+.breeze {
+  animation: picture-breeze 2.6s ease-in-out infinite;
+}
+
+@keyframes picture-sway {
+  0%,
+  100% {
+    transform: rotate(-2.5deg);
+  }
+
+  50% {
+    transform: rotate(2.5deg);
+  }
+}
+
+@keyframes picture-breeze {
+  0% {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+
+  35%,
+  65% {
+    opacity: 1;
+  }
+
+  100% {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+}
+
+// ── 그림 아래 말 ───────────────────────────────────────────
+
+/*
+  그림 아래 붙는 말.
+
+  큰 한 마디는 본문 크기가 아니라 **그림 크기**로 둔다 — 타이포그래피 토큰의 어떤 단계도 이만큼
+  크지 않아 여기서만 화면 폭에 맞춰 직접 잡는다. 그 아래 한 줄은 본문 크기로 내려, 멀리서는
+  큰 말만 읽히고 가까이서만 아랫줄이 읽히게 한다. 말이 바뀔 때마다 아래에서 톡 올라온다.
+*/
+.word {
+  text-align: center;
+  animation: picture-word 0.6s cubic-bezier(0.22, 0.68, 0.32, 1) both;
+
+  &__main {
+    font-size: clamp(48px, 5.6vw, 104px);
+    font-weight: 800;
+    line-height: 1.1;
+    color: var(--brand-contrast);
+    letter-spacing: -0.02em;
+    text-shadow: 0 4px 0 rgb(255 255 255 / 70%);
+  }
+
+  &__line {
+    margin-top: s.$space-2;
+    font-size: clamp(20px, 1.6vw, 30px);
+    font-weight: 600;
+    line-height: 1.4;
+    color: var(--text);
+  }
+}
+
+@keyframes picture-word {
+  from {
+    opacity: 0;
+    transform: translateY(36px) scale(0.86);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+// ── 움직임 줄이기 ──────────────────────────────────────────
+
+@include media.reduced-motion {
+  .spin,
+  .bob,
+  .halo,
+  .window,
+  .panelGlint,
+  .sway,
+  .breeze,
+  .word {
+    animation: none;
+  }
+}

@@ -1,0 +1,275 @@
+@use "@/styles/tokens/spacing" as s;
+@use "@/styles/tokens/typography" as t;
+@use "@/styles/utils/media" as media;
+
+/*
+  1장 — 한 줄씩 읽어 내리는 값.
+
+  왼쪽에 지금 이 순간의 출력 하나만 크게 세우고, 오른쪽에 나머지를 줄 세운다.
+  칸을 나누는 테두리는 두지 않는다 — 이 지면은 선과 여백으로만 구획한다.
+*/
+.summary {
+  display: grid;
+  gap: s.$space-7;
+
+  /*
+    좌우로 가르는 것은 벽걸이 화면에서만이다.
+    1280px 에서 갈라 보았더니 설명 칸이 한 글자 폭까지 좁아져 글이 세로로 섰다 —
+    그 폭에서는 위아래로 이어 읽는 편이 맞다.
+  */
+  @include media.kiosk {
+    grid-template-columns: minmax(0, 0.85fr) minmax(0, 1fr);
+    gap: s.$space-9;
+    height: 100%;
+    min-height: 0;
+  }
+}
+
+// ── 지금 이 순간 ──────────────────────────────────────────
+.now {
+  animation: item-in 0.6s ease-out both;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: s.$space-4;
+  min-width: 0;
+  padding-bottom: s.$space-5;
+
+  &__term {
+    @include t.eyebrow;
+
+    color: var(--text-muted);
+  }
+
+  &__figure {
+    @include t.display-xl;
+
+    display: flex;
+    align-items: baseline;
+    gap: s.$space-3;
+    color: var(--text-strong);
+    font-family: var(--font-data);
+    line-height: 1;
+
+    [data-level="high"] & {
+      @include t.display-lg;
+    }
+  }
+
+  &__unit {
+    @include t.title-lg;
+
+    color: var(--text-muted);
+  }
+
+  &__note {
+    @include t.body-lg;
+
+    color: var(--text);
+  }
+
+  /*
+    하루 곡선이 앉는 자리. 눈금도 이름표도 없는 그림이라 높이만 내주면 된다.
+    그림의 몫이 눈높이를 따라 갈린다 — 초등은 그림이 주인공이고, 고등은 읽을 줄이 다섯이라
+    그림에 내줄 자리가 그만큼 적다.
+  */
+  &__art {
+    height: 110px;
+    flex-shrink: 0;
+    margin-top: s.$space-2;
+
+    @include media.kiosk {
+      height: 150px;
+
+      [data-level="elementary"] & {
+        height: 210px;
+      }
+
+      [data-level="high"] & {
+        height: 118px;
+      }
+    }
+  }
+}
+
+/* 설비용량 위 어디쯤인지 — 채워진 길이 하나로 크기를 짚는다 */
+.gauge {
+  display: flex;
+  flex-direction: column;
+  gap: s.$space-2;
+
+  &__track {
+    display: block;
+    height: 6px;
+    overflow: hidden;
+    border-radius: s.$radius-full;
+    background-color: var(--surface-sunken);
+  }
+
+  &__fill {
+    display: block;
+    height: 100%;
+    border-radius: s.$radius-full;
+    background-color: var(--solar);
+
+    /* 0 에서 자라 오른다. 숫자가 굴러 오르는 동안 길이도 함께 늘어난다 */
+    animation: gauge-grow 1.1s 0.2s cubic-bezier(0.22, 0.68, 0.32, 1) both;
+    transform-origin: left;
+    transition: inline-size 0.6s ease;
+
+    @include media.reduced-motion {
+      animation: none;
+      transition: none;
+    }
+  }
+
+  &__legend {
+    @include t.body-md;
+
+    color: var(--text);
+  }
+}
+
+// ── 아래로 읽어 내리는 값 ─────────────────────────────────
+.rows {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  min-width: 0;
+  list-style: none;
+}
+
+/*
+  줄 하나.
+  값과 뜻을 좌우로 두고 그 사이를 실선 하나로만 가른다. 상자를 두르면 카드가 되고,
+  카드가 되는 순간 다른 시안과 같은 화면이 된다.
+*/
+.row {
+  /* 값이 굴러 오르기 직전에 줄이 먼저 자리를 잡는다 */
+  animation: item-in 0.55s ease-out both;
+
+  &:nth-child(1) {
+    animation-delay: 0.16s;
+  }
+
+  &:nth-child(2) {
+    animation-delay: 0.24s;
+  }
+
+  &:nth-child(3) {
+    animation-delay: 0.32s;
+  }
+
+  &:nth-child(4) {
+    animation-delay: 0.4s;
+  }
+
+  &:nth-child(5) {
+    animation-delay: 0.48s;
+  }
+
+  display: grid;
+
+  /*
+    값 칸은 내용에 맞춘다.
+    폭을 못 박아 두면 도 전체처럼 자릿수가 큰 값에서 단위가 칸을 넘어 설명 위로 올라탄다.
+  */
+  grid-template-columns: minmax(0, 7rem) auto minmax(0, 1fr);
+  align-items: baseline;
+  gap: s.$space-4;
+  padding: s.$space-5 0;
+  border-top: 1px solid var(--border-subtle);
+
+  /* 고등은 줄이 다섯이라 사이를 좁힌다 */
+  [data-level="high"] & {
+    padding: s.$space-3 0;
+  }
+
+  &:last-child {
+    border-bottom: 1px solid var(--border-subtle);
+  }
+
+  &__term {
+    @include t.label-md;
+
+    color: var(--text-muted);
+  }
+
+  &__figure {
+    @include t.data-xl;
+
+    display: flex;
+    align-items: baseline;
+    gap: 4px;
+    color: var(--text-strong);
+    white-space: nowrap;
+
+    [data-level="high"] & {
+      @include t.data-lg;
+    }
+  }
+
+  &__unit {
+    @include t.label-md;
+
+    color: var(--text-muted);
+  }
+
+  &__note {
+    @include t.body-md;
+
+    color: var(--text);
+
+    [data-level="elementary"] & {
+      @include t.body-lg;
+    }
+
+    [data-level="high"] & {
+      @include t.body-sm;
+    }
+  }
+
+  @include media.tablet {
+    grid-template-columns: minmax(0, 6rem) minmax(0, 1fr);
+    row-gap: s.$space-1;
+
+    &__note {
+      grid-column: 1 / -1;
+    }
+  }
+}
+
+/*
+  줄이 차례로 올라온다.
+
+  넷이 한꺼번에 뜨면 어디부터 읽을지가 없어진다. 아주 짧은 시차를 두면 눈이 위에서 아래로
+  한 번 훑고 지나가, 읽는 순서가 저절로 잡힌다.
+*/
+@keyframes item-in {
+  from {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes gauge-grow {
+  from {
+    transform: scaleX(0);
+  }
+
+  to {
+    transform: scaleX(1);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .now,
+.row {
+    animation: none;
+  }
+}

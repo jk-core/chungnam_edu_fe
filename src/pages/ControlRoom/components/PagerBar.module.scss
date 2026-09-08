@@ -1,6 +1,7 @@
 @use "@/styles/tokens/spacing" as s;
 @use "@/styles/tokens/typography" as t;
 @use "@/styles/utils/media" as media;
+@use "@/styles/patterns/rotation" as r;
 
 .pager {
   display: flex;
@@ -61,28 +62,11 @@
     border-radius: s.$radius-full;
     background-color: var(--border);
 
+    /* 차오르는 규칙은 저절로 넘어가는 자리가 모두 나눠 쓴다 (`patterns/rotation`) */
     &--active {
-      position: relative;
-      overflow: hidden;
+      @include r.fills-over-time(var(--brand));
+
       background-color: var(--border-strong);
-
-      &::after {
-        content: "";
-        position: absolute;
-        inset: 0;
-        border-radius: s.$radius-full;
-        background-color: var(--brand);
-        transform-origin: left;
-        animation: page-fill var(--page-ms, 7s) linear forwards;
-      }
-
-      @include media.reduced-motion {
-        background-color: var(--brand);
-
-        &::after {
-          animation: none;
-        }
-      }
     }
 
     &--held {
@@ -135,12 +119,4 @@ button.pager__dot {
   }
 }
 
-@keyframes page-fill {
-  from {
-    transform: scaleX(0);
-  }
-
-  to {
-    transform: scaleX(1);
-  }
-}
+@include r.fill-keyframes;

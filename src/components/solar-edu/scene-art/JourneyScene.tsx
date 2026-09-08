@@ -23,7 +23,32 @@ interface JourneySceneProps {
    */
   bubbleAt?: { x: number; y: number };
   bubble?: ReactNode;
+  /**
+   * 첫 걸음의 이름표.
+   *
+   * 초등만 「햇님」 이라 부른다 (2026-09-04 지시). 중·고는 정식 용어를 쓰기로 한 눈높이라
+   * 「햇빛」 그대로다 — 그림은 셋이 나눠 쓰므로 부르는 이름만 밖에서 받는다.
+   */
+  sunLabel?: string;
+  /**
+   * 둘째 걸음의 이름표.
+   *
+   * 초등 대본은 「태양전지」 라 부르고 중등은 「태양전지판」 이다 (2026-09-07 지시) — 판이라는
+   * 말이 붙어야 지붕에 얹힌 그 물건이 곧바로 잡힌다. 이름만 밖에서 받는 까닭은 첫 걸음과 같다.
+   */
+  panelLabel?: string;
+  /**
+   * 그림의 한 대목만 잘라 보일 때 그 자리.
+   *
+   * 네 걸음을 카드 넉 장에 나눠 세우는 판에서는 장면을 통째로 넣으면 넉 장이 모두 같은 그림이
+   * 되고, 정작 그 걸음의 주인공은 구석에 작게 남는다. 뷰박스를 그 물건 둘레로 좁히면 같은 그림을
+   * 다시 그리지 않고도 걸음마다 다른 것이 크게 선다 — 부품을 따로 두면 같은 설비가 두 벌이 된다.
+   */
+  focus?: JourneyFocus;
 }
+
+/** 잘라 보일 수 있는 자리 */
+export type JourneyFocus = 'sun' | 'panel' | 'inverter' | 'school';
 
 /**
  * 햇빛이 전기가 되어 나무까지 가는 한 장의 그림 (SFR-005-01/05/06/07).
@@ -34,19 +59,39 @@ interface JourneySceneProps {
  *
  * 이미 나온 그림은 계속 움직인다. 아무도 조작하지 않는 화면이라 어딘가는 늘 살아 있어야 한다.
  */
-export function JourneyScene({ step, nowHour, loadRatio, bubbleAt, bubble }: JourneySceneProps) {
+/**
+ * 자리마다 잘라 낼 사각형 (뷰박스 900×360 기준).
+ *
+ * 셋의 가로세로 비를 3:2 로 맞춰 둔다 — 비가 제각각이면 카드에 담았을 때 그림 크기가 들쭉날쭉해
+ * 넉 장이 한 세트로 보이지 않는다. 해만 시각에 따라 자리를 옮기므로 셈으로 낸다.
+ */
+function focusBox(focus: JourneyFocus, sunX: number): string {
+  if (focus === 'sun') return `${Math.round(sunX - 150)} 8 300 200`;
+  // 위를 조금 더 잘라 낸다 — 해가 낮게 뜬 시각에 해의 이름표가 이 칸 위쪽에 걸쳐 들어왔다
+  if (focus === 'panel') return '61 194 270 166';
+  if (focus === 'inverter') return '376 200 240 160';
+
+  return '584 160 300 200';
+}
+
+export function JourneyScene({
+  step, nowHour, loadRatio, bubbleAt, bubble, sunLabel = '햇빛', panelLabel = '태양전지', focus,
+}: JourneySceneProps) {
   const progress = Math.min(1, Math.max(0, (nowHour - SUNRISE_HOUR) / (SUNSET_HOUR - SUNRISE_HOUR)));
   const isDay = nowHour > SUNRISE_HOUR && nowHour < SUNSET_HOUR;
   const sunX = 92 + progress * 150;
   const sunY = 108 - Math.sin(Math.PI * progress) * 56;
   const glow = 0.1 + Math.min(1, Math.max(0, loadRatio)) * 0.42;
-  // 그림이 들어와야 할 차례가 됐는지. 지난 것은 계속 남는다.
-  const shown = (at: number) => cn(styles.item, { [styles['item--on']]: step >= at });
+  /*
+    그림이 들어와야 할 차례가 됐는지. 지난 것은 계속 남는다.
+    한 대목만 잘라 보일 때는 걸음을 세지 않는다 — 잘라 낸 자리에 그 물건이 늘 있어야 한다.
+  */
+  const shown = (at: number) => cn(styles.item, { [styles['item--on']]: Boolean(focus) || step >= at });
 
   return (
     <svg
       className={styles.canvas}
-      viewBox="0 0 900 360"
+      viewBox={focus ? focusBox(focus, sunX) : '0 0 900 360'}
       fill="none"
       focusable="false"
       preserveAspectRatio="xMidYMid meet"
@@ -67,7 +112,7 @@ export function JourneyScene({ step, nowHour, loadRatio, bubbleAt, bubble }: Jou
           </text>
         )}
 
-        <SceneTag x={sunX} y={isDay ? sunY + 76 : 122} label="햇빛" />
+        <SceneTag x={sunX} y={isDay ? sunY + 76 : 122} label={sunLabel} />
       </g>
 
       {/* ── 2. 태양전지 ─────────────────────────────────── */}
@@ -106,7 +151,7 @@ export function JourneyScene({ step, nowHour, loadRatio, bubbleAt, bubble }: Jou
           <path className={styles.sweep} d="M0 86 56 0h150l-56 86Z" fill="var(--paper)" fillOpacity="0.4" />
         </SolarPanel>
 
-        <SceneTag x={196} y={344} label="태양전지" />
+        <SceneTag x={196} y={344} label={panelLabel} />
       </g>
 
       {/* ── 3. 인버터 ───────────────────────────────────── */}

@@ -1,5 +1,5 @@
 import { kwhToHouseholdDays, kwhToTrees } from '@/utils/eco';
-import { formatNumber } from '@/utils/format';
+import { formatNumber, scaleCount, scaleKoCount, scaleSi } from '@/utils/format';
 import { FULL_SUN_WM2 } from './solarEdu';
 import type { ElementaryContent } from './eduContent';
 import type { EduStats } from './solarEdu';
@@ -15,16 +15,27 @@ import type { EduStats } from './solarEdu';
 
   한 장이 끝나면 다음 장으로 저절로 넘어간다. 걸음마다 큰 글씨 한 줄, 설명 한 줄, 수치 하나만 둔다 —
   더 넣으면 읽지 않는다.
+
+  말을 한 겹 더 내렸다 (2026-09-04 회의). 넘겨 가며 읽는 판에 긴 글이 실리면 이 나이는 다 읽기 전에
+  화면이 넘어간다 — 그래서 설명 줄을 **한 호흡으로 끊고** 걸음이 머무는 시간을 늘렸다.
+  물건은 아이가 부르는 이름으로 바꿨다: 패널 → 태양전지, 햇빛 → 햇님.
 */
 
 // ── 1장. 전기가 만들어지는 순서 ────────────────────────────
 
-/** 걸음 한 칸 곁에 붙는 수치 하나 */
+/**
+ * 걸음 한 칸 곁에 붙는 수치 하나.
+ *
+ * 값의 이름은 `SiScale` 과 같은 `amount` 다 — kW·kWh 처럼 자릿수가 커지는 값은
+ * `scaleSi` 가 돌려준 것을 그대로 펼쳐 넣으므로, 두 이름을 따로 두면 옮겨 담는 일만 생긴다.
+ */
 export interface SceneReadout {
   label: string;
-  value: number;
+  amount: number;
   unit: string;
   fractionDigits: number;
+  /** 숫자에 바로 붙는 우리말 자릿이름 — `SiScale` 의 것을 그대로 받는다 */
+  countSuffix?: string;
 }
 
 export interface EduScene {
@@ -49,48 +60,39 @@ export interface EduScene {
 const SCENES: EduScene[] = [
   {
     id: 'sun',
-    title: '해가 떴어요',
-    line: '해가 높이 뜰수록 햇빛이 패널에 똑바로 내리쬐어서, 전기를 더 많이 만들어요.',
+    title: '햇님이 떴어요',
+    line: '햇님이 높이 뜰수록 전기를 더 많이 만들어요.',
     at: { x: 300, y: 24, tail: 'left' },
     readout: (stats) => ({
-      label: '일사강도',
-      value: (stats.irradianceNow / FULL_SUN_WM2) * 100,
+      label: '일사량',
+      amount: (stats.irradianceNow / FULL_SUN_WM2) * 100,
       unit: '점',
       fractionDigits: 0,
     }),
   },
   {
     id: 'panel',
-    title: '패널이 햇빛을 받아요',
-    line: '햇빛이 패널에 닿으면 패널 안에서 전기가 한 방향으로 흐르기 시작해요.',
+    title: '태양전지가 받아요',
+    line: '지붕 위 태양전지에 햇님이 닿으면 전기가 만들어져요.',
     at: { x: 280, y: 70, tail: 'bottom', tailAt: 30 },
-    readout: (stats) => ({
-      label: '실시간 출력',
-      value: stats.outputKw,
-      unit: 'kW',
-      fractionDigits: 1,
-    }),
+    // 도 전체를 합치면 kW 로는 자릿수가 커져 말풍선을 넘는다 — 단위를 올려 적는다
+    readout: (stats) => ({ label: '실시간 출력', ...scaleSi(stats.outputKw, 'W') }),
   },
   {
     id: 'inverter',
     title: '쓸 수 있게 바꿔요',
-    line: '패널이 만든 전기는 교실에서 그대로 쓸 수 없어요. 인버터가 쓸 수 있는 형태로 바꿔 줘요.',
+    line: '인버터가 교실에서 쓸 수 있는 전기로 바꿔 줘요.',
     at: { x: 346, y: 46, tail: 'bottom', tailAt: 150 },
-    readout: (stats) => ({
-      label: '금일 발전량',
-      value: stats.todayKwh,
-      unit: 'kWh',
-      fractionDigits: 0,
-    }),
+    readout: (stats) => ({ label: '금일 발전량', ...scaleSi(stats.todayKwh, 'Wh') }),
   },
   {
     id: 'school',
     title: '교실에 불이 켜져요',
-    line: '우리가 만든 전기로 불을 켜고 선풍기를 돌려요. 만든 전기는 우리 학교가 그대로 써요.',
+    line: '우리가 만든 전기로 불을 켜고 선풍기를 돌려요.',
     at: { x: 584, y: 10, tail: 'bottom', tailAt: 150 },
     readout: (stats) => ({
       label: '4인 가족으로 치면',
-      value: kwhToHouseholdDays(stats.todayKwh),
+      amount: kwhToHouseholdDays(stats.todayKwh),
       unit: '집이 하루 쓸 양',
       fractionDigits: 0,
     }),
@@ -130,39 +132,28 @@ const IMPACT: ElementaryImpact = {
     {
       id: 'tree',
       title: '소나무를 이만큼 심은 것과 같은 효과예요',
-      line: '우리가 만든 만큼 석탄과 가스를 덜 태워서, 그만큼 탄소가 덜 나왔어요.',
+      line: '그만큼 석탄과 가스를 덜 태웠어요.',
       at: { x: 52, y: 6, tail: 'bottom', tailAt: 125 },
       readout: (stats) => ({
         label: '소나무를 심은 효과',
-        value: kwhToTrees(stats.dayKwh),
-        unit: '그루',
+        ...scaleKoCount(kwhToTrees(stats.totalKwh), '그루'),
         fractionDigits: 0,
       }),
     },
     {
       id: 'gadget',
       title: '에어컨을 이만큼 켤 수 있어요',
-      line: '오늘 만든 전기로 에어컨 한 대만 계속 켠다면 이만큼 오래 쓸 수 있어요.',
+      line: '에어컨 한 대를 이만큼 오래 켤 수 있어요.',
       at: { x: 325, y: 40, tail: 'bottom', tailAt: 125 },
-      readout: (stats) => ({
-        label: '에어컨 가동 시간',
-        // 에어컨 하나로 견준다. 여러 물건을 늘어놓으면 숫자가 셋이 되어 크기를 가늠하기 어렵다.
-        value: (stats.dayKwh * 1000) / AIRCON_WATT,
-        unit: '시간',
-        fractionDigits: 0,
-      }),
+      // 에어컨 하나로 견준다. 여러 물건을 늘어놓으면 숫자가 셋이 되어 크기를 가늠하기 어렵다.
+      readout: (stats) => ({ label: '에어컨 가동 시간', ...scaleCount((stats.totalKwh * 1000) / AIRCON_WATT, '시간') }),
     },
     {
       id: 'house',
       title: '한 집이 이만큼 쓸 수 있어요',
-      line: '4인 가족 한 집이 하루에 쓰는 양으로 나눠 봤어요.',
+      line: '네 식구가 사는 집으로 세어 봤어요.',
       at: { x: 611, y: 24, tail: 'bottom', tailAt: 125 },
-      readout: (stats) => ({
-        label: '4인 가족이 쓸 수 있는 날',
-        value: kwhToHouseholdDays(stats.dayKwh),
-        unit: '일',
-        fractionDigits: 0,
-      }),
+      readout: (stats) => ({ label: '4인 가족이 쓸 수 있는 기간', ...scaleCount(kwhToHouseholdDays(stats.totalKwh), '일') }),
     },
   ],
 };
@@ -170,7 +161,7 @@ const IMPACT: ElementaryImpact = {
 // ── 3장. 태양광은 왜 좋을까 ────────────────────────────────
 
 /** 이점 하나를 그리는 그림 */
-export type BenefitArt = 'free' | 'clean' | 'quiet' | 'roof';
+export type BenefitArt = 'free' | 'clean' | 'quiet';
 
 export interface EduBenefit {
   id: string;
@@ -181,34 +172,34 @@ export interface EduBenefit {
   at: { x: number; y: number; tail: 'bottom'; tailAt: number };
 }
 
+/*
+  셋만 둔다 (2026-09-04 회의).
+
+  「지붕만 있으면 돼요」 는 뺐다 — 주차장에도 얹는 학교가 있어 말이 맞지 않는다.
+  남은 셋은 모두 「없다」 는 이야기라 결이 같고, 넷을 셋으로 줄인 만큼 하나하나를 크게 세운다.
+  제목은 아이가 그대로 따라 말할 수 있는 짧은 구어체로, 설명은 그 까닭 한 줄로 끊었다.
+*/
 const BENEFITS: EduBenefit[] = [
   {
     id: 'free',
     art: 'free',
-    at: { x: 4, y: 4, tail: 'bottom', tailAt: 110 },
-    title: '연료가 들지 않아요',
-    line: '석탄이나 가스를 사 오지 않아도 돼요. 해는 아침마다 뜨니까요.',
+    at: { x: 20, y: 4, tail: 'bottom', tailAt: 135 },
+    title: '공짜예요',
+    line: '햇님은 날마다 그냥 와요.',
   },
   {
     id: 'clean',
     art: 'clean',
-    at: { x: 215, y: 4, tail: 'bottom', tailAt: 125 },
-    title: '매연이 나오지 않아요',
-    line: '무언가를 태우지 않으니 매연도, 온실가스도 나오지 않아요.',
+    at: { x: 330, y: 4, tail: 'bottom', tailAt: 120 },
+    title: '깨끗해요',
+    line: '까만 연기가 나지 않아요.',
   },
   {
     id: 'quiet',
     art: 'quiet',
-    at: { x: 441, y: 4, tail: 'bottom', tailAt: 125 },
-    title: '소리가 나지 않아요',
-    line: '돌아가는 부품이 없어서 아주 조용해요. 수업하는 데 방해가 되지 않아요.',
-  },
-  {
-    id: 'roof',
-    art: 'roof',
-    at: { x: 650, y: 4, tail: 'bottom', tailAt: 136 },
-    title: '지붕만 있으면 돼요',
-    line: '따로 땅을 마련하지 않아도 돼요. 우리 학교 지붕이 그대로 발전소가 되니까요.',
+    at: { x: 630, y: 4, tail: 'bottom', tailAt: 115 },
+    title: '조용해요',
+    line: '시끄러운 소리가 안 나요.',
   },
 ];
 
@@ -222,30 +213,39 @@ export const ELEMENTARY_CONTENT: ElementaryContent = {
   */
   headline: {
     mainLabel: '실시간 출력',
-    mainNote: () => '우리 학교가 한 번에 만들 수 있는 최대치의 이만큼을 지금 만들고 있어요',
-    statIds: ['today', 'powerTime', 'co2', 'irradiance', 'capacity'],
+    mainNote: () => '우리 학교가 한 번에 만들 수 있는 양 가운데 지금 이만큼을 만들고 있어요',
+    statIds: ['today', 'total', 'powerTime', 'co2', 'irradiance', 'capacity'],
     copy: {
+      /*
+        발전량 두 칸은 이름부터 아이 말로 바꾼다 (2026-09-04 회의).
+        「금일/누적」 은 이 나이가 읽어도 뜻이 서지 않는 한자말이라, 이름 자리에 문장을 넣는다.
+      */
       today: {
+        label: '오늘 이만큼 만들었어요',
         note: (stats) => `4인 가족 ${formatNumber(kwhToHouseholdDays(stats.todayKwh))}집이 하루 쓸 양이에요`,
       },
+      total: {
+        label: '그동안 이만큼 만들었어요',
+        note: () => '학교에 태양전지를 놓은 뒤로 모두 더한 양이에요',
+      },
       powerTime: {
-        note: () => '해가 가장 셀 때만 골라서 발전했다면 이만큼 걸렸을 시간이에요',
+        note: () => '가장 센 힘으로 만들면 이만큼 걸려요',
       },
       co2: {
-        note: () => '우리가 만든 만큼 석탄과 가스를 덜 태워서 줄어든 양이에요',
+        note: () => '석탄과 가스를 덜 태워서 줄어든 양이에요',
       },
       irradiance: {
-        note: () => '맑은 날 한낮이 100점이에요',
+        note: () => '햇님이 얼마나 센지 점수로 나타냈어요. 맑은 날 한낮이 100점이에요',
       },
       capacity: {
-        note: () => '우리 학교 설비가 한 번에 만들 수 있는 가장 많은 양이에요',
+        note: () => '한 번에 만들 수 있는 가장 많은 양이에요',
       },
     },
   },
   chapters: [
-    { id: 'journey', label: '햇빛이 전기가 되기까지' },
-    { id: 'impact', label: '무엇이 좋아졌나' },
-    { id: 'benefit', label: '태양광의 좋은 점' },
+    { id: 'journey', label: '햇님이 전기가 되기까지' },
+    { id: 'impact', label: '그동안 만든 전기로' },
+    { id: 'benefit', label: '태양광이 좋은 까닭' },
   ],
   scenes: SCENES,
   impact: IMPACT,

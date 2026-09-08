@@ -1,0 +1,389 @@
+@use "@/styles/tokens/spacing" as s;
+@use "@/styles/tokens/typography" as t;
+@use "@/styles/utils/media" as media;
+@use "@/styles/utils/mixins" as mx;
+
+/*
+  시·군별 현황 지도.
+
+  왼쪽이 도형, 오른쪽이 지금 머무는 곳의 상세다. 위아래로 쌓지 않는다 — 이 판은 가로로 긴
+  칸(1032 x 511)이라 도형이 높이에 맞춰 잘리면 세로 293px 짜리가 되고, 600x516 비율인 도형은
+  가로 341px 만 쓰고 나머지 657px 을 비운다. 그 상태에서 이름표는 7px 로 렌더되어 읽히지 않는다.
+  좌우로 갈라 도형에 높이를 다 주면 같은 판에서 글자가 배로 커진다.
+*/
+.map {
+  display: flex;
+  gap: s.$space-4;
+  flex: 1;
+  min-height: 0;
+
+  &__canvas {
+    flex: 1;
+    min-width: 0;
+    min-height: 0;
+  }
+
+  /*
+    시·군 한 면.
+
+    「행정구역별 색상을 반영하면 좋겠음」 이 요구였으므로 (2026-09-04 노트) 평소에도 제 CI 색이
+    보여야 한다. 12% 로 깔았더니 어두운 바탕에서 열다섯 면이 모두 같은 회색으로 보여 요구를
+    못 채웠다. 32% 는 어느 시·군이 무슨 색인지는 읽히면서 옆면과 다투지는 않는 자리다.
+
+    머무는 곳은 거기서 한 번 더 올라간다. 색이 진해지는 것만으로는 32%와 78%를 눈이 곧바로
+    가르지 못하므로 테두리도 함께 제 색으로 굵어진다 — 두 가지가 같은 곳을 가리켜야 한 눈에 잡힌다.
+  */
+  &__cell {
+    fill: rgb(from var(--cell) r g b / 32%);
+    stroke: var(--map-border);
+    stroke-width: 1;
+    transition: fill 0.5s ease;
+
+    &[data-on] {
+      fill: rgb(from var(--cell) r g b / 78%);
+      stroke: var(--cell);
+      stroke-width: 2.5;
+    }
+
+    /* 눌러서 갈 수 있는 면 — 짚으면 제 색이 한 단 올라와 「이건 눌린다」 가 손끝보다 먼저 읽힌다 */
+    &[data-pick] {
+      cursor: pointer;
+
+      &:hover {
+        fill: rgb(from var(--cell) r g b / 55%);
+      }
+
+      &:focus-visible {
+        outline: none;
+        stroke: var(--cell);
+        stroke-width: 3;
+      }
+    }
+  }
+
+  @include media.tablet {
+    flex-direction: column;
+  }
+}
+
+/*
+  면 위의 이름표.
+
+  글자에 테두리를 두른다. 면 색이 옅은 곳과 진한 곳을 가로질러 서므로 어느 한 색을 골라
+  두면 반대쪽에서 묻힌다 — 바탕색으로 획을 두르고 그 위에 글자를 얹으면 어느 면 위에서도 읽힌다.
+*/
+.tag {
+  paint-order: stroke fill;
+  pointer-events: none;
+  stroke: var(--surface);
+  stroke-width: 3.5;
+  stroke-linejoin: round;
+
+  &__name {
+    @include t.label-sm;
+
+    fill: var(--text-strong);
+    font-size: 14px;
+    font-weight: 700;
+  }
+
+  &__count {
+    fill: var(--text-muted);
+    font-family: var(--font-data);
+    font-size: 12.5px;
+  }
+
+  /* 머무는 곳은 이름표도 함께 선다 — 면만 물들면 어느 이름이 그 면인지 눈이 한 번 더 찾는다 */
+  &[data-on] {
+    .tag__name {
+      font-size: 16.5px;
+    }
+
+    .tag__count {
+      fill: var(--text-strong);
+      font-size: 14px;
+      font-weight: 600;
+    }
+  }
+}
+
+// ── 지금 머무는 시·군 ──────────────────────────────────────
+.now {
+  display: flex;
+  flex-direction: column;
+  gap: s.$space-2;
+
+  /*
+    폭을 넉넉히 준다. 도형은 **높이**가 크기를 정하므로(600x516 비율) 여기서 폭을 더 가져가도
+    지도가 작아지지 않는다 — 왼쪽에 남던 빈자리가 이쪽으로 넘어올 뿐이다.
+  */
+  flex: 0 0 372px;
+  padding: s.$space-4;
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--room-radius, 12px);
+  background-color: var(--surface-sunken);
+
+  &__head {
+    display: flex;
+    align-items: center;
+    gap: s.$space-2;
+  }
+
+  /* 지도에서 물든 면과 같은 색 — 아래 띠가 위 어느 면의 이야기인지 색 하나로 이어진다 */
+  &__color {
+    width: 10px;
+    height: 10px;
+    border-radius: s.$radius-full;
+  }
+
+  &__name {
+    @include t.title-sm;
+
+    color: var(--text-strong);
+  }
+
+  &__abnormal {
+    @include t.label-sm;
+
+    padding: 1px s.$space-2;
+    border-radius: s.$radius-full;
+    background-color: var(--critical-soft);
+    color: var(--critical-text);
+  }
+
+  /* 여섯 장을 석 줄로 — 한 줄에 셋을 두면 「18,775.6MWh」 가 접힌다 */
+  &__figures {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: s.$space-2;
+    margin: 0;
+
+    div {
+      display: flex;
+      flex-direction: column;
+      gap: 1px;
+      min-width: 0;
+    }
+
+    dt {
+      @include t.caption;
+
+      color: var(--text-muted);
+    }
+
+    dd {
+      @include t.data-sm;
+
+      margin: 0;
+      color: var(--text-strong);
+
+      span {
+        @include t.label-sm;
+
+        margin-left: 2px;
+        color: var(--text-muted);
+      }
+    }
+  }
+
+  /* 순회 눈금은 바닥에 붙는다 — 수치가 한 줄 줄어도 눈금 자리가 오르내리지 않는다 */
+  &__tour {
+    display: flex;
+    align-items: center;
+    gap: s.$space-2;
+    margin-top: auto;
+  }
+
+  /* 상태 분포는 위아래를 실선으로 끊는다 — 수치 묶음과 목록 사이에서 제 몫이 갈린다 */
+  &__mix {
+    padding: s.$space-2 0;
+    border-top: 1px solid var(--border-subtle);
+    border-bottom: 1px solid var(--border-subtle);
+  }
+
+  &__play {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    width: 22px;
+    height: 22px;
+    padding: 0;
+    border: 1px solid var(--border);
+    border-radius: s.$radius-full;
+    background: none;
+    color: var(--text-muted);
+
+    &:hover {
+      border-color: var(--border-strong);
+      color: var(--text-strong);
+    }
+  }
+
+  &__dots {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    flex: 1;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  /*
+    한 시·군 한 눈금.
+
+    지나간 곳과 올 곳을 가리지 않는다 — 순회에 시작과 끝이 없어 「어디까지 왔나」 가 뜻이 없다.
+    지금 있는 한 칸만 제 색으로 길어지고 나머지는 같은 굵기의 회색 막대로 남는다.
+  */
+  &__dot {
+    width: 100%;
+    height: 4px;
+    padding: 0;
+    border: 0;
+    border-radius: s.$radius-full;
+    background-color: var(--border);
+    transition: background-color 0.3s ease, height 0.3s ease;
+
+    &:hover {
+      background-color: var(--border-strong);
+    }
+
+    &[data-on] {
+      height: 7px;
+      background-color: var(--dot);
+    }
+  }
+}
+
+/*
+  도 전체에서 차지하는 몫.
+
+  막대를 아주 낮게 깐다. 이 칸의 주인공은 위의 수치 여섯이고 이쪽은 「많은 편인가 적은 편인가」
+  만 답하면 된다 — 굵게 그으면 눈이 먼저 이리로 오고, 정작 읽어야 할 숫자를 지나친다.
+*/
+.share {
+  display: flex;
+  flex-direction: column;
+  gap: s.$space-2;
+
+  &__row {
+    display: grid;
+    grid-template-columns: 68px minmax(0, 1fr) 44px;
+    align-items: center;
+    gap: s.$space-2;
+    margin: 0;
+  }
+
+  &__label {
+    @include t.caption;
+
+    color: var(--text-muted);
+  }
+
+  &__track {
+    height: 5px;
+    border-radius: s.$radius-full;
+    background-color: var(--surface-hover);
+    overflow: hidden;
+  }
+
+  &__bar {
+    display: block;
+    height: 100%;
+    border-radius: s.$radius-full;
+    transition: width 0.5s cubic-bezier(0.22, 0.68, 0.32, 1);
+  }
+
+  &__value {
+    @include t.label-sm;
+
+    color: var(--text-strong);
+    font-family: var(--font-data);
+    text-align: right;
+  }
+}
+
+/*
+  손봐야 할 곳.
+
+  이름이 길어도 줄을 접지 않고 잘라 낸다 — 「충청남도○○교육지원청 부설…」 처럼 긴 이름 하나가
+  두 줄을 차지하면 세 곳을 적으려던 자리에 두 곳만 들어간다. 상태 배지는 늘 오른쪽 끝에 선다.
+*/
+.faults {
+  display: flex;
+  flex-direction: column;
+  gap: s.$space-2;
+  flex-shrink: 0;
+
+  &__title {
+    @include t.label-sm;
+
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: s.$space-2;
+    margin: 0;
+    color: var(--text-muted);
+  }
+
+  &__none {
+    @include t.caption;
+
+    margin: 0;
+    color: var(--text-faint);
+  }
+
+  &__list {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  &__item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: s.$space-2;
+  }
+
+  &__name {
+    @include t.body-sm;
+    @include mx.truncate;
+
+    color: var(--text);
+  }
+
+  &__state {
+    @include t.label-sm;
+
+    flex-shrink: 0;
+    padding: 0 s.$space-2;
+    border-radius: s.$radius-full;
+
+    &--caution {
+      background-color: var(--caution-soft);
+      color: var(--caution-text);
+    }
+
+    &--critical {
+      background-color: var(--critical-soft);
+      color: var(--critical-text);
+    }
+
+    &--offline,
+    &--neutral {
+      background-color: var(--offline-soft);
+      color: var(--offline-text);
+    }
+  }
+
+  &__more {
+    @include t.caption;
+
+    color: var(--text-faint);
+  }
+}

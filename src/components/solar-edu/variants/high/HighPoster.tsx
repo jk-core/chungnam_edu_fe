@@ -1,20 +1,35 @@
-import { AIRCON_WATT } from '@/mocks/eduElementary';
-import { kwhToHouseholdDays, kwhToTrees } from '@/utils/eco';
-import { formatNumber } from '@/utils/format';
-import type { ElementaryContent } from '@/mocks/eduContent';
+import { CO2_PER_KWH } from '@/utils/eco';
+import { formatNumber, formatSi, scaleCarbon, scaleSi } from '@/utils/format';
+import type { DayWeather } from '@/interface/weather';
 import type { EduStats } from '@/mocks/solarEdu';
+import { WeatherPanel } from '@/components/solar-edu/WeatherPanel';
 import { BenefitScene } from '../../scene-art/BenefitScene';
 import { ImpactArt } from '../../scene-art/ImpactArt';
 import { JourneyScene } from '../../scene-art/JourneyScene';
-import styles from './ElementaryPoster.module.scss';
+import styles from './HighPoster.module.scss';
+
+/** 값과 단위를 한 덩이로. 도 전체를 합치면 kW·kWh 로는 칸을 넘어 M·G 로 올린다. */
+function siText(kilo: number, suffix: 'W' | 'Wh') {
+  const { value, unit } = formatSi(kilo, suffix);
+
+  return `${value}${unit}`;
+}
 
 /** 걸음을 이 값으로 못 박아 그림의 네 마디를 처음부터 모두 켠다 */
 const ALL_STEPS = 3;
 
-interface ElementaryPosterProps {
+/*
+  대본을 받지 않는다.
+
+  이 판의 글은 그림 네 마디와 잰 값 석 장이 전부이고, 그 둘 다 화면이 직접 세운다. 좋은 점의
+  이름까지 그림이 달고 있어 대본에서 가져올 것이 남지 않았다 — 받아만 두면 「이 판이 초등 대본을
+  읽는다」 는 거짓 신호가 남는다.
+*/
+interface HighPosterProps {
   stats: EduStats;
-  content: ElementaryContent;
   nowHour: number;
+  today: DayWeather;
+  forecast: DayWeather[];
 }
 
 /**
@@ -27,17 +42,26 @@ interface ElementaryPosterProps {
  * 벽보처럼 세운다. 말풍선이 옮겨 다니지 않으니 아이가 보고 싶은 곳을 먼저 보고, 읽고 싶은 만큼만 읽는다.
  * 그림은 여전히 살아 움직이지만 **순서를 정해 주지 않는** 것이 이 시안이 앞의 것들과 다른 점이다.
  */
-export function ElementaryPoster({ stats, content, nowHour }: ElementaryPosterProps) {
+export function HighPoster({ stats, nowHour, today, forecast }: HighPosterProps) {
   /*
     그림의 네 마디.
 
     값만 적으면 그림 아래 붙은 숫자표가 된다. 마디마다 **여기서 무슨 일이 일어나는지** 를 한 줄씩
     적어야 벽보가 설명이 된다 — 걸어 두는 화면의 목적이 태양광을 설명하는 것이기 때문이다.
   */
-  const IMPACTS = [
-    { id: 'tree', art: 'tree' as const, label: '소나무를 심은 효과', unit: '그루', value: (v: typeof stats) => kwhToTrees(v.dayKwh) },
-    { id: 'aircon', art: 'aircon' as const, label: '에어컨 가동 시간', unit: '시간', value: (v: typeof stats) => (v.dayKwh * 1000) / AIRCON_WATT },
-    { id: 'house', art: 'house' as const, label: '4인 가족이 쓸 수 있는 날', unit: '일', value: (v: typeof stats) => kwhToHouseholdDays(v.dayKwh) },
+  /*
+    빗대지 않고 잰 값을 그대로 적는다 (2026-09-04 노트).
+
+    「소나무 772만 그루」 는 크기를 가늠하기 어려운 수다 — 그루 수를 세어 본 사람이 없기 때문이다.
+    이 눈높이는 kWh·시간·t 을 교과에서 다루므로, 빗댄 것을 걷고 잰 값과 단위를 그대로 보이는 편이
+    오히려 잡힌다. 다만 탄소 하나는 남긴다. 그것은 빗댄 값이 아니라 배출계수로 셈한 실제 저감량이고,
+    이 화면이 있는 까닭이기도 하다.
+  */
+  const carbon = scaleCarbon(stats.totalKwh * CO2_PER_KWH);
+  const FIGURES = [
+    { id: 'total', art: 'lamp' as const, label: '누적 발전량', ...scaleSi(stats.totalKwh, 'Wh') },
+    { id: 'hours', art: 'aircon' as const, label: '발전시간', amount: stats.equivalentHours, unit: '시간', fractionDigits: 1 },
+    { id: 'carbon', art: 'co2' as const, label: '탄소 저감량', ...carbon, unit: `${carbon.unit} CO₂` },
   ];
 
   const marks = [
@@ -45,27 +69,27 @@ export function ElementaryPoster({ stats, content, nowHour }: ElementaryPosterPr
       id: 'sun',
       label: '햇빛',
       value: `${formatNumber((stats.irradianceNow / 1000) * 100)}점`,
-      note: '일사강도',
+      note: '일사량',
       why: '해가 높이 뜰수록 빛이 패널에 똑바로 닿아 더 많이 만들어요',
     },
     {
       id: 'panel',
       label: '태양전지',
-      value: `${formatNumber(stats.capacityKw, 1)}kW`,
+      value: siText(stats.capacityKw, 'W'),
       note: '설비용량',
       why: '햇빛을 받으면 패널 안에서 전기가 한 방향으로 흐르기 시작해요',
     },
     {
       id: 'inverter',
       label: '인버터',
-      value: `${formatNumber(stats.outputKw, 1)}kW`,
+      value: siText(stats.outputKw, 'W'),
       note: '실시간 출력',
       why: '패널이 만든 전기를 교실 콘센트에서 쓸 수 있게 바꿔 줘요',
     },
     {
       id: 'school',
       label: '교실',
-      value: `${formatNumber(stats.todayKwh, 0)}kWh`,
+      value: siText(stats.todayKwh, 'Wh'),
       note: '금일 발전량',
       why: '우리 학교가 그대로 써서 불을 켜고 선풍기를 돌려요',
     },
@@ -101,15 +125,15 @@ export function ElementaryPoster({ stats, content, nowHour }: ElementaryPosterPr
 
       <div className={styles.bottom}>
         {/* 왼쪽 아래 — 그래서 무엇이 좋아졌나 */}
-        <section className={styles.numbers} aria-label="금일 발전량으로 할 수 있는 일">
-          <h2 className={styles.stage__title}>이만큼 할 수 있어요</h2>
+        <section className={styles.numbers} aria-label="지금까지 잰 값">
+          <h2 className={styles.stage__title}>오늘까지 잰 값</h2>
 
           {/*
             숫자만 늘어놓으면 표가 된다. 그림을 앞에 세우면 무엇에 빗댄 수인지가 읽기 전에
             먼저 들어온다 — 시안 B 의 환산 판이 쓰는 방식을 그대로 가져왔다.
           */}
           <ul className={styles.numbers__list}>
-            {IMPACTS.map((item) => (
+            {FIGURES.map((item) => (
               <li key={item.id} className={styles.impact}>
                 <span className={styles.impact__art}>
                   <ImpactArt id={item.art} />
@@ -117,13 +141,22 @@ export function ElementaryPoster({ stats, content, nowHour }: ElementaryPosterPr
                 <span className={styles.impact__text}>
                   <span className={styles.impact__label}>{item.label}</span>
                   <strong className={styles.impact__value}>
-                    {formatNumber(item.value(stats))}
+                    {formatNumber(item.amount, item.fractionDigits)}
                     <span className={styles.impact__unit}>{item.unit}</span>
                   </strong>
                 </span>
               </li>
             ))}
           </ul>
+
+          {/*
+            기상은 이 칸 맨 아래에 둔다 (2026-09-04 노트).
+
+            잰 값 석 장이 세로 가운데로 모이면서 아래가 비는 자리다. 위의 값들은 「그동안 얼마나」 를
+            말하고 이 줄은 「지금 어떤 날인가」 를 말하니, 같은 칸에서 위아래로 이어 읽힌다 —
+            오늘 발전이 적은 까닭을 묻는 사람의 눈이 두 곳을 오갈 필요가 없다.
+          */}
+          <WeatherPanel today={today} forecast={forecast} />
         </section>
 
         {/* 오른쪽 아래 — 태양광이 왜 좋은가. 넷을 한 번에 세우고 이름만 붙인다 */}
@@ -138,14 +171,12 @@ export function ElementaryPoster({ stats, content, nowHour }: ElementaryPosterPr
             <BenefitScene focus="free" />
           </div>
 
-          <ul className={styles.benefits__list}>
-            {content.benefits.map((benefit) => (
-              <li key={benefit.id}>
-                <strong>{benefit.title}</strong>
-                {benefit.line}
-              </li>
-            ))}
-          </ul>
+          {/*
+            아래 목록을 통째로 걷었다 (2026-09-04 노트).
+
+            까닭을 적던 줄을 지우고 이름만 남겼더니, 그림이 제 아래에 이미 같은 이름을 달고 있어
+            같은 말이 두 줄로 겹쳤다. 이름은 그림이 말하게 두고 이 칸은 그림에 자리를 다 내준다.
+          */}
         </section>
       </div>
     </div>

@@ -1,7 +1,7 @@
 import { CountUp } from '@/components/common/CountUp';
 import { cn } from '@/utils/cn';
-import { formatNumber } from '@/utils/format';
-import { statOf } from '@/mocks/eduContent';
+import { formatNumber, scaleSi } from '@/utils/format';
+import { statFigure, statOf } from '@/mocks/eduContent';
 import type { HeadlineContent } from '@/mocks/eduContent';
 import type { EduStats } from '@/mocks/solarEdu';
 import { STAT_ICONS } from './EduIcons';
@@ -23,6 +23,12 @@ interface HeadlineStripProps {
  * 그 크기가 얼마만 한지 아는 것으로 바꿔 한 줄 덧붙인다.
  */
 export function HeadlineStrip({ stats, content, large }: HeadlineStripProps) {
+  /*
+    지금 출력. 도 전체를 합치면 kW 로는 여섯 자리가 되어 칸을 넘으므로 자릿수에 맞춰 MW·GW 로 올린다.
+    셈은 시스템이 함께 쓰는 것(`scaleSi`)이라, 같은 값이 관제 화면과 다른 단위로 보이지 않는다.
+  */
+  const output = scaleSi(stats.outputKw, 'W');
+
   return (
     <div className={cn(styles.headline, { [styles['headline--large']]: large })}>
       <div className={styles.headline__main}>
@@ -30,11 +36,11 @@ export function HeadlineStrip({ stats, content, large }: HeadlineStripProps) {
         <p className={styles.headline__figure}>
           <CountUp
             className={styles.headline__value}
-            value={stats.outputKw}
-            fractionDigits={1}
+            value={output.amount}
+            fractionDigits={output.fractionDigits}
             startOnView={false}
           />
-          <span className={styles.headline__unit}>kW</span>
+          <span className={styles.headline__unit}>{output.unit}</span>
         </p>
         {/*
           지금 출력이 설비가 낼 수 있는 최대의 몇 할인지.
@@ -58,6 +64,7 @@ export function HeadlineStrip({ stats, content, large }: HeadlineStripProps) {
       >
         {content.statIds.map((id) => {
           const item = statOf(id, content.copy?.[id]);
+          const figure = statFigure(item, stats);
 
           return (
             <li key={id} className={styles.stat}>
@@ -66,8 +73,8 @@ export function HeadlineStrip({ stats, content, large }: HeadlineStripProps) {
                 {item.label}
               </span>
               <span className={styles.stat__value}>
-                {formatNumber(item.value(stats), item.fractionDigits)}
-                <span className={styles.stat__unit}>{item.unit}</span>
+                {formatNumber(figure.amount, figure.fractionDigits)}
+                <span className={styles.stat__unit}>{figure.unit}</span>
               </span>
               <span className={styles.stat__note}>{item.note(stats)}</span>
             </li>

@@ -1,0 +1,260 @@
+@use "@/styles/utils/media" as media;
+
+/*
+  배경은 글 뒤에 있어야지 글과 다투면 안 된다 (2026-09-04 회의).
+
+  빛기둥과 구름이 지면 위를 지날 때 설명 글자가 묻힌다는 지적을 받아 전체를 한 겹 더 물렸다 —
+  움직임은 그대로 두고 짙기만 낮춘다. 배경이 하는 일은 「지금이 낮이다」 를 알리는 것이지
+  눈길을 끄는 것이 아니다.
+*/
+
+/*
+  지면 뒤에 깔리는 하늘.
+
+  여러 겹을 쌓아 깊이를 만든다 — 뒤로 갈수록 옅고 느리게 움직인다.
+  색을 값으로 박지 않고 토큰만 섞어 그려, 어두운 모드에서는 같은 그림이 밤하늘이 된다.
+*/
+.backdrop {
+  position: fixed;
+  inset: 0;
+  overflow: hidden;
+  background:
+    radial-gradient(130% 74% at 50% 120%, color-mix(in srgb, var(--ok) 12%, transparent) 0%, transparent 62%),
+    linear-gradient(
+      180deg,
+      color-mix(in srgb, var(--brand) 9%, var(--paper)) 0%,
+      color-mix(in srgb, var(--brand) 3%, var(--paper)) 38%,
+      var(--paper) 66%
+    );
+  pointer-events: none;
+
+  /* 초등은 하늘이 한 겹 더 짙다. 그림이 주인공인 눈높이라 배경도 앞으로 나온다 */
+  &[data-level="elementary"] {
+    background:
+      radial-gradient(120% 68% at 50% 118%, color-mix(in srgb, var(--ok) 18%, transparent) 0%, transparent 60%),
+      linear-gradient(
+        180deg,
+        color-mix(in srgb, var(--brand) 16%, var(--paper)) 0%,
+        color-mix(in srgb, var(--brand) 6%, var(--paper)) 42%,
+        var(--paper) 72%
+      );
+  }
+
+  /* 고등은 하늘을 거의 비운다. 자료가 앞에 와야 하는 눈높이다 */
+  &[data-level="high"] {
+    background:
+      radial-gradient(130% 70% at 50% 122%, color-mix(in srgb, var(--ok) 7%, transparent) 0%, transparent 58%),
+      linear-gradient(180deg, color-mix(in srgb, var(--brand) 5%, var(--paper)) 0%, var(--paper) 52%);
+  }
+}
+
+/* 가장 뒤에 뜬 빛기둥. 형체가 없어 하늘이 굳지 않게만 한다 */
+.orb {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(8px);
+
+  &[data-orb="1"] {
+    top: -14%;
+    right: -6%;
+    width: 46vw;
+    height: 46vw;
+    background: radial-gradient(circle, color-mix(in srgb, var(--brand) 12%, transparent) 0%, transparent 66%);
+    animation: orb-drift 42s ease-in-out infinite alternate;
+  }
+
+  &[data-orb="2"] {
+    bottom: -18%;
+    left: -10%;
+    width: 38vw;
+    height: 38vw;
+    background: radial-gradient(circle, color-mix(in srgb, var(--ok) 14%, transparent) 0%, transparent 68%);
+    animation: orb-drift 58s 6s ease-in-out infinite alternate-reverse;
+  }
+
+  @include media.reduced-motion {
+    animation: none;
+  }
+}
+
+// ── 빛 ───────────────────────────────────────────────────
+
+/*
+  시각을 따라 하루에 한 번 화면을 건너는 빛.
+
+  원반과 빛살까지 그려 보았으나 걷어냈다 — 배경에서 형태를 갖추면 그것이 눈을 끌어
+  글보다 먼저 읽힌다. 여기에 필요한 것은 「빛이 퍼지는 자리」 하나뿐이라, 가장자리 없이
+  안에서 밖으로 사그라들기만 한다. 세 마디로 나눠 사그라들려야 원처럼 딱 끊기지 않는다.
+*/
+.sun {
+  /* 폭과 높이 가운데 작은 쪽을 따른다 — 한 변만 보면 좁고 긴 화면에서 머리글을 덮는다 */
+  --size: min(44vw, 50vh);
+
+  position: absolute;
+  width: var(--size);
+  height: var(--size);
+  margin: calc(var(--size) / -2) 0 0 calc(var(--size) / -2);
+  border-radius: 50%;
+  background: radial-gradient(
+    circle,
+    color-mix(in srgb, var(--solar) 40%, transparent) 0%,
+    color-mix(in srgb, var(--solar) 22%, transparent) 22%,
+    color-mix(in srgb, var(--solar) 8%, transparent) 46%,
+    transparent 70%
+  );
+  animation: sun-breathe 16s ease-in-out infinite alternate;
+  transition: left 6s linear, top 6s linear, opacity 6s linear;
+
+  [data-level="elementary"] & {
+    --size: min(52vw, 58vh);
+  }
+
+  [data-level="high"] & {
+    --size: min(34vw, 38vh);
+  }
+
+  @include media.reduced-motion {
+    animation: none;
+    transition: none;
+  }
+}
+
+// ── 구름 ──────────────────────────────────────────────────
+
+/*
+  하늘을 가로지르는 구름.
+  덩이마다 크기와 속도를 달리해, 큰 것이 가깝고 작은 것이 멀게 보이도록 한다.
+*/
+.clouds {
+  position: absolute;
+  top: 0;
+  right: 0;
+  left: 0;
+  width: 100%;
+  height: 34vh;
+  opacity: 0.42;
+
+  path {
+    fill: var(--surface);
+    stroke: color-mix(in srgb, var(--brand) 22%, transparent);
+    stroke-width: 1.5;
+  }
+}
+
+.cloud {
+  animation: cloud-cross linear infinite;
+
+  &[data-cloud="1"] {
+    transform: translate(-140px, 26px) scale(1.5);
+    animation-duration: 150s;
+    opacity: 0.5;
+  }
+
+  &[data-cloud="2"] {
+    transform: translate(-140px, 96px) scale(0.95);
+    animation-duration: 220s;
+    animation-delay: -60s;
+    opacity: 0.36;
+  }
+
+  &[data-cloud="3"] {
+    transform: translate(-140px, 6px) scale(0.7);
+    animation-duration: 300s;
+    animation-delay: -170s;
+    opacity: 0.28;
+  }
+
+  @include media.reduced-motion {
+    animation: none;
+  }
+}
+
+/* 고등 전용 — 하늘 대신 깔리는 눈금선 */
+.rules {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+
+  line {
+    stroke: var(--border-subtle);
+    stroke-width: 0.12;
+  }
+}
+
+// ── 아래쪽 능선 ───────────────────────────────────────────
+
+/*
+  멀리 물러난 능선 세 겹.
+
+  학교와 태양광 어레이를 형태까지 갖춰 그려 보았으나 걷어냈다 — 창과 셀 격자 같은 잔선이
+  본문 글과 같은 자리에서 부딪혀 글이 읽히지 않았다. 남긴 것은 모두 형태가 없는 면이라,
+  그 위에 글이 얹혀도 서로 비키지 않는다.
+
+  겹마다 짙기를 조금씩 달리해 사이에 거리가 생긴다.
+*/
+.scene {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  height: 26vh;
+  min-height: 190px;
+
+  /* 위쪽으로 갈수록 흐려져, 능선의 윗머리가 본문 마지막 줄과 겹치지 않는다 */
+  mask-image: linear-gradient(180deg, transparent 0%, #000 46%);
+
+  [data-level="high"] & {
+    height: 19vh;
+    opacity: 0.42;
+  }
+
+  &__far {
+    fill: var(--ok);
+    opacity: 0.06;
+  }
+
+  &__mid {
+    fill: var(--ok);
+    opacity: 0.09;
+  }
+
+  &__near {
+    fill: var(--ok);
+    opacity: 0.13;
+  }
+}
+
+@keyframes sun-breathe {
+  from {
+    transform: scale(0.94);
+    opacity: 0.5;
+  }
+
+  to {
+    transform: scale(1.05);
+    opacity: 1;
+  }
+}
+
+@keyframes orb-drift {
+  from {
+    transform: translate(0, 0);
+  }
+
+  to {
+    transform: translate(-6%, 5%);
+  }
+}
+
+/* 구름은 화면 밖에서 들어와 화면 밖으로 나간다 — 시작과 끝이 보이면 안 된다 */
+@keyframes cloud-cross {
+  from {
+    translate: 0;
+  }
+
+  to {
+    translate: 1500px;
+  }
+}
