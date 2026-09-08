@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Button } from '@/components/common/Button';
 import { ConfirmDialog } from '@/components/common/ConfirmDialog';
-import { flattenTemplate, INSPECTION_TARGET_OPTIONS } from '@/mocks/fieldReport';
+import { INSPECTION_TARGET_OPTIONS, templateQuestions } from '@/mocks/fieldReport';
 import { FormField, FormRow, FormSection, SelectControl, TextArea, TextField } from '@/components/common/Form';
 import { Modal } from '@/components/common/Modal';
 import { MSG } from '@/configs/messages';
@@ -92,7 +92,7 @@ export function ReportEditor({ origin, onClose }: ReportEditorProps) {
   const [confirming, setConfirming] = useState<'draft' | 'submit' | null>(null);
 
   const template = templateOf(draft.templateId);
-  const questions = flattenTemplate(template);
+  const questions = templateQuestions(template);
   const change = (next: Partial<DraftState>) => setDraft({ ...draft, ...next });
 
   /** 필수 항목이 다 채워졌는지 (SIF-001-02) */

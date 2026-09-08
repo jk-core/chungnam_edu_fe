@@ -24,17 +24,9 @@ export type ReportState = 'draft' | 'submitted' | 'reviewing' | 'confirmed' | 'r
 
 export interface ChecklistItem {
   id: string;
-  /** 속한 대분류 — 표준 점검표가 항목을 묶어 놓는다 (SFR-021-03) */
-  section: string;
   label: string;
   result: CheckResult | null;
   note: string;
-}
-
-/** 점검 양식의 대분류 한 묶음 (SFR-021-03) */
-export interface TemplateSection {
-  title: string;
-  items: string[];
 }
 
 /**
@@ -60,7 +52,8 @@ export interface ReportTemplate {
   startDate: string;
   /** 이번 회차 마감기한 (SFR-021-19) */
   dueDate: string;
-  sections: TemplateSection[];
+  /** 점검 문항. 차례가 곧 순번이다 */
+  items: string[];
 }
 
 /** 이번 회차를 냈는가 — 시작일~마감기한 사이에 낸 보고서가 있으면 완료다 (SFR-021-19) */

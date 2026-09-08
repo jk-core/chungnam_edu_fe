@@ -357,7 +357,32 @@
   }
 }
 
-.stringFoot {
+// 점검 문항 편집 — 한 줄이 문항 하나다
+.checkList {
+  display: flex;
+  flex-direction: column;
+}
+
+.checkRow {
+  display: grid;
+  grid-template-columns: 24px minmax(0, 1fr) auto;
+
+  /* 오류 문구가 붙은 행만 길어진다 — 끝을 맞추면 그 행의 입력창이 혼자 위로 솟는다. */
+  align-items: start;
+  gap: s.$space-3;
+  padding: s.$space-2 0;
+
+  &__no {
+    @include t.body-sm;
+
+    padding-top: s.$space-2;
+    color: var(--text-muted);
+    text-align: right;
+  }
+}
+
+// 입력 줄 목록의 발치 — 좌측 합계, 우측 추가 버튼
+.rowFoot {
   display: flex;
   align-items: center;
   justify-content: space-between;

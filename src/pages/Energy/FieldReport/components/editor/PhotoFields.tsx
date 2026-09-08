@@ -40,10 +40,7 @@ export function PhotoFields({ photos, onChange, links, onLink, questions }: Phot
                 value={links[file.id] ?? ''}
                 options={[
                   { value: '', label: '보고서 전체' },
-                  ...questions.map((question) => ({
-                    value: question.id,
-                    label: `${question.section} · ${question.label}`,
-                  })),
+                  ...questions.map((question) => ({ value: question.id, label: question.label })),
                 ]}
                 onChange={(value) => onLink(file.id, value)}
               />

@@ -11,40 +11,15 @@ import styles from '@/components/report/Report.module.scss';
   점검 항목 수가 양식마다 크게 달라(2~27문항) 장수는 고정하지 않고 항목을 잘라 담는다.
 */
 
-/** 한 장에 담을 줄 수. 대분류 제목도 한 줄로 센다. */
+/** 한 장에 담을 문항 수 */
 const ROWS_PER_PAGE = 22;
 
-interface ChecklistPage {
-  /** 이 장에 실을 줄 — 대분류가 바뀌는 자리에 제목 줄이 낀다 */
-  rows: ({ kind: 'section'; title: string } | { kind: 'item'; item: ChecklistItem; no: number })[];
-}
+function paginate(checklist: ChecklistItem[]): ChecklistItem[][] {
+  const pages: ChecklistItem[][] = [];
 
-/** 점검 항목을 대분류 제목과 함께 장 단위로 자른다. */
-function paginate(checklist: ChecklistItem[]): ChecklistPage[] {
-  const pages: ChecklistPage[] = [];
-  let current: ChecklistPage = { rows: [] };
-  let section = '';
-
-  checklist.forEach((item, index) => {
-    const needsHead = item.section !== section;
-    const cost = needsHead ? 2 : 1;
-
-    if (current.rows.length > 0 && current.rows.length + cost > ROWS_PER_PAGE) {
-      pages.push(current);
-      current = { rows: [] };
-      // 장이 넘어가면 대분류 제목을 다시 세워 준다 — 어느 묶음인지 종이마다 보여야 한다.
-      section = '';
-    }
-
-    if (item.section !== section) {
-      current.rows.push({ kind: 'section', title: item.section });
-      section = item.section;
-    }
-
-    current.rows.push({ kind: 'item', item, no: index + 1 });
-  });
-
-  if (current.rows.length > 0) pages.push(current);
+  for (let index = 0; index < checklist.length; index += ROWS_PER_PAGE) {
+    pages.push(checklist.slice(index, index + ROWS_PER_PAGE));
+  }
 
   return pages;
 }
@@ -131,18 +106,14 @@ export function FieldReportSheet({ report }: FieldReportSheetProps) {
               </tr>
             </thead>
             <tbody>
-              {page.rows.map((row) => (row.kind === 'section' ? (
-                <tr key={`s-${row.title}`}>
-                  <th colSpan={4}>{row.title}</th>
+              {page.map((item, rowIndex) => (
+                <tr key={item.id}>
+                  <td>{index * ROWS_PER_PAGE + rowIndex + 1}</td>
+                  <td>{item.label}</td>
+                  <td>{item.result ? CHECK_LABEL[item.result] : '미기재'}</td>
+                  <td>{item.note || '—'}</td>
                 </tr>
-              ) : (
-                <tr key={row.item.id}>
-                  <td>{row.no}</td>
-                  <td>{row.item.label}</td>
-                  <td>{row.item.result ? CHECK_LABEL[row.item.result] : '미기재'}</td>
-                  <td>{row.item.note || '—'}</td>
-                </tr>
-              )))}
+              ))}
             </tbody>
           </table>
 

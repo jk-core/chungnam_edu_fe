@@ -94,7 +94,7 @@ export function StringRows({
         </div>
       )}
 
-      <div className={styles.stringFoot}>
+      <div className={styles.rowFoot}>
         <p className={styles.toolbar__note}>
           {formatNumber(fields.length)}조 · 모듈 {formatNumber(panels)}장
         </p>

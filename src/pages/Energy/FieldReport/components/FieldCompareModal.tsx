@@ -72,24 +72,20 @@ export function FieldCompareModal({ isOpen, reports, onClose }: FieldCompareModa
                 <Badge tone="caution">결과가 달라진 줄만 배경을 칠했습니다</Badge>
               </p>
 
-              {rows.map((row, index) => (
-                <div key={row.item.id}>
-                  {index === 0 || row.item.section !== rows[index - 1].item.section ? (
-                    <p className={styles.sectionHead}>{row.item.section}</p>
-                  ) : null}
-                  <div
-                    className={cn(styles.compareRow, {
-                      [styles['compareRow--diff']]: row.leftResult !== row.rightResult,
-                    })}
-                  >
-                    <span className={styles.compareRow__label}>{row.item.label}</span>
-                    <span className={styles.compareRow__value}>
-                      {row.leftResult ? CHECK_LABEL[row.leftResult] : '미기재'}
-                    </span>
-                    <span className={styles.compareRow__value}>
-                      {row.rightResult ? CHECK_LABEL[row.rightResult] : '미기재'}
-                    </span>
-                  </div>
+              {rows.map((row) => (
+                <div
+                  key={row.item.id}
+                  className={cn(styles.compareRow, {
+                    [styles['compareRow--diff']]: row.leftResult !== row.rightResult,
+                  })}
+                >
+                  <span className={styles.compareRow__label}>{row.item.label}</span>
+                  <span className={styles.compareRow__value}>
+                    {row.leftResult ? CHECK_LABEL[row.leftResult] : '미기재'}
+                  </span>
+                  <span className={styles.compareRow__value}>
+                    {row.rightResult ? CHECK_LABEL[row.rightResult] : '미기재'}
+                  </span>
                 </div>
               ))}
             </>

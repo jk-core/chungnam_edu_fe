@@ -95,9 +95,11 @@ const useFieldReportStore = create<FieldReportState>()(
         1 판의 보고서에는 점검 설비 목록과 발전소 정보가 들어 있고 점검대상이 이름 문자열이었다.
         양식도 `targetKind` 로 갈래를 담았다 — 옛 값을 그대로 읽으면 점검대상 칸이 빈다.
         2 판은 점검자 연락처를 `basics` 안에 담았다 — 그대로 읽으면 연락처 칸이 빈다.
+        3 판까지 양식이 대분류를 갖고 문항 id 에 그 순번이 박혀 있었다 — 그대로 읽으면 양식이
+        터지고 사진·답의 연결이 조용히 어긋난다.
         판이 다르면 보고서·양식 저장분을 비우고 시드에서 다시 세운다.
       */
-      version: 3,
+      version: 4,
       migrate: (persisted) => ({
         ...(persisted as FieldReportState),
         created: [],

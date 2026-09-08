@@ -3,7 +3,6 @@ import { Badge } from '@/components/common/Badge';
 import { Button } from '@/components/common/Button';
 import { Card } from '@/components/common/Card';
 import { createPath, editPath } from '@/pages/Admin/_shared/adminPath';
-import { flattenTemplate } from '@/mocks/fieldReport';
 import { formatNumber } from '@/utils/format';
 import { PlusIcon } from '@/components/common/Icon';
 import { Reveal } from '@/components/common/Reveal';
@@ -29,16 +28,7 @@ export function TemplateTable() {
   const navigate = useNavigate();
 
   const columns: Column<ReportTemplate>[] = [
-    {
-      key: 'label',
-      header: '양식명',
-      render: (row) => (
-        <span className={styles.stackCell}>
-          <strong>{row.label}</strong>
-          <span className={styles.stackCell__sub}>{row.sections.map((section) => section.title).join(' · ')}</span>
-        </span>
-      ),
-    },
+    { key: 'label', header: '양식명', render: (row) => row.label },
     {
       key: 'type',
       header: '점검 유형',
@@ -46,13 +36,7 @@ export function TemplateTable() {
       render: (row) => <Badge tone={row.inspectType === '특별' ? 'caution' : 'neutral'}>{row.inspectType}</Badge>,
     },
     { key: 'targetType', header: '점검 대상', width: '110px', render: (row) => row.targetType },
-    {
-      key: 'count',
-      header: '분류 · 문항',
-      width: '120px',
-      align: 'right',
-      render: (row) => `${row.sections.length}분류 · ${flattenTemplate(row).length}문항`,
-    },
+    { key: 'count', header: '문항', width: '80px', align: 'right', render: (row) => `${row.items.length}문항` },
     {
       key: 'period',
       header: '점검 기간',
