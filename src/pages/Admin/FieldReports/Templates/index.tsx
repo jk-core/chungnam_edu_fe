@@ -8,7 +8,7 @@ import { TemplateTable } from './components/TemplateTable';
 /**
  * 점검 양식 등록·편집과 판 관리 (SFR-021-14).
  *
- * 초안(분류·문항·개정 사유)은 편집기가 통째로 가진다 — 어느 양식을 고쳤는지는 주소가 쥔다.
+ * 초안(문항·개정 사유)은 편집기가 통째로 가진다 — 어느 양식을 고쳤는지는 주소가 쥔다.
  */
 function TemplatesDepth({ depth }: { depth: AdminDepth }) {
   const [params] = useSearchParams();

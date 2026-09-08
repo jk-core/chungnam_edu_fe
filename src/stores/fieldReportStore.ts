@@ -106,6 +106,8 @@ const useFieldReportStore = create<FieldReportState>()(
         patched: {},
         templateCreated: [],
         templatePatched: {},
+        // 지운 양식 목록만 남기면 시드가 도로 지워져 고를 양식이 0개가 된다.
+        templateDeleted: [],
       }),
     },
   ),

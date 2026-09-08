@@ -72,8 +72,6 @@ export function TemplateEditor({ template }: TemplateEditorProps) {
     name: 'items',
   });
   const items = useWatch({ control: methods.control, name: 'items' });
-  // 배열 자체의 오류(한 개 이상)는 어느 칸에도 안 붙는다 — 합계 줄에 얹어 준다.
-  const listError = methods.getFieldState('items', methods.formState).error;
 
   // 문항이 그대로면 낼 새 판이 없다 — 판 번호도 개정 사유도 그때만 걸린다.
   const isRevising = template === null || hasItemChange(items, template);
@@ -176,6 +174,7 @@ export function TemplateEditor({ template }: TemplateEditorProps) {
                     hideLabel
                     name={`items.${index}.label`}
                     maxLength={CHECK_NAME_MAX}
+                    required
                   />
                   {fields.length > 1 ? (
                     <Button size="sm" variant="ghost" onClick={() => remove(index)}>빼기</Button>
@@ -185,9 +184,7 @@ export function TemplateEditor({ template }: TemplateEditorProps) {
             </div>
 
             <div className={styles.rowFoot}>
-              <p className={styles.toolbar__note}>
-                {toItems(items ?? []).length}문항{listError?.message ? ` · ${listError.message}` : ''}
-              </p>
+              <p className={styles.toolbar__note}>{toItems(items).length}문항</p>
               <Button variant="secondary" iconLeft={<PlusIcon />} onClick={() => append({ label: '' })}>
                 문항 추가
               </Button>
