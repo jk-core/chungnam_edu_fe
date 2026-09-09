@@ -138,18 +138,3 @@ export interface EquipmentMaster {
   firstReceivedAt: string | null;
   lastReceivedAt: string | null;
 }
-
-/** 장비 등록 정보 변경 이력 한 건 (SFR-016-06) — 일곱 갈래가 함께 쓴다 */
-export type DeviceKind = 'rtu' | 'equipment' | 'inverter' | 'junction' | 'module' | 'string' | 'pyranometer';
-
-export interface DeviceChange {
-  id: string;
-  kind: DeviceKind;
-  targetId: string;
-  targetName: string;
-  at: string;
-  actor: string;
-  field: string;
-  before: string;
-  after: string;
-}

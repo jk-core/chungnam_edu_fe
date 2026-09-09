@@ -177,7 +177,7 @@ export function GroupEditor({ userId }: GroupEditorProps) {
               </ul>
             )}
 
-            <div className={styles.stringFoot}>
+            <div className={styles.rowFoot}>
               <p className={styles.toolbar__note}>같은 발전소를 두 번 고를 수는 없습니다.</p>
               <PlantAdder
                 rows={plants.filter((plant) => !plantIds.includes(plant.plantId))}

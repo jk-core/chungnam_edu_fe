@@ -40,18 +40,6 @@ export interface PlantAsset {
   etc: string;
 }
 
-/** 등록 정보 수정 이력 한 건 (SFR-016-06) */
-export interface AssetChange {
-  id: string;
-  plantId: string;
-  plantName: string;
-  at: string;
-  actor: string;
-  field: string;
-  before: string;
-  after: string;
-}
-
 /** RTU 한 대. 관리 화면은 없고 수집 주기·상태를 읽는 쪽만 쓴다 */
 export interface Rtu {
   id: string;

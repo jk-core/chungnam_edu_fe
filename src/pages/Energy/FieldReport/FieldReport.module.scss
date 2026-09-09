@@ -149,16 +149,6 @@
   }
 }
 
-// 표준 점검표의 대분류 — 문항 묶음이 어디서 갈리는지 보여 준다
-.sectionHead {
-  @include t.label-sm;
-
-  margin: s.$space-4 0 s.$space-2;
-  padding-bottom: s.$space-2;
-  border-bottom: 1px solid var(--border-subtle);
-  color: var(--brand);
-}
-
 .reject {
   display: flex;
   flex-direction: column;

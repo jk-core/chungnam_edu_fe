@@ -94,7 +94,6 @@ export function ReportSheet({ report, fieldReports }: ReportSheetProps) {
     .map((check) => ({
       key: `${item.id}-${check.id}`,
       date: item.date,
-      section: check.section,
       label: check.label,
       note: check.note,
     })));
@@ -413,13 +412,11 @@ export function ReportSheet({ report, fieldReports }: ReportSheetProps) {
             <table className={styles.table}>
               <colgroup>
                 <col style={{ width: '104px' }} />
-                <col style={{ width: '170px' }} />
                 <col />
               </colgroup>
               <thead>
                 <tr>
                   <th scope="col">점검일</th>
-                  <th scope="col">분류</th>
                   <th scope="col">항목 · 확인 내용</th>
                 </tr>
               </thead>
@@ -427,7 +424,6 @@ export function ReportSheet({ report, fieldReports }: ReportSheetProps) {
                 {fieldAbnormal.map((item) => (
                   <tr key={item.key}>
                     <td>{item.date}</td>
-                    <td>{item.section}</td>
                     <td>{item.label}{item.note ? ` — ${item.note}` : ''}</td>
                   </tr>
                 ))}

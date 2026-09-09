@@ -4,7 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Button } from '@/components/common/Button';
 import { ConfirmDialog } from '@/components/common/ConfirmDialog';
-import { createdEntry, deletedEntry, diffEntries } from '@/pages/Admin/_shared/device/deviceChangeLog';
+import { createdEntry, deletedEntry, diffEntries } from '@/pages/Admin/_shared/changeLog';
 import { createForm, FormRow, FormSection } from '@/components/common/Form';
 import { describeInverterProduct, INVERTER_KIND_LABEL } from '@/mocks/deviceMaster';
 import {
@@ -127,7 +127,7 @@ export function EquipmentEditor({ cid }: EquipmentEditorProps) {
       lastReceivedAt: target?.lastReceivedAt ?? null,
     };
     const logTarget = {
-      kind: 'equipment' as const,
+      targetType: 'equipment' as const,
       id: saved.inverterId,
       name: saved.name,
       actor: actor?.name ?? '관리자',
@@ -185,7 +185,7 @@ export function EquipmentEditor({ cid }: EquipmentEditorProps) {
       const after = new Map(built.map((row) => [row.id, row]));
 
       saveStrings(inverterId, built, diffEntries(
-        { kind: 'string', id: inverterId, name: saved.name, actor: actor?.name ?? '관리자' },
+        { targetType: 'string', id: inverterId, name: saved.name, actor: actor?.name ?? '관리자' },
         [...new Set([...before.keys(), ...after.keys()])].map((id) => {
           const prev = before.get(id);
           const next = after.get(id);
@@ -207,7 +207,7 @@ export function EquipmentEditor({ cid }: EquipmentEditorProps) {
     if (!target) return;
 
     removeEquipment(target.inverterId, deletedEntry(
-      { kind: 'equipment', id: target.inverterId, name: target.name, actor: actor?.name ?? '관리자' },
+      { targetType: 'equipment', id: target.inverterId, name: target.name, actor: actor?.name ?? '관리자' },
       `${target.plantName} · ${formatNumber(target.equipmentCapacity, 1)}kW`,
     ));
     toast.success(MSG.deleteSuccess(target.name));
@@ -513,7 +513,7 @@ export function EquipmentEditor({ cid }: EquipmentEditorProps) {
             </FormRow>
 
             {hasStrings ? (
-              <div className={styles.stringFoot}>
+              <div className={styles.rowFoot}>
                 <p className={styles.toolbar__note}>
                   {rowsError?.message
                     ?? `스트링 인버터라 스트링 구조를 함께 등록합니다 — 지금 ${formatNumber(stringRows.length)}조`}

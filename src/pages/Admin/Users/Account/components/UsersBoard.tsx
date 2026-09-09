@@ -5,19 +5,20 @@ import { createPath } from '@/pages/Admin/_shared/adminPath';
 import { formatNumber } from '@/utils/format';
 import { PlusIcon } from '@/components/common/Icon';
 import { SearchInput } from '@/components/common/SearchInput';
-import useAssetStore, { mergeUsers } from '@/stores/assetStore';
+import useAssetStore, { mergeUsers, useUserChanges } from '@/stores/assetStore';
 import styles from '@/pages/Admin/Admin.module.scss';
-import { UserHistory } from './UserHistory';
+import { ChangeHistory } from '@/pages/Admin/_shared/ChangeHistory';
 import { UserTable } from './UserTable';
 
 /**
  * 사용자 관리 (SFR-018) — 관리자만 들어온다 (SFR-018-05).
- * 검색어 하나로 목록과 이력을 함께 좁히므로 그 값만 여기서 쥔다.
+ * 검색 줄과 표가 같은 목록을 봐야 하므로 거르는 일만 여기서 한 번 한다.
  */
 export function UsersBoard() {
   const userCreated = useAssetStore((state) => state.userCreated);
   const userPatched = useAssetStore((state) => state.userPatched);
   const userDeleted = useAssetStore((state) => state.userDeleted);
+  const changes = useUserChanges();
   const navigate = useNavigate();
 
   const [keyword, setKeyword] = useState('');
@@ -65,7 +66,7 @@ export function UsersBoard() {
 
       <UserTable rows={users} />
 
-      <UserHistory keyword={keyword} />
+      <ChangeHistory title="담당자 변경 이력" rows={changes} />
     </>
   );
 }

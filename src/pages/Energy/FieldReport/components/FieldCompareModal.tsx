@@ -23,12 +23,15 @@ interface FieldCompareModalProps {
 export function FieldCompareModal({ isOpen, reports, onClose }: FieldCompareModalProps) {
   const [left, right] = [...reports].sort((a, b) => a.date.localeCompare(b.date));
   const sameTemplate = Boolean(left && right && left.templateId === right.templateId);
-  // 문항 id 가 같은 자리를 짝지어 준다. 양식이 같아도 개정으로 문항이 늘 수 있어 왼쪽을 기준으로 편다.
+  /*
+    문항 문장으로 짝지어 준다 — id 는 차례가 곧 키라, 개정으로 문항이 중간에 하나 끼면 그 뒤가
+    통째로 한 칸씩 밀려 서로 다른 문항을 나란히 놓고 「달라졌다」고 말한다.
+  */
   const rows = sameTemplate
     ? left.checklist.map((item) => ({
       item,
       leftResult: item.result,
-      rightResult: right.checklist.find((other) => other.id === item.id)?.result ?? null,
+      rightResult: right.checklist.find((other) => other.label === item.label)?.result ?? null,
     }))
     : [];
   const diffCount = rows.filter((row) => row.leftResult !== row.rightResult).length;
@@ -72,24 +75,20 @@ export function FieldCompareModal({ isOpen, reports, onClose }: FieldCompareModa
                 <Badge tone="caution">결과가 달라진 줄만 배경을 칠했습니다</Badge>
               </p>
 
-              {rows.map((row, index) => (
-                <div key={row.item.id}>
-                  {index === 0 || row.item.section !== rows[index - 1].item.section ? (
-                    <p className={styles.sectionHead}>{row.item.section}</p>
-                  ) : null}
-                  <div
-                    className={cn(styles.compareRow, {
-                      [styles['compareRow--diff']]: row.leftResult !== row.rightResult,
-                    })}
-                  >
-                    <span className={styles.compareRow__label}>{row.item.label}</span>
-                    <span className={styles.compareRow__value}>
-                      {row.leftResult ? CHECK_LABEL[row.leftResult] : '미기재'}
-                    </span>
-                    <span className={styles.compareRow__value}>
-                      {row.rightResult ? CHECK_LABEL[row.rightResult] : '미기재'}
-                    </span>
-                  </div>
+              {rows.map((row) => (
+                <div
+                  key={row.item.id}
+                  className={cn(styles.compareRow, {
+                    [styles['compareRow--diff']]: row.leftResult !== row.rightResult,
+                  })}
+                >
+                  <span className={styles.compareRow__label}>{row.item.label}</span>
+                  <span className={styles.compareRow__value}>
+                    {row.leftResult ? CHECK_LABEL[row.leftResult] : '미기재'}
+                  </span>
+                  <span className={styles.compareRow__value}>
+                    {row.rightResult ? CHECK_LABEL[row.rightResult] : '미기재'}
+                  </span>
                 </div>
               ))}
             </>

@@ -15,7 +15,8 @@ import { toast } from '@/stores/toastStore';
 import { useManagedUsers } from '@/hooks/usePlantAssets';
 import useAssetStore from '@/stores/assetStore';
 import type { UserFormValues } from '@/service/user/type';
-import type { ManagedUser, Role, UserChange } from '@/interface/account';
+import type { ChangeLog } from '@/interface/changeLog';
+import type { ManagedUser, Role } from '@/interface/account';
 import styles from '@/pages/Admin/Admin.module.scss';
 import { useUserChangeLog } from '../hooks/useUserChangeLog';
 import { EMPTY_VALUES, toFormValues } from './values';
@@ -81,17 +82,17 @@ export function UserEditor({ userId }: UserEditorProps) {
     };
 
     // 신규는 한 줄로, 수정은 실제로 달라진 항목만 남긴다 (SFR-018-04).
-    const entries: UserChange[] = isNew
+    const entries: ChangeLog[] = isNew
       ? [entryOf(saved, '신규 등록', '—', `${ROLE_LABEL[saved.role]} · ${saved.loginId}`)]
-      : TRACKED.flatMap(({ key, label }, index) => {
+      : TRACKED.flatMap(({ key, label }) => {
         const before = String(target?.[key] ?? '');
         const after = String(saved[key] ?? '');
 
         if (before === after) return [];
 
         return key === 'role'
-          ? [entryOf(saved, label, ROLE_LABEL[before as Role], ROLE_LABEL[after as Role], index)]
-          : [entryOf(saved, label, before || '—', after || '—', index)];
+          ? [entryOf(saved, label, ROLE_LABEL[before as Role], ROLE_LABEL[after as Role])]
+          : [entryOf(saved, label, before || '—', after || '—')];
       });
 
     saveUser(saved, entries);

@@ -4,7 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Button } from '@/components/common/Button';
 import { ConfirmDialog } from '@/components/common/ConfirmDialog';
-import { createdEntry, deletedEntry, diffEntries } from '@/pages/Admin/_shared/device/deviceChangeLog';
+import { createdEntry, deletedEntry, diffEntries } from '@/pages/Admin/_shared/changeLog';
 import { createForm, FormRow, FormSection } from '@/components/common/Form';
 import { formatNumber } from '@/utils/format';
 import { FormPage } from '@/pages/Admin/_shared/FormPage';
@@ -70,7 +70,7 @@ export function InverterEditor({ inverterId }: InverterEditorProps) {
       id: target?.id ?? nextId('INVP'),
       inverterId: target?.inverterId ?? nextSeq(),
     };
-    const logTarget = { kind: 'inverter' as const, id: saved.id, name: saved.name, actor: actor?.name ?? '관리자' };
+    const logTarget = { targetType: 'inverter' as const, id: saved.id, name: saved.name, actor: actor?.name ?? '관리자' };
 
     const entries = isNew
       ? createdEntry(logTarget, `${saved.maker} · ${formatNumber(saved.capacityKw, 1)}kW`)
@@ -99,7 +99,7 @@ export function InverterEditor({ inverterId }: InverterEditorProps) {
     if (!target) return;
 
     removeInverter(target.id, deletedEntry(
-      { kind: 'inverter', id: target.id, name: target.name, actor: actor?.name ?? '관리자' },
+      { targetType: 'inverter', id: target.id, name: target.name, actor: actor?.name ?? '관리자' },
       `${target.maker} · ${formatNumber(target.capacityKw, 1)}kW`,
     ));
     toast.success(MSG.deleteSuccess(target.name));
