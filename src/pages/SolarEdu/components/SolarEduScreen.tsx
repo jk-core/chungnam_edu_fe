@@ -104,7 +104,7 @@ export function SolarEduScreen({ variant }: { variant: EduVariant }) {
     <SolarEduLayout
       scopeLabel={node.fullName}
       variantLabel={cell.label}
-      scopeInfo={cell.subtitle === false ? undefined : scopeInfo}
+      scopeInfo={scopeInfo}
       scopePicker={scopePicker}
       /*
         하늘은 어느 칸에나 깐다 (2026-09-04 지시).
