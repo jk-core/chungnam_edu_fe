@@ -215,7 +215,7 @@ export function createFields<T extends FieldValues>() {
     );
   }
 
-  function Pick<V extends string>({
+  function Pick<V extends string | number>({
     name,
     options,
     label,
@@ -244,7 +244,7 @@ export function createFields<T extends FieldValues>() {
     );
   }
 
-  function Radio<V extends string>({
+  function Radio<V extends string | number>({
     name,
     options,
     label,

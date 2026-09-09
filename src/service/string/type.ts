@@ -1,70 +1,9 @@
 import { z } from 'zod';
 import { MSG } from '@/configs/messages';
-import { pagingRequest } from '@/service/common';
 
 /** 한 스트링이 받을 수 있는 직렬·병렬 수 */
 export const STRING_COUNT_MIN = 0;
 export const STRING_COUNT_MAX = 1000;
-
-/** 목록 한 줄은 설비 한 대다. 검색어는 설비 이름·CID·발전소 이름을 함께 훑는다 */
-export const stringListRequestSchema = pagingRequest.extend({
-  keyword: z.string().optional(),
-});
-
-export const stringListRowSchema = z.object({
-  cid: z.number().int(),
-  plantName: z.string(),
-  /** 설비 이름 (meainName) */
-  equipmentName: z.string(),
-  stringCount: z.number().int(),
-  /** 스트링들의 직렬 × 병렬 합 */
-  moduleCount: z.number().int(),
-});
-
-export const stringDetailRequestSchema = z.object({
-  cid: z.number().int(),
-});
-
-export const stringUnitSchema = z.object({
-  stringId: z.number().int(),
-  /** 스트링 순번. 1 부터 (stringNum) */
-  seq: z.number().int(),
-  name: z.string(),
-  /** 모듈 직렬 개수 (modulSeriCnt) */
-  seriesCount: z.number().int(),
-  /** 모듈 병렬 개수 (modulArowCnt) */
-  parallelCount: z.number().int(),
-});
-
-export const stringDetailResponseSchema = z.object({
-  cid: z.number().int(),
-  equipmentName: z.string(),
-  plantName: z.string(),
-  strings: z.array(stringUnitSchema),
-});
-
-/**
- * 한 설비의 스트링 전체를 통째로 교체한다.
- * 줄마다 `stringId` 가 있으면 수정, 없으면 등록이고, 목록에서 빠진 줄은 서버가 지운다.
- */
-export const stringSaveRequestSchema = z.object({
-  cid: z.number().int(),
-  strings: z.array(stringUnitSchema.partial({ stringId: true })),
-});
-
-export const stringDeleteRequestSchema = z.object({
-  stringId: z.number().int(),
-});
-
-export type StringListRequest = z.infer<typeof stringListRequestSchema>;
-export type StringListRow = z.infer<typeof stringListRowSchema>;
-export type StringDetailRequest = z.infer<typeof stringDetailRequestSchema>;
-export type StringUnit = z.infer<typeof stringUnitSchema>;
-export type StringDetailResponse = z.infer<typeof stringDetailResponseSchema>;
-export type StringSaveRequest = z.infer<typeof stringSaveRequestSchema>;
-export type StringDeleteRequest = z.infer<typeof stringDeleteRequestSchema>;
-
-// ── 폼 ─────────────────────────────────────────────────────
 
 /** 편집판의 한 줄. `id` 가 없으면 이번에 새로 만든 줄이다 */
 export const stringRowSchema = z.object({

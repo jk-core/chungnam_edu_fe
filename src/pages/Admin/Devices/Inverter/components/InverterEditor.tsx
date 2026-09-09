@@ -9,7 +9,8 @@ import { createForm, FormRow, FormSection } from '@/components/common/Form';
 import { formatNumber } from '@/utils/format';
 import { FormPage } from '@/pages/Admin/_shared/FormPage';
 import { INVERTER_KIND_LABEL } from '@/mocks/deviceMaster';
-import { CAPACITY_MAX, CAPACITY_MIN, inverterFormSchema } from '@/service/inverter/type';
+import { INVERTER_TYPE } from '@/configs/codes';
+import { CAPACITY_MAX, CAPACITY_MIN, inverterFormSchema, NAME_MAX } from '@/service/inverter/type';
 import { listPath } from '@/pages/Admin/_shared/adminPath';
 import { MSG } from '@/configs/messages';
 import { toast } from '@/stores/toastStore';
@@ -17,11 +18,8 @@ import { useAuthUser } from '@/stores/authStore';
 import { useInverterProducts } from '@/pages/Admin/_shared/device/useSelectableEquipment';
 import useEquipmentStore, { mergeEquipment } from '@/stores/equipmentStore';
 import type { InverterFormValues } from '@/service/inverter/type';
-import type { InverterKind, InverterProduct } from '@/interface/deviceMaster';
-import { EMPTY_VALUES, toFormValues } from './values';
-
-const KIND_OPTIONS = (Object.keys(INVERTER_KIND_LABEL) as InverterKind[])
-  .map((value) => ({ value, label: INVERTER_KIND_LABEL[value] }));
+import type { InverterProduct } from '@/interface/deviceMaster';
+import { EMPTY_VALUES, kindFromCode, toFormValues } from './values';
 
 const Form = createForm<InverterFormValues>();
 
@@ -66,9 +64,13 @@ export function InverterEditor({ inverterId }: InverterEditorProps) {
 
   const commit = (values: InverterFormValues) => {
     const saved: InverterProduct = {
-      ...values,
       id: target?.id ?? nextId('INVP'),
       inverterId: target?.inverterId ?? nextSeq(),
+      maker: values.inverterEnterpriseName,
+      name: values.inverterName,
+      capacityKw: values.inverterCapacity,
+      kind: kindFromCode(values.inverterTypeCode),
+      phase: values.phaseTypeName,
     };
     const logTarget = { targetType: 'inverter' as const, id: saved.id, name: saved.name, actor: actor?.name ?? '관리자' };
 
@@ -123,13 +125,13 @@ export function InverterEditor({ inverterId }: InverterEditorProps) {
         >
           <FormSection legend="제품 정보">
             <FormRow cols={2}>
-              <Form.Text label="업체 이름" name="maker" maxLength={120} required />
-              <Form.Text label="인버터 이름" name="name" maxLength={120} ime="latin" required />
+              <Form.Text label="업체 이름" name="inverterEnterpriseName" maxLength={NAME_MAX} required />
+              <Form.Text label="인버터 이름" name="inverterName" maxLength={NAME_MAX} ime="latin" required />
             </FormRow>
             <FormRow cols={2}>
               <Form.Number
                 label="인버터 용량"
-                name="capacityKw"
+                name="inverterCapacity"
                 min={CAPACITY_MIN}
                 max={CAPACITY_MAX}
                 step={0.1}
@@ -137,11 +139,19 @@ export function InverterEditor({ inverterId }: InverterEditorProps) {
                 placeholder={`${CAPACITY_MIN} ~ ${CAPACITY_MAX}`}
                 required
               />
-              <Form.Select label="인버터 타입" name="kind" options={KIND_OPTIONS} />
+              <Form.Select
+                label="인버터 타입"
+                name="inverterTypeCode"
+                options={[
+                  { value: INVERTER_TYPE.CODE.스트링, label: '스트링' },
+                  { value: INVERTER_TYPE.CODE.센트럴, label: '센트럴' },
+                  { value: INVERTER_TYPE.CODE.마이크로, label: '마이크로' },
+                ]}
+              />
             </FormRow>
             <Form.Radio
               label="위상 종류"
-              name="phase"
+              name="phaseTypeName"
               options={[
                 { value: '단상', label: '단상' },
                 { value: '삼상', label: '삼상' },
@@ -154,7 +164,7 @@ export function InverterEditor({ inverterId }: InverterEditorProps) {
 
       <ConfirmDialog
         isOpen={pending !== null}
-        title={isNew ? MSG.createConfirm('인버터 제품') : MSG.updateConfirm(pending?.name ?? '인버터 제품')}
+        title={isNew ? MSG.createConfirm('인버터 제품') : MSG.updateConfirm(pending?.inverterName ?? '인버터 제품')}
         confirmLabel="저장"
         onConfirm={() => pending && commit(pending)}
         onClose={() => setPending(null)}

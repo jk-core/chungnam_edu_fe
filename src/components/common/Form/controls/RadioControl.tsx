@@ -5,13 +5,13 @@ import styles from '../Form.module.scss';
 
 export type OptionTone = 'brand' | 'ok' | 'critical' | 'offline';
 
-export interface RadioOption<T extends string> {
+export interface RadioOption<T extends string | number> {
   value: T;
   label: string;
   tone?: OptionTone;
 }
 
-interface RadioControlProps<T extends string> {
+interface RadioControlProps<T extends string | number> {
   value: T | null;
   options: RadioOption<T>[];
   onChange: (value: T) => void;
@@ -20,7 +20,7 @@ interface RadioControlProps<T extends string> {
 }
 
 /** 이름은 감싸는 `FormField as="fieldset"` 이 준다 — `<label for>` 로는 여럿인 묶음을 가리킬 수 없다. */
-export function RadioControl<T extends string>({
+export function RadioControl<T extends string | number>({
   value,
   options,
   onChange,

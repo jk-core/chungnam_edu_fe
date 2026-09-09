@@ -3,6 +3,7 @@ import { useForm } from 'react-hook-form';
 import { useNavigate } from 'react-router-dom';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Button } from '@/components/common/Button';
+import { CELL_TYPE } from '@/configs/codes';
 import { CELL_TYPE_LABEL } from '@/mocks/moduleProducts';
 import { ConfirmDialog } from '@/components/common/ConfirmDialog';
 import { createdEntry, deletedEntry, diffEntries } from '@/pages/Admin/_shared/changeLog';
@@ -18,7 +19,7 @@ import { useModuleProducts } from '@/pages/Admin/Plants/Equipment/hooks/useEquip
 import useEquipmentStore, { mergeEquipment } from '@/stores/equipmentStore';
 import type { ModuleFormValues, NumericKey } from '@/service/module/type';
 import type { ModuleProduct } from '@/interface/deviceMaster';
-import { EMPTY_VALUES, toFormValues } from './values';
+import { cellTypeFromCode, EMPTY_VALUES, toFormValues } from './values';
 
 const Form = createForm<ModuleFormValues>();
 
@@ -82,9 +83,18 @@ export function ModuleEditor({ moduleId }: ModuleEditorProps) {
 
   const commit = (values: ModuleFormValues) => {
     const saved: ModuleProduct = {
-      ...values,
       id: target?.id ?? nextId('MOD'),
       moduleId: target?.moduleId ?? nextSeq(),
+      name: values.moduleName,
+      maker: values.moduleEnterpriseName,
+      cellType: cellTypeFromCode(values.cellTypeCode),
+      wattPerPanel: values.pwrMp,
+      maxVoltage: values.vltMp,
+      maxCurrent: values.curMp,
+      openVoltage: values.vltOc,
+      shortCurrent: values.curSc,
+      voltTempCoeff: values.tempVltCof,
+      currentTempCoeff: values.tempCurCof,
     };
     const logTarget = { targetType: 'module' as const, id: saved.id, name: saved.name, actor: actor?.name ?? '관리자' };
 
@@ -95,8 +105,8 @@ export function ModuleEditor({ moduleId }: ModuleEditorProps) {
         { label: '업체명', before: target?.maker ?? '', after: saved.maker },
         ...NUMERIC.map(({ key, label, unit }) => ({
           label,
-          before: target ? `${target[key]}${unit}` : '',
-          after: `${saved[key]}${unit}`,
+          before: target ? `${toFormValues(target)[key]}${unit}` : '',
+          after: `${values[key]}${unit}`,
         })),
         {
           label: '셀 종류',
@@ -138,17 +148,17 @@ export function ModuleEditor({ moduleId }: ModuleEditorProps) {
         >
           <FormSection legend="제품 정보">
             <FormRow cols={2}>
-              <Form.Text label="모듈명" name="name" required />
-              <Form.Text label="업체명" name="maker" required />
+              <Form.Text label="모듈명" name="moduleName" required />
+              <Form.Text label="업체명" name="moduleEnterpriseName" required />
             </FormRow>
             <FormRow cols={2}>
-              <NumberSpec name="wattPerPanel" />
+              <NumberSpec name="pwrMp" />
               <Form.Radio
                 label="셀 종류"
-                name="cellType"
+                name="cellTypeCode"
                 options={[
-                  { value: 'single', label: CELL_TYPE_LABEL.single },
-                  { value: 'double', label: CELL_TYPE_LABEL.double },
+                  { value: CELL_TYPE.CODE.단면, label: CELL_TYPE_LABEL.single },
+                  { value: CELL_TYPE.CODE.양면, label: CELL_TYPE_LABEL.double },
                 ]}
                 required
               />
@@ -157,19 +167,19 @@ export function ModuleEditor({ moduleId }: ModuleEditorProps) {
 
           <FormSection legend="전기 특성" hint="최대 출력 동작점과 개방·단락 값입니다.">
             <FormRow cols={2}>
-              <NumberSpec name="maxVoltage" />
-              <NumberSpec name="maxCurrent" />
+              <NumberSpec name="vltMp" />
+              <NumberSpec name="curMp" />
             </FormRow>
             <FormRow cols={2}>
-              <NumberSpec name="openVoltage" />
-              <NumberSpec name="shortCurrent" />
+              <NumberSpec name="vltOc" />
+              <NumberSpec name="curSc" />
             </FormRow>
           </FormSection>
 
           <FormSection legend="온도계수" hint="전압은 음수, 전류는 양수입니다.">
             <FormRow cols={2}>
-              <NumberSpec name="voltTempCoeff" />
-              <NumberSpec name="currentTempCoeff" />
+              <NumberSpec name="tempVltCof" />
+              <NumberSpec name="tempCurCof" />
             </FormRow>
           </FormSection>
         </FormPage>
@@ -177,7 +187,7 @@ export function ModuleEditor({ moduleId }: ModuleEditorProps) {
 
       <ConfirmDialog
         isOpen={pending !== null}
-        title={isNew ? MSG.createConfirm('모듈 제품') : MSG.updateConfirm(pending?.name ?? '모듈 제품')}
+        title={isNew ? MSG.createConfirm('모듈 제품') : MSG.updateConfirm(pending?.moduleName ?? '모듈 제품')}
         confirmLabel="저장"
         onConfirm={() => pending && commit(pending)}
         onClose={() => setPending(null)}

@@ -12,9 +12,11 @@ import {
   ARRAY_MIN,
   AZIMUTH_MAX,
   AZIMUTH_MIN,
+  COMMUNICATION_ID_MAX,
   equipmentFormSchema,
   INCLINE_MAX,
   INCLINE_MIN,
+  NAME_MAX,
   PORT_MAX,
   PORT_MIN,
 } from '@/service/equipment/type';
@@ -84,44 +86,45 @@ export function EquipmentEditor({ cid }: EquipmentEditorProps) {
   const [isDeleting, setIsDeleting] = useState(false);
 
   const userId = useWatch({ control: methods.control, name: 'userId' });
-  const plantId = useWatch({ control: methods.control, name: 'plantId' });
-  const inverterProductId = useWatch({ control: methods.control, name: 'inverterProductId' });
-  const moduleProductId = useWatch({ control: methods.control, name: 'moduleProductId' });
+  const powerPlantId = useWatch({ control: methods.control, name: 'powerPlantId' });
+  const inverterId = useWatch({ control: methods.control, name: 'inverterId' });
+  const moduleId = useWatch({ control: methods.control, name: 'moduleId' });
   const inverterKind = useWatch({ control: methods.control, name: 'inverterKind' });
   const stringRows = useWatch({ control: methods.control, name: 'rows' });
-  const note = useWatch({ control: methods.control, name: 'note' });
+  const etc = useWatch({ control: methods.control, name: 'etc' });
 
-  const module = modules.find((item) => item.id === moduleProductId);
-  const inverter = inverters.find((item) => item.id === inverterProductId);
-  const plant = plants.find((item) => item.plantId === plantId);
+  const hasUser = !Number.isNaN(userId);
+  const module = modules.find((item) => item.moduleId === moduleId);
+  const inverter = inverters.find((item) => item.inverterId === inverterId);
+  const plant = plants.find((item) => item.powerPlantId === powerPlantId);
   // 스트링 구조는 스트링 기종에만 있다.
   const hasStrings = inverterKind === 'string';
   const rowsError = methods.getFieldState('rows', methods.formState).error;
 
   const commit = (values: EquipmentFormValues) => {
-    const inverterId = target?.inverterId ?? nextId('EQP');
+    const equipmentKey = target?.inverterId ?? nextId('EQP');
     const saved: EquipmentMaster = {
-      inverterId,
+      inverterId: equipmentKey,
       cid: target?.cid ?? CID_BASE + nextSeq(),
-      plantId: values.plantId,
-      userId: values.userId === '' ? null : Number(values.userId),
-      name: values.name,
-      rtuCommId: values.rtuCommId,
+      plantId: plants.find((item) => item.powerPlantId === values.powerPlantId)?.plantId ?? '',
+      userId: values.userId,
+      name: values.equipmentName,
+      rtuCommId: values.rtuCommunicationId,
       rtuPort: values.rtuPort,
-      inverterProductId: values.inverterProductId,
-      moduleProductId: values.moduleProductId,
+      inverterProductId: inverters.find((item) => item.inverterId === values.inverterId)?.id ?? '',
+      moduleProductId: modules.find((item) => item.moduleId === values.moduleId)?.id ?? '',
       azimuth: values.azimuth,
-      inclineAngle: values.inclineAngle,
-      series1: values.series1,
-      parallel1: values.parallel1,
-      series2: values.series2,
-      parallel2: values.parallel2,
+      inclineAngle: values.inclinedAngle,
+      series1: values.moduleSerialCount,
+      parallel1: values.moduleParallelCount,
+      series2: values.moduleSerialCountSecond,
+      parallel2: values.moduleParallelCountSecond,
       equipmentCapacity: values.equipmentCapacity,
-      asExpiresAt: values.asExpiresAt.trim(),
-      note: values.note.trim(),
-      installedAt: values.installedAt.trim(),
+      asExpiresAt: values.asExpiryDate.trim(),
+      note: values.etc.trim(),
+      installedAt: values.installDate.trim(),
       // 운영일시는 설치일시를 따라간다 — 손으로 고치는 값이 아니다.
-      operatedAt: values.operatedAt.trim() || values.installedAt.trim(),
+      operatedAt: target?.operatedAt ?? values.installDate.trim(),
       // 수집기가 채우는 값이라 등록·수정에서 만들지 않는다.
       firstReceivedAt: target?.firstReceivedAt ?? null,
       lastReceivedAt: target?.lastReceivedAt ?? null,
@@ -170,12 +173,12 @@ export function EquipmentEditor({ cid }: EquipmentEditorProps) {
       설비 폼으로 값 반환」). 편집판이 곧 이 설비의 전체 목록이라 뺀 줄은 함께 지워진다.
     */
     if (hasStrings) {
-      const current = listOf(inverterId);
+      const current = listOf(equipmentKey);
       const known = new Map(current.map((row) => [row.id, row.stringId]));
       const built: StringMaster[] = values.rows.map((row, index) => ({
-        id: row.id ?? `str-${inverterId}-${Date.now().toString(36)}-${index + 1}`,
+        id: row.id ?? `str-${equipmentKey}-${Date.now().toString(36)}-${index + 1}`,
         stringId: (row.id ? known.get(row.id) : undefined) ?? nextSeq() + index + 1,
-        inverterId,
+        inverterId: equipmentKey,
         seq: row.seq,
         name: row.name,
         seriesCount: row.seriesCount,
@@ -184,8 +187,8 @@ export function EquipmentEditor({ cid }: EquipmentEditorProps) {
       const before = new Map(current.map((row) => [row.id, row]));
       const after = new Map(built.map((row) => [row.id, row]));
 
-      saveStrings(inverterId, built, diffEntries(
-        { targetType: 'string', id: inverterId, name: saved.name, actor: actor?.name ?? '관리자' },
+      saveStrings(equipmentKey, built, diffEntries(
+        { targetType: 'string', id: equipmentKey, name: saved.name, actor: actor?.name ?? '관리자' },
         [...new Set([...before.keys(), ...after.keys()])].map((id) => {
           const prev = before.get(id);
           const next = after.get(id);
@@ -248,7 +251,7 @@ export function EquipmentEditor({ cid }: EquipmentEditorProps) {
                     <RecordPicker
                       rows={users}
                       getRowKey={(row) => String(row.userId)}
-                      selectedKey={userId}
+                      selectedKey={String(userId)}
                       caption="사용자 목록. ID, 사용자, 로그인 ID, 이메일 순입니다."
                       placeholder="이름·로그인 ID·이메일로 검색"
                       match={(row, word) => row.name.includes(word)
@@ -268,19 +271,24 @@ export function EquipmentEditor({ cid }: EquipmentEditorProps) {
                         },
                       ]}
                       // 사용자를 바꾸면 앞서 고른 발전소는 그 사람 것이 아닐 수 있어 비운다.
-                      onPick={(row) => onSelect(String(row.userId) === userId
+                      onPick={(row) => onSelect(row.userId === userId
                         ? { userId, userLabel: userLabelOf(row) }
-                        : { userId: String(row.userId), userLabel: userLabelOf(row), plantId: '', plantLabel: '' })}
+                        : {
+                          userId: row.userId,
+                          userLabel: userLabelOf(row),
+                          powerPlantId: Number.NaN,
+                          powerPlantLabel: '',
+                        })}
                     />
                   </Modal>
                 )}
               />
               <Form.Picker
                 label="발전소"
-                name="plantId"
-                displayName="plantLabel"
-                placeholder={userId ? '발전소를 고르세요' : '사용자를 먼저 고르세요'}
-                disabled={!userId}
+                name="powerPlantId"
+                displayName="powerPlantLabel"
+                placeholder={hasUser ? '발전소를 고르세요' : '사용자를 먼저 고르세요'}
+                disabled={!hasUser}
                 required
                 modal={({ onSelect, onClose }) => (
                   <Modal
@@ -291,9 +299,9 @@ export function EquipmentEditor({ cid }: EquipmentEditorProps) {
                     description="고른 사용자에게 매인 발전소만 보여 줍니다."
                   >
                     <RecordPicker
-                      rows={plants.filter((item) => String(item.userId) === userId)}
-                      getRowKey={(row) => row.plantId}
-                      selectedKey={plantId}
+                      rows={plants.filter((item) => item.userId === userId)}
+                      getRowKey={(row) => String(row.powerPlantId)}
+                      selectedKey={String(powerPlantId)}
                       caption="발전소 목록. ID, 발전소 이름, 주소 순입니다."
                       placeholder="발전소 이름·ID·주소로 검색"
                       emptyTitle="이 사용자에게 매인 발전소가 없습니다"
@@ -309,21 +317,27 @@ export function EquipmentEditor({ cid }: EquipmentEditorProps) {
                           render: (row) => `${row.address} ${row.addressDetail}`.trim(),
                         },
                       ]}
-                      onPick={(row) => onSelect({ plantId: row.plantId, plantLabel: row.plantName })}
+                      onPick={(row) => onSelect({ powerPlantId: row.powerPlantId, powerPlantLabel: row.plantName })}
                     />
                   </Modal>
                 )}
               />
             </FormRow>
             <FormRow cols={2}>
-              <Form.Text label="설비 이름" name="name" maxLength={120} required />
-              <Form.Date label="설치일시" name="installedAt" placeholder="설치한 날" />
+              <Form.Text label="설비 이름" name="equipmentName" maxLength={NAME_MAX} required />
+              <Form.Date label="설치일시" name="installDate" placeholder="설치한 날" />
             </FormRow>
           </FormSection>
 
           <FormSection legend="통신" hint={`${PYRANOMETER_PORT}번 포트는 일사량계가 씁니다.`}>
             <FormRow cols={2}>
-              <Form.Text label="RTU 통신 ID" name="rtuCommId" ime="latin" maxLength={255} optional />
+              <Form.Text
+                label="RTU 통신 ID"
+                name="rtuCommunicationId"
+                ime="latin"
+                maxLength={COMMUNICATION_ID_MAX}
+                optional
+              />
               <Form.Number
                 label="RTU 통신 포트"
                 name="rtuPort"
@@ -348,7 +362,7 @@ export function EquipmentEditor({ cid }: EquipmentEditorProps) {
               />
               <Form.Number
                 label="경사각"
-                name="inclineAngle"
+                name="inclinedAngle"
                 min={INCLINE_MIN}
                 max={INCLINE_MAX}
                 unit="도"
@@ -362,7 +376,7 @@ export function EquipmentEditor({ cid }: EquipmentEditorProps) {
             <FormRow cols={2}>
               <Form.Picker
                 label="인버터 모델"
-                name="inverterProductId"
+                name="inverterId"
                 displayName="inverterLabel"
                 placeholder="인버터 모델을 고르세요"
                 required
@@ -377,8 +391,8 @@ export function EquipmentEditor({ cid }: EquipmentEditorProps) {
                   >
                     <RecordPicker
                       rows={inverters}
-                      getRowKey={(row) => row.id}
-                      selectedKey={inverterProductId}
+                      getRowKey={(row) => String(row.inverterId)}
+                      selectedKey={String(inverterId)}
                       caption="인버터 제품 목록. ID, 업체, 모델, 용량, 타입 순입니다."
                       placeholder="모델명·업체명으로 검색"
                       match={(row, word) => row.name.includes(word)
@@ -405,7 +419,7 @@ export function EquipmentEditor({ cid }: EquipmentEditorProps) {
                       ]}
                       // 타입이 스트링인지에 따라 스트링 줄을 요구할지가 갈린다 — 함께 담아 둔다.
                       onPick={(row) => onSelect({
-                        inverterProductId: row.id,
+                        inverterId: row.inverterId,
                         inverterLabel: describeInverterProduct(row),
                         inverterKind: row.kind,
                       })}
@@ -415,7 +429,7 @@ export function EquipmentEditor({ cid }: EquipmentEditorProps) {
               />
               <Form.Picker
                 label="모듈 모델"
-                name="moduleProductId"
+                name="moduleId"
                 displayName="moduleLabel"
                 placeholder="모듈 모델을 고르세요"
                 required
@@ -430,8 +444,8 @@ export function EquipmentEditor({ cid }: EquipmentEditorProps) {
                   >
                     <RecordPicker
                       rows={modules}
-                      getRowKey={(row) => row.id}
-                      selectedKey={moduleProductId}
+                      getRowKey={(row) => String(row.moduleId)}
+                      selectedKey={String(moduleId)}
                       caption="모듈 제품 목록. ID, 업체, 모델, 용량 순입니다."
                       placeholder="모델명·업체명으로 검색"
                       match={(row, word) => row.name.includes(word)
@@ -449,7 +463,7 @@ export function EquipmentEditor({ cid }: EquipmentEditorProps) {
                           render: (row) => `${formatNumber(row.wattPerPanel)}W`,
                         },
                       ]}
-                      onPick={(row) => onSelect({ moduleProductId: row.id, moduleLabel: moduleLabelOf(row) })}
+                      onPick={(row) => onSelect({ moduleId: row.moduleId, moduleLabel: moduleLabelOf(row) })}
                     />
                   </Modal>
                 )}
@@ -461,7 +475,7 @@ export function EquipmentEditor({ cid }: EquipmentEditorProps) {
             <FormRow cols={2}>
               <Form.Number
                 label="모듈 직렬 개수"
-                name="series1"
+                name="moduleSerialCount"
                 min={ARRAY_MIN}
                 max={ARRAY_MAX}
                 unit="개"
@@ -470,7 +484,7 @@ export function EquipmentEditor({ cid }: EquipmentEditorProps) {
               />
               <Form.Number
                 label="모듈 병렬 개수"
-                name="parallel1"
+                name="moduleParallelCount"
                 min={ARRAY_MIN}
                 max={ARRAY_MAX}
                 unit="개"
@@ -482,7 +496,7 @@ export function EquipmentEditor({ cid }: EquipmentEditorProps) {
               {/* MPPT 2번을 안 쓰면 비우는 게 자연스럽다 — 비운 칸은 0 으로 읽는다. */}
               <Form.Number
                 label="모듈 직렬 2번 개수"
-                name="series2"
+                name="moduleSerialCountSecond"
                 emptyValue={0}
                 min={ARRAY_MIN}
                 max={ARRAY_MAX}
@@ -491,7 +505,7 @@ export function EquipmentEditor({ cid }: EquipmentEditorProps) {
               />
               <Form.Number
                 label="모듈 병렬 2번 개수"
-                name="parallel2"
+                name="moduleParallelCountSecond"
                 emptyValue={0}
                 min={ARRAY_MIN}
                 max={ARRAY_MAX}
@@ -524,7 +538,7 @@ export function EquipmentEditor({ cid }: EquipmentEditorProps) {
           </FormSection>
 
           <FormSection legend="비고">
-            <Form.Area label="메모" name="note" optional placeholder="교체 예정이나 점검 시 주의할 점을 적어 두세요." />
+            <Form.Area label="메모" name="etc" optional placeholder="교체 예정이나 점검 시 주의할 점을 적어 두세요." />
           </FormSection>
 
           <details className={styles.more}>
@@ -532,7 +546,7 @@ export function EquipmentEditor({ cid }: EquipmentEditorProps) {
             <div className={styles.more__body}>
               <Form.Text
                 label="AS 만료일"
-                name="asExpiresAt"
+                name="asExpiryDate"
                 ime="numeric"
                 hint="YYYY-MM-DD · 기본값은 오늘로부터 5년"
                 width="md"
@@ -540,7 +554,7 @@ export function EquipmentEditor({ cid }: EquipmentEditorProps) {
               <dl className={styles.infoGrid}>
                 <div>
                   <dt>사용자 ID</dt>
-                  <dd>{userId || '—'}</dd>
+                  <dd>{hasUser ? userId : '—'}</dd>
                 </div>
                 <div>
                   <dt>RTU 업체</dt>
@@ -572,7 +586,7 @@ export function EquipmentEditor({ cid }: EquipmentEditorProps) {
                 </div>
                 <div>
                   <dt>특이사항</dt>
-                  <dd>{note || '—'}</dd>
+                  <dd>{etc || '—'}</dd>
                 </div>
               </dl>
             </div>
@@ -596,7 +610,7 @@ export function EquipmentEditor({ cid }: EquipmentEditorProps) {
 
       <ConfirmDialog
         isOpen={pending !== null}
-        title={isNew ? MSG.createConfirm('설비') : MSG.updateConfirm(pending?.name ?? '설비')}
+        title={isNew ? MSG.createConfirm('설비') : MSG.updateConfirm(pending?.equipmentName ?? '설비')}
         description={pending
           ? `설비용량은 ${formatNumber(pending.equipmentCapacity, 1)}kW 로 저장됩니다.`
           : undefined}
