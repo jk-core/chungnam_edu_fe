@@ -1,3 +1,5 @@
+import { STATUS_TYPE } from '@/configs/codes';
+import type { StatusCode } from '@/configs/codes';
 import type { BadgeTone } from '@/components/common/Badge';
 import type { OperationStatus, RtuStatus, Severity } from '@/interface/status';
 
@@ -14,30 +16,28 @@ export const OPERATION_LABEL: Record<OperationStatus, string> = {
 };
 
 /**
- * 연계 시스템이 주고받는 상태 코드.
- *
- * 화면에는 쓰지 않는다 — 값을 읽고 쓰는 경계에서만 라벨과 맞바꾼다.
- * 목업이 상태를 문자열 키로 다루는 지금은 쓰이는 곳이 없지만, 실제 API 로 넘어가면
- * 이 표가 응답을 `OperationStatus` 로 옮기는 유일한 지점이 된다.
+ * 응답의 `statusCode` 를 화면 어휘로 옮기는 유일한 지점.
+ * 코드값은 `configs/codes.ts` 가 쥔다 — 화면은 코드를 직접 쓰지 않는다.
  */
-export const OPERATION_CODE: Record<OperationStatus, string> = {
-  ready: '7001',
-  running: '7002',
-  degraded: '7003',
-  fault: '7004',
-  commLost: '7998',
+const CODE_BY_STATUS: Record<OperationStatus, StatusCode> = {
+  ready: STATUS_TYPE.CODE.준비중,
+  running: STATUS_TYPE.CODE.정상,
+  degraded: STATUS_TYPE.CODE.주의,
+  fault: STATUS_TYPE.CODE.경고,
+  commLost: STATUS_TYPE.CODE.통신단절,
 };
 
-const STATUS_BY_CODE = new Map<string, OperationStatus>(
-  (Object.entries(OPERATION_CODE) as [OperationStatus, string][]).map(([status, code]) => [code, status]),
+const STATUS_BY_CODE = new Map<StatusCode, OperationStatus>(
+  (Object.entries(CODE_BY_STATUS) as [OperationStatus, StatusCode][]).map(([status, code]) => [code, status]),
 );
 
-/**
- * 연계 코드를 상태로 옮긴다.
- * 표에 없는 코드는 통신단절로 본다 — 모르는 값을 정상으로 삼으면 이상 설비가 조용히 묻힌다.
- */
-export function operationFromCode(code: string | null | undefined): OperationStatus {
-  return (code ? STATUS_BY_CODE.get(code.trim()) : undefined) ?? 'commLost';
+/** 표에 없는 코드는 통신단절로 본다 — 모르는 값을 정상으로 삼으면 이상 설비가 조용히 묻힌다. */
+export function operationFromCode(code: StatusCode | null | undefined): OperationStatus {
+  return (code === null || code === undefined ? undefined : STATUS_BY_CODE.get(code)) ?? 'commLost';
+}
+
+export function operationToCode(status: OperationStatus): StatusCode {
+  return CODE_BY_STATUS[status];
 }
 
 /** 상태를 한 줄로 풀어 쓴 설명 — 범례와 도움말에서 쓴다. */

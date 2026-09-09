@@ -1,4 +1,9 @@
-/** 수집 한 건의 상태 — 결측·이상은 표에서 갈라 보여 준다 (SFR-009-04). */
+/**
+ * 수집 한 건의 상태 — 결측·이상은 표에서 갈라 보여 준다 (SFR-009-04).
+ *
+ * 서버 `dataStateCode` 는 열 단계다 (`configs/codes.ts` 의 `DATA_STATE`). 열을 이 셋으로
+ * 접는 규칙은 어느 코드가 어느 칸인지 BE 와 맞춘 뒤에 정한다 — 지금 정하면 추측이 표에 박힌다.
+ */
 export type RawDataState = 'normal' | 'missing' | 'abnormal';
 
 /**
