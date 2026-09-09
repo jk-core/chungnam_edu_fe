@@ -52,7 +52,6 @@ export interface MiddleBenefitContent {
     무엇을 보라는 말인지가 흐려진다. 여기서는 무엇을 할 차례인지만 말한다.
   */
   note: string;
-  caption: string;
   itemIds: ImpactId[];
   copy?: Partial<Record<ImpactId, ImpactCopy>>;
 }
@@ -149,7 +148,6 @@ export const MIDDLE_CONTENT: MiddleContent = {
   benefit: {
     head: '그래서 무엇이 좋아지는가',
     note: '그동안 만든 전기가 어느 정도인지 바꿔 보자',
-    caption: '여기서 만든 만큼 석탄과 가스를 덜 태운다. 그루 수는 줄어든 탄소를 소나무가 흡수하는 양으로 바꾼 값이다.',
     itemIds: ['co2', 'tree', 'household', 'led'],
     /*
       기본 문구는 고등 판이 읽는 말이라 여기서 두 장만 덮어쓴다.

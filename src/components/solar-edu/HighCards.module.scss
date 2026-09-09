@@ -256,18 +256,6 @@
   flex: 1;
   min-height: 0;
   list-style: none;
-
-  &__caption {
-    @include t.body-sm;
-
-    flex: none;
-    margin-top: s.$space-2;
-    font-size: 0.875rem;
-    padding: s.$space-2 s.$space-3;
-    border-radius: s.$radius-sm;
-    background-color: var(--ok-soft);
-    color: var(--ok-text);
-  }
 }
 
 .impact {

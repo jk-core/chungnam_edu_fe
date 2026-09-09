@@ -79,8 +79,6 @@ export function HighBenefitCard({ stats, content }: HighBenefitCardProps) {
           );
         })}
       </ul>
-
-      <p className={styles.benefit__caption}>{content.caption}</p>
     </section>
   );
 }
