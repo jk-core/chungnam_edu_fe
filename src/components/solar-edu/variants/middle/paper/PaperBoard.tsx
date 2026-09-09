@@ -96,7 +96,7 @@ export function PaperBoard({
 
   return (
     <div className={styles.paper} data-level={level}>
-      <PaperBackdrop nowHour={nowHour} level={level} />
+      <PaperBackdrop nowHour={nowHour} level={level} kind={weather.kind} />
 
       <aside className={styles.rail}>
         <div className={styles.scope}>
