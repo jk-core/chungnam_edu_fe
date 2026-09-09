@@ -74,19 +74,19 @@ export const MIDDLE_CONTENT: MiddleContent = {
     statIds: ['today', 'total', 'powerTime', 'co2', 'irradiance', 'capacity'],
     copy: {
       today: {
-        note: (stats) => `4인 가구 ${formatNumber(kwhToHouseholdDays(stats.todayKwh))}집이 하루에 쓰는 양이다`,
+        note: (stats) => `4인 가구 ${formatNumber(kwhToHouseholdDays(stats.todayKwh))}집분`,
       },
       powerTime: {
-        note: () => '가장 센 출력으로 쉬지 않고 만들었다면 이만큼 걸렸을 시간이다',
+        note: () => '최대 출력 기준 시간',
       },
       co2: {
-        note: () => '여기서 만든 만큼 석탄과 가스를 덜 태워서 줄어든 양이다',
+        note: () => '덜 태운 석탄·가스',
       },
       irradiance: {
-        note: (stats) => `맑은 날 한낮의 햇빛을 100점으로 놓고 매긴 점수다 (${formatNumber(stats.irradianceNow)} W/m²)`,
+        note: () => '맑은 날 한낮이 100점',
       },
       capacity: {
-        note: () => '우리 학교 설비가 한 번에 낼 수 있는 가장 큰 양이다',
+        note: () => '한 번에 내는 최대량',
       },
     },
   },

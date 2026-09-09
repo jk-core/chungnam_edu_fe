@@ -260,8 +260,8 @@ export function paperExtraReadings(stats: EduStats): PaperReading[] {
       term: '일사량',
       amount: stats.irradianceNow,
       fractionDigits: 0,
-      unit: 'W/㎡',
-      note: '지금 이 순간 지붕 1㎡ 에 닿고 있는 햇빛의 세기입니다. 출력은 이 값을 따라 움직입니다',
+      unit: 'W/m²',
+      note: '지금 이 순간 지붕 1m² 에 닿고 있는 햇빛의 세기입니다. 출력은 이 값을 따라 움직입니다',
     },
     {
       id: 'utilization',
@@ -299,7 +299,7 @@ export function paperSteps(stats: EduStats, script: PaperScript): PaperStep[] {
   const today = scaleSi(stats.todayKwh, 'Wh');
 
   const gauges: Record<StepId, { term: string; amount: number; fractionDigits: number; unit: string }> = {
-    sun: { term: '일사량', amount: stats.irradianceNow, fractionDigits: 0, unit: ' W/㎡' },
+    sun: { term: '일사량', amount: stats.irradianceNow, fractionDigits: 0, unit: ' W/m²' },
     cell: { term: '설비 대비', amount: stats.loadRatio * 100, fractionDigits: 0, unit: '%' },
     inverter: { term: '실시간 출력', amount: output.amount, fractionDigits: output.fractionDigits, unit: output.unit },
     school: { term: '금일 발전량', amount: today.amount, fractionDigits: today.fractionDigits, unit: today.unit },

@@ -63,8 +63,15 @@ export function HighBenefitCard({ stats, content }: HighBenefitCardProps) {
                     fractionDigits={figure.fractionDigits}
                     startOnView={false}
                   />
-                  {figure.countSuffix}
-                  <span>{figure.unit}</span>
+                  {/*
+                    「만」·「억」 은 숫자에 붙어야 하지만 숫자와 같은 크기로 설 것은 아니다.
+                    글자 없이 두면 큰 숫자의 크기를 그대로 받아 「773만」 의 「만」 이 세 자리
+                    숫자만큼 자리를 먹었다 (2026-09-09 지시).
+                  */}
+                  {figure.countSuffix && (
+                    <span className={styles.impact__suffix}>{figure.countSuffix}</span>
+                  )}
+                  <span className={styles.impact__unit}>{figure.unit}</span>
                 </p>
                 <p className={styles.impact__line}>{item.line}</p>
               </div>
