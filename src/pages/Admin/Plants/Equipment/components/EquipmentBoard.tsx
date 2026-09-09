@@ -1,12 +1,13 @@
 import { useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/common/Button';
+import { ChangeHistory } from '@/pages/Admin/_shared/ChangeHistory';
 import { createPath } from '@/pages/Admin/_shared/adminPath';
-import { DeviceHistory } from '@/pages/Admin/_shared/device/DeviceHistory';
 import { formatNumber } from '@/utils/format';
 import { PlusIcon } from '@/components/common/Icon';
 import { SearchInput } from '@/components/common/SearchInput';
 import styles from '@/pages/Admin/Admin.module.scss';
+import { useDeviceChanges } from '@/stores/equipmentStore';
 import { useEquipmentRows } from '../hooks/useEquipmentRows';
 import { EquipmentTable } from './EquipmentTable';
 
@@ -16,6 +17,7 @@ import { EquipmentTable } from './EquipmentTable';
  */
 export function EquipmentBoard() {
   const allRows = useEquipmentRows();
+  const changes = useDeviceChanges('equipment');
   const navigate = useNavigate();
 
   const [keyword, setKeyword] = useState('');
@@ -54,7 +56,7 @@ export function EquipmentBoard() {
 
       <EquipmentTable rows={rows} />
 
-      <DeviceHistory kind="equipment" keyword={keyword} title="설비 변경 이력" />
+      <ChangeHistory title="설비 변경 이력" rows={changes} />
     </>
   );
 }

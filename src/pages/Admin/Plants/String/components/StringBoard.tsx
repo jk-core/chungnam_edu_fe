@@ -1,12 +1,13 @@
 import { useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/common/Button';
+import { ChangeHistory } from '@/pages/Admin/_shared/ChangeHistory';
 import { createPath } from '@/pages/Admin/_shared/adminPath';
-import { DeviceHistory } from '@/pages/Admin/_shared/device/DeviceHistory';
 import { formatNumber } from '@/utils/format';
 import { PlusIcon } from '@/components/common/Icon';
 import { SearchInput } from '@/components/common/SearchInput';
 import styles from '@/pages/Admin/Admin.module.scss';
+import { useDeviceChanges } from '@/stores/equipmentStore';
 import { useStringOwners } from '../hooks/useStringData';
 import { StringTable } from './StringTable';
 
@@ -15,6 +16,7 @@ import { StringTable } from './StringTable';
  * 목록에서 조회하고, 등록·수정은 설비 한 대의 스트링을 한꺼번에 다룬다.
  */
 export function StringBoard() {
+  const changes = useDeviceChanges('string');
   const allRows = useStringOwners();
   const navigate = useNavigate();
 
@@ -52,7 +54,7 @@ export function StringBoard() {
 
       <StringTable rows={rows} />
 
-      <DeviceHistory kind="string" keyword={keyword} title="스트링 변경 이력" />
+      <ChangeHistory title="스트링 변경 이력" rows={changes} />
     </>
   );
 }

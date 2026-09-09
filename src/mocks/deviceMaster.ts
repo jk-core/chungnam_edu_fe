@@ -1,15 +1,14 @@
 import type {
-  DeviceChange,
   EquipmentMaster,
   InverterKind,
   InverterProduct,
   StringMaster,
 } from '@/interface/deviceMaster';
+import type { ChangeLog } from '@/interface/changeLog';
 import { getSeedAsset } from './assetMaster';
 import { INVERTERS } from './equipment';
 import { SEED_MODULES } from './moduleProducts';
 import { createRandom, hashSeed, pickNumber } from './random';
-import { getSchoolById } from './schools';
 import { stampAgo } from './today';
 
 /*
@@ -163,12 +162,12 @@ export function describeInverterProduct(product: InverterProduct | undefined): s
 }
 
 /** 관리 화면을 처음 열었을 때도 이력 칸이 비어 있지 않도록 몇 줄 깔아 둔다. */
-export const SEED_DEVICE_CHANGES: DeviceChange[] = [
+export const SEED_DEVICE_CHANGES: ChangeLog[] = [
   {
     id: 'DC-3104',
-    kind: 'rtu',
-    targetId: SEED_EQUIPMENT[2]?.plantId ?? '',
-    targetName: getSchoolById(SEED_EQUIPMENT[2]?.plantId ?? null)?.name ?? '',
+    targetType: 'equipment',
+    targetId: SEED_EQUIPMENT[2]?.inverterId ?? '',
+    targetName: SEED_EQUIPMENT[2]?.name ?? '',
     at: stampAgo(9, '11:05'),
     actor: '김도현',
     field: '수집 주기',
@@ -177,7 +176,7 @@ export const SEED_DEVICE_CHANGES: DeviceChange[] = [
   },
   {
     id: 'DC-3103',
-    kind: 'equipment',
+    targetType: 'equipment',
     targetId: SEED_EQUIPMENT[5]?.inverterId ?? '',
     targetName: SEED_EQUIPMENT[5]?.name ?? '',
     at: stampAgo(17, '14:30'),
@@ -188,7 +187,7 @@ export const SEED_DEVICE_CHANGES: DeviceChange[] = [
   },
   {
     id: 'DC-3101',
-    kind: 'inverter',
+    targetType: 'inverter',
     targetId: SEED_INVERTER_PRODUCTS[1].id,
     targetName: SEED_INVERTER_PRODUCTS[1].name,
     at: stampAgo(31, '16:42'),
@@ -199,7 +198,7 @@ export const SEED_DEVICE_CHANGES: DeviceChange[] = [
   },
   {
     id: 'DC-3102',
-    kind: 'module',
+    targetType: 'module',
     targetId: SEED_MODULES[1].id,
     targetName: SEED_MODULES[1].name,
     at: stampAgo(24, '09:18'),

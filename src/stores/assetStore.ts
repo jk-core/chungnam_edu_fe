@@ -1,7 +1,9 @@
 import { create } from 'zustand';
 import { createJSONStorage, persist } from 'zustand/middleware';
-import type { AssetChange, PlantAsset } from '@/interface/asset';
-import type { LoginPolicy, ManagedUser, UserChange } from '@/interface/account';
+import { useMemo } from 'react';
+import type { ChangeLog } from '@/interface/changeLog';
+import type { LoginPolicy, ManagedUser } from '@/interface/account';
+import type { PlantAsset } from '@/interface/asset';
 import { getSeedAsset, SEED_ASSET_CHANGES } from '@/mocks/assetMaster';
 import { LOGIN_POLICY, SEED_USER_CHANGES, SEED_USERS } from '@/mocks/accounts';
 
@@ -12,28 +14,28 @@ import { LOGIN_POLICY, SEED_USER_CHANGES, SEED_USERS } from '@/mocks/accounts';
 interface AssetState {
   /** 새로 등록한 발전소 (SFR-016-01) */
   plantCreated: PlantAsset[];
-  createPlant: (asset: PlantAsset, entry: AssetChange) => void;
+  createPlant: (asset: PlantAsset, entry: ChangeLog) => void;
   nextPlantId: () => string;
 
   /** 삭제한 발전소 id (SFR-016-05) — 딸린 설비도 함께 감춘다 */
   plantDeleted: string[];
-  removePlant: (plantId: string, entry: AssetChange) => void;
+  removePlant: (plantId: string, entry: ChangeLog) => void;
 
   /** 발전소 등록 정보 변경분 (SFR-016) */
   assetPatched: Record<string, Partial<PlantAsset>>;
   /** 수정 이력 — 저장할 때마다 앞에 쌓인다 (SFR-016-06) */
-  changes: AssetChange[];
-  saveAsset: (plantId: string, change: Partial<PlantAsset>, entries: AssetChange[]) => void;
+  changes: ChangeLog[];
+  saveAsset: (plantId: string, change: Partial<PlantAsset>, entries: ChangeLog[]) => void;
 
   /** 사용자 관리 변경분 (SFR-018) */
   userCreated: ManagedUser[];
   userPatched: Record<string, Partial<ManagedUser>>;
   userDeleted: string[];
   /** 담당자 변경 이력 — 저장할 때마다 앞에 쌓인다 (SFR-018-04) */
-  userChanges: UserChange[];
-  saveUser: (user: ManagedUser, entries: UserChange[]) => void;
-  patchUser: (id: string, change: Partial<ManagedUser>, entries: UserChange[]) => void;
-  removeUser: (id: string, entry: UserChange) => void;
+  userChanges: ChangeLog[];
+  saveUser: (user: ManagedUser, entries: ChangeLog[]) => void;
+  patchUser: (id: string, change: Partial<ManagedUser>, entries: ChangeLog[]) => void;
+  removeUser: (id: string, entry: ChangeLog) => void;
   nextUserId: () => string;
   /** 서버가 새로 매길 사용자 번호를 흉내 낸다 (userId) */
   nextUserSeq: () => number;
@@ -131,16 +133,18 @@ const useAssetStore = create<AssetState>()(
       storage: createJSONStorage(() => localStorage),
       /*
         1 판의 발전소에는 설치 시기가 있고 담당 업체가 없다. 사용자 등급도 그때는 다른 이름이었다.
-        옛 값을 그대로 읽으면 `managerEnterprise` 가 비어 등록 정보 화면이 그 자리에서 죽는다 —
-        판이 다르면 그 슬롯을 비우고 시드에서 다시 세운다.
+        옛 값을 그대로 읽으면 `managerEnterprise` 가 비어 등록 정보 화면이 그 자리에서 죽는다.
+        3 판에서 이력이 plantName·userName 대신 targetName 을 갖는다 — 옛 줄은 대상명 칸이 빈다.
       */
-      version: 2,
+      version: 3,
       migrate: (persisted) => ({
         ...(persisted as AssetState),
         plantCreated: [],
         assetPatched: {},
         userCreated: [],
         userPatched: {},
+        changes: [],
+        userChanges: [],
       }),
     },
   ),
@@ -168,14 +172,18 @@ export function useDeletedPlants(): string[] {
   return useAssetStore((state) => state.plantDeleted);
 }
 
-/** 시드 + 사용자 저장분이 합쳐진 수정 이력 */
-export function mergeChanges(changes: AssetChange[]): AssetChange[] {
-  return [...changes, ...SEED_ASSET_CHANGES];
+/** 시드 + 사용자 저장분이 합쳐진 발전소 수정 이력 (SFR-016-06) */
+export function usePlantChanges(): ChangeLog[] {
+  const changes = useAssetStore((state) => state.changes);
+
+  return useMemo(() => [...changes, ...SEED_ASSET_CHANGES], [changes]);
 }
 
 /** 시드 + 사용자 저장분이 합쳐진 담당자 변경 이력 (SFR-018-04) */
-export function mergeUserChanges(changes: UserChange[]): UserChange[] {
-  return [...changes, ...SEED_USER_CHANGES];
+export function useUserChanges(): ChangeLog[] {
+  const userChanges = useAssetStore((state) => state.userChanges);
+
+  return useMemo(() => [...userChanges, ...SEED_USER_CHANGES], [userChanges]);
 }
 
 /** 시드 + 변경분이 합쳐진 사용자 목록 */

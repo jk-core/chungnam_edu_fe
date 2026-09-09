@@ -1,4 +1,5 @@
-import type { AssetChange, PlantAsset } from '@/interface/asset';
+import type { ChangeLog } from '@/interface/changeLog';
+import type { PlantAsset } from '@/interface/asset';
 import { regionCodeOf } from '@/configs/regions';
 import { SCHOOLS } from './schools';
 import { SEED_USERS } from './accounts';
@@ -62,11 +63,12 @@ export function getSeedAsset(plantId: string): PlantAsset | null {
 }
 
 /** 시드 수정 이력 — 화면에서 새 수정이 이 위에 쌓인다 (SFR-016-06). */
-export const SEED_ASSET_CHANGES: AssetChange[] = [
+export const SEED_ASSET_CHANGES: ChangeLog[] = [
   {
     id: 'AC-2604',
-    plantId: SEED_ASSETS[3].plantId,
-    plantName: SEED_ASSETS[3].plantName,
+    targetType: 'powerPlant',
+    targetId: SEED_ASSETS[3].plantId,
+    targetName: SEED_ASSETS[3].plantName,
     at: stampAgo(6, '15:12'),
     actor: '김도현',
     field: 'RTU 업체',
@@ -76,8 +78,9 @@ export const SEED_ASSET_CHANGES: AssetChange[] = [
   },
   {
     id: 'AC-2603',
-    plantId: SEED_ASSETS[11].plantId,
-    plantName: SEED_ASSETS[11].plantName,
+    targetType: 'powerPlant',
+    targetId: SEED_ASSETS[11].plantId,
+    targetName: SEED_ASSETS[11].plantName,
     at: stampAgo(13, '10:44'),
     actor: '김도현',
     field: '시공 업체 연락처',
@@ -86,8 +89,9 @@ export const SEED_ASSET_CHANGES: AssetChange[] = [
   },
   {
     id: 'AC-2602',
-    plantId: SEED_ASSETS[27].plantId,
-    plantName: SEED_ASSETS[27].plantName,
+    targetType: 'powerPlant',
+    targetId: SEED_ASSETS[27].plantId,
+    targetName: SEED_ASSETS[27].plantName,
     at: stampAgo(21, '09:03'),
     actor: '박세연',
     field: '주소',

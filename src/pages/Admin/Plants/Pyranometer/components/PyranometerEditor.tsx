@@ -4,7 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Button } from '@/components/common/Button';
 import { ConfirmDialog } from '@/components/common/ConfirmDialog';
-import { createdEntry, deletedEntry, diffEntries } from '@/pages/Admin/_shared/device/deviceChangeLog';
+import { createdEntry, deletedEntry, diffEntries } from '@/pages/Admin/_shared/changeLog';
 import { createForm, FormField, FormRow, FormSection, NumberControl } from '@/components/common/Form';
 import { FormPage } from '@/pages/Admin/_shared/FormPage';
 import { listPath } from '@/pages/Admin/_shared/adminPath';
@@ -81,7 +81,7 @@ export function PyranometerEditor({ irradId }: PyranometerEditorProps) {
       status: target?.status ?? 'normal',
     };
     const logTarget = {
-      kind: 'pyranometer' as const,
+      targetType: 'irrad' as const,
       id: saved.id,
       name: saved.name,
       actor: actor?.name ?? '관리자',
@@ -115,7 +115,7 @@ export function PyranometerEditor({ irradId }: PyranometerEditorProps) {
     if (!target) return;
 
     removePyranometer(target.id, deletedEntry(
-      { kind: 'pyranometer', id: target.id, name: target.name, actor: actor?.name ?? '관리자' },
+      { targetType: 'irrad', id: target.id, name: target.name, actor: actor?.name ?? '관리자' },
       `${target.plantName} · ${target.rtuCommId}`,
     ));
     toast.success(MSG.deleteSuccess(target.name));

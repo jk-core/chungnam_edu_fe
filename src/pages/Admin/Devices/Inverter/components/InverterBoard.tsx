@@ -1,11 +1,12 @@
 import { useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/common/Button';
+import { ChangeHistory } from '@/pages/Admin/_shared/ChangeHistory';
 import { createPath } from '@/pages/Admin/_shared/adminPath';
-import { DeviceHistory } from '@/pages/Admin/_shared/device/DeviceHistory';
 import { formatNumber } from '@/utils/format';
 import { PlusIcon } from '@/components/common/Icon';
 import { SearchInput } from '@/components/common/SearchInput';
+import { useDeviceChanges } from '@/stores/equipmentStore';
 import { useInverterProducts } from '@/pages/Admin/_shared/device/useSelectableEquipment';
 import styles from '@/pages/Admin/Admin.module.scss';
 import { InverterTable } from './InverterTable';
@@ -15,6 +16,7 @@ import { InverterTable } from './InverterTable';
  * 검색 줄과 표가 같은 목록을 봐야 하므로 거르는 일만 여기서 한 번 한다.
  */
 export function InverterBoard() {
+  const changes = useDeviceChanges('inverter');
   const products = useInverterProducts();
   const navigate = useNavigate();
 
@@ -52,7 +54,7 @@ export function InverterBoard() {
 
       <InverterTable rows={rows} />
 
-      <DeviceHistory kind="inverter" keyword={keyword} title="인버터 제품 변경 이력" />
+      <ChangeHistory title="인버터 제품 변경 이력" rows={changes} />
     </>
   );
 }

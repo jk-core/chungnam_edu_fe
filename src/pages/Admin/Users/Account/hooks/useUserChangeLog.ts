@@ -1,6 +1,7 @@
-import { NOW } from '@/mocks/today';
+import { entry } from '@/pages/Admin/_shared/changeLog';
 import { useAuthUser } from '@/stores/authStore';
-import type { ManagedUser, UserChange } from '@/interface/account';
+import type { ChangeLog } from '@/interface/changeLog';
+import type { ManagedUser } from '@/interface/account';
 
 /**
  * 담당자 변경 이력 한 줄 만들기 (SFR-018-04).
@@ -14,16 +15,10 @@ export function useUserChangeLog() {
     field: string,
     before: string,
     after: string,
-    /** 한 번에 여러 줄을 남길 때 서로 다른 id 를 갖게 하는 번호 */
-    seq = 0,
-  ): UserChange => ({
-    id: `UC-${NOW.format('MMDDHHmm')}-${target.id}-${seq}`,
-    userId: target.id,
-    userName: target.name,
-    at: NOW.format('YYYY-MM-DD HH:mm'),
-    actor: actor?.name ?? '관리자',
+  ): ChangeLog => entry(
+    { targetType: 'user', id: target.id, name: target.name, actor: actor?.name ?? '관리자' },
     field,
     before,
     after,
-  });
+  );
 }

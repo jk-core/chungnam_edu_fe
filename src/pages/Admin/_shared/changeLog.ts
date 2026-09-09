@@ -1,10 +1,10 @@
 import { NOW } from '@/mocks/today';
-import type { DeviceChange, DeviceKind } from '@/interface/deviceMaster';
+import type { ChangeLog, ChangeTarget } from '@/interface/changeLog';
 
 /*
-  장비 등록 정보 변경 이력 만들기 (SFR-016-06).
+  등록 정보 변경 이력 만들기 (SFR-016-06 · SFR-018-04).
 
-  일곱 갈래가 같은 형식으로 이력을 남겨야 해서, `UsersTab.entryOf` 의 방식을 한 곳으로 뺐다.
+  발전소·설비·사용자가 같은 형식으로 이력을 남겨야 해서 한 곳으로 모았다.
   신규는 한 줄, 수정은 실제로 달라진 항목만, 삭제는 한 줄.
 */
 
@@ -15,8 +15,8 @@ export interface TrackedField {
   after: string;
 }
 
-interface Target {
-  kind: DeviceKind;
+export interface Target {
+  targetType: ChangeTarget;
   id: string;
   name: string;
   actor: string;
@@ -28,12 +28,12 @@ interface Target {
 */
 let sequence = 0;
 
-function entry(target: Target, field: string, before: string, after: string): DeviceChange {
+export function entry(target: Target, field: string, before: string, after: string): ChangeLog {
   sequence += 1;
 
   return {
-    id: `DC-${NOW.format('MMDDHHmm')}-${target.id}-${Date.now().toString(36)}-${sequence}`,
-    kind: target.kind,
+    id: `CL-${NOW.format('MMDDHHmm')}-${target.id}-${Date.now().toString(36)}-${sequence}`,
+    targetType: target.targetType,
     targetId: target.id,
     targetName: target.name,
     at: NOW.format('YYYY-MM-DD HH:mm'),
@@ -45,17 +45,17 @@ function entry(target: Target, field: string, before: string, after: string): De
 }
 
 /** 신규 등록 한 줄 */
-export function createdEntry(target: Target, summary: string): DeviceChange[] {
+export function createdEntry(target: Target, summary: string): ChangeLog[] {
   return [entry(target, '신규 등록', '—', summary)];
 }
 
 /** 삭제 한 줄 */
-export function deletedEntry(target: Target, summary: string): DeviceChange {
+export function deletedEntry(target: Target, summary: string): ChangeLog {
   return entry(target, '삭제', summary, '—');
 }
 
 /** 달라진 항목만 골라 이력으로 만든다. 값이 같으면 줄을 남기지 않는다. */
-export function diffEntries(target: Target, fields: TrackedField[]): DeviceChange[] {
+export function diffEntries(target: Target, fields: TrackedField[]): ChangeLog[] {
   return fields.flatMap(({ label, before, after }) => (
     before === after ? [] : [entry(target, label, before || '—', after || '—')]
   ));
