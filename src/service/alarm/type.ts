@@ -129,6 +129,27 @@ export const alarmTimelineSchema = z.object({
   })),
 });
 
+/** 헤더 종. 인버터·일사량계를 가르지 않고 한 목록으로 준다 — 패널이 발생 순으로 죽 세운다 */
+export type AlarmUnresolvedParams = z.infer<typeof alarmUnresolvedParamsSchema>;
+export const alarmUnresolvedParamsSchema = z.object({
+  limit: z.number().int().optional(),
+});
+
+export type AlarmUnresolved = z.infer<typeof alarmUnresolvedSchema>;
+export const alarmUnresolvedSchema = z.object({
+  totalCount: z.number().int(),
+  list: z.array(z.object({
+    alarmId: z.number().int(),
+    gathDtm: z.string(),
+    statusCode: ZodStatusCode.CODE,
+    statusName: ZodStatusCode.NAME,
+    title: z.string(),
+    powerPlantId: z.number().int(),
+    powerPlantName: z.string(),
+    equipmentName: z.string(),
+  })),
+});
+
 /** 알림 발생 조건 설정 */
 export type AlarmRule = z.infer<typeof alarmRuleSchema>;
 export const alarmRuleSchema = z.object({

@@ -11,6 +11,8 @@ import type {
   AlarmRuleParams,
   AlarmTimeline,
   AlarmTimelineParams,
+  AlarmUnresolved,
+  AlarmUnresolvedParams,
 } from './type';
 
 /** 알림이력 API */
@@ -53,3 +55,10 @@ export const getAlarmRuleList = async () => {
 };
 
 export const putAlarmRule = (data: AlarmRuleParams) => apiClient.put('/alarm/rule', data);
+
+/** 헤더 알림 종 패널 */
+export const getAlarmUnresolved = async (params: AlarmUnresolvedParams) => {
+  const { data } = await apiClient.get<AlarmUnresolved>('/alarm/unresolved', { params });
+
+  return data;
+};

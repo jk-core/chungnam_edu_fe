@@ -18,7 +18,7 @@ import useFieldReportStore from '@/stores/fieldReportStore';
 import type { TemplateFormValues } from '@/service/inspectionReport/type';
 import type { ReportTemplate } from '@/interface/fieldReport';
 import styles from '@/pages/Admin/Admin.module.scss';
-import { EMPTY_VALUES, hasItemChange, toFormValues, toItems } from './values';
+import { EMPTY_VALUES, hasItemChange, toCheckNameList, toFormValues } from './values';
 
 const INSPECT_TYPES = [
   { value: '정기' as const, label: '정기점검' },
@@ -63,31 +63,31 @@ export function TemplateEditor({ template }: TemplateEditorProps) {
       스키마를 밖에서 만들어 두면 그 판정을 못 하므로 검증 때마다 지금 값으로 세운다.
     */
     resolver: (data, context, options) => zodResolver(
-      templateFormSchema(isNew, template === null || hasItemChange(data.items, template)),
+      templateFormSchema(isNew, template === null || hasItemChange(data.checkList, template)),
     )(data, context, options),
     mode: 'onChange',
   });
-  const { fields, append, remove } = useFieldArray<TemplateFormValues, 'items'>({
+  const { fields, append, remove } = useFieldArray<TemplateFormValues, 'checkList'>({
     control: methods.control,
-    name: 'items',
+    name: 'checkList',
   });
-  const items = useWatch({ control: methods.control, name: 'items' });
+  const checkList = useWatch({ control: methods.control, name: 'checkList' });
 
   // 문항이 그대로면 낼 새 판이 없다 — 판 번호도 개정 사유도 그때만 걸린다.
-  const isRevising = template === null || hasItemChange(items, template);
+  const isRevising = template === null || hasItemChange(checkList, template);
   const nextVersion = (template?.version ?? 0) + (isRevising ? 1 : 0);
 
   const commit = (input: TemplateFormValues) => {
     const saved: ReportTemplate = {
       id: template?.id ?? nextTemplateId(),
-      inspectType: input.inspectType,
-      targetType: input.targetType,
-      label: input.label.trim(),
+      inspectType: input.reportTypeName,
+      targetType: input.targetTypeName,
+      label: input.templateName.trim(),
       version: nextVersion,
       revisedAt: isRevising ? TODAY.format('YYYY-MM-DD') : template?.revisedAt ?? TODAY.format('YYYY-MM-DD'),
       startDate: input.startDate,
-      dueDate: input.dueDate,
-      items: toItems(input.items),
+      dueDate: input.endDate,
+      items: toCheckNameList(input.checkList),
     };
 
     // 기간만 고쳤으면 이력에 남길 개정이 없다.
@@ -98,7 +98,7 @@ export function TemplateEditor({ template }: TemplateEditorProps) {
       version: nextVersion,
       at: NOW.format('YYYY-MM-DD HH:mm'),
       actor: actor?.name ?? '관리자',
-      note: isNew ? '새 양식을 등록했습니다.' : input.note.trim(),
+      note: isNew ? '새 양식을 등록했습니다.' : input.fixRemark.trim(),
     } : null, isNew);
 
     toast.success(isRevising
@@ -139,19 +139,19 @@ export function TemplateEditor({ template }: TemplateEditorProps) {
             <FormRow cols={2}>
               <Form.Text
                 label="양식명"
-                name="label"
+                name="templateName"
                 placeholder="예: 자가용 태양광 설비 안전점검 체크리스트"
                 maxLength={LABEL_MAX}
                 required
               />
               <Form.Select
                 label="점검 대상"
-                name="targetType"
+                name="targetTypeName"
                 hint="이 양식이 겨눈 설비입니다. 작성자가 바꿀 수 있습니다."
                 options={INSPECTION_TARGET_OPTIONS.map((item) => ({ value: item, label: item }))}
               />
             </FormRow>
-            <Form.Radio label="점검 유형" name="inspectType" options={INSPECT_TYPES} inline required />
+            <Form.Radio label="점검 유형" name="reportTypeName" options={INSPECT_TYPES} inline required />
           </FormSection>
 
           <FormSection
@@ -160,7 +160,7 @@ export function TemplateEditor({ template }: TemplateEditorProps) {
           >
             <FormRow cols={2}>
               <Form.Date label="시작일" name="startDate" required />
-              <Form.Date label="마감기한" name="dueDate" required />
+              <Form.Date label="마감기한" name="endDate" required />
             </FormRow>
           </FormSection>
 
@@ -172,7 +172,7 @@ export function TemplateEditor({ template }: TemplateEditorProps) {
                   <Form.Text
                     label={`${index + 1}번 문항`}
                     hideLabel
-                    name={`items.${index}.label`}
+                    name={`checkList.${index}.checkName`}
                     maxLength={CHECK_NAME_MAX}
                     required
                   />
@@ -184,8 +184,8 @@ export function TemplateEditor({ template }: TemplateEditorProps) {
             </div>
 
             <div className={styles.rowFoot}>
-              <p className={styles.toolbar__note}>{toItems(items).length}문항</p>
-              <Button variant="secondary" iconLeft={<PlusIcon />} onClick={() => append({ label: '' })}>
+              <p className={styles.toolbar__note}>{toCheckNameList(checkList).length}문항</p>
+              <Button variant="secondary" iconLeft={<PlusIcon />} onClick={() => append({ checkName: '' })}>
                 문항 추가
               </Button>
             </div>
@@ -196,7 +196,7 @@ export function TemplateEditor({ template }: TemplateEditorProps) {
             <FormSection legend="개정 사유" hint="이력에 그대로 남습니다. 무엇을 왜 고쳤는지 적어 주세요.">
               <Form.Area
                 label="개정 사유"
-                name="note"
+                name="fixRemark"
                 placeholder="예: 적외선 열화상 점검 문항을 더했습니다."
                 maxLength={REVISION_NOTE_MAX}
                 required
