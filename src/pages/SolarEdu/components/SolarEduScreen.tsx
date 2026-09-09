@@ -1,5 +1,5 @@
 import { EDU_CELLS } from '@/components/solar-edu/variants/EduBoard';
-import { EDU_CONTENT } from '@/mocks/eduContent';
+import { EDU_CONTENT, headlineFor } from '@/mocks/eduContent';
 import { EduBoard } from '@/components/solar-edu/variants/EduBoard';
 import { HeadlineStrip } from '@/components/solar-edu/HeadlineStrip';
 import { PaperBoard } from '@/components/solar-edu/variants/middle/paper/PaperBoard';
@@ -104,7 +104,7 @@ export function SolarEduScreen({ variant }: { variant: EduVariant }) {
     <SolarEduLayout
       scopeLabel={node.fullName}
       variantLabel={cell.label}
-      scopeInfo={cell.subtitle === false ? undefined : scopeInfo}
+      scopeInfo={scopeInfo}
       scopePicker={scopePicker}
       /*
         하늘은 어느 칸에나 깐다 (2026-09-04 지시).
@@ -128,7 +128,7 @@ export function SolarEduScreen({ variant }: { variant: EduVariant }) {
       date={date}
       headline={
         cell.headline
-          ? <HeadlineStrip stats={stats} content={script.headline} large={script.emphasis === 'large'} />
+          ? <HeadlineStrip stats={stats} content={headlineFor(script.headline, level)} large={script.emphasis === 'large'} />
           : undefined
       }
       facts={facts}

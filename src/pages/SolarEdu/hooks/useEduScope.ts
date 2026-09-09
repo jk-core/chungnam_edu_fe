@@ -50,7 +50,7 @@ export function useEduScope(nowHour: number) {
   /*
     보는 사람의 눈높이만 정하고 대본은 고르지 않는다.
 
-    시안마다 읽는 대본이 다르기 때문이다 — 고등 시안 a 는 초등 대본을 읽는다. 여기서 대본까지
+    시안마다 읽는 대본이 다르기 때문이다 — 중등 시안 b·c 는 초등 대본을 읽는다. 여기서 대본까지
     정해 버리면 그 어긋남을 표현할 수 없어, 대본 고르기는 시안 격자(`EDU_CELLS`)에 맡긴다.
   */
   const level = resolveEduLevel(plant, searchParams.get('level'));

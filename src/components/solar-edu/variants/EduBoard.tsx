@@ -12,7 +12,6 @@ import { ElementaryClock } from './elementary/ElementaryClock';
 import { ElementaryRelief } from './elementary/ElementaryRelief';
 import { MiddleCardDeck } from './middle/MiddleCardDeck';
 import { MiddleClock } from './middle/MiddleClock';
-import { HighPoster } from './high/HighPoster';
 
 /** 견줘 볼 시안 셋. 눈높이마다 같은 세 자리를 둔다. */
 export type EduVariant = 'a' | 'b' | 'c';
@@ -42,17 +41,10 @@ export interface EduCell {
   /** 아래를 도는 「알고 계셨나요」 줄을 다는지 */
   facts: boolean;
   /**
-   * 화면 제목 아래 한 줄(조회 대상의 설비 정보)을 다는지.
-   *
-   * 고등 a 만 뗀다 (2026-09-04 노트). 그 판은 벽보라 제목이 커야 하는데, 바로 아래에 작은 줄이
-   * 붙으면 둘이 한 덩이로 보여 제목이 눌린다. 같은 값은 머리줄 띠의 설비용량 칸에 이미 있다.
-   */
-  subtitle?: boolean;
-  /**
    * 공용 레이아웃을 쓰지 않고 골격까지 제 것을 세우는 칸인지.
    *
-   * 중등 a 하나뿐이다. 그 판은 스스로 머리줄과 고르개를 안고 그리므로 공용 껍데기에 끼우면
-   * 같은 값을 두 번 말한다. 화면이 이 표시를 보고 아예 다른 조립으로 간다.
+   * 시안 a 의 중등·고등 두 칸이다. 그 판은 스스로 머리줄과 고르개를 안고 그리므로 공용 껍데기에
+   * 끼우면 같은 값을 두 번 말한다. 화면이 이 표시를 보고 아예 다른 조립으로 간다.
    */
   standalone?: boolean;
 }
@@ -75,7 +67,13 @@ export const EDU_CELLS: Record<EduLevel, Record<EduVariant, EduCell>> = {
     c: { label: '시안 c · 한 장씩 넘겨 읽기', script: 'elementary', headline: true, facts: false },
   },
   high: {
-    a: { label: '시안 a · 한 장 그림', script: 'elementary', headline: true, facts: false, subtitle: false },
+    /*
+      중등 a 와 골격·구성이 같고 대본만 갈린다 (2026-09-09 지시).
+
+      같은 세 질문을 같은 지면으로 묻되, 값을 재는 기준(일사량·이용률)과 셈의 근거를 더 편다 —
+      시안을 견주는 자리에서 「눈높이가 무엇을 바꾸는가」 가 판형이 아니라 내용으로 드러난다.
+    */
+    a: { label: '시안 a · 세 개의 질문', script: 'high', headline: true, facts: false, standalone: true },
     b: { label: '시안 b · 데이터 콘솔', script: 'high', headline: true, facts: true },
     c: { label: '시안 c · 설명 카드 셋', script: 'middle', headline: true, facts: true },
   },
@@ -114,7 +112,7 @@ export function EduBoard({ level, variant, scopeLabel, stats, nowHour, today, fo
     return <MiddleClock stats={stats} nowHour={nowHour} weather={today} forecast={forecast} />;
   }
 
-  if (variant === 'a') return <HighPoster stats={stats} nowHour={nowHour} today={today} forecast={forecast} />;
+  // 시안 a 는 골격까지 제 것이라 화면 쪽에서 이미 갈라졌다 — 여기 닿는 것은 b·c 뿐이다.
   if (variant === 'c') return <HighCards stats={stats} content={MIDDLE_CONTENT} />;
 
   return <HighBoard scopeLabel={scopeLabel} stats={stats} content={HIGH_CONTENT} />;

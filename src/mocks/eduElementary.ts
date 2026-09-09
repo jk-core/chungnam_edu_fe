@@ -222,23 +222,23 @@ export const ELEMENTARY_CONTENT: ElementaryContent = {
       */
       today: {
         label: '오늘 이만큼 만들었어요',
-        note: (stats) => `4인 가족 ${formatNumber(kwhToHouseholdDays(stats.todayKwh))}집이 하루 쓸 양이에요`,
+        note: (stats) => `4인 가족 ${formatNumber(kwhToHouseholdDays(stats.todayKwh))}집이 쓸 양`,
       },
       total: {
         label: '그동안 이만큼 만들었어요',
-        note: () => '학교에 태양전지를 놓은 뒤로 모두 더한 양이에요',
+        note: () => '그동안 모두 더했어요',
       },
       powerTime: {
-        note: () => '가장 센 힘으로 만들면 이만큼 걸려요',
+        note: () => '가장 센 힘이었다면',
       },
       co2: {
-        note: () => '석탄과 가스를 덜 태워서 줄어든 양이에요',
+        note: () => '덜 태운 석탄·가스',
       },
       irradiance: {
-        note: () => '햇님이 얼마나 센지 점수로 나타냈어요. 맑은 날 한낮이 100점이에요',
+        note: () => '맑은 날 한낮이 100점',
       },
       capacity: {
-        note: () => '한 번에 만들 수 있는 가장 많은 양이에요',
+        note: () => '한 번에 만드는 최대량',
       },
     },
   },

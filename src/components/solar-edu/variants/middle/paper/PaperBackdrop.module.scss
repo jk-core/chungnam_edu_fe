@@ -1,3 +1,4 @@
+@use "@/styles/tokens/spacing" as s;
 @use "@/styles/utils/media" as media;
 
 /*
@@ -77,6 +78,105 @@
   }
 }
 
+// ── 날씨 ──────────────────────────────────────────────────
+
+/*
+  하늘 위에 얹는 잿빛.
+
+  색을 갈아 끼우지 않고 한 겹 덮는다 — 아래의 하늘이 비쳐 나오므로 같은 흐린 날이라도
+  아침과 저녁이 다르게 보인다. 갈아 끼우면 하루 어느 때든 같은 회색 한 장이 된다.
+
+  바탕색을 섞어 두는 것이 이 판의 몫이다. `SkyBackdrop` 은 하늘색을 값으로 박아 두어 잿빛도
+  값 그대로 얹으면 되지만, 여기는 토큰으로 그린 하늘이라 어두운 모드에서 낮의 회색이 얹히면
+  밤하늘이 도로 밝아진다. `--paper` 를 섞으면 같은 겹이 밤에는 밤 구름이 된다.
+*/
+.haze {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    180deg,
+    color-mix(in srgb, var(--haze-top) 62%, var(--paper)) 0%,
+    color-mix(in srgb, var(--haze-bottom) 62%, var(--paper)) 100%
+  );
+
+  /*
+    잿빛은 **하늘의 것**이라 지면까지 내려오지 않는다.
+
+    화면 전체를 고르게 덮어 보았더니 비 오는 날 설명 글의 명암비가 3.98 에서 3.13 으로 떨어졌다.
+    바탕 하늘이 이미 위에서 아래로 옅어지며 66% 께에서 지면 색이 되므로(`.backdrop`), 잿빛도
+    같은 자리에서 걷는다 — 하늘이 흐린 것은 그대로 보이고, 글이 앉는 아래쪽은 종이 그대로다.
+  */
+  mask-image: linear-gradient(180deg, #000 0%, #000 26%, transparent 70%);
+
+  /*
+    얼마나 얹을지는 테마가 정한다.
+
+    밝은 바탕에서 잿빛을 세게 얹으면 설명 글이 씻긴다 — 비 오는 날 명암비가 3.98 에서 3.13 까지
+    떨어졌다. 어두운 바탕은 반대로, 같은 값을 얹어도 밤하늘에 묻혀 날씨가 바뀐 줄을 모른다.
+    날씨끼리의 차이(`--haze-gray`)는 그대로 두고 전체 세기만 여기서 가른다.
+  */
+  opacity: calc(var(--haze-gray, 0) * 0.34);
+  transition: opacity 1.2s ease;
+
+  :root[data-theme="dark"] & {
+    opacity: calc(var(--haze-gray, 0) * 0.62);
+  }
+}
+
+/*
+  내리는 것.
+
+  배경에서 유일하게 곧은 선이라 눈에 잘 걸린다. 글 위를 지나가므로 하늘이 주인인 판보다
+  가늘고 옅게 긋는다 — 「비가 온다」 를 알릴 만큼만 있고, 읽는 것을 가릴 만큼은 없어야 한다.
+
+  위아래 끝을 흐려 둔다. 그러지 않으면 화면 가장자리에서 줄이 불쑥 나타났다 사라져,
+  내리는 것이 아니라 깜빡이는 것으로 보인다.
+*/
+.fall {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  mask-image: linear-gradient(180deg, transparent 0%, #000 12%, #000 76%, transparent 100%);
+}
+
+/*
+  방울 하나.
+
+  2px 에 46% 로 그었더니 하늘과의 명암비가 1.68 밖에 되지 않아, 걸어 두고 멀리서 보는 화면에서는
+  줄이 사라졌다. 굵기와 짙기를 올린다 — 이 겹은 지면(`.sheet`) **뒤**에 깔리므로 글을 가릴 수
+  없고, 그래서 배경 가운데 유일하게 또렷해도 되는 것이다.
+*/
+.drop {
+  position: absolute;
+  top: -12%;
+  width: 3px;
+  height: 24px;
+  border-radius: s.$radius-full;
+  background: linear-gradient(180deg, transparent, color-mix(in srgb, var(--text-muted) 68%, transparent));
+  animation: paper-fall linear infinite;
+
+  /*
+    눈은 긋지 않고 떨군다 — 같은 줄로 그리면 비와 구별되지 않는다.
+
+    이 파일에서 색을 값으로 박는 곳은 여기뿐이다. 눈은 흰 것이지 밝은 테마의 것이 아니어서,
+    바탕색 토큰(`--surface`)으로 칠했더니 어두운 모드에서 검은 눈이 내렸다(명암비 1.12).
+
+    밝은 바탕에서는 흰 알갱이가 흰 하늘에 묻히므로 테두리가 대신 말한다 — 알갱이는 늘 희고,
+    보이게 하는 몫은 테두리가 진다.
+  */
+  [data-kind="snow"] & {
+    width: 7px;
+    height: 7px;
+    background: rgb(255 255 255 / 92%);
+    box-shadow: 0 0 0 1.5px color-mix(in srgb, var(--text-muted) 55%, transparent);
+  }
+
+  @include media.reduced-motion {
+    animation: none;
+    opacity: 0;
+  }
+}
+
 // ── 빛 ───────────────────────────────────────────────────
 
 /*
@@ -103,7 +203,15 @@
     transparent 70%
   );
   animation: sun-breathe 16s ease-in-out infinite alternate;
-  transition: left 6s linear, top 6s linear, opacity 6s linear;
+
+  /*
+    가려진 만큼 사그라든다 (밤이거나, 구름에 가린 날).
+
+    `opacity` 로 낮추지 않는다 — 위의 숨쉬기 애니메이션이 `opacity` 를 잡고 있어 인라인으로
+    적어도 덮어써진다. 애니메이션이 건드리지 않는 `filter` 로 걸어야 둘이 겹쳐 먹는다.
+  */
+  filter: opacity(var(--sun-veil, 1));
+  transition: left 6s linear, top 6s linear, filter 2s linear;
 
   [data-level="elementary"] & {
     --size: min(52vw, 58vh);
@@ -162,6 +270,21 @@
     animation-duration: 300s;
     animation-delay: -170s;
     opacity: 0.28;
+  }
+
+  /* 넷째·다섯째는 흐린 날에만 뜬다 — 앞의 셋과 높이·속도가 겹치지 않게 흩어 둔다 */
+  &[data-cloud="4"] {
+    transform: translate(-140px, 128px) scale(1.15);
+    animation-duration: 185s;
+    animation-delay: -95s;
+    opacity: 0.42;
+  }
+
+  &[data-cloud="5"] {
+    transform: translate(-140px, 58px) scale(0.82);
+    animation-duration: 265s;
+    animation-delay: -210s;
+    opacity: 0.32;
   }
 
   @include media.reduced-motion {
@@ -245,6 +368,17 @@
 
   to {
     transform: translate(-6%, 5%);
+  }
+}
+
+/* 화면 위에서 들어와 아래로 빠져나간다 — 겹치는 자리에서 되풀이가 드러나지 않는다 */
+@keyframes paper-fall {
+  from {
+    transform: translateY(0);
+  }
+
+  to {
+    transform: translateY(130vh);
   }
 }
 

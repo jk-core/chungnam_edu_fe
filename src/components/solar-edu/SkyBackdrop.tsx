@@ -1,6 +1,7 @@
 import { cn } from '@/utils/cn';
 import { SUNRISE_HOUR, SUNSET_HOUR } from '@/mocks/generation';
 import type { WeatherKind } from '@/interface/weather';
+import { scatterDrops, WEATHER_SKY } from './weatherSky';
 import styles from './SolarEdu.module.scss';
 import type { CSSProperties } from 'react';
 
@@ -25,46 +26,8 @@ const CLOUDS = [
   { id: 'e', top: '40%', scale: 1.1, delay: '-12s', duration: '74s' },
 ];
 
-/*
-  날씨가 하늘을 어떻게 바꾸는지 (2026-09-04 회의).
-
-  상황판의 값어치는 실시간성이다 — 비 오는 날 화면에 해가 떠 있으면 나머지 수치까지 믿지 않게 된다.
-  그래서 세 갈래로 가른다: 쨍쨍한 날, 구름에 가린 날, 비·눈이 오는 날.
-
-  `sun` 은 해를 얼마나 또렷하게 둘지, `clouds` 는 몇 덩이를 띄울지, `drops` 는 무엇이 내리는지다.
-  하늘색은 원래의 시각별 색 위에 `haze` 를 `gray` 만큼 얹어 낸다.
-
-  흐린 셋의 색을 갈라 두었다 (2026-09-07 지시).
-
-  전에는 셋 다 같은 회색을 세기만 달리해 덮었다. 하늘이 넓게 드러나는 판(초등 b·c)에서는
-  구름 수와 빗줄기가 날씨를 말해 주니 그것으로 되었지만, 판이 촘촘해 하늘이 틈으로만 보이는
-  판(중등 b)에서는 그 틈에 색밖에 남지 않는다 — 같은 회색이면 흐린지 비가 오는지 알 수 없다.
-
-  비는 푸른 기가 도는 짙은 회색, 눈은 차고 흰 회색, 흐림은 그 사이의 중성 회색이다. 실제
-  하늘이 그렇게 보이기도 하거니와, 셋을 나란히 놓았을 때 무엇이 다른지 말로 옮길 수 있어야 한다.
-*/
-const WEATHER_SKY: Record<WeatherKind, {
-  sun: 'bright' | 'veiled' | 'none';
-  clouds: number;
-  drops: 'rain' | 'snow' | null;
-  gray: number;
-  /** 하늘 위에 얹는 색 — 위가 짙고 아래가 옅다 */
-  haze: [string, string];
-}> = {
-  clear: { sun: 'bright', clouds: 1, drops: null, gray: 0, haze: ['#8b98ab', '#b9c2cf'] },
-  partlyCloudy: { sun: 'bright', clouds: 3, drops: null, gray: 0.1, haze: ['#8b98ab', '#c3ccd8'] },
-  cloudy: { sun: 'veiled', clouds: 5, drops: null, gray: 0.34, haze: ['#77828f', '#aab3bf'] },
-  rain: { sun: 'none', clouds: 5, drops: 'rain', gray: 0.52, haze: ['#46566d', '#7b8a9d'] },
-  snow: { sun: 'none', clouds: 5, drops: 'snow', gray: 0.44, haze: ['#96a2af', '#d7dce2'] },
-};
-
-/** 내리는 것 스무 방울 — 자리와 속도를 흩어 두어 같은 줄이 반복돼 보이지 않게 한다 */
-const DROPS = Array.from({ length: 20 }, (_, index) => ({
-  id: index,
-  left: `${(index * 37) % 100}%`,
-  delay: `${-(index * 0.37) % 4}s`,
-  duration: `${1.6 + ((index * 13) % 9) / 10}s`,
-}));
+/* 하늘이 넓게 드러나는 판이라 촘촘히 뿌린다 — 성글면 비가 아니라 점으로 보인다 */
+const DROPS = scatterDrops(20);
 
 interface SkyBackdropProps {
   /** 지금 시각(소수 시간) — 하늘 색과 해의 높이를 정한다 */

@@ -52,7 +52,6 @@ export interface MiddleBenefitContent {
     무엇을 보라는 말인지가 흐려진다. 여기서는 무엇을 할 차례인지만 말한다.
   */
   note: string;
-  caption: string;
   itemIds: ImpactId[];
   copy?: Partial<Record<ImpactId, ImpactCopy>>;
 }
@@ -74,19 +73,19 @@ export const MIDDLE_CONTENT: MiddleContent = {
     statIds: ['today', 'total', 'powerTime', 'co2', 'irradiance', 'capacity'],
     copy: {
       today: {
-        note: (stats) => `4인 가구 ${formatNumber(kwhToHouseholdDays(stats.todayKwh))}집이 하루에 쓰는 양이다`,
+        note: (stats) => `4인 가구 ${formatNumber(kwhToHouseholdDays(stats.todayKwh))}집분`,
       },
       powerTime: {
-        note: () => '가장 센 출력으로 쉬지 않고 만들었다면 이만큼 걸렸을 시간이다',
+        note: () => '최대 출력 기준 시간',
       },
       co2: {
-        note: () => '여기서 만든 만큼 석탄과 가스를 덜 태워서 줄어든 양이다',
+        note: () => '덜 태운 석탄·가스',
       },
       irradiance: {
-        note: (stats) => `맑은 날 한낮의 햇빛을 100점으로 놓고 매긴 점수다 (${formatNumber(stats.irradianceNow)} W/m²)`,
+        note: () => '맑은 날 한낮이 100점',
       },
       capacity: {
-        note: () => '우리 학교 설비가 한 번에 낼 수 있는 가장 큰 양이다',
+        note: () => '한 번에 내는 최대량',
       },
     },
   },
@@ -149,7 +148,6 @@ export const MIDDLE_CONTENT: MiddleContent = {
   benefit: {
     head: '그래서 무엇이 좋아지는가',
     note: '그동안 만든 전기가 어느 정도인지 바꿔 보자',
-    caption: '여기서 만든 만큼 석탄과 가스를 덜 태운다. 그루 수는 줄어든 탄소를 소나무가 흡수하는 양으로 바꾼 값이다.',
     itemIds: ['co2', 'tree', 'household', 'led'],
     /*
       기본 문구는 고등 판이 읽는 말이라 여기서 두 장만 덮어쓴다.

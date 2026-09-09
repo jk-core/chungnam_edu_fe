@@ -266,7 +266,7 @@ export function buildEduInsight(stats: EduStats, scopeLabel: string): EduInsight
   const lines = [
     `${scopeLabel}의 금일 발전량은 ${energyText(stats.dayKwh)} 이다. `
     + `동일 일사 조건의 기대 발전량 ${energyText(stats.expectedKwh)} 대비 ${formatPercent(achieved)} 수준이다.`,
-    `현재 일사량는 ${formatNumber(stats.irradianceNow)}W/m² 로 ${score}점이다. `
+    `현재 일사량은 ${formatNumber(stats.irradianceNow)}W/m² 로 ${score}점이다. `
     + '기대 발전량이 날씨를 이미 반영한 값이므로, 흐린 날이라고 해서 이 비율이 낮아지지는 않는다.',
     `설비용량으로 나누면 ${formatNumber(stats.equivalentHours, 1)}시간이고, `
     + `하루 내내 최대 출력으로 돌렸을 경우와 비교하면 ${formatPercent(stats.capacityFactor)} 수준이다.`,

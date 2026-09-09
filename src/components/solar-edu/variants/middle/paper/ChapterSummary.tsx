@@ -28,7 +28,7 @@ interface ChapterSummaryProps {
 export function ChapterSummary({ stats, script, level }: ChapterSummaryProps) {
   /*
     고등에만 두 줄이 더 붙는다.
-    일사량는 출력이 왜 그만큼인지를 설명하는 원인이고, 이용률은 설비 크기가 다른 학교끼리
+    일사량은 출력이 왜 그만큼인지를 설명하는 원인이고, 이용률은 설비 크기가 다른 학교끼리
     견주는 잣대다. 초·중등에 두면 읽을 것이 많아지기만 한다.
   */
   const readings = level === 'high'

@@ -110,7 +110,7 @@ export const STAT_DEFS: Record<StatId, StatDef> = {
     scale: 'Wh',
     unit: 'kWh',
     fractionDigits: 0,
-    note: (stats) => `4인 가구 ${formatNumber(kwhToHouseholdDays(stats.todayKwh))}가구가 하루에 쓰는 양이다`,
+    note: (stats) => `4인 가구 ${formatNumber(kwhToHouseholdDays(stats.todayKwh))}집분`,
   },
   /*
     누적 발전량 (2026-09-04 회의).
@@ -124,7 +124,7 @@ export const STAT_DEFS: Record<StatId, StatDef> = {
     scale: 'Wh',
     unit: 'kWh',
     fractionDigits: 0,
-    note: () => '설치한 뒤로 지금까지 만든 전기를 모두 더한 양이다',
+    note: () => '설치 후 누적',
   },
   /*
     「일사강도」 가 아니라 「일사량」 으로 부른다 (2026-09-04 회의).
@@ -135,14 +135,14 @@ export const STAT_DEFS: Record<StatId, StatDef> = {
     value: (stats) => (stats.irradianceNow / FULL_SUN_WM2) * 100,
     unit: '점',
     fractionDigits: 0,
-    note: (stats) => `맑은 날 정오의 햇빛을 100점으로 놓고 본 값이다 (${formatNumber(stats.irradianceNow)} W/m²)`,
+    note: () => '맑은 날 정오가 100점',
   },
   powerTime: {
     label: '발전시간',
     value: (stats) => stats.equivalentHours,
     unit: '시간',
     fractionDigits: 1,
-    note: () => '발전량을 설비용량으로 나눈 값이다. 설비 크기가 달라도 견줄 수 있다',
+    note: () => '발전량 ÷ 설비용량',
   },
   co2: {
     label: '탄소 저감량',
@@ -150,7 +150,7 @@ export const STAT_DEFS: Record<StatId, StatDef> = {
     scale: 'carbon',
     unit: 'kg',
     fractionDigits: 0,
-    note: () => '화석연료로 만들었을 때와 견주어 줄어든 양이다',
+    note: () => '화석연료 대비 감축분',
   },
   /*
     설비용량.
@@ -163,7 +163,7 @@ export const STAT_DEFS: Record<StatId, StatDef> = {
     scale: 'W',
     unit: 'kW',
     fractionDigits: 1,
-    note: () => '한꺼번에 낼 수 있는 가장 큰 출력이다',
+    note: () => '설비 최대 출력',
   },
 };
 
@@ -186,10 +186,19 @@ export function energyText(kwh: number): string {
   return `${value}${unit}`;
 }
 
-/** 수준이 덮어쓸 수 있는 부분만 */
+/**
+ * 수준이 덮어쓸 수 있는 부분만.
+ *
+ * 대개는 이름과 설명 한 줄이면 된다 — 같은 값을 눈높이에 맞게 풀어 말할 뿐이다.
+ * 값과 단위까지 열어 둔 것은 **재는 방식 자체가 눈높이를 따라 갈리는 지표**가 있기 때문이다
+ * (일사량: 초·중등은 점수, 고등은 잰 값). 이름은 여전히 세 판이 같은 표준 용어를 쓴다.
+ */
 export interface StatCopy {
   label?: string;
   note?: (stats: EduStats) => string;
+  value?: (stats: EduStats) => number;
+  unit?: string;
+  fractionDigits?: number;
 }
 
 // ── 환산 레지스트리 ────────────────────────────────────────
@@ -445,7 +454,7 @@ export const HIGH_CONTENT: HighContent = {
     mainNote: (stats) =>
       `한 번에 만들 수 있는 최대치 ${capacityText(stats)} 가운데 지금 내고 있는 만큼이다`,
     statIds: ['today', 'total', 'powerTime', 'co2', 'irradiance', 'capacity'],
-    // 기본 문구가 이미 서술체이자 표준 용어라 덮어쓸 것이 없다.
+    // 기본 문구가 이미 서술체이자 표준 용어라 덮어쓸 것이 없다. 일사량은 `headlineFor` 가 맡는다.
   },
   /*
     두 마디를 한 문장씩으로 줄였다 (2026-09-07 지시 — 내용이 넘친다).
@@ -568,6 +577,40 @@ export function getEduContent(level: EduLevel): EduContent {
 /** 지표 한 줄에 수준별 덮어쓰기를 얹어 낸다. */
 export function statOf(id: StatId, copy?: StatCopy): StatDef {
   return copy ? { ...STAT_DEFS[id], ...copy } : STAT_DEFS[id];
+}
+
+/**
+ * 일사량을 점수가 아니라 잰 값으로 읽는 방식.
+ *
+ * 점수는 단위를 모르는 눈높이를 위해 맑은 날 정오를 100 으로 놓고 환산한 값이다.
+ */
+const MEASURED_IRRADIANCE: StatCopy = {
+  value: (stats) => stats.irradianceNow,
+  unit: 'W/m²',
+  fractionDigits: 0,
+  note: () => '지붕 1m² 의 햇빛 세기',
+};
+
+/**
+ * 요약 띠에 **보는 사람의 눈높이**를 얹는다 (2026-09-09 지시).
+ *
+ * 다른 것은 모두 대본이 정한다 — 어떤 칸이 어느 눈높이의 글을 읽을지는 시안 격자(`EDU_CELLS`)에
+ * 적혀 있고, 고등 시안 c 는 중등 대본을 읽는다(2026-08-31 「고등이 너무 어렵다」).
+ *
+ * 단위만 그 규칙을 따르지 않는다. 대본이 무엇을 얼마나 쉽게 말할지를 정하는 것과 달리, 「W/m² 를
+ * 읽을 수 있는가」 는 **글이 아니라 읽는 사람**에 달린 문제이기 때문이다. 대본에 매어 두었더니
+ * 같은 고등학생이 시안 b 에서는 466 W/m² 를, 시안 c 에서는 47 점을 보게 되었다.
+ *
+ * 그래서 단위를 가르는 자리를 여기 하나로 두고, 눈높이가 고등이면 어느 대본을 읽든 잰 값을 보인다.
+ */
+export function headlineFor(headline: HeadlineContent, level: EduLevel): HeadlineContent {
+  if (level !== 'high') return headline;
+
+  return {
+    ...headline,
+    // 대본이 일사량에 붙여 둔 문구가 있어도 잰 값 쪽이 이긴다
+    copy: { ...headline.copy, irradiance: { ...headline.copy?.irradiance, ...MEASURED_IRRADIANCE } },
+  };
 }
 
 /** 환산 카드 한 장에 수준별 덮어쓰기를 얹어 낸다. */
