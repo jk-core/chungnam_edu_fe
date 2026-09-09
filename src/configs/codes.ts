@@ -19,10 +19,10 @@ export const ZodStatusCode = {
 export type StatusCode = z.infer<typeof ZodStatusCode.CODE>;
 export type StatusName = z.infer<typeof ZodStatusCode.NAME>;
 
-export const STATUS_TYPE: { CODE: Record<StatusName, StatusCode>; NAME: Record<StatusCode, StatusName> } = {
+export const STATUS_TYPE = {
   CODE: { 준비중: 7001, 정상: 7002, 주의: 7003, 경고: 7004, 통신단절: 7998 },
   NAME: { 7001: '준비중', 7002: '정상', 7003: '주의', 7004: '경고', 7998: '통신단절' },
-};
+} as const satisfies { CODE: Record<StatusName, StatusCode>; NAME: Record<StatusCode, StatusName> };
 
 /** 계정 등급 (userTypeCode) */
 export const ZodUserTypeCode = {
@@ -39,7 +39,7 @@ export const ZodUserTypeCode = {
 export type UserTypeCode = z.infer<typeof ZodUserTypeCode.CODE>;
 export type UserTypeName = z.infer<typeof ZodUserTypeCode.NAME>;
 
-export const USER_TYPE: { CODE: Record<UserTypeName, UserTypeCode>; NAME: Record<UserTypeCode, UserTypeName> } = {
+export const USER_TYPE = {
   CODE: {
     기관담당자: 2002,
     그룹관리자: 2005,
@@ -56,7 +56,7 @@ export const USER_TYPE: { CODE: Record<UserTypeName, UserTypeCode>; NAME: Record
     2998: '슈퍼관리자',
     2999: '개발자',
   },
-};
+} as const satisfies { CODE: Record<UserTypeName, UserTypeCode>; NAME: Record<UserTypeCode, UserTypeName> };
 
 /** 인버터 타입 (inverterTypeCode) — 이 값이 인버터 아래 계층을 가른다 */
 export const ZodInverterTypeCode = {
@@ -66,12 +66,12 @@ export const ZodInverterTypeCode = {
 export type InverterTypeCode = z.infer<typeof ZodInverterTypeCode.CODE>;
 export type InverterTypeName = z.infer<typeof ZodInverterTypeCode.NAME>;
 
-export const INVERTER_TYPE: {
-  CODE: Record<InverterTypeName, InverterTypeCode>;
-  NAME: Record<InverterTypeCode, InverterTypeName>;
-} = {
+export const INVERTER_TYPE = {
   CODE: { 스트링: 31001, 센트럴: 31002, 마이크로: 31003 },
   NAME: { 31001: '스트링', 31002: '센트럴', 31003: '마이크로' },
+} as const satisfies {
+  CODE: Record<InverterTypeName, InverterTypeCode>;
+  NAME: Record<InverterTypeCode, InverterTypeName>;
 };
 
 /** 모듈 셀 종류 (cellTypeCode) */
@@ -82,10 +82,10 @@ export const ZodCellTypeCode = {
 export type CellTypeCode = z.infer<typeof ZodCellTypeCode.CODE>;
 export type CellTypeName = z.infer<typeof ZodCellTypeCode.NAME>;
 
-export const CELL_TYPE: { CODE: Record<CellTypeName, CellTypeCode>; NAME: Record<CellTypeCode, CellTypeName> } = {
+export const CELL_TYPE = {
   CODE: { 단면: 0, 양면: 1 },
   NAME: { 0: '단면', 1: '양면' },
-};
+} as const satisfies { CODE: Record<CellTypeName, CellTypeCode>; NAME: Record<CellTypeCode, CellTypeName> };
 
 /**
  * 수집 데이터 자체의 상태 (dataStateCode / dataStateName).
@@ -123,7 +123,7 @@ export const ZodDataStateCode = {
 export type DataStateCode = z.infer<typeof ZodDataStateCode.CODE>;
 export type DataStateName = z.infer<typeof ZodDataStateCode.NAME>;
 
-export const DATA_STATE: { CODE: Record<DataStateName, DataStateCode>; NAME: Record<DataStateCode, DataStateName> } = {
+export const DATA_STATE = {
   CODE: {
     정상: 28001,
     'TIME-OUT': 28002,
@@ -148,7 +148,7 @@ export const DATA_STATE: { CODE: Record<DataStateName, DataStateCode>; NAME: Rec
     28009: '누적값초과',
     28010: '누적값 없음(NULL)',
   },
-};
+} as const satisfies { CODE: Record<DataStateName, DataStateCode>; NAME: Record<DataStateCode, DataStateName> };
 
 /**
  * AI 진단 고장코드 (faultCode).

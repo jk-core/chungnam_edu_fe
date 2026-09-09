@@ -55,19 +55,19 @@ export function StringSheet({ cid }: StringSheetProps) {
   const methods = useForm<StringSheetFormValues>({
     defaultValues: target
       ? {
-        inverterId: target.inverterId,
-        inverterLabel: labelOf(target.inverterId, equipment),
+        cid: target.cid,
+        equipmentLabel: labelOf(target.cid, equipment),
         rows: listOf(target.inverterId).map((row) => ({
-          id: row.id,
-          seq: row.seq,
-          name: row.name,
-          seriesCount: row.seriesCount,
-          parallelCount: row.parallelCount,
+          stringId: row.stringId,
+          stringNumber: row.seq,
+          stringName: row.name,
+          moduleSerialCount: row.seriesCount,
+          moduleParallelCount: row.parallelCount,
         })),
         // 수정판은 편집판이 곧 전체 목록이라 피할 순번이 없다.
-        takenSeqs: [],
+        takenNumbers: [],
       }
-      : { inverterId: '', inverterLabel: '', rows: [], takenSeqs: [] },
+      : { cid: Number.NaN, equipmentLabel: '', rows: [], takenNumbers: [] },
     resolver: zodResolver(schema),
     mode: 'onChange',
   });
@@ -75,22 +75,25 @@ export function StringSheet({ cid }: StringSheetProps) {
   const [pending, setPending] = useState<StringSheetFormValues | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
 
-  const inverterId = useWatch({ control: methods.control, name: 'inverterId' });
+  const pickedCid = useWatch({ control: methods.control, name: 'cid' });
 
-  const owner = equipment.find((item) => item.inverterId === inverterId);
+  const owner = equipment.find((item) => item.cid === pickedCid);
 
   const commit = (values: StringSheetFormValues) => {
-    const current = listOf(values.inverterId);
-    const known = new Map(current.map((row) => [row.id, row.stringId]));
+    // 스토어는 목업 설비 키로 묶여 있다 — 계약이 쓰는 cid 를 그 키로 옮겨 준다.
+    const inverterId = equipment.find((item) => item.cid === values.cid)?.inverterId ?? '';
+    const current = listOf(inverterId);
+    const known = new Map(current.map((row) => [row.stringId, row.id]));
     const built: StringMaster[] = values.rows.map((row, index) => ({
       // 새 줄은 저장 시각과 줄 번호를 섞어 시드 id 와 겹치지 않게 한다.
-      id: row.id ?? `str-${values.inverterId}-${Date.now().toString(36)}-${index + 1}`,
-      stringId: (row.id ? known.get(row.id) : undefined) ?? nextSeq() + index + 1,
-      inverterId: values.inverterId,
-      seq: row.seq,
-      name: row.name,
-      seriesCount: row.seriesCount,
-      parallelCount: row.parallelCount,
+      id: (row.stringId === null ? undefined : known.get(row.stringId))
+        ?? `str-${inverterId}-${Date.now().toString(36)}-${index + 1}`,
+      stringId: row.stringId ?? nextSeq() + index + 1,
+      inverterId,
+      seq: row.stringNumber,
+      name: row.stringName,
+      seriesCount: row.moduleSerialCount,
+      parallelCount: row.moduleParallelCount,
     }));
 
     if (!isEdit) {
@@ -99,7 +102,7 @@ export function StringSheet({ cid }: StringSheetProps) {
         `${owner?.name ?? ''} · 순번 ${row.seq} · ${row.seriesCount}직렬 × ${row.parallelCount}병렬`,
       ));
 
-      saveStrings(values.inverterId, [...current, ...built], entries);
+      saveStrings(inverterId, [...current, ...built], entries);
       toast.success(MSG.createSuccess(`스트링 ${built.length}조`));
     } else {
       const before = new Map(current.map((row) => [row.id, row]));
@@ -108,7 +111,7 @@ export function StringSheet({ cid }: StringSheetProps) {
 
       // 설비 한 대를 대상으로 남기고, 줄마다 "순번 N 스트링" 으로 묶는다 (SFR-016-06).
       const entries = diffEntries(
-        { targetType: 'string', id: values.inverterId, name: owner?.name ?? '설비', actor: actor?.name ?? '관리자' },
+        { targetType: 'string', id: inverterId, name: owner?.name ?? '설비', actor: actor?.name ?? '관리자' },
         ids.map((id) => {
           const prev = before.get(id);
           const next = after.get(id);
@@ -121,7 +124,7 @@ export function StringSheet({ cid }: StringSheetProps) {
         }),
       );
 
-      saveStrings(values.inverterId, built, entries);
+      saveStrings(inverterId, built, entries);
       toast.success(entries.length === 0
         ? '바뀐 내용이 없습니다.'
         : MSG.updateSuccess(`${owner?.name ?? '설비'} 스트링`));
@@ -132,6 +135,7 @@ export function StringSheet({ cid }: StringSheetProps) {
 
   /** 이 설비의 스트링을 통째로 비운다 — 한 조만 지우려면 편집판에서 그 줄을 뺀다. */
   const clearAll = () => {
+    const inverterId = owner?.inverterId ?? '';
     const entries = listOf(inverterId).map((row) => deletedEntry(
       { targetType: 'string', id: row.id, name: row.name, actor: actor?.name ?? '관리자' },
       `${owner?.name ?? ''} · ${summarizeString(row)}`,
@@ -146,7 +150,7 @@ export function StringSheet({ cid }: StringSheetProps) {
     <>
       <Form methods={methods} onSubmit={setPending}>
         <FormPage
-          title={isEdit ? `${labelOf(target.inverterId, equipment)} 스트링 수정` : '스트링 등록'}
+          title={isEdit ? `${labelOf(target.cid, equipment)} 스트링 수정` : '스트링 등록'}
           description={isEdit
             ? '이 설비의 스트링을 한꺼번에 고칩니다. 줄을 빼면 저장할 때 함께 삭제됩니다.'
             : '설비를 고르고 줄을 추가합니다. 이미 등록된 스트링은 그대로 두고 새 줄만 더합니다.'}
@@ -163,8 +167,8 @@ export function StringSheet({ cid }: StringSheetProps) {
             <>
               <Form.Picker
                 label="설비"
-                name="inverterId"
-                displayName="inverterLabel"
+                name="cid"
+                displayName="equipmentLabel"
                 placeholder="스트링 인버터를 고르세요"
                 required
                 modal={({ onSelect, onClose }) => (
@@ -177,8 +181,8 @@ export function StringSheet({ cid }: StringSheetProps) {
                   >
                     <RecordPicker
                       rows={equipment}
-                      getRowKey={(row) => row.inverterId}
-                      selectedKey={inverterId}
+                      getRowKey={(row) => String(row.cid)}
+                      selectedKey={String(pickedCid)}
                       caption="스트링 인버터 목록. CID, 발전소, 설비 이름 순입니다."
                       placeholder="설비 이름·CID·발전소로 검색"
                       emptyTitle="조건에 맞는 스트링 인버터가 없습니다"
@@ -195,20 +199,20 @@ export function StringSheet({ cid }: StringSheetProps) {
                         { key: 'name', header: '설비 이름', render: (row) => row.name },
                       ]}
                       // 설비를 바꾸면 앞서 적던 줄은 다른 설비의 것이라 버리고, 피할 순번을 새로 받는다.
-                      onPick={(row) => onSelect(row.inverterId === inverterId
-                        ? { inverterId: row.inverterId, inverterLabel: labelOf(row.inverterId, equipment) }
+                      onPick={(row) => onSelect(row.cid === pickedCid
+                        ? { cid: row.cid, equipmentLabel: labelOf(row.cid, equipment) }
                         : {
-                          inverterId: row.inverterId,
-                          inverterLabel: labelOf(row.inverterId, equipment),
+                          cid: row.cid,
+                          equipmentLabel: labelOf(row.cid, equipment),
                           rows: [],
-                          takenSeqs: listOf(row.inverterId).map((item) => item.seq),
+                          takenNumbers: listOf(row.inverterId).map((item) => item.seq),
                         })}
                     />
                   </Modal>
                 )}
               />
               <p className={styles.toolbar__note}>
-                지금 {owner?.name ?? '이 설비'}에 등록된 스트링 {formatNumber(listOf(inverterId).length)}조
+                지금 {owner?.name ?? '이 설비'}에 등록된 스트링 {formatNumber(listOf(owner?.inverterId ?? '').length)}조
               </p>
             </>
           )}
@@ -234,7 +238,7 @@ export function StringSheet({ cid }: StringSheetProps) {
           지우는 것은 저장돼 있는 전체다 — 편집판의 초안 줄 수를 세면 줄을 다 뺀 상태에서
           「0조를 삭제할까요?」라고 묻고 저장분을 전부 지운다.
         */
-        title={MSG.deleteConfirm(`${owner?.name ?? '설비'} 스트링 ${formatNumber(listOf(inverterId).length)}조`)}
+        title={MSG.deleteConfirm(`${owner?.name ?? '설비'} 스트링 ${formatNumber(listOf(owner?.inverterId ?? '').length)}조`)}
         description="이 설비에 등록된 스트링을 모두 지웁니다. 한 조만 지우려면 위 편집판에서 그 줄을 빼세요."
         confirmLabel="삭제"
         tone="danger"
@@ -245,8 +249,8 @@ export function StringSheet({ cid }: StringSheetProps) {
   );
 }
 
-function labelOf(inverterId: string, equipment: ReturnType<typeof useSelectableEquipment>): string {
-  const owner = equipment.find((item) => item.inverterId === inverterId);
+function labelOf(cid: number, equipment: ReturnType<typeof useSelectableEquipment>): string {
+  const owner = equipment.find((item) => item.cid === cid);
 
   return owner ? `${getSchoolById(owner.plantId)?.name ?? ''} · ${owner.name}` : '';
 }

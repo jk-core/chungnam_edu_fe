@@ -35,7 +35,7 @@ export const EMPTY_VALUES: EquipmentFormValues = {
   etc: '',
   installDate: NOW.format('YYYY-MM-DD'),
   rows: [],
-  takenSeqs: [],
+  takenNumbers: [],
 };
 
 export function userLabelOf(user: ManagedUser): string {
@@ -48,11 +48,11 @@ export function moduleLabelOf(product: ModuleProduct): string {
 
 function toStringRows(strings: StringMaster[]): StringRow[] {
   return strings.map((row) => ({
-    id: row.id,
-    seq: row.seq,
-    name: row.name,
-    seriesCount: row.seriesCount,
-    parallelCount: row.parallelCount,
+    stringId: row.stringId,
+    stringNumber: row.seq,
+    stringName: row.name,
+    moduleSerialCount: row.seriesCount,
+    moduleParallelCount: row.parallelCount,
   }));
 }
 
@@ -95,6 +95,6 @@ export function toFormValues(target: EquipmentRow, sources: Sources): EquipmentF
     installDate: target.installedAt,
     rows: toStringRows(sources.strings),
     // 편집판이 곧 이 설비의 전체 목록이라 피할 순번이 없다.
-    takenSeqs: [],
+    takenNumbers: [],
   };
 }

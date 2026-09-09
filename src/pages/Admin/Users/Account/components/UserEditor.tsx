@@ -9,26 +9,33 @@ import { formatPhone } from '@/utils/format';
 import { FormPage } from '@/pages/Admin/_shared/FormPage';
 import { listPath } from '@/pages/Admin/_shared/adminPath';
 import { MSG } from '@/configs/messages';
-import { EMAIL_MAX, NAME_MAX, ORG_NAME_MAX, PASSWORD_HINT, userFormSchema } from '@/service/user/type';
-import { ROLE_LABEL, ROLE_SCOPE_NOTE, SELECTABLE_ROLES } from '@/mocks/accounts';
+import {
+  EMAIL_MAX,
+  NAME_MAX,
+  ORG_NAME_MAX,
+  PASSWORD_HINT,
+  SELECTABLE_USER_TYPE_CODES,
+  userFormSchema,
+} from '@/service/user/type';
+import { ROLE_LABEL, ROLE_SCOPE_NOTE, roleFromCode } from '@/mocks/accounts';
 import { toast } from '@/stores/toastStore';
 import { useManagedUsers } from '@/hooks/usePlantAssets';
+import { USER_TYPE } from '@/configs/codes';
 import useAssetStore from '@/stores/assetStore';
 import type { UserFormValues } from '@/service/user/type';
 import type { ChangeLog } from '@/interface/changeLog';
-import type { ManagedUser, Role } from '@/interface/account';
+import type { ManagedUser } from '@/interface/account';
 import styles from '@/pages/Admin/Admin.module.scss';
 import { useUserChangeLog } from '../hooks/useUserChangeLog';
 import { EMPTY_VALUES, toFormValues } from './values';
 
-/** 이력에 남길 항목 — 화면의 입력 항목과 이름을 맞춘다 (SFR-018-04). */
-const TRACKED: { key: keyof UserFormValues & keyof ManagedUser; label: string }[] = [
+/** 이력에 남길 항목 — 계정이 들고 있는 이름으로 견준다 (SFR-018-04). */
+const TRACKED: { key: keyof ManagedUser; label: string }[] = [
   { key: 'loginId', label: '로그인 ID' },
   { key: 'name', label: '이름' },
   { key: 'orgName', label: '소속' },
   { key: 'email', label: '이메일' },
   { key: 'phone', label: '연락처' },
-  { key: 'role', label: '등급' },
 ];
 
 const Form = createForm<UserFormValues>();
@@ -64,18 +71,18 @@ export function UserEditor({ userId }: UserEditorProps) {
   const [pending, setPending] = useState<UserFormValues | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
 
-  const role = useWatch({ control: methods.control, name: 'role' });
+  const userTypeCode = useWatch({ control: methods.control, name: 'userTypeCode' });
 
   const commit = (values: UserFormValues) => {
     const saved: ManagedUser = {
       id: target?.id ?? nextUserId(),
       userId: target?.userId ?? nextUserSeq(),
       loginId: values.loginId,
-      name: values.name,
-      role: values.role,
+      name: values.userName,
+      role: roleFromCode(values.userTypeCode),
       orgName: values.orgName.trim(),
       email: values.email,
-      phone: values.phone.trim(),
+      phone: values.cellPhone.trim(),
       plantIds: target?.plantIds ?? [],
       lastLoginAt: target?.lastLoginAt ?? null,
       locked: target?.locked ?? false,
@@ -84,16 +91,17 @@ export function UserEditor({ userId }: UserEditorProps) {
     // 신규는 한 줄로, 수정은 실제로 달라진 항목만 남긴다 (SFR-018-04).
     const entries: ChangeLog[] = isNew
       ? [entryOf(saved, '신규 등록', '—', `${ROLE_LABEL[saved.role]} · ${saved.loginId}`)]
-      : TRACKED.flatMap(({ key, label }) => {
-        const before = String(target?.[key] ?? '');
-        const after = String(saved[key] ?? '');
+      : [
+        ...TRACKED.flatMap(({ key, label }) => {
+          const before = String(target?.[key] ?? '');
+          const after = String(saved[key] ?? '');
 
-        if (before === after) return [];
-
-        return key === 'role'
-          ? [entryOf(saved, label, ROLE_LABEL[before as Role], ROLE_LABEL[after as Role])]
-          : [entryOf(saved, label, before || '—', after || '—')];
-      });
+          return before === after ? [] : [entryOf(saved, label, before || '—', after || '—')];
+        }),
+        ...(target && target.role !== saved.role
+          ? [entryOf(saved, '등급', ROLE_LABEL[target.role], ROLE_LABEL[saved.role])]
+          : []),
+      ];
 
     saveUser(saved, entries);
     toast.success(isNew ? MSG.createSuccess('사용자') : MSG.updateSuccess(saved.name));
@@ -132,14 +140,14 @@ export function UserEditor({ userId }: UserEditorProps) {
         >
           <FormSection legend="기본 정보">
             <FormRow cols={2}>
-              <Form.Text label="이름" name="name" maxLength={NAME_MAX} required />
+              <Form.Text label="이름" name="userName" maxLength={NAME_MAX} required />
               <Form.Text label="소속" name="orgName" maxLength={ORG_NAME_MAX} optional />
             </FormRow>
             <FormRow cols={2}>
               <Form.Text label="이메일" name="email" ime="latin" maxLength={EMAIL_MAX} optional />
               <Form.Text
                 label="연락처"
-                name="phone"
+                name="cellPhone"
                 transform={formatPhone}
                 ime="numeric"
                 hint="적는 대로 하이픈이 붙습니다"
@@ -181,11 +189,14 @@ export function UserEditor({ userId }: UserEditorProps) {
             </FormSection>
           ) : null}
 
-          <FormSection legend="등급" hint={ROLE_SCOPE_NOTE[role]}>
+          <FormSection legend="등급" hint={ROLE_SCOPE_NOTE[roleFromCode(userTypeCode)]}>
             <Form.Radio
               label="사용자 등급"
-              name="role"
-              options={SELECTABLE_ROLES.map((item) => ({ value: item, label: ROLE_LABEL[item] }))}
+              name="userTypeCode"
+              options={SELECTABLE_USER_TYPE_CODES.map((code) => ({
+                value: code,
+                label: USER_TYPE.NAME[code],
+              }))}
               required
             />
           </FormSection>
@@ -194,7 +205,7 @@ export function UserEditor({ userId }: UserEditorProps) {
 
       <ConfirmDialog
         isOpen={pending !== null}
-        title={isNew ? MSG.createConfirm('사용자') : MSG.updateConfirm(pending?.name ?? '사용자')}
+        title={isNew ? MSG.createConfirm('사용자') : MSG.updateConfirm(pending?.userName ?? '사용자')}
         confirmLabel="저장"
         onConfirm={() => pending && commit(pending)}
         onClose={() => setPending(null)}

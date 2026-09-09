@@ -143,7 +143,7 @@ export const manageEquipmentRemoveParamsSchema = z.object({
  * 소속·보일 이름·스트링 판처럼 요청에 실리지 않는 칸을 여기서만 더한다.
  * 저장할 때는 `manageEquipmentAddSchema.parse(values)` 가 그 칸들을 떨군다.
  *
- * `inverterKind`·`takenSeqs`·`*Label` 은 검증이 문맥을 알아야 해서 폼에 함께 싣는 값이다 —
+ * `inverterKind`·`takenNumbers`·`*Label` 은 검증이 문맥을 알아야 해서 폼에 함께 싣는 값이다 —
  * 스키마를 갈아 끼우는 대신 값으로 들고 있어야, 검색기가 고른 순간 같은 틱에 다시 판정된다.
  */
 export type EquipmentFormValues = z.infer<typeof equipmentFormSchema>;
@@ -162,7 +162,7 @@ export const equipmentFormSchema = manageEquipmentAddSchema.extend({
   /** 스트링 인버터인지 — 스트링 줄을 요구할지 여기서 갈린다 */
   inverterKind: z.enum(['string', 'central', 'micro', '']),
   rows: z.array(stringRowSchema),
-  takenSeqs: z.array(z.number().int()),
+  takenNumbers: z.array(z.number().int()),
 }).superRefine((values, ctx) => {
   // 스트링 구조는 스트링 기종에만 있다.
   if (values.inverterKind !== 'string') return;

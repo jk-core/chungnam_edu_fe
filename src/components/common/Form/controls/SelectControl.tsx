@@ -4,7 +4,7 @@ import styles from '../Form.module.scss';
 import type { FieldWidth } from './shared';
 import type { ComponentPropsWithoutRef } from 'react';
 
-interface SelectControlProps<T extends string | number>
+interface SelectControlProps<T extends string | number | boolean>
   extends Omit<ComponentPropsWithoutRef<'select'>, 'value' | 'onChange' | 'children'> {
   value: T;
   options: { value: T; label: string }[];
@@ -19,7 +19,7 @@ interface SelectControlProps<T extends string | number>
  * BE 코드값을 그대로 담으려고 숫자도 받는다. `<select>` 는 값을 문자열로만 돌려주므로
  * 고른 것을 문자열로 맞대 보고 원래 값을 되돌려준다 — 숫자 칸에 문자열이 들어가지 않게.
  */
-export function SelectControl<T extends string | number>({
+export function SelectControl<T extends string | number | boolean>({
   value,
   options,
   onChange,
@@ -32,7 +32,7 @@ export function SelectControl<T extends string | number>({
       <select
         {...rest}
         className={cn(styles.control, styles['control--select'])}
-        value={value}
+        value={String(value)}
         onChange={(event) => {
           const picked = options.find((option) => String(option.value) === event.target.value);
 
@@ -40,7 +40,7 @@ export function SelectControl<T extends string | number>({
         }}
       >
         {options.map((option) => (
-          <option key={option.value} value={option.value}>
+          <option key={String(option.value)} value={String(option.value)}>
             {option.label}
           </option>
         ))}

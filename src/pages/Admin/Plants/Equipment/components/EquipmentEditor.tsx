@@ -174,15 +174,16 @@ export function EquipmentEditor({ cid }: EquipmentEditorProps) {
     */
     if (hasStrings) {
       const current = listOf(equipmentKey);
-      const known = new Map(current.map((row) => [row.id, row.stringId]));
+      const known = new Map(current.map((row) => [row.stringId, row.id]));
       const built: StringMaster[] = values.rows.map((row, index) => ({
-        id: row.id ?? `str-${equipmentKey}-${Date.now().toString(36)}-${index + 1}`,
-        stringId: (row.id ? known.get(row.id) : undefined) ?? nextSeq() + index + 1,
+        id: (row.stringId === null ? undefined : known.get(row.stringId))
+          ?? `str-${equipmentKey}-${Date.now().toString(36)}-${index + 1}`,
+        stringId: row.stringId ?? nextSeq() + index + 1,
         inverterId: equipmentKey,
-        seq: row.seq,
-        name: row.name,
-        seriesCount: row.seriesCount,
-        parallelCount: row.parallelCount,
+        seq: row.stringNumber,
+        name: row.stringName,
+        seriesCount: row.moduleSerialCount,
+        parallelCount: row.moduleParallelCount,
       }));
       const before = new Map(current.map((row) => [row.id, row]));
       const after = new Map(built.map((row) => [row.id, row]));

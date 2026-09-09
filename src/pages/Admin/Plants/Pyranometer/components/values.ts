@@ -1,23 +1,24 @@
-import { SCHOOLS } from '@/mocks/schools';
-import type { PyranometerFormValues } from '@/service/pyranometer/type';
+import type { IrradFormValues } from '@/service/irrad/type';
+import type { PlantAsset } from '@/interface/asset';
 import type { Pyranometer } from '@/interface/deviceMaster';
 
-export const EMPTY_VALUES: PyranometerFormValues = {
-  plantId: SCHOOLS[0]?.id ?? '',
-  name: '',
+export const EMPTY_VALUES: IrradFormValues = {
+  // 빈 숫자 칸은 NaN 이다 — 0 은 「0번 발전소」라는 뜻이 되어 버린다.
+  powerPlantId: Number.NaN,
+  irradName: '',
   calibrationFactor: 1,
-  rtuCommId: '',
-  moduleThermometer: 'yes',
-  note: '',
+  rtuCommunicationId: '',
+  isModTemp: true,
+  etc: '',
 };
 
-export function toFormValues(target: Pyranometer): PyranometerFormValues {
+export function toFormValues(target: Pyranometer, plants: PlantAsset[]): IrradFormValues {
   return {
-    plantId: target.plantId,
-    name: target.name,
+    powerPlantId: plants.find((item) => item.plantId === target.plantId)?.powerPlantId ?? Number.NaN,
+    irradName: target.name,
     calibrationFactor: target.calibrationFactor,
-    rtuCommId: target.rtuCommId,
-    moduleThermometer: target.hasModuleThermometer ? 'yes' : 'no',
-    note: target.note,
+    rtuCommunicationId: target.rtuCommId,
+    isModTemp: target.hasModuleThermometer,
+    etc: target.note,
   };
 }

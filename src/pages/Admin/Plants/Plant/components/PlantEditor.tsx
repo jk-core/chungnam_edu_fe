@@ -12,7 +12,7 @@ import { FormPage } from '@/pages/Admin/_shared/FormPage';
 import { listPath } from '@/pages/Admin/_shared/adminPath';
 import { Modal } from '@/components/common/Modal';
 import { MSG } from '@/configs/messages';
-import { plantFormSchema } from '@/service/plant/type';
+import { NAME_MAX, plantFormSchema } from '@/service/plant/type';
 import { SCHOOL_LEVELS, SCHOOLS } from '@/mocks/schools';
 import { RecordPicker } from '@/components/common/RecordPicker';
 import { regionNameOfCode } from '@/configs/regions';
@@ -32,11 +32,6 @@ import { EMPTY_VALUES, irradLabelOf, toFormValues, userLabelOf } from './values'
 const PLANT_NO_BASE = 10000;
 
 const Form = createForm<PlantFormValues>();
-
-/** 빈 문자열을 서버가 쓰는 null 로 되돌린다. */
-function toId(value: string): number | null {
-  return value === '' ? null : Number(value);
-}
 
 /** 발전소 등록·수정 (SFR-016-01~04/06) */
 export function PlantEditor({ powerPlantId }: { powerPlantId: number | null }) {
@@ -85,31 +80,31 @@ export function PlantEditor({ powerPlantId }: { powerPlantId: number | null }) {
     createPlant({
       plantId: created,
       powerPlantId: PLANT_NO_BASE + SCHOOLS.length + plantCreated.length + 1,
-      plantName: values.plantName,
+      plantName: values.powerPlantName,
       regionCode: values.regionCode,
       address: values.address,
       addressDetail: values.addressDetail.trim(),
-      latitude: Number(values.latitude),
-      longitude: Number(values.longitude),
-      rtuEntName: values.rtuEntName,
-      builder: { name: values.builderName.trim(), phone: values.builderPhone.trim() },
+      latitude: values.latitude,
+      longitude: values.longitude,
+      rtuEntName: values.rtuEnterpriseName,
+      builder: { name: values.installerName.trim(), phone: values.installerPhone.trim() },
       managerEnterprise: {
         name: values.managerEnterpriseName.trim(),
         phone: values.managerEnterprisePhone.trim(),
       },
-      userId: toId(values.userId),
+      userId: values.userId,
       // 일사량계는 일사량계 탭에서 따로 세운 뒤 이 발전소를 골라 잇는다.
       irradId: null,
-      plantType: values.plantType,
+      plantType: values.powerPlantType,
       etc: values.etc.trim(),
     }, entryOf(
-      { id: created, name: values.plantName },
+      { id: created, name: values.powerPlantName },
       '신규 등록',
       '—',
-      `${values.plantType} · ${regionNameOfCode(values.regionCode)}`,
+      `${values.powerPlantType} · ${regionNameOfCode(values.regionCode)}`,
     ));
 
-    toast.success(MSG.createSuccess(values.plantName));
+    toast.success(MSG.createSuccess(values.powerPlantName));
     navigate(backTo);
   };
 
@@ -117,21 +112,21 @@ export function PlantEditor({ powerPlantId }: { powerPlantId: number | null }) {
     if (!asset) return;
 
     const next: Partial<PlantAsset> = {
-      plantName: values.plantName,
-      plantType: values.plantType,
+      plantName: values.powerPlantName,
+      plantType: values.powerPlantType,
       regionCode: values.regionCode,
       address: values.address,
       addressDetail: values.addressDetail.trim(),
-      latitude: Number(values.latitude),
-      longitude: Number(values.longitude),
-      rtuEntName: values.rtuEntName,
-      builder: { name: values.builderName.trim(), phone: values.builderPhone.trim() },
+      latitude: values.latitude,
+      longitude: values.longitude,
+      rtuEntName: values.rtuEnterpriseName,
+      builder: { name: values.installerName.trim(), phone: values.installerPhone.trim() },
       managerEnterprise: {
         name: values.managerEnterpriseName.trim(),
         phone: values.managerEnterprisePhone.trim(),
       },
-      userId: toId(values.userId),
-      irradId: toId(values.irradId),
+      userId: values.userId,
+      irradId: values.irradId,
       etc: values.etc.trim(),
     };
 
@@ -147,8 +142,8 @@ export function PlantEditor({ powerPlantId }: { powerPlantId: number | null }) {
       ['시공 업체 연락처', asset.builder.phone, next.builder?.phone ?? ''],
       ['담당 업체', asset.managerEnterprise.name || '—', next.managerEnterprise?.name || '—'],
       ['담당 업체 연락처', asset.managerEnterprise.phone || '—', next.managerEnterprise?.phone || '—'],
-      ['사용자', nameOfUser(asset.userId), nameOfUser(toId(values.userId))],
-      ['연결 일사량계', irradNameOf(asset.irradId), irradNameOf(toId(values.irradId))],
+      ['사용자', nameOfUser(asset.userId), nameOfUser(values.userId)],
+      ['연결 일사량계', irradNameOf(asset.irradId), irradNameOf(values.irradId)],
       ['비고', asset.etc || '—', next.etc || '—'],
     ]
       .filter(([, before, after]) => before !== after)
@@ -203,10 +198,16 @@ export function PlantEditor({ powerPlantId }: { powerPlantId: number | null }) {
             hint={isNew ? undefined : `발전소 ID ${asset.powerPlantId}`}
           >
             <FormRow cols={2}>
-              <Form.Text label="발전소 이름" name="plantName" placeholder="예: 온양초등학교" maxLength={120} required />
+              <Form.Text
+                label="발전소 이름"
+                name="powerPlantName"
+                placeholder="예: 온양초등학교"
+                maxLength={NAME_MAX}
+                required
+              />
               <Form.Select
                 label="구분"
-                name="plantType"
+                name="powerPlantType"
                 options={SCHOOL_LEVELS.map((item) => ({ value: item, label: item }))}
               />
             </FormRow>
@@ -230,8 +231,8 @@ export function PlantEditor({ powerPlantId }: { powerPlantId: number | null }) {
                       onSelect({
                         address: picked.roadAddress,
                         regionCode: picked.sigunguCode,
-                        latitude: point ? String(point.lat) : '',
-                        longitude: point ? String(point.lng) : '',
+                        latitude: point ? point.lat : Number.NaN,
+                        longitude: point ? point.lng : Number.NaN,
                       });
                     }}
                   />
@@ -241,25 +242,25 @@ export function PlantEditor({ powerPlantId }: { powerPlantId: number | null }) {
             </FormRow>
             <FormRow cols={2}>
               {/* 주소를 고르면 채워진다. 옥상이 아닌 부지는 지도에서 어긋나므로 손으로 보정한다. */}
-              <Form.Text label="위도" name="latitude" hint="지도 마커가 서는 자리" ime="numeric" required />
-              <Form.Text label="경도" name="longitude" hint="주소를 고르면 채워집니다" ime="numeric" required />
+              <Form.Number label="위도" name="latitude" hint="지도 마커가 서는 자리" step={0.000001} required />
+              <Form.Number label="경도" name="longitude" hint="주소를 고르면 채워집니다" step={0.000001} required />
             </FormRow>
           </FormSection>
 
           <FormSection legend="업체" hint="연락처는 고장 대응 시 바로 쓰입니다.">
             <FormRow cols={2}>
-              <Form.Text label="RTU업체" name="rtuEntName" maxLength={120} required />
-              <Form.Text label="시공업체" name="builderName" maxLength={120} optional />
+              <Form.Text label="RTU업체" name="rtuEnterpriseName" maxLength={NAME_MAX} required />
+              <Form.Text label="시공업체" name="installerName" maxLength={NAME_MAX} optional />
             </FormRow>
             <FormRow cols={2}>
               <Form.Text
                 label="시공업체 연락처"
-                name="builderPhone"
+                name="installerPhone"
                 transform={formatPhone}
                 ime="numeric"
                 optional
               />
-              <Form.Text label="담당업체" name="managerEnterpriseName" maxLength={120} optional />
+              <Form.Text label="담당업체" name="managerEnterpriseName" maxLength={NAME_MAX} optional />
             </FormRow>
             <FormRow cols={2}>
               <Form.Text
@@ -291,7 +292,7 @@ export function PlantEditor({ powerPlantId }: { powerPlantId: number | null }) {
                     <RecordPicker
                       rows={users}
                       getRowKey={(row) => String(row.userId)}
-                      selectedKey={userId}
+                      selectedKey={String(userId)}
                       caption="사용자 목록. ID, 사용자, 로그인 ID, 이메일 순입니다."
                       placeholder="이름·로그인 ID·이메일로 검색"
                       match={(row, word) => row.name.includes(word)
@@ -310,7 +311,7 @@ export function PlantEditor({ powerPlantId }: { powerPlantId: number | null }) {
                           render: (row) => row.email,
                         },
                       ]}
-                      onPick={(row) => onSelect({ userId: String(row.userId), userLabel: userLabelOf(row) })}
+                      onPick={(row) => onSelect({ userId: row.userId, userLabel: userLabelOf(row) })}
                     />
                   </Modal>
                 )}
@@ -334,7 +335,7 @@ export function PlantEditor({ powerPlantId }: { powerPlantId: number | null }) {
                       <RecordPicker
                         rows={ownIrrads}
                         getRowKey={(row) => String(row.irradId)}
-                        selectedKey={irradId}
+                        selectedKey={String(irradId ?? '')}
                         caption="일사량계 목록. ID, 이름, RTU 통신 ID 순입니다."
                         placeholder="이름·RTU 통신 ID로 검색"
                         emptyTitle="이 발전소에 등록된 일사량계가 없습니다"
@@ -346,7 +347,7 @@ export function PlantEditor({ powerPlantId }: { powerPlantId: number | null }) {
                           { key: 'name', header: '일사량계 이름', render: (row) => row.name },
                           { key: 'comm', header: 'RTU 통신 ID', width: '160px', render: (row) => row.rtuCommId },
                         ]}
-                        onPick={(row) => onSelect({ irradId: String(row.irradId), irradLabel: irradLabelOf(row) })}
+                        onPick={(row) => onSelect({ irradId: row.irradId, irradLabel: irradLabelOf(row) })}
                       />
                     </Modal>
                   )}

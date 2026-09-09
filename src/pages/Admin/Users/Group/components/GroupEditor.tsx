@@ -48,10 +48,12 @@ export function GroupEditor({ userId }: GroupEditorProps) {
   const isNew = target === null;
   const backTo = listPath('users', 'group');
 
+  const idOf = (plantId: string) => plants.find((item) => item.plantId === plantId)?.powerPlantId ?? Number.NaN;
+
   const methods = useForm<GroupFormValues>({
     defaultValues: target
-      ? { userId: String(target.userId), userLabel: labelOf(target), plantIds: target.plantIds }
-      : { userId: '', userLabel: '', plantIds: [] },
+      ? { userId: target.userId, userLabel: labelOf(target), powerPlantIds: target.plantIds.map(idOf) }
+      : { userId: Number.NaN, userLabel: '', powerPlantIds: [] },
     resolver: zodResolver(groupFormSchema),
     mode: 'onChange',
   });
@@ -59,31 +61,35 @@ export function GroupEditor({ userId }: GroupEditorProps) {
   const [pending, setPending] = useState<GroupFormValues | null>(null);
 
   const pickedId = useWatch({ control: methods.control, name: 'userId' });
-  const plantIds = useWatch({ control: methods.control, name: 'plantIds' });
+  const powerPlantIds = useWatch({ control: methods.control, name: 'powerPlantIds' });
 
-  const picked = plantIds
-    .map((plantId) => plants.find((item) => item.plantId === plantId))
+  const picked = powerPlantIds
+    .map((powerPlantId) => plants.find((item) => item.powerPlantId === powerPlantId))
     .filter((item) => item !== undefined);
   const total = formatCapacity(picked.reduce((sum, plant) => sum + capacityOf(plant.plantId), 0));
   // 칩 목록에는 오류를 붙일 자리가 없어 빈 상태 문구에 이어 붙인다.
-  const plantsError = methods.getFieldState('plantIds', methods.formState).error?.message;
+  const plantsError = methods.getFieldState('powerPlantIds', methods.formState).error?.message;
 
-  const setPlantIds = (next: string[]) =>
-    methods.setValue('plantIds', next, { shouldValidate: true, shouldDirty: true });
+  const setPowerPlantIds = (next: number[]) =>
+    methods.setValue('powerPlantIds', next, { shouldValidate: true, shouldDirty: true });
 
   const commit = (values: GroupFormValues) => {
-    const user = users.find((row) => String(row.userId) === values.userId);
+    const user = users.find((row) => row.userId === values.userId);
 
     if (!user) return;
 
-    const saved: ManagedUser = { ...user, role: 'group', plantIds: values.plantIds };
+    // 스토어는 목업 발전소 키로 묶여 있다 — 계약이 쓰는 번호를 그 키로 옮겨 준다.
+    const plantIds = values.powerPlantIds
+      .map((powerPlantId) => plants.find((item) => item.powerPlantId === powerPlantId)?.plantId)
+      .filter((plantId) => plantId !== undefined);
+    const saved: ManagedUser = { ...user, role: 'group', plantIds };
     const before = target ? `발전소 ${target.plantIds.length}곳` : ROLE_LABEL[user.role];
 
     saveUser(saved, [entryOf(
       saved,
       isNew ? '그룹관리자 지정' : '맡은 발전소',
       before,
-      `발전소 ${values.plantIds.length}곳`,
+      `발전소 ${plantIds.length}곳`,
     )]);
     toast.success(isNew ? MSG.createSuccess(`${saved.name} 그룹관리자`) : MSG.updateSuccess(saved.name));
     navigate(backTo);
@@ -123,7 +129,7 @@ export function GroupEditor({ userId }: GroupEditorProps) {
                   <RecordPicker
                     rows={users}
                     getRowKey={(row) => String(row.userId)}
-                    selectedKey={pickedId}
+                    selectedKey={String(pickedId)}
                     caption="사용자 목록. ID, 사용자, 로그인 ID, 권한 순입니다."
                     placeholder="이름·로그인 ID·이메일로 검색"
                     match={(row, word) => row.name.includes(word)
@@ -138,9 +144,9 @@ export function GroupEditor({ userId }: GroupEditorProps) {
                     ]}
                     // 사람을 바꾸면 그 사람이 이미 맡고 있던 발전소를 그대로 불러온다.
                     onPick={(row) => onSelect({
-                      userId: String(row.userId),
+                      userId: row.userId,
                       userLabel: labelOf(row),
-                      plantIds: row.plantIds,
+                      powerPlantIds: row.plantIds.map(idOf),
                     })}
                   />
                 </Modal>
@@ -167,7 +173,7 @@ export function GroupEditor({ userId }: GroupEditorProps) {
                     <button
                       type="button"
                       className={styles.chip__remove}
-                      onClick={() => setPlantIds(plantIds.filter((id) => id !== plant.plantId))}
+                      onClick={() => setPowerPlantIds(powerPlantIds.filter((id) => id !== plant.powerPlantId))}
                       aria-label={`${plant.plantName} 빼기`}
                     >
                       ×
@@ -180,8 +186,8 @@ export function GroupEditor({ userId }: GroupEditorProps) {
             <div className={styles.rowFoot}>
               <p className={styles.toolbar__note}>같은 발전소를 두 번 고를 수는 없습니다.</p>
               <PlantAdder
-                rows={plants.filter((plant) => !plantIds.includes(plant.plantId))}
-                onAdd={(plantId) => setPlantIds([...plantIds, plantId])}
+                rows={plants.filter((plant) => !powerPlantIds.includes(plant.powerPlantId))}
+                onAdd={(powerPlantId) => setPowerPlantIds([...powerPlantIds, powerPlantId])}
               />
             </div>
           </FormSection>
@@ -191,7 +197,7 @@ export function GroupEditor({ userId }: GroupEditorProps) {
       <ConfirmDialog
         isOpen={pending !== null}
         title={isNew ? MSG.createConfirm('그룹관리자') : MSG.updateConfirm(target?.name ?? '그룹관리자')}
-        description={`발전소 ${formatNumber(pending?.plantIds.length ?? 0)}곳을 맡깁니다.`}
+        description={`발전소 ${formatNumber(pending?.powerPlantIds.length ?? 0)}곳을 맡깁니다.`}
         confirmLabel="저장"
         onConfirm={() => pending && commit(pending)}
         onClose={() => setPending(null)}
@@ -210,7 +216,7 @@ function PlantAdder({
   onAdd,
 }: {
   rows: ReturnType<typeof usePlantAssets>;
-  onAdd: (plantId: string) => void;
+  onAdd: (powerPlantId: number) => void;
 }) {
   const [isOpen, setIsOpen] = useState(false);
 
@@ -242,7 +248,7 @@ function PlantAdder({
             { key: 'address', header: '주소', render: (row) => `${row.address} ${row.addressDetail}`.trim() },
           ]}
           onPick={(row) => {
-            onAdd(row.plantId);
+            onAdd(row.powerPlantId);
             setIsOpen(false);
           }}
         />
