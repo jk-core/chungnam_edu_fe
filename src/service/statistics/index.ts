@@ -1,4 +1,4 @@
-import apiClient from '@/service';
+import apiClient, { FILE_TIMEOUT } from '@/service';
 import type {
   StatisticsBasis,
   StatisticsBasisParams,
@@ -35,7 +35,11 @@ export const getStatisticsPowerPlantInverterList = async (params: StatisticsPowe
 };
 
 export const getStatisticsPowerPlantExcel = async (params: StatisticsPowerPlantParams) => {
-  const { data } = await apiClient.get<Blob>('/statistics/powerPlant/excel', { params, responseType: 'blob' });
+  const { data } = await apiClient.get<Blob>('/statistics/powerPlant/excel', {
+    params,
+    responseType: 'blob',
+    timeout: FILE_TIMEOUT,
+  });
 
   return data;
 };
@@ -60,7 +64,11 @@ export const getStatisticsInverterStringList = async (params: StatisticsInverter
 };
 
 export const getStatisticsInverterExcel = async (params: StatisticsInverterParams) => {
-  const { data } = await apiClient.get<Blob>('/statistics/inverter/excel', { params, responseType: 'blob' });
+  const { data } = await apiClient.get<Blob>('/statistics/inverter/excel', {
+    params,
+    responseType: 'blob',
+    timeout: FILE_TIMEOUT,
+  });
 
   return data;
 };
@@ -73,7 +81,11 @@ export const getStatisticsBasis = async (params: StatisticsBasisParams) => {
 };
 
 export const getStatisticsBasisExcel = async (params: StatisticsBasisParams) => {
-  const { data } = await apiClient.get<Blob>('/statistics/basis/excel', { params, responseType: 'blob' });
+  const { data } = await apiClient.get<Blob>('/statistics/basis/excel', {
+    params,
+    responseType: 'blob',
+    timeout: FILE_TIMEOUT,
+  });
 
   return data;
 };

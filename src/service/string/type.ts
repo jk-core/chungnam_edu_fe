@@ -62,7 +62,8 @@ export const stringRowSchema = z.object({
   stringNumber: z
     .number(MSG.numberRange('순번', STRING_NUMBER_MIN, STRING_NUMBER_MAX))
     .int()
-    .min(STRING_NUMBER_MIN, MSG.numberRange('순번', STRING_NUMBER_MIN, STRING_NUMBER_MAX)),
+    .min(STRING_NUMBER_MIN, MSG.numberRange('순번', STRING_NUMBER_MIN, STRING_NUMBER_MAX))
+    .max(STRING_NUMBER_MAX, MSG.numberRange('순번', STRING_NUMBER_MIN, STRING_NUMBER_MAX)),
   stringName: z.string().trim().min(1, MSG.requiredField('이름')).max(NAME_MAX, MSG.tooLong('이름', NAME_MAX)),
   moduleSerialCount: count('직렬'),
   moduleParallelCount: count('병렬'),

@@ -1,4 +1,4 @@
-import apiClient from '@/service';
+import apiClient, { FILE_TIMEOUT } from '@/service';
 import type { PagingResponse } from '@/service/common';
 import type {
   AlarmActionParams,
@@ -37,7 +37,11 @@ export const getAlarmDetail = async (alarmId: number) => {
 export const putAlarmAction = (data: AlarmActionParams) => apiClient.put('/alarm/detail', data);
 
 export const getAlarmExcel = async (params: AlarmFilterParams) => {
-  const { data } = await apiClient.get<Blob>('/alarm/excel', { params, responseType: 'blob' });
+  const { data } = await apiClient.get<Blob>('/alarm/excel', {
+    params,
+    responseType: 'blob',
+    timeout: FILE_TIMEOUT,
+  });
 
   return data;
 };

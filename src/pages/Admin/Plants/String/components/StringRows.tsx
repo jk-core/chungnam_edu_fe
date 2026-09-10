@@ -3,7 +3,13 @@ import { Button } from '@/components/common/Button';
 import { createFields, FormSection } from '@/components/common/Form';
 import { formatNumber } from '@/utils/format';
 import { PlusIcon } from '@/components/common/Icon';
-import { NAME_MAX, STRING_COUNT_MAX, STRING_COUNT_MIN } from '@/service/string/type';
+import {
+  NAME_MAX,
+  STRING_COUNT_MAX,
+  STRING_COUNT_MIN,
+  STRING_NUMBER_MAX,
+  STRING_NUMBER_MIN,
+} from '@/service/string/type';
 import type { StringRow, StringRowsShape } from '@/service/string/type';
 import styles from '@/pages/Admin/Admin.module.scss';
 import type { FieldValues } from 'react-hook-form';
@@ -76,7 +82,13 @@ export function StringRows({
         <div className={styles.stringList}>
           {fields.map((field, index) => (
             <div key={field.id} className={styles.stringRow}>
-              <Field.Number label="순번" name={`rows.${index}.stringNumber`} min={1} width="sm" />
+              <Field.Number
+                label="순번"
+                name={`rows.${index}.stringNumber`}
+                min={STRING_NUMBER_MIN}
+                max={STRING_NUMBER_MAX}
+                width="sm"
+              />
               <Field.Text label="이름" name={`rows.${index}.stringName`} width="full" maxLength={NAME_MAX} />
               <Field.Number
                 label="직렬"

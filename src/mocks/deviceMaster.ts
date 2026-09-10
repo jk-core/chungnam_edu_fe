@@ -1,3 +1,5 @@
+import { INVERTER_TYPE } from '@/configs/codes';
+import type { InverterTypeCode } from '@/configs/codes';
 import type {
   EquipmentMaster,
   InverterKind,
@@ -136,11 +138,34 @@ export const SEED_STRINGS: StringMaster[] = INVERTERS.flatMap((inverter) => {
   }));
 });
 
-/** 인버터 타입 표기 (SFR-017-04) */
+/**
+ * 응답의 `inverterTypeCode` 를 목업 어휘로 옮기는 유일한 지점.
+ * 코드값은 `configs/codes.ts` 가 쥔다 — 목업은 코드를 직접 쓰지 않는다.
+ */
+const INVERTER_TYPE_CODE_BY_KIND: Record<InverterKind, InverterTypeCode> = {
+  general: INVERTER_TYPE.CODE['일반 인버터'],
+  string: INVERTER_TYPE.CODE['스트링 인버터'],
+  central: INVERTER_TYPE.CODE['센트럴 인버터'],
+  micro: INVERTER_TYPE.CODE['마이크로 인버터'],
+};
+
+const KIND_BY_INVERTER_TYPE_CODE = new Map<InverterTypeCode, InverterKind>(
+  (Object.entries(INVERTER_TYPE_CODE_BY_KIND) as [InverterKind, InverterTypeCode][])
+    .map(([kind, code]) => [code, kind]),
+);
+
+/** 모르는 타입은 일반 인버터로 본다 — 스트링으로 보면 없는 하위 계층을 요구하게 된다 */
+export const kindFromInverterTypeCode = (code: InverterTypeCode): InverterKind =>
+  KIND_BY_INVERTER_TYPE_CODE.get(code) ?? 'general';
+
+export const inverterTypeCodeOf = (kind: InverterKind): InverterTypeCode => INVERTER_TYPE_CODE_BY_KIND[kind];
+
+/** 인버터 타입 표기 (SFR-017-04) — 표기는 코드 테이블 하나에서 나온다 */
 export const INVERTER_KIND_LABEL: Record<InverterKind, string> = {
-  string: '스트링형',
-  central: '센트럴형',
-  micro: '마이크로형',
+  general: INVERTER_TYPE.NAME[INVERTER_TYPE.CODE['일반 인버터']],
+  string: INVERTER_TYPE.NAME[INVERTER_TYPE.CODE['스트링 인버터']],
+  central: INVERTER_TYPE.NAME[INVERTER_TYPE.CODE['센트럴 인버터']],
+  micro: INVERTER_TYPE.NAME[INVERTER_TYPE.CODE['마이크로 인버터']],
 };
 
 /**

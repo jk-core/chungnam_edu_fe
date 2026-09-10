@@ -69,7 +69,7 @@ export interface StringMaster {
 }
 
 /** 인버터 타입 (SFR-017-04). 서버 코드는 `configs/codes.ts` 의 `INVERTER_TYPE` 이 쥔다 */
-export type InverterKind = 'string' | 'central' | 'micro';
+export type InverterKind = 'general' | 'string' | 'central' | 'micro';
 
 /**
  * 인버터 제품 마스터 — 설비 등록에서 이 목록을 고른다 (SFR-017-04).

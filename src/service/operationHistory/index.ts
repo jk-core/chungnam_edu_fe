@@ -1,4 +1,4 @@
-import apiClient from '@/service';
+import apiClient, { FILE_TIMEOUT } from '@/service';
 import type { PagingResponse } from '@/service/common';
 import type {
   OperationHistoryChart,
@@ -25,7 +25,11 @@ export const getOperationHistoryChart = async (params: OperationHistoryChartPara
 };
 
 export const getOperationHistoryExcel = async (params: OperationHistoryExcelParams) => {
-  const { data } = await apiClient.get<Blob>('/gath/sola/inverter/raw/excel', { params, responseType: 'blob' });
+  const { data } = await apiClient.get<Blob>('/gath/sola/inverter/raw/excel', {
+    params,
+    responseType: 'blob',
+    timeout: FILE_TIMEOUT,
+  });
 
   return data;
 };

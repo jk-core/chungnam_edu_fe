@@ -17,6 +17,7 @@ import { usePlantAssets } from '@/hooks/usePlantAssets';
 import useEquipmentStore from '@/stores/equipmentStore';
 import type { IrradFormValues } from '@/service/irrad/type';
 import type { Pyranometer } from '@/interface/deviceMaster';
+import styles from '@/pages/Admin/Admin.module.scss';
 import { usePyranometerRows } from '../hooks/usePyranometerRows';
 import { EMPTY_VALUES, toFormValues } from './values';
 
@@ -136,6 +137,12 @@ export function PyranometerEditor({ irradId }: PyranometerEditorProps) {
           )}
         >
           <FormSection legend="설치 위치">
+            {/* 고를 발전소가 없으면 셀렉트가 비어 저장이 막히므로, 왜 막히는지를 적어 준다. */}
+            {plants.length === 0 ? (
+              <p className={styles.toolbar__note}>
+                등록된 발전소가 없습니다. 발전소를 먼저 등록한 뒤 일사량계를 세워 주세요.
+              </p>
+            ) : null}
             <FormRow cols={2}>
               <Form.Select
                 label="발전소"

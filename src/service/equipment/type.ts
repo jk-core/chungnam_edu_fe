@@ -38,7 +38,7 @@ export const manageEquipmentPageSchema = z.object({
   inverterName: z.string(),
   inverterEnterpriseName: z.string(),
   inverterTypeCode: ZodInverterTypeCode.CODE,
-  inverterTypeCodeName: ZodInverterTypeCode.NAME,
+  inverterTypeName: ZodInverterTypeCode.NAME,
   equipmentCapacity: z.number(),
   rtuCommunicationId: z.string(),
   rtuPort: z.number().int().nullable(),
@@ -160,7 +160,7 @@ export const equipmentFormSchema = manageEquipmentAddSchema.extend({
   inverterLabel: z.string(),
   moduleLabel: z.string(),
   /** 스트링 인버터인지 — 스트링 줄을 요구할지 여기서 갈린다 */
-  inverterKind: z.enum(['string', 'central', 'micro', '']),
+  inverterKind: z.enum(['general', 'string', 'central', 'micro', '']),
   rows: z.array(stringRowSchema),
   takenNumbers: z.array(z.number().int()),
 }).superRefine((values, ctx) => {
