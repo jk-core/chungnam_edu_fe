@@ -1,7 +1,28 @@
-import { crudEndpoints } from '@/service/common';
+import apiClient from '@/service';
+import type { PagingResponse } from '@/service/common';
+import type {
+  ManageUserAddParams,
+  ManageUserDetail,
+  ManageUserModifyParams,
+  ManageUserPage,
+  ManageUserPageParams,
+} from './type';
 
-/**
- * 사용자 — PK 는 `userId`.
- * 목록은 개발자(2999)를 뺀 채 내려온다 — 화면 어디에도 세우지 않는 등급이다.
- */
-export const USER_API = crudEndpoints('user');
+/** 사용자 관리 API — PK 는 userId */
+export const getManageUserPage = async (params: ManageUserPageParams) => {
+  const { data } = await apiClient.get<PagingResponse<ManageUserPage>>('/manage/user/page', { params });
+
+  return data;
+};
+
+export const getManageUserDetail = async (userId: number) => {
+  const { data } = await apiClient.get<ManageUserDetail>('/manage/user/detail', { params: { userId } });
+
+  return data;
+};
+
+export const postManageUser = (data: ManageUserAddParams) => apiClient.post('/manage/user', data);
+
+export const putManageUser = (data: ManageUserModifyParams) => apiClient.put('/manage/user', data);
+
+export const deleteManageUser = (userId: number) => apiClient.delete('/manage/user', { params: { userId } });

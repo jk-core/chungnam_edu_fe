@@ -104,7 +104,7 @@
 | ID | 요구 내용 | 반영 | 위치 |
 |---|---|---|---|
 | 009-01 | 통신상태·인버터 상태·인버터명·용량·발전량·발전시간 | 반영 | 운전이력 조회 기준에 통신상태·인버터 상태 배지 (`HistoryTab.tsx`), 이름·용량·발전량·발전시간은 사이드바 트리와 `ChildGrid` |
-| 009-02 | 인버터 상태 5단계 이상 | 반영 | `mocks/status.ts` — 가동중/준비중/발전저하/발전이상/통신단절 |
+| 009-02 | 인버터 상태 5단계 이상 | 반영 | `mocks/status.ts` — 준비중/정상/주의/경고/통신단절. 원문 예시 어휘와 다른 이유는 `requirements-traceability.md` 「의도된 이탈」 |
 | 009-03 | 인버터 고장과 RTU 고장 구분 | 반영 | `Inverter.ownStatus` / `rtuStatus` 2축 |
 | 009-04 | 인버터 클릭 시 운전이력 상세 이동 | 반영 | `PlantTree` 선택 → 운전이력 `/energy/history` 계측표 |
 
@@ -193,9 +193,9 @@
 
 | ID | 요구 내용 | 반영 | 위치 |
 |---|---|---|---|
-| 016-01 | 발전소/설비/스트링/환경센서 신규 등록 | 반영 | 발전소 `PlantsTab.tsx` · 설비 5종 `DevicesTab.tsx`(RTU·인버터·모듈·스트링·일사량계). 폼 항목은 PPI Solar V2 API 규격을 따른다 — 서버 번호·코드값은 `mocks/manageCodes.ts` |
-| 016-02 | 시공·모니터링 업체 연락처 | 반영 | 같은 화면 등록 항목(시공 업체 = `constructEnterprise`, 유지관리 업체 = `manageEnterprise`) |
-| 016-03 | 모듈 정보 입력 시 용량 자동 산출 | 반영 | 발전소 등록 폼 · 인버터 등록 폼(`computeInverterCapacity`) |
+| 016-01 | 발전소/설비/스트링/환경센서 신규 등록 | 반영 | 발전소 `Plants/Plant/` · 설비 `Plants/Equipment/` · 스트링 `Plants/String/` · 일사량계 `Plants/Pyranometer/` · 인버터·모듈 제품 `Devices/`. 폼 스키마는 BE 계약과 같은 필드 이름을 쓴다(`service/*/type.ts`) — 코드값은 `configs/codes.ts` |
+| 016-02 | 시공·모니터링 업체 연락처 | 반영 | 발전소 등록 폼(시공 업체 = `installerName`/`installerPhone`, 담당 업체 = `managerEnterpriseName`/`managerEnterprisePhone`) |
+| 016-03 | 모듈 정보 입력 시 용량 자동 산출 | 반영 | 설비 등록 폼 `hooks/useDerivedCapacity.ts`(`computeEquipmentCapacity`) |
 | 016-04 | 수용가 개인정보 마스킹 | 반영 | 마스킹 + 관리자 토글 |
 | 016-05 | 수정·삭제 | 반영 | 발전소 삭제(딸린 설비 함께 감춤) + 장비 6종 수정·삭제 |
 | 016-06 | 수정 이력 리스트 | 반영 | 필드 단위 변경 이력 · 장비는 `DeviceHistory.tsx` |

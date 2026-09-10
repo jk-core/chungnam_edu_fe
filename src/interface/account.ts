@@ -1,11 +1,7 @@
 /**
  * 계정 등급 (userTypeCode).
- *
- * 기관담당자 2002 · 그룹관리자 2005 · 교육지원청 2010 · 관리자(도교육청) 2997 ·
- * 슈퍼관리자 2998 · 개발자 2999.
- *
- * 숫자 코드는 `USER_TYPE_CODE` 가 들고 있다 — 여기 주석에만 두면 서버 응답과 맞대 볼 근거가
- * 코드에 남지 않는다.
+ * 서버 코드는 `configs/codes.ts` 의 `USER_TYPE` 이 쥐고, `mocks/accounts.ts` 의
+ * `roleFromCode`·`roleToCode` 가 이 어휘와 맞바꾼다.
  */
 export type Role = 'institution' | 'group' | 'educationOffice' | 'admin' | 'superAdmin' | 'developer';
 

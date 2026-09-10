@@ -1,3 +1,5 @@
+import { USER_TYPE } from '@/configs/codes';
+import type { UserTypeCode } from '@/configs/codes';
 import type { AuthUser, LoginPolicy, ManagedUser, Role } from '@/interface/account';
 import type { ChangeLog } from '@/interface/changeLog';
 import { getSchoolById, SCHOOLS } from './schools';
@@ -43,15 +45,31 @@ export const ACCOUNTS: AuthUser[] = [
   },
 ];
 
-/** 서버 `userTypeCode`. 응답을 등급으로 옮기고 저장 때 되돌리는 자리가 이 표 하나를 본다. */
-export const USER_TYPE_CODE: Record<Role, number> = {
-  institution: 2002,
-  group: 2005,
-  educationOffice: 2010,
-  admin: 2997,
-  superAdmin: 2998,
-  developer: 2999,
+/**
+ * 응답의 `userTypeCode` 를 등급으로 옮기는 유일한 지점.
+ * 코드값은 `configs/codes.ts` 가 쥔다 — 화면은 코드를 직접 쓰지 않는다.
+ */
+const CODE_BY_ROLE: Record<Role, UserTypeCode> = {
+  institution: USER_TYPE.CODE.기관담당자,
+  group: USER_TYPE.CODE.그룹관리자,
+  educationOffice: USER_TYPE.CODE.교육지원청,
+  admin: USER_TYPE.CODE['관리자(도교육청)'],
+  superAdmin: USER_TYPE.CODE.슈퍼관리자,
+  developer: USER_TYPE.CODE.개발자,
 };
+
+const ROLE_BY_CODE = new Map<UserTypeCode, Role>(
+  (Object.entries(CODE_BY_ROLE) as [Role, UserTypeCode][]).map(([role, code]) => [code, role]),
+);
+
+/** 모르는 등급은 가장 좁은 권한으로 떨어뜨린다 — 넓은 쪽으로 두면 못 볼 화면이 열린다. */
+export function roleFromCode(code: UserTypeCode | null | undefined): Role {
+  return (code === null || code === undefined ? undefined : ROLE_BY_CODE.get(code)) ?? 'institution';
+}
+
+export function roleToCode(role: Role): UserTypeCode {
+  return CODE_BY_ROLE[role];
+}
 
 export const ROLE_LABEL: Record<Role, string> = {
   institution: '기관담당자',

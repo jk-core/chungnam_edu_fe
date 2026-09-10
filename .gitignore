@@ -36,8 +36,4 @@ yarn-error.log*
 .env
 .env.*
 
-# BE 전달 전까지 다듬는 API 명세 초안. 확정되면 이 두 줄을 지우고 커밋한다
-src/dummy
-src/dummy2
-
 .omc

@@ -1,61 +1,54 @@
 import { z } from 'zod';
 
-/*
-  API 계약 공통 껍데기.
-
-  호출은 아직 없다 — BE 가 붙기 전에 엔드포인트와 요청·응답 모양을 먼저 못 박아 두는 자리다.
-  화면이 담는 값이 그대로 실려 나가도록, 목업과 폼이 이 타입을 기준으로 움직인다.
-*/
-
-export const API_BASE = '/api/v2.0';
-
-export interface Endpoint {
-  method: 'GET' | 'PUT' | 'DELETE';
-  url: string;
-}
-
 /**
- * 엔티티 하나가 갖는 네 갈래.
- * 식별자는 전부 queryString 으로 넘긴다 — path variable 을 쓰지 않는다.
+ * 페이지네이션 요청 한 벌.
+ *
+ * 목록 파라미터는 `pagingParamsSchema.extend({ 그 화면만의 조건 })` 으로 적는다.
+ * 정렬은 표에 정렬 UI 가 있을 때만 실린다 — 그래서 선택이다.
  */
-export interface CrudEndpoints {
-  /** 표가 그리는 컬럼만 담아 내려주는 목록 */
-  list: Endpoint;
-  /** PK 하나로 폼이 채울 전체 필드를 꺼낸다 */
-  detail: Endpoint;
-  /** PK 가 실려 있으면 수정, 없으면 등록 */
-  save: Endpoint;
-  remove: Endpoint;
-}
-
-export function crudEndpoints(resource: string): CrudEndpoints {
-  return {
-    list: { method: 'GET', url: `${API_BASE}/${resource}/list` },
-    detail: { method: 'GET', url: `${API_BASE}/${resource}/detail` },
-    save: { method: 'PUT', url: `${API_BASE}/${resource}` },
-    remove: { method: 'DELETE', url: `${API_BASE}/${resource}` },
-  };
-}
-
-/** 목록 요청 공통. 쪽 번호는 0 부터 */
-export const pagingRequest = z.object({
+export type PagingParams = z.infer<typeof pagingParamsSchema>;
+export const pagingParamsSchema = z.object({
   page: z.number().int().min(0),
   size: z.number().int().positive(),
+  sortField: z.string().optional(),
+  sortDirection: z.enum(['asc', 'desc']).optional(),
 });
 
-export type PagingRequest = z.infer<typeof pagingRequest>;
+/** 행 타입만 갈리고 나머지는 Spring Page 를 그대로 받는다 */
+const pagingEnvelopeSchema = z.object({
+  totalElements: z.number().int(),
+  totalPages: z.number().int(),
+  number: z.number().int(),
+  numberOfElements: z.number().int(),
+  size: z.number().int(),
+  first: z.boolean(),
+  last: z.boolean(),
+  empty: z.boolean(),
+  sort: z.object({
+    empty: z.boolean(),
+    sorted: z.boolean(),
+    unsorted: z.boolean(),
+  }),
+  pageable: z.object({
+    offset: z.number().int(),
+    pageNumber: z.number().int(),
+    pageSize: z.number().int(),
+    paged: z.boolean(),
+    unpaged: z.boolean(),
+    sort: z.object({
+      empty: z.boolean(),
+      sorted: z.boolean(),
+      unsorted: z.boolean(),
+    }),
+  }),
+});
 
-export function pagingResponse<T extends z.ZodType>(content: T) {
-  return z.object({
-    content: z.array(content),
-    page: z.number().int(),
-    size: z.number().int(),
-    totalElements: z.number().int(),
-    totalPages: z.number().int(),
-  });
+/**
+ * 목록 응답 한 벌. 행 스키마를 감싸 쓴다.
+ *
+ * 전체 건수·페이지 수는 이 껍데기가 이미 갖고 있어 응답마다 totalCount 를 따로 둘 이유가 없다.
+ */
+export function pagingResponseSchema<T extends z.ZodType>(content: T) {
+  return pagingEnvelopeSchema.extend({ content: z.array(content) });
 }
-
-/** 등록·수정·삭제 응답 — 방금 다룬 PK 하나 */
-export const mutationResponse = z.object({ id: z.number().int() });
-
-export type MutationResponse = z.infer<typeof mutationResponse>;
+export type PagingResponse<T> = z.infer<typeof pagingEnvelopeSchema> & { content: Array<T> };

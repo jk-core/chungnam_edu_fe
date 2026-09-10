@@ -68,8 +68,8 @@ export interface StringMaster {
   parallelCount: number;
 }
 
-/** 인버터 타입 (SFR-017-04) — 스트링 31001 / 센트럴 31002 / 마이크로 31003 */
-export type InverterKind = 'string' | 'central' | 'micro';
+/** 인버터 타입 (SFR-017-04). 서버 코드는 `configs/codes.ts` 의 `INVERTER_TYPE` 이 쥔다 */
+export type InverterKind = 'general' | 'string' | 'central' | 'micro';
 
 /**
  * 인버터 제품 마스터 — 설비 등록에서 이 목록을 고른다 (SFR-017-04).

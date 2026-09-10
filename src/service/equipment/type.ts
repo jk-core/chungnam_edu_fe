@@ -1,6 +1,7 @@
 import { z } from 'zod';
 import { MSG } from '@/configs/messages';
-import { pagingRequest } from '@/service/common';
+import { ZodInverterTypeCode } from '@/configs/codes';
+import { pagingParamsSchema } from '@/service/common';
 import { PYRANOMETER_PORT } from '@/mocks/pyranometers';
 import { refineStringRows, stringRowSchema } from '@/service/string/type';
 
@@ -18,99 +19,66 @@ export const INCLINE_MAX = 90;
 export const ARRAY_MIN = 0;
 export const ARRAY_MAX = 1000;
 
-/** 검색어는 설비 이름·CID·RTU 통신 ID·발전소 이름을 함께 훑는다 */
-export const equipmentListRequestSchema = pagingRequest.extend({
+export const NAME_MAX = 120;
+export const COMMUNICATION_ID_MAX = 255;
+
+/** 검색어는 설비명·CID·RTU통신ID·발전소명을 훑는다 */
+export type ManageEquipmentPageParams = z.infer<typeof manageEquipmentPageParamsSchema>;
+export const manageEquipmentPageParamsSchema = pagingParamsSchema.extend({
   keyword: z.string().optional(),
-  /** 한 발전소의 설비만 볼 때 */
   powerPlantId: z.number().int().optional(),
+  inverterTypeCode: ZodInverterTypeCode.CODE.optional(),
 });
 
-export const equipmentListRowSchema = z.object({
+export type ManageEquipmentPage = z.infer<typeof manageEquipmentPageSchema>;
+export const manageEquipmentPageSchema = z.object({
   cid: z.number().int(),
-  plantName: z.string(),
-  /** 설비 이름 (meainName) */
-  name: z.string(),
+  powerPlantName: z.string(),
+  equipmentName: z.string(),
   inverterName: z.string(),
-  inverterMaker: z.string(),
-  /** 인버터 타입 코드 (inverterTypeCode) */
-  inverterTypeCode: z.number().int(),
-  /** 설비용량(kW) (instCapa) */
-  instCapa: z.number(),
-  /** RTU 통신 ID (rtuCommuId) */
-  rtuCommId: z.string(),
+  inverterEnterpriseName: z.string(),
+  inverterTypeCode: ZodInverterTypeCode.CODE,
+  inverterTypeName: ZodInverterTypeCode.NAME,
+  equipmentCapacity: z.number(),
+  rtuCommunicationId: z.string(),
   rtuPort: z.number().int().nullable(),
 });
 
-export const equipmentDetailRequestSchema = z.object({
+export type ManageEquipmentDetailParams = z.infer<typeof manageEquipmentDetailParamsSchema>;
+export const manageEquipmentDetailParamsSchema = z.object({
   cid: z.number().int(),
 });
 
-export const equipmentDetailResponseSchema = z.object({
+export type ManageEquipmentDetail = z.infer<typeof manageEquipmentDetailSchema>;
+export const manageEquipmentDetailSchema = z.object({
   cid: z.number().int(),
   powerPlantId: z.number().int(),
-  plantName: z.string(),
+  powerPlantName: z.string(),
   userId: z.number().int().nullable(),
   userName: z.string(),
-  name: z.string(),
-  rtuCommId: z.string(),
-  /** 3번은 일사량계 몫이라 설비가 쓸 수 없다 */
+  equipmentName: z.string(),
+  rtuCommunicationId: z.string(),
   rtuPort: z.number().int().nullable(),
-  /** 고른 인버터 제품 번호 (inverterId) */
   inverterId: z.number().int().nullable(),
-  /** 고른 모듈 제품 번호 (solaModuleId) */
   moduleId: z.number().int().nullable(),
-  /** 방위각(도). 정남이 180 이다 */
   azimuth: z.number(),
-  /** 경사각(도) (incliAngle) */
-  incliAngle: z.number(),
-  instCapa: z.number(),
-  /** MPPT 1번 직렬·병렬 (modulSeriCnt / modulArowCnt) */
-  series1: z.number().int(),
-  parallel1: z.number().int(),
-  /** MPPT 2번. 안 쓰면 0 */
-  series2: z.number().int(),
-  parallel2: z.number().int(),
-  asExpiresAt: z.string(),
+  inclinedAngle: z.number(),
+  equipmentCapacity: z.number(),
+  moduleSerialCount: z.number().int(),
+  moduleParallelCount: z.number().int(),
+  moduleSerialCountSecond: z.number().int(),
+  moduleParallelCountSecond: z.number().int(),
+  asExpiryDate: z.string(),
   etc: z.string(),
-  /** 설치일시 (meainInstDtm) */
-  installedAt: z.string(),
+  installDate: z.string(),
   /** 아래는 폼이 고치지 않고 읽기만 하는 값이다 */
-  rtuEntName: z.string(),
+  rtuEnterpriseName: z.string(),
   installerName: z.string(),
-  /** 모듈 1장 출력(W) */
-  wattPerPanel: z.number(),
-  /** 인버터 제품 용량(kW) */
-  inverterCapa: z.number(),
-  firstReceivedAt: z.string().nullable(),
-  lastReceivedAt: z.string().nullable(),
+  pwrMp: z.number(),
+  inverterCapacity: z.number(),
+  firstGathDtm: z.string().nullable(),
+  lastGathDtm: z.string().nullable(),
 });
-
-/** `cid` 가 있으면 수정, 없으면 등록 */
-export const equipmentSaveRequestSchema = equipmentDetailResponseSchema
-  .omit({
-    plantName: true,
-    userName: true,
-    rtuEntName: true,
-    installerName: true,
-    wattPerPanel: true,
-    inverterCapa: true,
-    firstReceivedAt: true,
-    lastReceivedAt: true,
-  })
-  .partial({ cid: true });
-
-export const equipmentDeleteRequestSchema = z.object({
-  cid: z.number().int(),
-});
-
-export type EquipmentListRequest = z.infer<typeof equipmentListRequestSchema>;
-export type EquipmentListRow = z.infer<typeof equipmentListRowSchema>;
-export type EquipmentDetailRequest = z.infer<typeof equipmentDetailRequestSchema>;
-export type EquipmentDetailResponse = z.infer<typeof equipmentDetailResponseSchema>;
-export type EquipmentSaveRequest = z.infer<typeof equipmentSaveRequestSchema>;
-export type EquipmentDeleteRequest = z.infer<typeof equipmentDeleteRequestSchema>;
-
-// ── 폼 ─────────────────────────────────────────────────────
 
 const array = (label: string) => z
   .number(MSG.numberRange(label, ARRAY_MIN, ARRAY_MAX))
@@ -119,22 +87,16 @@ const array = (label: string) => z
   .max(ARRAY_MAX, MSG.numberRange(label, ARRAY_MIN, ARRAY_MAX));
 
 /**
- * 설비 등록·수정 폼 (SFR-016-01~04, SFR-017-04).
+ * 등록 요청 한 벌. 담당 사용자는 발전소가 결정한다 — 설비가 따로 받지 않는다.
  *
- * `inverterKind`·`takenSeqs`·`*Label` 은 검증이 문맥을 알아야 해서 폼에 함께 싣는 값이다 —
- * 스키마를 갈아 끼우는 대신 값으로 들고 있어야, 검색기가 고른 순간 같은 틱에 다시 판정된다.
+ * 검증 규칙을 여기 두는 것은 이 스키마가 곧 폼이 지키는 계약이기 때문이다 — 폼은 이것을
+ * 넓혀 쓸 뿐이라, 서버가 받는 모양과 화면이 막는 모양이 갈리지 않는다.
  */
-export const equipmentFormSchema = z.object({
-  userId: z.string().min(1, MSG.selectRequired('사용자')),
-  /*
-    보일 이름에는 규칙을 걸지 않는다 — 참조하던 제품·계정이 지워지면 이름만 비는데, 그 칸에는
-    오류를 보여 줄 자리가 없어 「이유 없이 저장이 안 되는 폼」이 된다. 값이 있는지는 id 가 본다.
-  */
-  userLabel: z.string(),
-  plantId: z.string().min(1, MSG.selectRequired('발전소')),
-  plantLabel: z.string(),
-  name: z.string().trim().min(1, MSG.requiredField('설비 이름')).max(120, MSG.tooLong('설비 이름', 120)),
-  rtuCommId: z.string().trim().max(255, MSG.tooLong('RTU 통신 ID', 255)),
+export type ManageEquipmentAddParams = z.infer<typeof manageEquipmentAddSchema>;
+export const manageEquipmentAddSchema = z.object({
+  powerPlantId: z.number(MSG.selectRequired('발전소')).int(),
+  equipmentName: z.string().trim().min(1, MSG.requiredField('설비 이름')).max(NAME_MAX, MSG.tooLong('설비 이름', NAME_MAX)),
+  rtuCommunicationId: z.string().trim().max(COMMUNICATION_ID_MAX, MSG.tooLong('RTU 통신 ID', COMMUNICATION_ID_MAX)),
   rtuPort: z
     .number()
     .int()
@@ -142,31 +104,65 @@ export const equipmentFormSchema = z.object({
     .max(PORT_MAX, MSG.numberRange('RTU 포트', PORT_MIN, PORT_MAX))
     .refine((value) => value !== PYRANOMETER_PORT, `${PYRANOMETER_PORT}번 포트는 일사량계 몫이라 쓸 수 없습니다.`)
     .nullable(),
-  inverterProductId: z.string().min(1, MSG.selectRequired('인버터 모델')),
-  inverterLabel: z.string(),
-  /** 스트링 인버터인지 — 스트링 줄을 요구할지 여기서 갈린다 */
-  inverterKind: z.enum(['string', 'central', 'micro', '']),
-  moduleProductId: z.string().min(1, MSG.selectRequired('모듈 모델')),
-  moduleLabel: z.string(),
+  inverterId: z.number().int().nullable(),
+  moduleId: z.number().int().nullable(),
   azimuth: z
     .number(MSG.numberRange('방위각', AZIMUTH_MIN, AZIMUTH_MAX))
     .min(AZIMUTH_MIN, MSG.numberRange('방위각', AZIMUTH_MIN, AZIMUTH_MAX))
     .max(AZIMUTH_MAX, MSG.numberRange('방위각', AZIMUTH_MIN, AZIMUTH_MAX)),
-  inclineAngle: z
+  inclinedAngle: z
     .number(MSG.numberRange('경사각', INCLINE_MIN, INCLINE_MAX))
     .min(INCLINE_MIN, MSG.numberRange('경사각', INCLINE_MIN, INCLINE_MAX))
     .max(INCLINE_MAX, MSG.numberRange('경사각', INCLINE_MIN, INCLINE_MAX)),
-  series1: array('직렬 1'),
-  parallel1: array('병렬 1'),
-  series2: array('직렬 2'),
-  parallel2: array('병렬 2'),
   equipmentCapacity: z.number(MSG.requiredField('설비용량')).gt(0, MSG.requiredField('설비용량')),
-  asExpiresAt: z.string(),
-  note: z.string(),
-  installedAt: z.string(),
-  operatedAt: z.string(),
+  moduleSerialCount: array('직렬 1'),
+  moduleParallelCount: array('병렬 1'),
+  moduleSerialCountSecond: array('직렬 2'),
+  moduleParallelCountSecond: array('병렬 2'),
+  asExpiryDate: z.string(),
+  etc: z.string(),
+  installDate: z.string(),
+});
+
+export type ManageEquipmentModifyParams = z.infer<typeof manageEquipmentModifySchema>;
+export const manageEquipmentModifySchema = manageEquipmentAddSchema.extend({
+  cid: z.number().int(),
+});
+
+export type ManageEquipmentRemoveParams = z.infer<typeof manageEquipmentRemoveParamsSchema>;
+export const manageEquipmentRemoveParamsSchema = z.object({
+  cid: z.number().int(),
+});
+
+// ── 폼 ─────────────────────────────────────────────────────
+
+/**
+ * 설비 등록·수정 폼 (SFR-016-01~04, SFR-017-04).
+ *
+ * 요청 스키마를 넓혀 쓴다 — 제품은 서버가 비워 두는 것을 허용하지만 화면은 고르게 하고,
+ * 소속·보일 이름·스트링 판처럼 요청에 실리지 않는 칸을 여기서만 더한다.
+ * 저장할 때는 `manageEquipmentAddSchema.parse(values)` 가 그 칸들을 떨군다.
+ *
+ * `inverterKind`·`takenNumbers`·`*Label` 은 검증이 문맥을 알아야 해서 폼에 함께 싣는 값이다 —
+ * 스키마를 갈아 끼우는 대신 값으로 들고 있어야, 검색기가 고른 순간 같은 틱에 다시 판정된다.
+ */
+export type EquipmentFormValues = z.infer<typeof equipmentFormSchema>;
+export const equipmentFormSchema = manageEquipmentAddSchema.extend({
+  inverterId: z.number(MSG.selectRequired('인버터 모델')).int(),
+  moduleId: z.number(MSG.selectRequired('모듈 모델')).int(),
+  userId: z.number(MSG.selectRequired('사용자')).int(),
+  /*
+    보일 이름에는 규칙을 걸지 않는다 — 참조하던 제품·계정이 지워지면 이름만 비는데, 그 칸에는
+    오류를 보여 줄 자리가 없어 「이유 없이 저장이 안 되는 폼」이 된다. 값이 있는지는 id 가 본다.
+  */
+  userLabel: z.string(),
+  powerPlantLabel: z.string(),
+  inverterLabel: z.string(),
+  moduleLabel: z.string(),
+  /** 스트링 인버터인지 — 스트링 줄을 요구할지 여기서 갈린다 */
+  inverterKind: z.enum(['general', 'string', 'central', 'micro', '']),
   rows: z.array(stringRowSchema),
-  takenSeqs: z.array(z.number().int()),
+  takenNumbers: z.array(z.number().int()),
 }).superRefine((values, ctx) => {
   // 스트링 구조는 스트링 기종에만 있다.
   if (values.inverterKind !== 'string') return;
@@ -177,10 +173,3 @@ export const equipmentFormSchema = z.object({
 
   refineStringRows(values, ctx);
 });
-
-export type EquipmentFormValues = z.infer<typeof equipmentFormSchema>;
-
-export type EquipmentFormBody = Omit<
-  EquipmentFormValues,
-  'userLabel' | 'plantLabel' | 'inverterLabel' | 'moduleLabel' | 'inverterKind' | 'takenSeqs'
->;

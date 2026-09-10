@@ -1,76 +1,54 @@
 import { z } from 'zod';
 import { MSG } from '@/configs/messages';
-import { pagingRequest } from '@/service/common';
+import { ZodCellTypeCode } from '@/configs/codes';
+import { pagingParamsSchema } from '@/service/common';
 
-export type NumericKey =
-  | 'wattPerPanel'
-  | 'maxVoltage'
-  | 'maxCurrent'
-  | 'openVoltage'
-  | 'shortCurrent'
-  | 'voltTempCoeff'
-  | 'currentTempCoeff';
+/**
+ * 전기특성 항목의 허용 범위 — 입력 칸, 검증, 이력 라벨을 같은 표에서 뽑는다 (SFR-017-05).
+ * 키는 BE 컬럼명을 그대로 쓴다 — 바꾸면 BE 와 필드를 맞대볼 수 없다.
+ */
+export type NumericKey = 'pwrMp' | 'vltMp' | 'curMp' | 'vltOc' | 'curSc' | 'tempVltCof' | 'tempCurCof';
 
-/** 숫자 항목의 허용 범위 — 입력 칸, 검증, 이력 라벨을 같은 표에서 뽑는다 (SFR-017-05). */
 export const NUMERIC: { key: NumericKey; label: string; min: number; max: number; unit: string }[] = [
-  { key: 'wattPerPanel', label: '모듈 용량', min: 0, max: 700, unit: 'W' },
-  { key: 'maxVoltage', label: '최대 전압', min: 0, max: 100, unit: 'V' },
-  { key: 'maxCurrent', label: '최대 전류', min: 0, max: 100, unit: 'A' },
-  { key: 'openVoltage', label: '개방 전압', min: 0, max: 100, unit: 'V' },
-  { key: 'shortCurrent', label: '단락 전류', min: 0, max: 100, unit: 'A' },
-  { key: 'voltTempCoeff', label: '전압 온도계수', min: -1, max: 0, unit: '%/℃' },
-  { key: 'currentTempCoeff', label: '전류 온도계수', min: 0, max: 1, unit: '%/℃' },
+  { key: 'pwrMp', label: '모듈 용량', min: 0, max: 700, unit: 'W' },
+  { key: 'vltMp', label: '최대 전압', min: 0, max: 100, unit: 'V' },
+  { key: 'curMp', label: '최대 전류', min: 0, max: 100, unit: 'A' },
+  { key: 'vltOc', label: '개방 전압', min: 0, max: 100, unit: 'V' },
+  { key: 'curSc', label: '단락 전류', min: 0, max: 100, unit: 'A' },
+  { key: 'tempVltCof', label: '전압 온도계수', min: -1, max: 0, unit: '%/℃' },
+  { key: 'tempCurCof', label: '전류 온도계수', min: 0, max: 1, unit: '%/℃' },
 ];
 
-/** 검색어는 모듈 이름·업체 이름을 함께 훑는다 */
-export const moduleListRequestSchema = pagingRequest.extend({
+/** 검색어는 모듈명·업체명을 훑는다 */
+export type ManageModulePageParams = z.infer<typeof manageModulePageParamsSchema>;
+export const manageModulePageParamsSchema = pagingParamsSchema.extend({
   keyword: z.string().optional(),
 });
 
-export const moduleListRowSchema = z.object({
+export type ManageModulePage = z.infer<typeof manageModulePageSchema>;
+export const manageModulePageSchema = z.object({
   moduleId: z.number().int(),
-  name: z.string(),
-  maker: z.string(),
-  /** 모듈 1장 출력(W) (pwrMp) */
-  wattPerPanel: z.number(),
-  /** 0 = 단면, 1 = 양면 */
-  cellType: z.number().int(),
+  moduleName: z.string(),
+  moduleEnterpriseName: z.string(),
+  pwrMp: z.number(),
+  cellTypeCode: ZodCellTypeCode.CODE,
+  cellTypeName: ZodCellTypeCode.NAME,
 });
 
-export const moduleDetailRequestSchema = z.object({
-  moduleId: z.number().int(),
-});
-
-export const moduleDetailResponseSchema = moduleListRowSchema.extend({
-  /** 최대 출력 동작 전압(V) (vltMp) */
-  maxVoltage: z.number(),
-  /** 최대 출력 동작 전류(A) (curMp) */
-  maxCurrent: z.number(),
-  /** 개방 전압(V) (vltOc) */
-  openVoltage: z.number(),
-  /** 단락 전류(A) (curSc) */
-  shortCurrent: z.number(),
-  /** 전압 온도계수(%/℃) (tempVltCof) — 음수다 */
-  voltTempCoeff: z.number(),
-  /** 전류 온도계수(%/℃) (tempCurCof) */
-  currentTempCoeff: z.number(),
-});
-
-/** `moduleId` 가 있으면 수정, 없으면 등록 */
-export const moduleSaveRequestSchema = moduleDetailResponseSchema.partial({ moduleId: true });
-
-export const moduleDeleteRequestSchema = z.object({
+export type ManageModuleDetailParams = z.infer<typeof manageModuleDetailParamsSchema>;
+export const manageModuleDetailParamsSchema = z.object({
   moduleId: z.number().int(),
 });
 
-export type ModuleListRequest = z.infer<typeof moduleListRequestSchema>;
-export type ModuleListRow = z.infer<typeof moduleListRowSchema>;
-export type ModuleDetailRequest = z.infer<typeof moduleDetailRequestSchema>;
-export type ModuleDetailResponse = z.infer<typeof moduleDetailResponseSchema>;
-export type ModuleSaveRequest = z.infer<typeof moduleSaveRequestSchema>;
-export type ModuleDeleteRequest = z.infer<typeof moduleDeleteRequestSchema>;
-
-// ── 폼 ─────────────────────────────────────────────────────
+export type ManageModuleDetail = z.infer<typeof manageModuleDetailSchema>;
+export const manageModuleDetailSchema = manageModulePageSchema.extend({
+  vltMp: z.number(),
+  curMp: z.number(),
+  vltOc: z.number(),
+  curSc: z.number(),
+  tempVltCof: z.number(),
+  tempCurCof: z.number(),
+});
 
 const numericShape = Object.fromEntries(NUMERIC.map(({ key, label, min, max }) => [
   key,
@@ -79,12 +57,29 @@ const numericShape = Object.fromEntries(NUMERIC.map(({ key, label, min, max }) =
     .max(max, MSG.numberRange(label, min, max)),
 ])) as Record<NumericKey, z.ZodNumber>;
 
-/** 모듈 제품 등록·수정 폼 (SFR-017-05) */
-export const moduleFormSchema = z.object({
-  name: z.string().trim().min(1, MSG.requiredField('모듈명')),
-  maker: z.string().trim().min(1, MSG.requiredField('업체명')),
-  cellType: z.enum(['single', 'double']),
+/**
+ * 등록 요청 한 벌. 검증 규칙을 여기 두는 것은 이 스키마가 곧 폼이 지키는 계약이기 때문이다.
+ */
+export type ManageModuleAddParams = z.infer<typeof manageModuleAddSchema>;
+export const manageModuleAddSchema = z.object({
+  moduleName: z.string().trim().min(1, MSG.requiredField('모듈명')),
+  moduleEnterpriseName: z.string().trim().min(1, MSG.requiredField('업체명')),
+  cellTypeCode: ZodCellTypeCode.CODE,
   ...numericShape,
 });
 
+export type ManageModuleModifyParams = z.infer<typeof manageModuleModifySchema>;
+export const manageModuleModifySchema = manageModuleAddSchema.extend({
+  moduleId: z.number().int(),
+});
+
+export type ManageModuleRemoveParams = z.infer<typeof manageModuleRemoveParamsSchema>;
+export const manageModuleRemoveParamsSchema = z.object({
+  moduleId: z.number().int(),
+});
+
+// ── 폼 ─────────────────────────────────────────────────────
+
+/** 모듈 제품 등록·수정 폼 (SFR-017-05). 요청 스키마를 그대로 쓴다 — 폼 전용 칸이 없다 */
 export type ModuleFormValues = z.infer<typeof moduleFormSchema>;
+export const moduleFormSchema = manageModuleAddSchema;
