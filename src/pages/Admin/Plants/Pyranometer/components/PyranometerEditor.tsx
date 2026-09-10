@@ -48,7 +48,13 @@ export function PyranometerEditor({ irradId }: PyranometerEditorProps) {
   const isNew = target === null;
 
   const methods = useForm<IrradFormValues>({
-    defaultValues: target ? toFormValues(target, plants) : EMPTY_VALUES,
+    /*
+      발전소는 셀렉트라 기본값이 옵션 중 하나여야 한다 — 옵션에 없는 값을 두면 브라우저가 첫
+      항목을 선택해 보여 주면서 폼은 그 값을 갖지 않아, 그 발전소를 눌러도 change 가 나지 않는다.
+    */
+    defaultValues: target
+      ? toFormValues(target, plants)
+      : { ...EMPTY_VALUES, powerPlantId: plants[0]?.powerPlantId ?? Number.NaN },
     resolver: zodResolver(irradFormSchema),
     mode: 'onChange',
   });

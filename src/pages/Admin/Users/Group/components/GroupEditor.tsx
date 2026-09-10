@@ -48,11 +48,17 @@ export function GroupEditor({ userId }: GroupEditorProps) {
   const isNew = target === null;
   const backTo = listPath('users', 'group');
 
-  const idOf = (plantId: string) => plants.find((item) => item.plantId === plantId)?.powerPlantId ?? Number.NaN;
+  /*
+    지운 발전소는 걸러 낸다 — 번호를 못 찾은 자리에 NaN 을 두면 칩으로 그려지지도, 빼지지도
+    않는 값이 배열에 남아 저장이 영구히 막힌다.
+  */
+  const toPowerPlantIds = (plantIds: string[]) => plantIds
+    .map((plantId) => plants.find((item) => item.plantId === plantId)?.powerPlantId)
+    .filter((powerPlantId) => powerPlantId !== undefined);
 
   const methods = useForm<GroupFormValues>({
     defaultValues: target
-      ? { userId: target.userId, userLabel: labelOf(target), powerPlantIds: target.plantIds.map(idOf) }
+      ? { userId: target.userId, userLabel: labelOf(target), powerPlantIds: toPowerPlantIds(target.plantIds) }
       : { userId: Number.NaN, userLabel: '', powerPlantIds: [] },
     resolver: zodResolver(groupFormSchema),
     mode: 'onChange',
@@ -146,7 +152,7 @@ export function GroupEditor({ userId }: GroupEditorProps) {
                     onPick={(row) => onSelect({
                       userId: row.userId,
                       userLabel: labelOf(row),
-                      powerPlantIds: row.plantIds.map(idOf),
+                      powerPlantIds: toPowerPlantIds(row.plantIds),
                     })}
                   />
                 </Modal>
