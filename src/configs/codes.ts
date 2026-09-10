@@ -58,21 +58,47 @@ export const USER_TYPE = {
   },
 } as const satisfies { CODE: Record<UserTypeName, UserTypeCode>; NAME: Record<UserTypeCode, UserTypeName> };
 
-/** 인버터 타입 (inverterTypeCode) — 이 값이 인버터 아래 계층을 가른다 */
+/**
+ * 인버터 타입 (inverterTypeCode) — 이 값이 인버터 아래 계층을 가른다.
+ * 표기는 사내 다른 프로젝트(ppi)의 코드 테이블을 그대로 따른다.
+ */
 export const ZodInverterTypeCode = {
-  CODE: z.union([z.literal(31001), z.literal(31002), z.literal(31003)]),
-  NAME: z.enum(['스트링', '센트럴', '마이크로']),
+  CODE: z.union([z.literal(31000), z.literal(31001), z.literal(31002), z.literal(31003)]),
+  NAME: z.enum(['일반 인버터', '스트링 인버터', '센트럴 인버터', '마이크로 인버터']),
 };
 export type InverterTypeCode = z.infer<typeof ZodInverterTypeCode.CODE>;
 export type InverterTypeName = z.infer<typeof ZodInverterTypeCode.NAME>;
 
 export const INVERTER_TYPE = {
-  CODE: { 스트링: 31001, 센트럴: 31002, 마이크로: 31003 },
-  NAME: { 31001: '스트링', 31002: '센트럴', 31003: '마이크로' },
+  CODE: {
+    '일반 인버터': 31000,
+    '스트링 인버터': 31001,
+    '센트럴 인버터': 31002,
+    '마이크로 인버터': 31003,
+  },
+  NAME: {
+    31000: '일반 인버터',
+    31001: '스트링 인버터',
+    31002: '센트럴 인버터',
+    31003: '마이크로 인버터',
+  },
 } as const satisfies {
   CODE: Record<InverterTypeName, InverterTypeCode>;
   NAME: Record<InverterTypeCode, InverterTypeName>;
 };
+
+/** 위상 종류 (phaseTypeCode) */
+export const ZodPhaseTypeCode = {
+  CODE: z.union([z.literal(18001), z.literal(18002)]),
+  NAME: z.enum(['단상', '삼상']),
+};
+export type PhaseTypeCode = z.infer<typeof ZodPhaseTypeCode.CODE>;
+export type PhaseTypeName = z.infer<typeof ZodPhaseTypeCode.NAME>;
+
+export const PHASE_TYPE = {
+  CODE: { 단상: 18001, 삼상: 18002 },
+  NAME: { 18001: '단상', 18002: '삼상' },
+} as const satisfies { CODE: Record<PhaseTypeName, PhaseTypeCode>; NAME: Record<PhaseTypeCode, PhaseTypeName> };
 
 /** 모듈 셀 종류 (cellTypeCode) */
 export const ZodCellTypeCode = {
@@ -174,7 +200,6 @@ export type FaultCodeValue = z.infer<typeof ZodFaultCode>;
   값을 못 받은 축은 여기 적지 않는다 — 임의 번호를 박아 두면 값이 오는 날 어느 것이 추측이었는지
   가릴 수 없다. 확정될 때까지 계약 스키마는 `z.number().int()` 로 둔다.
 
-    phaseTypeCode        단상 · 삼상 (지금 한글 문자열로 저장 중)
     stateCode            보고서 상태 — 작성중 · 제출완료 · 검토중 · 확인완료 · 반려
     reportTypeCode       정기점검 · 특별점검
     targetTypeCode       전체 · RTU · 인버터 · 모듈 어레이 · 일사량계 · 기타

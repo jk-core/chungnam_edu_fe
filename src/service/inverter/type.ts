@@ -1,6 +1,6 @@
 import { z } from 'zod';
 import { MSG } from '@/configs/messages';
-import { ZodInverterTypeCode } from '@/configs/codes';
+import { ZodInverterTypeCode, ZodPhaseTypeCode } from '@/configs/codes';
 import { pagingParamsSchema } from '@/service/common';
 
 /** 인버터 용량 범위(kW) */
@@ -24,8 +24,8 @@ export const manageInverterPageSchema = z.object({
   inverterCapacity: z.number(),
   inverterTypeCode: ZodInverterTypeCode.CODE,
   inverterTypeCodeName: ZodInverterTypeCode.NAME,
-  phaseTypeCode: z.number().int(),
-  phaseTypeName: z.string(),
+  phaseTypeCode: ZodPhaseTypeCode.CODE,
+  phaseTypeName: ZodPhaseTypeCode.NAME,
 });
 
 export type ManageInverterDetailParams = z.infer<typeof manageInverterDetailParamsSchema>;
@@ -48,7 +48,7 @@ export const manageInverterAddSchema = z.object({
     .gt(CAPACITY_MIN, MSG.numberRange('인버터 용량', CAPACITY_MIN, CAPACITY_MAX))
     .max(CAPACITY_MAX, MSG.numberRange('인버터 용량', CAPACITY_MIN, CAPACITY_MAX)),
   inverterTypeCode: ZodInverterTypeCode.CODE,
-  phaseTypeCode: z.number().int(),
+  phaseTypeCode: ZodPhaseTypeCode.CODE,
 });
 
 export type ManageInverterModifyParams = z.infer<typeof manageInverterModifySchema>;
@@ -65,12 +65,7 @@ export const manageInverterRemoveParamsSchema = z.object({
 
 /**
  * 인버터 제품 등록·수정 폼 (SFR-017-04).
- *
- * 요청 스키마를 넓혀 쓰되 **위상만 갈린다** — `phaseTypeCode` 값을 BE 에게 못 받아 라디오에
- * 실을 번호가 없다. 코드를 받을 때까지 이름을 들고, 저장 직전에 코드로 옮긴다.
- * 서버 번호(`inverterId`)는 폼이 만지는 값이 아니라 여기 없다.
+ * 요청 스키마를 그대로 쓴다 — 서버 번호(`inverterId`)는 폼이 만지는 값이 아니라 여기 없다.
  */
 export type InverterFormValues = z.infer<typeof inverterFormSchema>;
-export const inverterFormSchema = manageInverterAddSchema.omit({ phaseTypeCode: true }).extend({
-  phaseTypeName: z.enum(['단상', '삼상']),
-});
+export const inverterFormSchema = manageInverterAddSchema;

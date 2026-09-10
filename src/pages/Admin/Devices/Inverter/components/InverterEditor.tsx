@@ -9,7 +9,7 @@ import { createForm, FormRow, FormSection } from '@/components/common/Form';
 import { formatNumber } from '@/utils/format';
 import { FormPage } from '@/pages/Admin/_shared/FormPage';
 import { INVERTER_KIND_LABEL } from '@/mocks/deviceMaster';
-import { INVERTER_TYPE } from '@/configs/codes';
+import { INVERTER_TYPE, PHASE_TYPE } from '@/configs/codes';
 import { CAPACITY_MAX, CAPACITY_MIN, inverterFormSchema, NAME_MAX } from '@/service/inverter/type';
 import { listPath } from '@/pages/Admin/_shared/adminPath';
 import { MSG } from '@/configs/messages';
@@ -19,7 +19,7 @@ import { useInverterProducts } from '@/pages/Admin/_shared/device/useSelectableE
 import useEquipmentStore, { mergeEquipment } from '@/stores/equipmentStore';
 import type { InverterFormValues } from '@/service/inverter/type';
 import type { InverterProduct } from '@/interface/deviceMaster';
-import { EMPTY_VALUES, kindFromCode, toFormValues } from './values';
+import { EMPTY_VALUES, kindFromCode, phaseFromCode, toFormValues } from './values';
 
 const Form = createForm<InverterFormValues>();
 
@@ -70,7 +70,7 @@ export function InverterEditor({ inverterId }: InverterEditorProps) {
       name: values.inverterName,
       capacityKw: values.inverterCapacity,
       kind: kindFromCode(values.inverterTypeCode),
-      phase: values.phaseTypeName,
+      phase: phaseFromCode(values.phaseTypeCode),
     };
     const logTarget = { targetType: 'inverter' as const, id: saved.id, name: saved.name, actor: actor?.name ?? '관리자' };
 
@@ -142,19 +142,16 @@ export function InverterEditor({ inverterId }: InverterEditorProps) {
               <Form.Select
                 label="인버터 타입"
                 name="inverterTypeCode"
-                options={[
-                  { value: INVERTER_TYPE.CODE.스트링, label: '스트링' },
-                  { value: INVERTER_TYPE.CODE.센트럴, label: '센트럴' },
-                  { value: INVERTER_TYPE.CODE.마이크로, label: '마이크로' },
-                ]}
+                options={Object.entries(INVERTER_TYPE.NAME)
+                  .map(([code, label]) => ({ value: Number(code), label }))}
               />
             </FormRow>
             <Form.Radio
               label="위상 종류"
-              name="phaseTypeName"
+              name="phaseTypeCode"
               options={[
-                { value: '단상', label: '단상' },
-                { value: '삼상', label: '삼상' },
+                { value: PHASE_TYPE.CODE.단상, label: '단상' },
+                { value: PHASE_TYPE.CODE.삼상, label: '삼상' },
               ]}
               required
             />
