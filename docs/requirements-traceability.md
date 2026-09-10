@@ -113,15 +113,16 @@ AI진단  ── 발전진단 / 월간보고서 / 알림이력
 설비를 「발전저하」라 부르고 알림을 「주의」라 부르면 같은 코드가 화면마다 다른 말로 뜬다.
 「발전저하」는 통신단절에도 걸려 뜻이 겹치기도 한다.
 
-라벨 표는 `mocks/status.ts` 의 `OPERATION_LABEL` 과 `configs/codes.ts` 의 `STATUS_TYPE.NAME`
-둘이라, 발주처가 원문 어휘를 요구하면 그 둘을 고치면 된다.
+화면 문구는 `mocks/status.ts` 의 `OPERATION_LABEL` 하나에서 나온다 — 발주처가 원문 어휘를
+요구하면 그것만 고치면 된다. `configs/codes.ts` 의 `ZodStatusCode.NAME` 은 BE 가 내려주는
+`statusName` 을 검증하는 zod enum 이라 화면 문구가 아니다 — 여기를 고치면 응답 검증만 깨진다.
 예외로 통합관제 장애 판의 묶음 제목만 7998 을 「데이터 미수신」이라 부른다
 (`ControlRoom/components/FaultGroups.tsx` · 2026-08-25 사업팀 회의).
 
 `docs/SFR_반영점검표.xlsx` 의 「반영」 칸은 원문 예시 어휘를 그대로 둔다 — `EX)` 는 예시라
 문구까지 맞추는 것이 요구가 아니다. 단계 수와 구분 기준이 요구이고 그것은 충족한다.
 
-## 5. API 전환 지점
+## 6. API 전환 지점
 
 화면은 전부 셀렉터·목업 함수만 호출한다. 실제 API 로 갈 때 고치는 곳:
 
