@@ -5,7 +5,7 @@ import type { ReportTemplate } from '@/interface/fieldReport';
 /** 새 양식은 오늘 열어 한 달 뒤 닫는 것을 기본으로 둔다 */
 export const EMPTY_VALUES: TemplateFormValues = {
   templateName: '',
-  reportTypeName: '정기',
+  reportTypeName: '정기점검',
   targetTypeName: '전체',
   startDate: TODAY.format('YYYY-MM-DD'),
   endDate: daysAhead(30),
@@ -17,7 +17,8 @@ export const EMPTY_VALUES: TemplateFormValues = {
 export function toFormValues(template: ReportTemplate): TemplateFormValues {
   return {
     templateName: template.label,
-    reportTypeName: template.inspectType,
+    // 목업은 「정기」로 줄여 들고 계약은 「정기점검」이 그 이름이다.
+    reportTypeName: `${template.inspectType}점검`,
     targetTypeName: template.targetType,
     startDate: template.startDate,
     endDate: template.dueDate,

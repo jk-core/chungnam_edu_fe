@@ -21,8 +21,8 @@ import styles from '@/pages/Admin/Admin.module.scss';
 import { EMPTY_VALUES, hasItemChange, toCheckNameList, toFormValues } from './values';
 
 const INSPECT_TYPES = [
-  { value: '정기' as const, label: '정기점검' },
-  { value: '특별' as const, label: '특별점검' },
+  { value: '정기점검' as const, label: '정기점검' },
+  { value: '특별점검' as const, label: '특별점검' },
 ];
 
 const Form = createForm<TemplateFormValues>();
@@ -80,7 +80,7 @@ export function TemplateEditor({ template }: TemplateEditorProps) {
   const commit = (input: TemplateFormValues) => {
     const saved: ReportTemplate = {
       id: template?.id ?? nextTemplateId(),
-      inspectType: input.reportTypeName,
+      inspectType: input.reportTypeName === '특별점검' ? '특별' : '정기',
       targetType: input.targetTypeName,
       label: input.templateName.trim(),
       version: nextVersion,

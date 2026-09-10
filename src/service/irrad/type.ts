@@ -12,9 +12,6 @@ export const FACTOR_MAX = 10;
 /** 통신 ID 는 장비 설정 화면에 그대로 들어가는 값이라 영숫자만 받는다. */
 export const COMMUNICATION_ID = /^[A-Za-z0-9]+$/;
 
-/** RTU 포트는 3번이 일사량계 몫이다 — 화면에서 고를 수 없다 */
-export const IRRAD_PORT = 3;
-
 /** 검색어는 일사량계명·RTU통신ID 를 훑는다 */
 export type ManageIrradPageParams = z.infer<typeof manageIrradPageParamsSchema>;
 export const manageIrradPageParamsSchema = pagingParamsSchema.extend({

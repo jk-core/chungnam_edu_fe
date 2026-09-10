@@ -141,8 +141,9 @@ export const powerPlantInfoSchema = z.object({
     rtuPort: z.number().int(),
     calibrationFactor: z.number(),
     isModTemp: z.boolean(),
-    statusCode: ZodStatusCode.CODE,
-    statusName: ZodStatusCode.NAME,
+    /* 일사량계 상태는 발전 운전상태와 다른 축이고 코드값이 미정이다 (configs/codes.ts) */
+    statusCode: z.number().int(),
+    statusName: z.string(),
   }).nullable(),
   inverterList: z.array(z.object({
     cid: z.number().int(),

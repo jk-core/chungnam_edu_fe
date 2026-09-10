@@ -281,7 +281,7 @@ export function templateFormSchema(isNew: boolean, needsNote: boolean) {
   return manageInspectionReportTemplateAddSchema
     .omit({ reportTypeCode: true, targetTypeCode: true, checkNameList: true })
     .extend({
-      reportTypeName: z.enum(['정기', '특별']),
+      reportTypeName: z.enum(['정기점검', '특별점검']),
       targetTypeName: z.enum(INSPECTION_TARGET_OPTIONS),
       checkList: z
         .array(z.object({

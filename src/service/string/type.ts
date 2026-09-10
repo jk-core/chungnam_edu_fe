@@ -76,7 +76,13 @@ export const stringRowSchema = z.object({
 export type ManageStringSaveParams = z.infer<typeof manageStringSaveSchema>;
 export const manageStringSaveSchema = z.object({
   cid: z.number().int(),
-  list: z.array(stringRowSchema.partial({ stringId: true })),
+  /*
+    새 줄은 stringId 를 아예 싣지 않는다 — 편집판은 빈 줄을 null 로 들지만 그대로 보내면
+    「stringId 가 null 인 줄을 수정」으로 읽혀 등록이 삼켜진다.
+  */
+  list: z.array(stringRowSchema.omit({ stringId: true }).extend({
+    stringId: z.number().int().optional(),
+  })),
 });
 
 export type ManageStringRemoveParams = z.infer<typeof manageStringRemoveParamsSchema>;
