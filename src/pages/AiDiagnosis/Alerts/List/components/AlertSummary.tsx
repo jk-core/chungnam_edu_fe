@@ -13,7 +13,7 @@ export function AlertSummary({ stats }: { stats: ReturnType<typeof summarize> })
           label="미조치 알림"
           value={stats.pending}
           unit="건"
-          meterLabel={`긴급 ${stats.pendingCritical}건`}
+          meterLabel={`경고 ${stats.pendingCritical}건`}
           meter={stats.total > 0 ? stats.pending / stats.total : 0}
         />
       </Reveal>

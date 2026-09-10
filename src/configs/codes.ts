@@ -11,7 +11,15 @@ import { z } from 'zod';
   대조할 것이 없다.
 */
 
-/** 발전소·설비 운전상태 (statusCode / statusName) */
+/**
+ * 발전소·설비 운전상태 (statusCode / statusName).
+ *
+ * **설비 상태와 알림 구분이 같은 축이다.** 알림에는 7003·7004·7998 만 실린다 — 정상·준비중은
+ * 알릴 일이 아니다. 축을 가르면 「경고 설비」의 알림이 다른 어휘로 떠 둘이 겹친다.
+ * 고장진단은 이 축으로 접힌다 (`mocks/faultCodes.ts` 의 `FAULT_BY_STATUS`).
+ *
+ * 조치 상태(미조치·해결)는 이 축이 아니다 — 알림의 actionCompleteDtm 이 가른다.
+ */
 export const ZodStatusCode = {
   CODE: z.union([z.literal(7001), z.literal(7002), z.literal(7003), z.literal(7004), z.literal(7998)]),
   NAME: z.enum(['준비중', '정상', '주의', '경고', '통신단절']),

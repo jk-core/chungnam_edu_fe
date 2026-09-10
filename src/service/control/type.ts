@@ -93,6 +93,10 @@ export const controlAggregationSchema = z.object({
 export type ControlFault = z.infer<typeof controlFaultSchema>;
 export const controlFaultSchema = z.object({
   countTotal: z.number().int(),
+  /*
+    필드명은 발전이 저하·이상·정지했다는 조건을 말하고, 표기는 주의·경고·통신단절이다.
+    이름은 사내 count 객체 관례를 따르므로 라벨과 갈려도 그대로 둔다.
+  */
   countNormal: z.number().int(),
   countReady: z.number().int(),
   countPowerLow: z.number().int(),
