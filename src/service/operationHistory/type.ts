@@ -14,7 +14,7 @@ export const operationHistoryPageSchema = z.object({
   gathDtm: z.string(),
   dataStateCode: ZodDataStateCode.CODE,
   dataStateName: ZodDataStateCode.NAME,
-  accumPower: z.number(),
+  accumPower: z.number().nullable(),
   irrad: z.number().nullable(),
   moduleTemp: z.number().nullable(),
   inverterTemp: z.number().nullable(),
@@ -45,6 +45,7 @@ export type OperationHistoryChart = z.infer<typeof operationHistoryChartSchema>;
 export const operationHistoryChartSchema = z.object({
   dateTime: z.string(),
   dataStateCode: ZodDataStateCode.CODE,
+  dataStateName: ZodDataStateCode.NAME,
   accumPower: z.number().nullable(),
   outputPowerFigure: z.number().nullable(),
   outputVoltageFigure: z.number().nullable(),

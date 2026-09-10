@@ -131,9 +131,10 @@ export const powerPlantInfoSchema = z.object({
     serial: z.string(),
     firmware: z.string(),
     intervalMinute: z.number().int(),
+    /* RTU 통신상태는 발전 운전상태와 다른 축이고 코드값이 미정이다 (configs/codes.ts) */
     statusCode: z.number().int(),
     statusName: z.string(),
-    lastGathDtm: z.string(),
+    lastGathDtm: z.string().nullable(),
   }).nullable(),
   irrad: z.object({
     irradId: z.number().int(),
@@ -161,7 +162,8 @@ export const powerPlantInfoSchema = z.object({
     installDate: z.string(),
     rtuCommunicationId: z.string(),
     rtuPort: z.number().int(),
-    lastGathDtm: z.string(),
+    /** 한 번도 수집되지 않은 설비는 없다 */
+    lastGathDtm: z.string().nullable(),
     statusCode: ZodStatusCode.CODE,
     statusName: ZodStatusCode.NAME,
   })),

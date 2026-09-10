@@ -23,7 +23,7 @@ export const manageInverterPageSchema = z.object({
   inverterEnterpriseName: z.string(),
   inverterCapacity: z.number(),
   inverterTypeCode: ZodInverterTypeCode.CODE,
-  inverterTypeCodeName: ZodInverterTypeCode.NAME,
+  inverterTypeName: ZodInverterTypeCode.NAME,
   phaseTypeCode: ZodPhaseTypeCode.CODE,
   phaseTypeName: ZodPhaseTypeCode.NAME,
 });

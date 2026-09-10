@@ -7,7 +7,8 @@ export const homeHeroSchema = z.object({
   outputRate: z.number(),
   flowChartData: z.array(z.object({
     dateTime: z.string(),
-    currentPower: z.number(),
+    /** 미수집이면 null — 일출 전·일몰 후 칸이 0 과 갈린다 */
+    currentPower: z.number().nullable(),
   })),
   sunriseTime: z.string(),
   sunsetTime: z.string(),
