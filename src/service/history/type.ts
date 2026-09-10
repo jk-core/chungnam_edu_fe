@@ -43,3 +43,22 @@ export const manageHistorySchema = z.object({
     afterValue: z.union([z.string(), z.number(), z.boolean(), z.null()]),
   })),
 });
+
+/*
+  ── 2안 (BE 와 정하기 전까지 남겨 둔다) ────────────────────
+
+  갈리는 것은 **diff 를 누가 계산하는가** 하나다. 위 1안은 BE 가 바뀐 항목만 추려 주고,
+  2안은 변경 전·후 엔티티를 통째로 던져 FE 가 견준다. 저장은 두 안 모두 tb_sys_log 의
+  BEFORE_DATA·AFTER_DATA 에 통짜 JSON 으로 남기는 것을 전제한다.
+
+  BE 는 두 JSON 을 그대로 실어 보내면 되어 구현이 가볍다. 대신 FE 가 넷을 떠안는다.
+    - 저장할 때마다 바뀌는 감사 컬럼(updatedDtm·updatedUserId)을 걸러 낼 목록을 FE 가 든다
+    - FK 를 이름으로 바꿀 수 없다 — userId 3 을 담당자명으로 보이려면 사용자 목록을 들고 이어야 한다
+    - 필드명을 한글 라벨로 옮길 표를 엔티티마다 갖게 되어, 이력 화면이 다시 일곱으로 갈린다
+    - 0·null·빈 문자열과 날짜 표기 차이를 FE 가 판정해 안 바뀐 것을 바뀐 것으로 그린다
+
+  위 응답에서 changeList 자리만 아래로 갈린다:
+
+    beforeEntity: Record<string, string | number | boolean | null> | null;   // 등록이면 null
+    afterEntity: Record<string, string | number | boolean | null> | null;    // 삭제면 null
+*/
