@@ -1,0 +1,48 @@
+@use "@/styles/tokens/spacing" as s;
+@use "@/styles/tokens/typography" as t;
+@use "@/styles/utils/media" as media;
+
+/*
+  판 한 칸.
+
+  껍데기(테두리·그림자·바탕·모서리)와 머리의 남색 색면 띠는 브리핑 스킨이 `section[aria-label]`
+  과 그 첫 자식(`> div:has(> h2)`)을 짚어 입힌다. 그 색면 띠는 판 패딩만큼 음수 마진으로
+  가장자리까지 번지므로 패딩을 s.$space-4 로 두어야 띠가 판 폭을 꽉 채운다 — 다른 값을 쓰면
+  띠와 판 테두리 사이에 흰 테가 남는다.
+*/
+.panel {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  height: 100%;
+  padding: s.$space-4;
+  border-radius: var(--room-radius);
+
+  /* 음수 마진으로 번지는 머리 띠가 둥근 모서리 밖으로 새지 않게 가둔다 */
+  overflow: hidden;
+
+  &__head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: s.$space-3;
+    flex-shrink: 0;
+  }
+
+  &__title {
+    @include t.title-sm;
+
+    /* 색면 띠 위 글씨 색은 스킨이 흰색으로 뒤집는다 — 여기서 색을 박으면 스킨과 다툰다 */
+    @include media.kiosk {
+      @include t.title-md;
+    }
+  }
+
+  &__note {
+    @include t.caption;
+
+    display: inline-flex;
+    align-items: center;
+    gap: s.$space-3;
+  }
+}

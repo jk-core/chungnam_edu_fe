@@ -1,0 +1,115 @@
+@use "@/styles/tokens/spacing" as s;
+@use "@/styles/tokens/typography" as t;
+
+/*
+  현재 총출력.
+  큰 수 → 치수선 게이지 → 설비용량 순으로 위에서 아래로 읽힌다. 좁은 레일이라 여백을 크게
+  두지 않고 셋을 촘촘히 세운다.
+*/
+.output {
+  display: flex;
+  flex-direction: column;
+  gap: s.$space-3;
+
+  &__value {
+    display: flex;
+    align-items: baseline;
+    gap: s.$space-2;
+    margin: 0;
+  }
+
+  &__number {
+    @include t.data-xl;
+
+    font-size: 2.75rem;
+    color: var(--text-strong);
+  }
+
+  &__unit {
+    @include t.data-md;
+
+    color: var(--text-muted);
+  }
+
+  &__sub {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    margin: 0;
+    padding-top: s.$space-2;
+    border-top: 1px dashed var(--bp-edge, var(--border));
+  }
+
+  &__subLabel {
+    @include t.caption;
+
+    letter-spacing: 0.08em;
+    color: var(--text-muted);
+  }
+
+  &__subValue {
+    @include t.data-md;
+
+    color: var(--text-strong);
+  }
+
+  &__subUnit {
+    @include t.data-sm;
+
+    margin-left: 2px;
+    color: var(--text-muted);
+  }
+}
+
+/*
+  치수선 게이지.
+  가는 선 위에 지금 값까지의 채움을 실선으로 긋고, 다섯 곳에 눈금을 세운 뒤 지금 자리를
+  세로 표식으로 짚는다. 면을 채우지 않아 판 뒤 격자가 그대로 비친다.
+*/
+.gauge {
+  display: flex;
+  flex-direction: column;
+  gap: s.$space-1;
+
+  &__track {
+    position: relative;
+    height: 12px;
+    border-bottom: 1px solid var(--bp-edge, var(--border));
+  }
+
+  &__fill {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    height: 3px;
+    background: var(--brand);
+  }
+
+  &__tick {
+    position: absolute;
+    bottom: 0;
+    width: 1px;
+    height: 6px;
+    background: var(--bp-line-strong, var(--border));
+  }
+
+  &__mark {
+    position: absolute;
+    bottom: -2px;
+    width: 2px;
+    height: 16px;
+    background: var(--brand);
+    transform: translateX(-1px);
+  }
+
+  &__scale {
+    display: flex;
+    justify-content: space-between;
+    margin: 0;
+    color: var(--text-faint);
+
+    @include t.caption;
+
+    font-family: var(--font-data);
+  }
+}

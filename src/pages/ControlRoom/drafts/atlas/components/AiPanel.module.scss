@@ -1,0 +1,233 @@
+@use "@/styles/tokens/spacing" as s;
+@use "@/styles/tokens/typography" as t;
+@use "./tone" as tone;
+
+.diag {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: s.$space-2;
+  min-height: 0;
+
+  &__empty {
+    @include t.body-md;
+
+    margin: auto;
+    color: var(--text-muted);
+  }
+}
+
+/* 지켜보는 자리 — 궤도 + 감시 문구 + 지역 넘김을 한 줄에 */
+.deck {
+  display: flex;
+  align-items: center;
+  gap: s.$space-3;
+  padding-bottom: s.$space-1;
+  border-bottom: 1px solid var(--border);
+
+  &__title {
+    display: flex;
+    flex-direction: column;
+  }
+
+  &__name {
+    @include t.label-md;
+
+    color: var(--text-strong);
+  }
+
+  &__note {
+    @include t.caption;
+
+    color: var(--text-muted);
+
+    strong {
+      @include t.data-sm;
+
+      color: var(--brand-contrast);
+    }
+  }
+
+  &__live {
+    @include t.label-sm;
+
+    padding: 2px s.$space-2;
+    border: 1px solid var(--critical);
+    color: var(--critical-text);
+    letter-spacing: 0.02em;
+  }
+
+  &__nav {
+    display: inline-flex;
+    align-items: center;
+    gap: s.$space-2;
+    margin-left: auto;
+  }
+
+  &__count {
+    @include t.data-sm;
+
+    color: var(--text-muted);
+  }
+
+  &__step {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 24px;
+    height: 24px;
+    padding: 0;
+    border: 1px solid var(--border-strong);
+    border-radius: var(--room-radius);
+    background: var(--surface);
+    color: var(--text);
+    cursor: pointer;
+
+    &:hover {
+      background: var(--surface-hover);
+      color: var(--text-strong);
+    }
+  }
+}
+
+/* 지도와 글을 좌우로 — 왼쪽 지도, 오른쪽 네 줄 */
+.body {
+  display: grid;
+  flex: 1;
+  grid-template-columns: minmax(0, 248px) minmax(0, 1fr);
+  gap: s.$space-4;
+  min-height: 0;
+
+  &__map {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 0;
+    padding: s.$space-2;
+    border: 1px solid var(--border);
+    background: var(--map-surface);
+
+    /* 좁힌 뷰박스 밖 도형이 렌더 상자를 넘어도 여기서 잘라 이웃 판을 침범하지 않게 한다 */
+    overflow: hidden;
+  }
+}
+
+.locator {
+  width: 100%;
+
+  /* 뷰박스 가로:세로(MAP_ASPECT)와 같은 비율 — 레터박스 없이 폭을 다 쓴다 */
+  aspect-ratio: 1.6;
+  max-height: 100%;
+
+  &__cell {
+    fill: var(--surface-sunken);
+    stroke: var(--map-border);
+    stroke-width: 1;
+
+    &[data-on] {
+      fill: var(--brand-soft);
+      stroke: var(--brand);
+      stroke-width: 1.5;
+    }
+  }
+
+  &__dot {
+    stroke: var(--surface);
+
+    @include tone.paint(fill);
+  }
+}
+
+.report {
+  display: flex;
+  flex-direction: column;
+  gap: s.$space-2;
+  min-width: 0;
+
+  &__top {
+    display: flex;
+    align-items: baseline;
+    gap: s.$space-2;
+    padding-bottom: s.$space-1;
+    border-bottom: 1px solid var(--border);
+  }
+
+  &__name {
+    @include t.title-sm;
+
+    color: var(--text-strong);
+  }
+
+  &__count {
+    @include t.data-sm;
+
+    color: var(--text-muted);
+  }
+
+  &__state {
+    @include t.label-sm;
+
+    margin-left: auto;
+
+    @include tone.paint(color);
+  }
+}
+
+/* 규모·출력·실적·상태 — 왼쪽 이름표를 세우고 오른쪽에 글을 편다 */
+.brief {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: s.$space-1;
+  justify-content: space-between;
+  min-width: 0;
+
+  &__line {
+    display: grid;
+    grid-template-columns: 2.4em minmax(0, 1fr);
+    gap: s.$space-2;
+    align-items: baseline;
+  }
+
+  &__label {
+    @include t.label-sm;
+
+    padding-top: 1px;
+    color: var(--text-faint);
+    border-top: 1px solid var(--border);
+  }
+
+  &__text {
+    @include t.body-sm;
+
+    margin: 0;
+    color: var(--text);
+    line-height: 1.4;
+  }
+
+  &__key {
+    color: var(--text-strong);
+    font-weight: 700;
+
+    @include tone.paint(color);
+  }
+}
+
+.dots {
+  display: flex;
+  flex-wrap: wrap;
+  gap: s.$space-1;
+  justify-content: center;
+
+  &__dot {
+    width: 6px;
+    height: 6px;
+    border: 1px solid var(--border-strong);
+    background: transparent;
+
+    &[data-on] {
+      background: var(--brand);
+      border-color: var(--brand);
+    }
+  }
+}

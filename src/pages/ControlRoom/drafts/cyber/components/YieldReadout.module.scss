@@ -1,0 +1,113 @@
+@use "@/styles/tokens/spacing" as s;
+@use "@/styles/tokens/typography" as t;
+
+.yield {
+  display: flex;
+  flex-direction: column;
+  gap: s.$space-1;
+  flex: 1;
+  min-height: 0;
+
+  &__rows {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  /* 기간 라벨 한 칸 + 세 계측값 — 채널 목록처럼 모든 행이 같은 골에 정렬된다 */
+  &__legend,
+  &__row {
+    display: grid;
+    grid-template-columns: 2.8em repeat(3, minmax(0, 1fr));
+    align-items: baseline;
+    gap: s.$space-2;
+  }
+
+  &__legend {
+    @include t.caption;
+
+    color: var(--text-faint);
+
+    > span:not(.yield__term) {
+      text-align: right;
+    }
+  }
+
+  &__row {
+    padding: 1px 0;
+    border-top: 1px solid var(--border-subtle);
+  }
+
+  &__term {
+    @include t.label-sm;
+
+    line-height: 1.15;
+    color: var(--brand-contrast);
+  }
+
+  &__cell {
+    @include t.data-sm;
+
+    font-size: 0.875rem;
+    line-height: 1.15;
+    text-align: right;
+    color: var(--text-strong);
+  }
+
+  &__unit {
+    @include t.label-sm;
+
+    margin-left: 2px;
+    font-weight: 500;
+    color: var(--text-muted);
+  }
+
+  /* 증감과 소나무 환산 — 표 아래 한 줄에 좌우로 나눠 앉힌다 */
+  &__foot {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: s.$space-2;
+    margin: 0;
+    margin-top: auto;
+    padding-top: 3px;
+    border-top: 1px solid var(--border);
+    line-height: 1.2;
+  }
+
+  &__delta {
+    display: flex;
+    gap: s.$space-2;
+
+    @include t.caption;
+
+    line-height: 1.15;
+    color: var(--text-muted);
+  }
+
+  &__deltaItem {
+    font-family: var(--font-data);
+
+    &[data-way="up"] { color: var(--ok-text); }
+    &[data-way="down"] { color: var(--critical-text); }
+  }
+
+  &__tree {
+    display: inline-flex;
+    align-items: center;
+    gap: s.$space-1;
+    flex-shrink: 0;
+
+    @include t.caption;
+
+    color: var(--solar-text);
+
+    strong {
+      font-family: var(--font-data);
+      font-weight: 600;
+    }
+  }
+}

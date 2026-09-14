@@ -1,0 +1,58 @@
+@use "@/styles/tokens/spacing" as s;
+@use "@/styles/tokens/typography" as t;
+
+/*
+  판 껍데기.
+
+  테두리·바탕·모서리는 아틀라스 스킨이 `section[aria-label]` 로 다시 잡지만, 스킨이 꺼진
+  맨 상태에서도 판으로 읽히도록 선 한 줄은 여기서 긋는다 — 색만 얹는 스킨은 이 선이 있어야
+  몫을 한다. 표제 아래 굵은 괘선은 스킨이 덧그리므로 여기서는 자리(아래 여백)만 비워 둔다.
+*/
+.panel {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  padding: s.$space-3;
+  border: 1px solid var(--border-strong);
+  border-radius: var(--room-radius);
+  background: var(--surface);
+  overflow: hidden;
+
+  &__head {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: s.$space-3;
+    margin-bottom: s.$space-1;
+  }
+
+  &__title {
+    @include t.title-sm;
+
+    color: var(--text-strong);
+    white-space: nowrap;
+  }
+
+  &__note {
+    @include t.caption;
+
+    color: var(--text-muted);
+    text-align: right;
+  }
+
+  /* 표제 오른쪽에 설명과 고르개가 함께 설 때 — 좁아지면 아래로 접되 오른쪽에 붙는다 */
+  &__tools {
+    display: inline-flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: flex-end;
+    gap: s.$space-2 s.$space-3;
+  }
+
+  &__body {
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+    min-height: 0;
+  }
+}

@@ -1,0 +1,75 @@
+@use "@/styles/tokens/spacing" as s;
+@use "@/styles/tokens/typography" as t;
+
+/*
+  지역별 발전시간.
+  한 줄에 순위·이름·막대·값을 눕힌다. 열다섯 줄이 남는 높이를 고르게 나눠 갖도록 세로로 편다.
+*/
+.region {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-height: 0;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+
+  &__row {
+    /* 열다섯 줄이 남는 높이를 정확히 나눠 갖게 한다 — 어느 높이에서도 넘치지 않는다 */
+    display: grid;
+    flex: 1 1 0;
+    grid-template-columns: 1.4em 3.6em 1fr auto;
+    align-items: center;
+    gap: s.$space-2;
+    min-height: 0;
+    padding: 0 0 1px;
+    border-bottom: 1px dashed var(--border-subtle);
+
+    &:last-child {
+      border-bottom: none;
+    }
+  }
+
+  &__rank {
+    @include t.data-sm;
+
+    color: var(--text-faint);
+    text-align: right;
+  }
+
+  &__name {
+    @include t.body-sm;
+
+    color: var(--text);
+    white-space: nowrap;
+  }
+
+  &__track {
+    /* 값이 없어도 자리는 남겨 눈금선이 이어지게 — 유리 판이라 바닥선만 옅게 긋는다 */
+    position: relative;
+    height: 8px;
+    border-bottom: 1px solid var(--border-subtle);
+  }
+
+  &__bar {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    height: 3px;
+
+    /* 그 시·군의 CI 색 실선 — 지도에서 물든 색과 같다 */
+    background: var(--row, var(--brand));
+  }
+
+  &__value {
+    @include t.data-sm;
+
+    color: var(--text-strong);
+    text-align: right;
+  }
+
+  &__unit {
+    margin-left: 1px;
+    color: var(--text-muted);
+  }
+}

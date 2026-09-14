@@ -1,0 +1,266 @@
+@use "@/styles/tokens/spacing" as s;
+@use "@/styles/tokens/typography" as t;
+@use "@/styles/utils/mixins" as mx;
+
+.agg {
+  display: flex;
+  flex-direction: column;
+  gap: s.$space-3;
+  flex: 1;
+  min-height: 0;
+
+  /*
+    카드 셋을 나란히 세운다.
+
+    이 판은 두 열(740px)을 받으므로 카드를 세로로 쌓지 않고 가로로 편다 — 카드 하나가 넓고
+    높아져 순위·구분·발전시간·세 계측값이 저마다 제 줄에 앉는다. 한 행이 남는 높이를 다
+    받도록 `1fr` 로 늘린다. 마지막 쪽에서 카드가 모자라면 빈 칸이 같은 폭을 지켜 정렬이 흔들리지 않는다.
+  */
+  &__list {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    grid-template-rows: 1fr;
+    gap: s.$space-3;
+    flex: 1;
+    min-height: 0;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  /* 합계와 페이저를 한 줄에 — 넓은 폭이라 좌우로 나눠 앉힌다 */
+  &__foot {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: s.$space-3;
+    flex-shrink: 0;
+  }
+
+  &__totals {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: s.$space-1 s.$space-3;
+    margin: 0;
+    padding-top: s.$space-2;
+
+    @include t.caption;
+
+    color: var(--text-muted);
+
+    strong {
+      font-family: var(--font-data);
+      font-weight: 600;
+      color: var(--text-strong);
+    }
+  }
+
+  &__totalLabel {
+    @include t.label-sm;
+
+    color: var(--brand-contrast);
+  }
+}
+
+/*
+  한 장 카드.
+
+  넓어진 자리를 받아 순위·구분을 맨 위에, 발전시간을 큰 수치로, 그 아래 막대와 세 계측값을
+  차례로 앉힌다. 남는 높이는 위아래로 고르게 나눠 값끼리 닿지 않는다.
+*/
+.card {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: s.$space-2;
+  min-height: 0;
+  padding: s.$space-3;
+  background: var(--surface-sunken);
+  box-shadow: inset 0 0 0 1px var(--border-subtle);
+
+  &[data-filler] {
+    background: none;
+    box-shadow: none;
+  }
+
+  &__top {
+    display: flex;
+    align-items: baseline;
+    gap: s.$space-2;
+    margin: 0;
+  }
+
+  &__rank {
+    font-family: var(--font-data);
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--text-faint);
+  }
+
+  &__name {
+    @include t.label-md;
+    @include mx.truncate;
+
+    flex: 1;
+    color: var(--text-strong);
+  }
+
+  &__tag {
+    @include t.caption;
+
+    flex-shrink: 0;
+    padding: 0 s.$space-1;
+    color: var(--text-muted);
+    border: 1px solid var(--border);
+
+    &[data-tone="ok"] {
+      color: var(--ok-text);
+      border-color: var(--ok);
+    }
+
+    &[data-tone="caution"] {
+      color: var(--caution-text);
+      border-color: var(--caution);
+    }
+
+    &[data-tone="critical"] {
+      color: var(--critical-text);
+      border-color: var(--critical);
+    }
+
+    &[data-tone="offline"] {
+      color: var(--offline-text);
+      border-color: var(--offline);
+    }
+
+    &[data-tone="brand"] {
+      color: var(--brand-contrast);
+      border-color: var(--brand);
+    }
+  }
+
+  &__metric {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: s.$space-2;
+    margin: 0;
+  }
+
+  &__metricLabel {
+    @include t.caption;
+
+    color: var(--text-muted);
+  }
+
+  &__hours {
+    font-family: var(--font-data);
+    font-size: 1.375rem;
+    font-weight: 600;
+    line-height: 1;
+    color: var(--text-strong);
+  }
+
+  &__unit {
+    margin-left: 1px;
+    font-size: 0.75rem;
+    font-weight: 500;
+    color: var(--text-muted);
+  }
+
+  &__track {
+    height: 7px;
+    background: var(--surface);
+    box-shadow: inset 0 0 0 1px var(--border-subtle);
+    overflow: hidden;
+  }
+
+  &__fill {
+    display: block;
+    height: 100%;
+
+    /* 지역축에서만 시·군 CI 색을 받고, 다른 축에서는 주색으로 — 시·군이 뜻을 갖지 않는 축이다 */
+    background: var(--row, var(--brand));
+    transition: width 0.5s cubic-bezier(0.22, 0.68, 0.32, 1);
+  }
+
+  /* 세 계측값 — 라벨 왼쪽, 값 오른쪽으로 줄줄이 앉힌다 */
+  &__figures {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    margin: 0;
+
+    div {
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      gap: s.$space-2;
+      min-width: 0;
+    }
+
+    dt {
+      @include t.caption;
+
+      color: var(--text-muted);
+    }
+
+    dd {
+      margin: 0;
+      font-family: var(--font-data);
+      font-size: 0.875rem;
+      font-weight: 600;
+      color: var(--text-strong);
+
+      span {
+        margin-left: 1px;
+        font-size: 0.625rem;
+        font-weight: 500;
+        color: var(--text-muted);
+      }
+    }
+  }
+
+  /* 세 자리까지는 순위 숫자를 색으로 세운다 — 금·은·동 자리를 색으로 대신한다 */
+  &[data-rank="1"] .card__rank {
+    color: var(--solar);
+  }
+
+  &[data-rank="2"] .card__rank,
+  &[data-rank="3"] .card__rank {
+    color: var(--brand-contrast);
+  }
+}
+
+/* 페이지 넘김 — 벽면 모니터라 스스로 넘기되, 한 쪽을 붙잡고 볼 수 있게 손잡이를 둔다 */
+.pager {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: s.$space-2;
+  flex-shrink: 0;
+
+  &__btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 20px;
+    height: 20px;
+    padding: 0;
+    border: 1px solid var(--border);
+    background: none;
+    color: var(--text-muted);
+
+    &:hover {
+      border-color: var(--brand);
+      color: var(--brand-contrast);
+    }
+  }
+
+  &__count {
+    font-family: var(--font-data);
+    font-size: 0.75rem;
+    color: var(--text-muted);
+  }
+}

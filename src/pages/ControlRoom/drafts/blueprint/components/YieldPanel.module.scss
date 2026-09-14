@@ -1,0 +1,112 @@
+@use "@/styles/tokens/spacing" as s;
+@use "@/styles/tokens/typography" as t;
+
+/*
+  발전 실적.
+  네 기간을 두 단 행으로 접어 세우고, 아래에 증감과 탄소 환산을 한 줄씩 받는다.
+  좁은 레일이라 행 간격을 파선 하나로만 가르고 촘촘히 둔다.
+*/
+.yield {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-height: 0;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+
+  &__row {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    padding: s.$space-2 0;
+    border-bottom: 1px dashed var(--bp-edge, var(--border));
+
+    &:first-child {
+      padding-top: 0;
+    }
+  }
+
+  &__top {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    margin: 0;
+  }
+
+  &__label {
+    @include t.label-sm;
+
+    letter-spacing: 0.14em;
+    color: var(--text-muted);
+  }
+
+  &__amount {
+    @include t.data-md;
+
+    color: var(--text-strong);
+  }
+
+  &__unit {
+    @include t.data-sm;
+
+    margin-left: 3px;
+    color: var(--text-muted);
+  }
+
+  &__sub {
+    display: flex;
+    justify-content: space-between;
+    margin: 0;
+    color: var(--text-muted);
+
+    @include t.caption;
+
+    strong {
+      font-family: var(--font-data);
+      font-weight: 600;
+      color: var(--text);
+    }
+  }
+}
+
+.delta {
+  display: flex;
+  justify-content: space-between;
+  margin: s.$space-3 0 0;
+  color: var(--text-muted);
+
+  @include t.caption;
+
+  font-family: var(--font-data);
+
+  &__item {
+    &[data-way="up"] {
+      color: var(--ok);
+    }
+
+    &[data-way="down"] {
+      color: var(--critical);
+    }
+  }
+}
+
+.tree {
+  display: flex;
+  align-items: center;
+  gap: s.$space-1;
+  margin: s.$space-2 0 0;
+  color: var(--text-muted);
+
+  @include t.caption;
+
+  &__mark {
+    color: var(--ok);
+  }
+
+  strong {
+    font-family: var(--font-data);
+    font-weight: 600;
+    color: var(--text-strong);
+  }
+}

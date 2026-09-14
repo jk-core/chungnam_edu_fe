@@ -1,0 +1,104 @@
+@use "@/styles/tokens/spacing" as s;
+@use "@/styles/tokens/typography" as t;
+@use "@/styles/utils/media" as media;
+
+/* 큰 수치를 왼쪽에, 견줄 막대 둘을 오른쪽에 — 가로로 납작한 칸을 좌우로 나눠 쓴다 */
+.output {
+  display: flex;
+  align-items: center;
+  gap: s.$space-6;
+  flex: 1;
+  min-height: 0;
+
+  &__now {
+    display: flex;
+    flex-direction: column;
+    gap: s.$space-1;
+    flex-shrink: 0;
+  }
+
+  &__value {
+    @include t.data-lg;
+
+    display: flex;
+    align-items: baseline;
+    gap: s.$space-2;
+    color: var(--text-strong);
+
+    @include media.kiosk {
+      @include t.data-xl;
+    }
+  }
+
+  &__unit {
+    @include t.label-md;
+
+    color: var(--text-muted);
+  }
+
+  &__sub {
+    @include t.caption;
+
+    color: var(--text-faint);
+    font-family: var(--font-data);
+    font-variant-numeric: tabular-nums;
+  }
+
+  &__meters {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: s.$space-4;
+    flex: 1;
+    min-width: 0;
+  }
+}
+
+/* 한 막대 = 라벨·값 한 줄 + 그 아래 트랙. 두 막대가 세로로 쌓인다 */
+.meter {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: baseline;
+  gap: s.$space-1 s.$space-2;
+
+  &__label {
+    @include t.caption;
+
+    color: var(--text-muted);
+  }
+
+  &__value {
+    color: var(--text-strong);
+    font-family: var(--font-data);
+    font-variant-numeric: tabular-nums;
+    font-weight: 700;
+    font-size: 15px;
+  }
+
+  &__track {
+    grid-column: 1 / -1;
+    height: 8px;
+    border-radius: s.$radius-full;
+    background-color: var(--surface-sunken);
+    overflow: hidden;
+  }
+
+  &__fill {
+    display: block;
+    height: 100%;
+    border-radius: inherit;
+    transition: width 0.8s cubic-bezier(0.22, 0.68, 0.32, 1);
+
+    &[data-tone="solar"] {
+      background-color: var(--solar);
+    }
+
+    &[data-tone="brand"] {
+      background-color: var(--brand);
+    }
+
+    @include media.reduced-motion {
+      transition: none;
+    }
+  }
+}

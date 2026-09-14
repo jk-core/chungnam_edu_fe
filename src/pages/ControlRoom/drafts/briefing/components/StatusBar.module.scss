@@ -1,0 +1,89 @@
+@use "@/styles/tokens/spacing" as s;
+@use "@/styles/tokens/typography" as t;
+
+.status {
+  display: flex;
+  flex-direction: column;
+  gap: s.$space-2;
+
+  &__bar {
+    display: flex;
+    height: 9px;
+    border-radius: s.$radius-full;
+    background-color: var(--surface-sunken);
+    overflow: hidden;
+  }
+
+  &__seg {
+    height: 100%;
+    transition: width 0.5s cubic-bezier(0.22, 0.68, 0.32, 1);
+
+    &[data-tone="ok"] {
+      background-color: var(--ok);
+    }
+
+    &[data-tone="brand"] {
+      background-color: var(--brand);
+    }
+
+    &[data-tone="caution"] {
+      background-color: var(--caution);
+    }
+
+    &[data-tone="critical"] {
+      background-color: var(--critical);
+    }
+
+    &[data-tone="offline"] {
+      background-color: var(--offline);
+    }
+  }
+
+  &__legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 2px s.$space-3;
+    list-style: none;
+  }
+
+  &__item {
+    @include t.caption;
+
+    display: inline-flex;
+    align-items: center;
+    gap: s.$space-1;
+    color: var(--text-muted);
+  }
+
+  &__dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+
+    &[data-tone="ok"] {
+      background-color: var(--ok);
+    }
+
+    &[data-tone="brand"] {
+      background-color: var(--brand);
+    }
+
+    &[data-tone="caution"] {
+      background-color: var(--caution);
+    }
+
+    &[data-tone="critical"] {
+      background-color: var(--critical);
+    }
+
+    &[data-tone="offline"] {
+      background-color: var(--offline);
+    }
+  }
+
+  &__value {
+    color: var(--text-strong);
+    font-family: var(--font-data);
+    font-variant-numeric: tabular-nums;
+  }
+}

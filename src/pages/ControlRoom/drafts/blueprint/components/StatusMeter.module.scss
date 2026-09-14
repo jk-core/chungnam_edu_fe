@@ -1,0 +1,70 @@
+@use "@/styles/tokens/spacing" as s;
+@use "@/styles/tokens/typography" as t;
+
+/*
+  상태 분포.
+  한 줄기 치수선 위에 상태별 몫을 색 실선으로 나누고, 아래 범례는 눈금·이름·수를 한 줄로 벌린다.
+*/
+.meter {
+  display: flex;
+  flex-direction: column;
+  gap: s.$space-2;
+
+  &__scale {
+    display: flex;
+    height: 6px;
+    border: 1px solid var(--bp-edge, var(--border));
+
+    /* 유리 판 위라 안쪽은 비워 두고 나눔만 색선으로 — 면을 채우면 격자가 끊긴다 */
+    background: transparent;
+  }
+
+  &__seg {
+    height: 100%;
+    background: var(--seg);
+
+    /* 몫끼리 붙어도 경계가 서게 오른쪽에 바탕색 실선을 한 줄 둔다 */
+    box-shadow: inset -1px 0 0 var(--surface);
+  }
+
+  &__legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: s.$space-2 s.$space-4;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  &__item {
+    display: flex;
+    align-items: center;
+    gap: s.$space-1;
+    color: var(--text);
+
+    &[data-zero] {
+      color: var(--text-faint);
+    }
+  }
+
+  &__tick {
+    width: 8px;
+    height: 8px;
+    border: 1px solid var(--seg);
+    background: transparent;
+  }
+
+  &__name {
+    @include t.caption;
+  }
+
+  &__value {
+    @include t.data-sm;
+
+    color: var(--text-strong);
+
+    .meter__item[data-zero] & {
+      color: var(--text-faint);
+    }
+  }
+}

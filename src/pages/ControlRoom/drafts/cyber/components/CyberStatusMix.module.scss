@@ -1,0 +1,78 @@
+@use "@/styles/tokens/spacing" as s;
+@use "@/styles/tokens/typography" as t;
+
+/*
+  상태 분포.
+
+  색은 상태마다 `data-tone` 으로 짚고 값은 CSS 변수에서 꺼낸다 — 다섯 상태 색을 세그먼트와
+  범례 점이 함께 쓰므로 한 곳에 모아 둔다. 여기서 하드코딩하면 라이트/다크가 갈릴 때 이 판만 남는다.
+*/
+.mix {
+  display: flex;
+  flex-direction: column;
+  gap: s.$space-2;
+
+  &__bar {
+    display: flex;
+    gap: 2px;
+    height: 8px;
+    padding: 1px;
+    border: 1px solid var(--border);
+    background: var(--surface-sunken);
+    overflow: hidden;
+  }
+
+  &__seg {
+    height: 100%;
+    min-width: 2px;
+    transition: width 0.5s ease;
+
+    &[data-tone="ok"] { background: var(--ok); }
+    &[data-tone="brand"] { background: var(--brand); }
+    &[data-tone="caution"] { background: var(--caution); }
+    &[data-tone="critical"] { background: var(--critical); }
+    &[data-tone="offline"] { background: var(--offline); }
+  }
+
+  &__legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: s.$space-1 s.$space-3;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  &__item {
+    display: inline-flex;
+    align-items: center;
+    gap: s.$space-1;
+
+    @include t.caption;
+
+    color: var(--text-muted);
+
+    /* 지금 없는 상태는 옅게 남긴다 — 범례에서 지우지 않되 눈이 먼저 가지 않게 */
+    &[data-zero] {
+      opacity: 0.45;
+    }
+  }
+
+  &__dot {
+    width: 7px;
+    height: 7px;
+    flex-shrink: 0;
+
+    &[data-tone="ok"] { background: var(--ok); }
+    &[data-tone="brand"] { background: var(--brand); }
+    &[data-tone="caution"] { background: var(--caution); }
+    &[data-tone="critical"] { background: var(--critical); }
+    &[data-tone="offline"] { background: var(--offline); }
+  }
+
+  &__value {
+    font-family: var(--font-data);
+    font-weight: 600;
+    color: var(--text-strong);
+  }
+}

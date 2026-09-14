@@ -8,6 +8,16 @@ import { useRoomTheme } from './useRoomTheme';
 import styles from './ControlRoomLayout.module.scss';
 import type { ReactNode } from 'react';
 
+/**
+ * 상황판이 입을 수 있는 결.
+ *
+ * 이름은 색이 아니라 **어떤 물건으로 보이게 하는가** 로 붙인다 — `briefing` 은 회의실에 걸린
+ * 보드, `atlas` 는 펼쳐 놓은 지도책, `blueprint` 는 설계 도면, `cyber` 는 계측 장비다.
+ * 「파랑」 「밝은 것」 으로 부르면 색 한 줄만 바꾸고도 이름이 맞는 것처럼 보여, 결이 무너진 줄
+ * 모르고 지나간다.
+ */
+export type RoomSkin = 'briefing' | 'atlas' | 'blueprint' | 'cyber';
+
 interface ControlRoomLayoutProps {
   /**
    * 보고 있는 대상 이름 — 이 화면은 늘 도 전체다.
@@ -32,12 +42,12 @@ interface ControlRoomLayoutProps {
   /** 화면에 깔린 값이 언제 수집된 것인지 (`YYYY-MM-DD HH:mm`) */
   collectedAt?: string;
   /**
-   * 화면의 결. 주지 않으면 서비스 기본 색을 쓴다.
+   * 화면의 결. 주지 않으면 서비스 기본 색을 쓴다 — 최종 시안인 `/control` 이 그쪽이다.
    *
-   * 시안을 견주는 동안에만 쓴다 — 판과 값은 그대로 두고 색·글꼴만 갈아 끼워,
-   * 무엇 때문에 다르게 읽히는지가 그 하나로 좁혀지게 한다.
+   * 시안을 견주는 동안에만 쓴다. 판도 값도 넷이 같은 것을 쓰고 **무슨 색으로, 무슨 글꼴로,
+   * 어떤 바탕 위에 보이는가** 만 갈린다. 결의 내용은 `_skins.scss` 가 쥔다.
    */
-  skin?: 'cyber';
+  skin?: RoomSkin;
   children: ReactNode;
 }
 

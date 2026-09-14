@@ -1,0 +1,888 @@
+@use "@/styles/tokens/spacing" as s;
+
+/*
+  상황판 시안 넷의 결.
+
+  판도 값도 자리도 `/control` 이 세우는 것을 그대로 쓴다 — 여기서 정하는 것은 **무슨 색으로,
+  무슨 글꼴로, 어떤 바탕 위에 보이는가** 뿐이다. 판 안을 손대기 시작하면 시안끼리 견줄 수 없다.
+
+  손대는 방식은 넷 다 같다.
+
+  1. 토큰을 다시 맨다. 판·막대·눈금·지도가 모두 같은 토큰을 보고 있으므로 색 몇 줄로 화면
+     전체의 결이 갈린다. 지도 단계색(`--map-scale-*`)까지 함께 갈아야 시·군 지도가 시안의
+     색을 따라온다 — 이것을 빠뜨리면 바탕만 갈리고 화면 한복판은 그대로다.
+  2. 바탕 그림을 통째로 덮는다. `.room` 이 깔아 둔 도면 눈금은 시안 A 의 것이다.
+     `background` 를 다시 적을 때는 `background-size` 도 함께 적어야 한다 — A 가 아홉 겹에
+     맞춰 크기를 지정해 두었으므로, 겹 수가 달라지면 남은 값이 엉뚱한 겹에 붙는다.
+  3. 판을 `section[aria-label]` 로 짚는다. 판의 생김새는 `ControlRoom.module.scss` 가 쥐고
+     있고 그 클래스 이름은 해시라 여기서 부를 수 없다.
+  4. 라이트와 다크 두 벌을 모두 적는다. 상황판은 화면 위에서 결을 바꿀 수 있어, 한쪽만
+     적으면 토글 한 번에 시안이 사라진다.
+
+  「AI 진단」 판은 제 테두리를 도는 빛(`--accent`)을 가졌고 그 빛은 판 뒤(`::before`)와
+  안쪽 면(`::after`) 두 겹으로 그려진다. 겹을 지울 때는 면도 함께 지워지므로 바탕을 직접
+  돌려주어야 한다 — 안 그러면 그 판만 바탕이 뚫린 채로 남는다.
+*/
+
+/** 판 뒤에서 도는 빛과 판 위를 훑는 선을 걷고, 판 하나에 면을 직접 돌려준다. */
+@mixin quiet-panels($surface: var(--surface)) {
+  section[aria-label] {
+    &::before {
+      display: none;
+    }
+  }
+
+  section[aria-label="AI 진단"] {
+    background: #{$surface};
+
+    &::after {
+      display: none;
+    }
+  }
+}
+
+/* ── 시안 B · 브리핑 보드 ────────────────────────────────────────────────
+   회의실 앞에 걸어 두고 함께 보는 판이다. 크림빛 바탕 위에 짙은 남색 머리띠를 두른 판이
+   떠 있고, 눈이 가야 할 자리에만 호박색이 켜진다. 눈금을 걷고 넓은 번짐만 남겨,
+   숫자가 도면 위가 아니라 종이 위에 놓인 것으로 읽힌다.
+   ──────────────────────────────────────────────────────────────────── */
+@mixin briefing {
+  --room-radius: 14px;
+
+  /* ── 라이트 ── */
+  --paper: #f4f1ea;
+  --paper-alt: #ebe6db;
+  --surface: #fffdf8;
+  --surface-raised: #fff;
+  --surface-sunken: #f0ece2;
+  --surface-hover: #efe9dc;
+
+  --text-strong: #15233a;
+  --text: #2b3a52;
+  --text-muted: #5d6a80;
+  --text-faint: #8b94a4;
+  --text-on-brand: #fff;
+
+  --border: #ddd5c6;
+  --border-strong: #c3b9a6;
+  --border-subtle: #e8e1d4;
+
+  /* 짙은 남색이 판의 머리를 두르고, 호박은 켜야 할 자리에만 쓴다 */
+  --brand: #1e3a8a;
+  --brand-hover: #1b3273;
+  --brand-active: #16295e;
+  --brand-soft: #eef2ff;
+  --brand-soft-border: #c7d2fe;
+  --brand-contrast: #1e3a8a;
+
+  --solar: #d97706;
+  --solar-deep: #b45309;
+  --solar-soft: #fdf4e7;
+  --solar-line: #f0b429;
+  --solar-text: #92400e;
+
+  --chart-grid: #e3dccd;
+  --chart-axis: #8b94a4;
+  --chart-generation: #d97706;
+  --chart-generation-soft: rgb(217 119 6 / 18%);
+  --chart-generation-focus: #b45309;
+  --chart-irradiance: #1e3a8a;
+  --chart-compare: #c3b9a6;
+
+  --map-surface: #efebe0;
+  --map-border: #d0c7b5;
+  --map-scale-1: #eef2ff;
+  --map-scale-2: #c7d2fe;
+  --map-scale-3: #93a8e8;
+  --map-scale-4: #4c67b5;
+  --map-scale-5: #1e3a8a;
+
+  --shadow-sm: 0 1px 2px rgb(21 35 58 / 7%);
+  --shadow-md: 0 2px 6px rgb(21 35 58 / 8%), 0 10px 26px rgb(21 35 58 / 7%);
+  --shadow-lg: 0 6px 14px rgb(21 35 58 / 10%), 0 24px 52px rgb(21 35 58 / 12%);
+  --shadow-focus: 0 0 0 3px rgb(30 58 138 / 24%);
+
+  /*
+    눈금을 걷고 네 귀에서 번지는 빛만 남긴다.
+    위쪽 둘은 머리띠가 쓰는 남색과 호박이라 띠에서 바탕으로 색이 이어지고, 아래 하나는
+    바닥이 회색으로 죽지 않게 받친다.
+  */
+  background:
+    radial-gradient(78% 58% at 14% 0%, rgb(from var(--brand) r g b / 9%), transparent 72%),
+    radial-gradient(66% 52% at 92% 6%, rgb(from var(--solar) r g b / 9%), transparent 72%),
+    radial-gradient(96% 62% at 50% 116%, rgb(from var(--brand) r g b / 7%), transparent 72%),
+    var(--paper);
+  background-size: auto;
+
+  /* 도면 꺾쇠는 눈금이 있어야 몫을 한다 — 눈금을 걷었으니 함께 걷는다 */
+  &::before {
+    display: none;
+  }
+
+  @include quiet-panels;
+
+  .bar {
+    border-bottom-color: var(--border-strong);
+  }
+
+  section[aria-label] {
+    border-color: var(--border);
+    background: var(--surface);
+    box-shadow: var(--shadow-md);
+  }
+
+  /* 스스로 돌고 있는 판은 왼쪽에 호박 한 줄을 세워 알린다 */
+  section[aria-label="AI 진단"] {
+    border-left: 3px solid var(--solar);
+  }
+
+  /*
+    판 머리를 색면으로.
+    제목 줄이 판 폭을 가로질러 띠가 되므로 몇 걸음 떨어져도 판의 경계가 세어진다.
+  */
+  section[aria-label] > div:has(> h2) {
+    margin: calc(-1 * #{s.$space-4}) calc(-1 * #{s.$space-4}) s.$space-3;
+    padding: s.$space-2 s.$space-4;
+    background: linear-gradient(90deg, var(--brand), color-mix(in srgb, var(--brand) 58%, transparent));
+
+    > * {
+      color: var(--text-on-brand);
+    }
+  }
+
+  /* ── 다크 ── 갈리는 것은 색뿐이다 */
+  [data-theme="dark"] & {
+    --paper: #0c1524;
+    --paper-alt: #111d30;
+    --surface: #16243a;
+    --surface-raised: #1c2d47;
+    --surface-sunken: #101b2c;
+    --surface-hover: #21344f;
+
+    --text-strong: #eef3fb;
+    --text: #ccd8e8;
+    --text-muted: #8b9bb2;
+    --text-faint: #6a7a92;
+    --text-on-brand: #06142c;
+
+    --border: #27384f;
+    --border-strong: #3a4f6c;
+    --border-subtle: #1e2d41;
+
+    --brand: #6ea8fe;
+    --brand-hover: #8dbcff;
+    --brand-active: #aacdff;
+    --brand-soft: rgb(110 168 254 / 14%);
+    --brand-soft-border: rgb(110 168 254 / 28%);
+    --brand-contrast: #aacdff;
+
+    --solar: #f0b429;
+    --solar-deep: #d97706;
+    --solar-soft: rgb(240 180 41 / 14%);
+    --solar-line: #f0b429;
+    --solar-text: #ffd27a;
+
+    --chart-grid: #22334a;
+    --chart-axis: #6a7a92;
+    --chart-generation: #f0b429;
+    --chart-generation-soft: rgb(240 180 41 / 20%);
+    --chart-generation-focus: #d97706;
+    --chart-irradiance: #6ea8fe;
+    --chart-compare: #3a4f6c;
+
+    --map-surface: #101b2c;
+    --map-border: #27384f;
+    --map-scale-1: #13233c;
+    --map-scale-2: #1b3a63;
+    --map-scale-3: #2b5b95;
+    --map-scale-4: #4680cd;
+    --map-scale-5: #6ea8fe;
+
+    --shadow-sm: 0 1px 2px rgb(0 0 0 / 44%);
+    --shadow-md: 0 2px 6px rgb(0 0 0 / 48%), 0 10px 26px rgb(0 0 0 / 40%);
+    --shadow-lg: 0 6px 14px rgb(0 0 0 / 50%), 0 24px 52px rgb(0 0 0 / 46%);
+    --shadow-focus: 0 0 0 3px rgb(110 168 254 / 30%);
+  }
+}
+
+/* ── 시안 C · 아틀라스 ──────────────────────────────────────────────────
+   책상에 펼쳐 놓은 지도책이다. 아이보리 종이에 괘선이 깔리고, 판은 광도 그림자도 없이
+   선 한 줄로만 둘린다. 제목은 명조로 세워 표제가 되고, 수치도 같은 결의 글꼴을 받는다.
+   ──────────────────────────────────────────────────────────────────── */
+@mixin atlas {
+  --room-radius: 0;
+
+  /* 인쇄물에는 그림자가 없다 — 판을 띄우는 대신 선의 굵기로 층을 가른다 */
+  --shadow-sm: none;
+  --shadow-md: none;
+  --shadow-lg: none;
+  --shadow-focus: 0 0 0 2px rgb(124 45 18 / 40%);
+
+  /*
+    수치.
+
+    Georgia 로 두었더니 표제와 수치가 함께 낡아 보이고 작은 자리에서 자릿수가 읽히지 않았다.
+    표제만 명조로 남기고 수치는 기하학적 산세리프로 가른다 — 인쇄물에서도 표와 도표의 숫자는
+    본문과 다른 활자를 쓰므로 결이 깨지지 않고, 오히려 표제가 표제로 도드라진다.
+  */
+  --font-data: "Space Grotesk", "Pretendard Variable", pretendard, sans-serif;
+
+  /* ── 라이트 ── */
+  --paper: #f7f3ea;
+  --paper-alt: #efe9dc;
+  --surface: #fffefb;
+  --surface-raised: #fffefb;
+  --surface-sunken: #f2ece0;
+  --surface-hover: #f0e9da;
+
+  --text-strong: #1a1714;
+  --text: #33302b;
+  --text-muted: #6b645a;
+  --text-faint: #948c7f;
+  --text-on-brand: #fdf8f0;
+
+  --border: #cfc6b4;
+  --border-strong: #a89d87;
+  --border-subtle: #e0d8c8;
+
+  --brand: #7c2d12;
+  --brand-hover: #66240e;
+  --brand-active: #501c0b;
+  --brand-soft: #f8efe8;
+  --brand-soft-border: #e3cbb9;
+  --brand-contrast: #66240e;
+
+  --solar: #a16207;
+  --solar-deep: #854d0e;
+  --solar-soft: #f9f0dd;
+  --solar-line: #ca8a04;
+  --solar-text: #854d0e;
+
+  --ok: #3f6f4a;
+  --ok-soft: #eef3ed;
+  --ok-text: #2f5638;
+  --caution: #a16207;
+  --caution-soft: #f9f0dd;
+  --caution-text: #854d0e;
+  --critical: #a8261a;
+  --critical-soft: #f8ebe8;
+  --critical-text: #841c12;
+  --offline: #8d8579;
+  --offline-soft: #efeae0;
+  --offline-text: #5c564c;
+
+  --chart-grid: #ded5c3;
+  --chart-axis: #948c7f;
+  --chart-generation: #a16207;
+  --chart-generation-soft: rgb(161 98 7 / 20%);
+  --chart-generation-focus: #7c2d12;
+  --chart-irradiance: #3f6f4a;
+  --chart-compare: #bdb4a2;
+
+  --map-surface: #f2ece0;
+  --map-border: #bdb4a2;
+  --map-scale-1: #f6efe6;
+  --map-scale-2: #e8d3c2;
+  --map-scale-3: #d0ab8c;
+  --map-scale-4: #a96b46;
+  --map-scale-5: #7c2d12;
+
+  /*
+    괘선과 얼룩.
+    28px 한 칸짜리 가로줄이 종이의 결을 만들고, 그 위에 옅은 번짐 둘을 얹어 네 귀가
+    고르게 바래 보이게 한다. 세로줄은 두지 않는다 — 두 방향이 다 있으면 도면이 된다.
+  */
+  background:
+    repeating-linear-gradient(180deg, transparent 0 27px, rgb(from var(--brand) r g b / 5%) 27px 28px),
+    radial-gradient(58% 48% at 10% 6%, rgb(from var(--solar) r g b / 7%), transparent 72%),
+    radial-gradient(52% 46% at 90% 94%, rgb(from var(--brand) r g b / 5%), transparent 72%),
+    var(--paper);
+  background-size: auto;
+
+  /* 꺾쇠 대신 재단선 — 인쇄물의 가장자리를 한 줄로 두른다 */
+  &::before {
+    inset: s.$space-3;
+    border: 1px solid rgb(from var(--brand) r g b / 24%);
+    background: none;
+  }
+
+  @include quiet-panels;
+
+  /*
+    머리 아래 이중선.
+    기관 CI 여섯 색 띠는 인쇄물의 결과 다투므로 걷고, 굵은 선 하나에 가는 선 하나를 덧대
+    표제지의 괘선으로 바꾼다.
+  */
+  .bar {
+    border-bottom-color: var(--text-strong);
+    border-bottom-width: 2px;
+
+    &::after {
+      bottom: -5px;
+      height: 1px;
+      background: var(--text-strong);
+    }
+  }
+
+  section[aria-label] {
+    border-color: var(--border-strong);
+    background: var(--surface);
+    box-shadow: none;
+  }
+
+  /* 스스로 돌고 있는 판은 선을 한 겹 더 두른다 — 인쇄물에서 강조는 겹선이다 */
+  section[aria-label="AI 진단"] {
+    outline: 1px solid var(--border-strong);
+    outline-offset: 3px;
+  }
+
+  /*
+    표제는 명조로 세운다.
+
+    애플명조·나눔명조는 획이 가늘고 자형이 낡아, 벽에 걸어 두고 몇 걸음 떨어지면 표제부터
+    사라졌다. 본명조는 같은 명조이면서 획이 굵고 자폭이 고르므로 지도책의 결은 지키면서
+    멀리서도 읽힌다. 600 을 쓰는 것은 700 이 이 크기에서 획이 서로 붙어 뭉치기 때문이다.
+  */
+  section[aria-label] h2 {
+    font-family: "Noto Serif KR", AppleMyungjo, georgia, serif;
+    font-weight: 600;
+    letter-spacing: -0.01em;
+  }
+
+  /* 표제 아래 굵은 실선 — 흐려지는 그러데이션을 걷고 인쇄된 괘선으로 바꾼다 */
+  section[aria-label] > div:has(> h2) {
+    padding-bottom: s.$space-2;
+    border-bottom: 2px solid var(--text-strong);
+    background: none;
+  }
+
+  /* ── 다크 ── 밤에 보는 같은 지도책. 종이가 잉크로 뒤집힌다 */
+  [data-theme="dark"] & {
+    --paper: #14120f;
+    --paper-alt: #1b1814;
+    --surface: #1f1c17;
+    --surface-raised: #262219;
+    --surface-sunken: #17140f;
+    --surface-hover: #2b271e;
+
+    --text-strong: #f5efe2;
+    --text: #ded6c6;
+    --text-muted: #a49a88;
+    --text-faint: #7d7466;
+    --text-on-brand: #14120f;
+
+    --border: #3b352b;
+    --border-strong: #57503f;
+    --border-subtle: #2b271e;
+
+    --brand: #d98b62;
+    --brand-hover: #e5a07c;
+    --brand-active: #efb99a;
+    --brand-soft: rgb(217 139 98 / 14%);
+    --brand-soft-border: rgb(217 139 98 / 30%);
+    --brand-contrast: #efb99a;
+
+    --solar: #dcae4e;
+    --solar-deep: #c08a2c;
+    --solar-soft: rgb(220 174 78 / 14%);
+    --solar-line: #dcae4e;
+    --solar-text: #eccc8a;
+
+    --ok: #7ba87f;
+    --ok-soft: rgb(123 168 127 / 14%);
+    --ok-text: #9dc4a0;
+    --caution: #dcae4e;
+    --caution-soft: rgb(220 174 78 / 14%);
+    --caution-text: #eccc8a;
+    --critical: #d8664f;
+    --critical-soft: rgb(216 102 79 / 16%);
+    --critical-text: #e8917d;
+    --offline: #7d7466;
+    --offline-soft: #2b271e;
+    --offline-text: #a49a88;
+
+    --chart-grid: #332e25;
+    --chart-axis: #7d7466;
+    --chart-generation: #dcae4e;
+    --chart-generation-soft: rgb(220 174 78 / 20%);
+    --chart-generation-focus: #d98b62;
+    --chart-irradiance: #7ba87f;
+    --chart-compare: #57503f;
+
+    --map-surface: #17140f;
+    --map-border: #3b352b;
+    --map-scale-1: #241f18;
+    --map-scale-2: #3d3125;
+    --map-scale-3: #644c37;
+    --map-scale-4: #9a6c4c;
+    --map-scale-5: #d98b62;
+
+    --shadow-focus: 0 0 0 2px rgb(217 139 98 / 40%);
+  }
+}
+
+/* ── 시안 D · 청사진 ────────────────────────────────────────────────────
+   설계 도면 한 장이다. 굵은 격자가 화면 끝까지 깔리고 판은 반투명이라 그 격자가 판을
+   가로질러 비친다. 글씨는 전부 고정폭이고 표제는 자간을 벌려 도면의 라벨이 된다.
+   ──────────────────────────────────────────────────────────────────── */
+@mixin blueprint {
+  --room-radius: 0;
+
+  /* 도면에는 그림자가 없다 — 층은 선의 밝기로만 가른다 */
+  --shadow-sm: none;
+  --shadow-md: none;
+  --shadow-lg: none;
+
+  /* 라틴·숫자는 고정폭이 받고 한글은 본문 글꼴로 떨어진다 */
+  --font-sans: ui-monospace, "SF Mono", "JetBrains Mono", menlo, "Pretendard Variable", pretendard, monospace;
+  --font-data: ui-monospace, "SF Mono", "JetBrains Mono", menlo, monospace;
+
+  /* 격자 한 칸과 큰 눈금 — 큰 눈금은 잔 눈금의 정확히 다섯 배다 */
+  --bp-unit: 20px;
+  --bp-major: 100px;
+
+  /* ── 라이트 ── 빛을 되짚은 도면. 흰 종이에 파란 선이 남는다 */
+  --paper: #eaf0fa;
+  --paper-alt: #dfe8f6;
+  --surface: #fff;
+  --surface-raised: #fff;
+  --surface-sunken: #e3ebf8;
+  --surface-hover: #dbe5f5;
+
+  --text-strong: #0b2a5b;
+  --text: #1d3f70;
+  --text-muted: #4f6d99;
+  --text-faint: #7d95b8;
+  --text-on-brand: #fff;
+
+  --border: #b6c9e4;
+  --border-strong: #8fa9cd;
+  --border-subtle: #cdd9ec;
+
+  --brand: #14487a;
+  --brand-hover: #103c67;
+  --brand-active: #0c2f52;
+  --brand-soft: #e5eefa;
+  --brand-soft-border: #bcd3ec;
+  --brand-contrast: #103c67;
+
+  --chart-grid: #cdd9ec;
+  --chart-axis: #7d95b8;
+  --chart-irradiance: #14487a;
+  --chart-compare: #9fb5d4;
+
+  --map-surface: #e3ebf8;
+  --map-border: #a9c0de;
+  --map-scale-1: #e8f0fa;
+  --map-scale-2: #c2d7ec;
+  --map-scale-3: #8db0d4;
+  --map-scale-4: #4a7fb0;
+  --map-scale-5: #14487a;
+
+  --bp-line: rgb(from var(--brand) r g b / 12%);
+  --bp-line-strong: rgb(from var(--brand) r g b / 24%);
+  --bp-edge: rgb(from var(--brand) r g b / 34%);
+  --bp-glass: 66%;
+
+  --grid-mark: var(--bp-edge);
+
+  /*
+    도면 격자.
+    잔 눈금 넷과 큰 눈금 하나를 같은 타일(100px)에 담아 셈을 하나로 묶는다. 판이 반투명이라
+    이 격자가 판 아래로 이어져, 화면 전체가 한 장의 모눈 위에 그려진 것으로 읽힌다.
+  */
+  background:
+    linear-gradient(90deg, var(--bp-line-strong) 0 1px, transparent 1px),
+    linear-gradient(180deg, var(--bp-line-strong) 0 1px, transparent 1px),
+    repeating-linear-gradient(90deg, var(--bp-line) 0 1px, transparent 1px var(--bp-unit)),
+    repeating-linear-gradient(180deg, var(--bp-line) 0 1px, transparent 1px var(--bp-unit)),
+    var(--paper);
+  background-origin: border-box;
+  background-position: 0 0;
+  background-size:
+    var(--bp-major) var(--bp-major),
+    var(--bp-major) var(--bp-major),
+    var(--bp-major) var(--bp-major),
+    var(--bp-major) var(--bp-major),
+    auto;
+
+  /* 꺾쇠는 격자 한 칸만큼 들여 세운다 — 도면의 치수선이 서는 자리다 */
+  &::before {
+    --corner: var(--bp-unit);
+
+    inset: var(--bp-unit);
+  }
+
+  @include quiet-panels(rgb(from var(--surface) r g b / var(--bp-glass)));
+
+  /* 머리 아래도 도면의 선이다 — 기관 CI 여섯 색 띠를 걷고 파선 한 줄로 바꾼다 */
+  .bar {
+    border-bottom-color: var(--bp-edge);
+
+    &::after {
+      height: 1px;
+      background: repeating-linear-gradient(90deg, var(--bp-edge) 0 8px, transparent 8px 16px);
+    }
+  }
+
+  /*
+    판을 유리로.
+    바탕을 덜 덮어야 격자가 판을 가로질러 이어진다. 값을 더 낮추면 선이 글자 위로 올라와
+    수치가 읽히지 않고, 더 높이면 그냥 흰 판이 된다.
+  */
+  section[aria-label] {
+    border-color: var(--bp-edge);
+    background: rgb(from var(--surface) r g b / var(--bp-glass));
+    box-shadow: none;
+  }
+
+  /* 스스로 돌고 있는 판만 테두리를 실선으로 올려 세운다 */
+  section[aria-label="AI 진단"] {
+    border-color: var(--brand);
+  }
+
+  /* 표제는 도면의 라벨이다 — 자간을 벌리고 앞에 치수 표식을 세운다 */
+  section[aria-label] h2 {
+    letter-spacing: 0.1em;
+
+    &::before {
+      content: "";
+      display: inline-block;
+      width: 6px;
+      height: 6px;
+      margin-right: s.$space-2;
+      border: 1px solid var(--brand);
+      vertical-align: middle;
+    }
+  }
+
+  section[aria-label] > div:has(> h2) {
+    padding-bottom: s.$space-2;
+    border-bottom: 1px dashed var(--bp-edge);
+    background: none;
+  }
+
+  /* ── 다크 ── 본래의 청사진. 감광지가 파랗게 남고 선이 희게 빠진다 */
+  [data-theme="dark"] & {
+    --paper: #0a2149;
+    --paper-alt: #0d2a5c;
+
+    /* 판 면을 바탕보다 한 단 밝게 — 어두운 감광지 위에서 판이 묻히지 않는 자리다 */
+    --surface: #16406f;
+    --surface-raised: #163a70;
+    --surface-sunken: #081a3a;
+    --surface-hover: #1a4176;
+
+    --text-strong: #eaf2ff;
+    --text: #c8daf5;
+    --text-muted: #93aed6;
+    --text-faint: #6f8cb8;
+    --text-on-brand: #0a2149;
+
+    --border: #2f5590;
+    --border-strong: #4a74b2;
+    --border-subtle: #1d3f74;
+
+    --brand: #9dc4f5;
+    --brand-hover: #b8d5f9;
+    --brand-active: #d2e5fc;
+    --brand-soft: rgb(157 196 245 / 14%);
+    --brand-soft-border: rgb(157 196 245 / 30%);
+    --brand-contrast: #d2e5fc;
+
+    --ok: #6ee7a8;
+    --ok-soft: rgb(110 231 168 / 14%);
+    --ok-text: #a0f0c6;
+    --caution: #ffd166;
+    --caution-soft: rgb(255 209 102 / 14%);
+    --caution-text: #ffe3a3;
+    --critical: #ff8095;
+    --critical-soft: rgb(255 128 149 / 16%);
+    --critical-text: #ffaab8;
+    --offline: #6f8cb8;
+    --offline-soft: rgb(111 140 184 / 16%);
+    --offline-text: #93aed6;
+
+    --chart-grid: #1d3f74;
+    --chart-axis: #6f8cb8;
+    --chart-generation: #ffd166;
+    --chart-generation-soft: rgb(255 209 102 / 20%);
+    --chart-generation-focus: #ffb020;
+    --chart-irradiance: #9dc4f5;
+    --chart-compare: #4a74b2;
+
+    --map-surface: #081a3a;
+    --map-border: #2f5590;
+    --map-scale-1: #0d2a5c;
+    --map-scale-2: #17427f;
+    --map-scale-3: #2f65ad;
+    --map-scale-4: #5b94d8;
+    --map-scale-5: #9dc4f5;
+
+    /* 감광지 위에서는 선이 빛이다 — 흰 선을 옅게 얹는다 */
+    --bp-line: rgb(255 255 255 / 8%);
+    --bp-line-strong: rgb(255 255 255 / 18%);
+    --bp-edge: rgb(255 255 255 / 38%);
+
+    /*
+      판을 바탕에서 떼어 놓는 정도.
+
+      40% 로 두었더니 어두운 감광지 위에서 판과 바탕이 거의 같은 남색으로 보여 어디까지가
+      한 판인지 가려지지 않았다. 밝은 화면은 흰 판이 옅은 청회색 바탕과 저절로 갈려 이 문제가
+      없었으므로 어두운 쪽만 올린다. 68% 면 판 면이 바탕보다 한 단 밝아 경계가 서면서도,
+      격자가 판을 가로질러 이어지는 이 시안의 결은 그대로 비친다 — 여기서 더 올리면 격자가
+      판 위에서 끊겨 청사진이 아니라 그냥 어두운 카드가 된다.
+    */
+    --bp-glass: 68%;
+
+    --shadow-focus: 0 0 0 3px rgb(157 196 245 / 32%);
+  }
+}
+
+/* ── 시안 E · 사이버네틱 ────────────────────────────────────────────────
+   계측 장비의 표면이다. 시안(靑) 한 색이 화면을 쥐고, 판마다 머리에 빛 한 줄이 켜지며,
+   바탕에는 주사선이 깔린다. 글꼴은 라틴·숫자만 Orbitron 이 받고 한글은 본문 글꼴로
+   떨어진다 — 계측값이 기계의 글씨가 되고 설명은 읽히는 글씨로 남는다.
+   ──────────────────────────────────────────────────────────────────── */
+@mixin cyber {
+  /*
+    Orbitron 은 자릿수 폭이 고르지 않다 (30px 기준 `1` 11.7px, `0` 25.0px). `tnum` 기능이
+    없어 CSS 로 켤 수도 없다. 그래서 매초 바뀌는 벽시계만 자릿수 칸을 못 박아 흔들림을 잡고
+    (`RoomClock` 의 `bar__digit`), 나머지 수치는 이 글꼴의 비례폭을 그대로 받는다.
+  */
+  --font-sans: "Orbitron", "Pretendard Variable", pretendard, sans-serif;
+  --font-data: "Orbitron", "Space Grotesk", sans-serif;
+
+  /* 모서리를 거의 직각으로 — 둥근 상자는 안내 카드로 읽히고, 각진 상자는 계측 장비로 읽힌다 */
+  --room-radius: 2px;
+
+  /* ── 라이트 ── */
+  --paper: #eef3f9;
+  --paper-alt: #e4ebf3;
+  --surface: #fff;
+  --surface-raised: #fff;
+  --surface-sunken: #eaf0f6;
+  --surface-hover: #e4ebf3;
+
+  --text-strong: #0b1a2b;
+  --text: #1f2f42;
+  --text-muted: #566a80;
+  --text-faint: #8496a8;
+  --text-on-brand: #fff;
+  --text-on-solar: #1a1204;
+
+  --border: #cbd8e5;
+  --border-strong: #a9bccd;
+  --border-subtle: #dee7f0;
+
+  /* 시안 계열이 이 화면의 주색이다 — 서비스 기본 파랑과 갈라 놓는 자리다 */
+  --brand: #0ea5e9;
+  --brand-hover: #0c84bb;
+  --brand-active: #0a6a97;
+  --brand-soft: #ecfeff;
+  --brand-soft-border: #cffafe;
+  --brand-contrast: #0a6a97;
+
+  --ai-scan: #0ea5e9;
+  --ai-classify: #2f6fe4;
+  --ai-reason: #7c5cf0;
+  --ai-done: #10a85c;
+
+  --solar: #f59e0b;
+  --solar-deep: #f97316;
+  --solar-soft: #fffbeb;
+  --solar-line: #fde68a;
+  --solar-text: #b45309;
+
+  --ok: #16a34a;
+  --ok-soft: #f0fdf4;
+  --ok-text: #15803d;
+  --caution: #f59e0b;
+  --caution-soft: #fffbeb;
+  --caution-text: #b45309;
+  --critical: #e0331b;
+  --critical-soft: #fef2f2;
+  --critical-text: #b02216;
+  --offline: #8d96a3;
+  --offline-soft: #eceef2;
+  --offline-text: #4a5160;
+
+  --chart-grid: #dbe4ee;
+  --chart-axis: #8496a8;
+  --chart-generation: #f59e0b;
+  --chart-generation-soft: rgb(245 158 11 / 18%);
+  --chart-generation-focus: #f97316;
+  --chart-irradiance: #0ea5e9;
+  --chart-compare: #bcc2cc;
+
+  --map-surface: #e8eff7;
+  --map-border: #cbd8e5;
+  --map-scale-1: #eaf6fb;
+  --map-scale-2: #c9ecf6;
+  --map-scale-3: #96dcee;
+  --map-scale-4: #4fc0dd;
+  --map-scale-5: #0ea5e9;
+
+  --shadow-sm: 0 1px 2px rgb(11 26 43 / 8%);
+  --shadow-md: 0 2px 6px rgb(11 26 43 / 10%);
+  --shadow-lg: 0 8px 24px rgb(11 26 43 / 14%);
+  --shadow-focus: 0 0 0 3px rgb(14 165 233 / 28%);
+
+  /* 주사선 — 바탕이 밝을수록 옅어야 글자를 갉아먹지 않는다 */
+  --room-scanline: rgb(15 23 42 / 3.5%);
+
+  /*
+    자간.
+
+    Orbitron 은 글자가 서로 바싹 붙어 서는 글꼴이라 수치가 길어질수록 한 덩어리로 뭉쳐
+    읽힌다. 한글은 Pretendard 로 떨어지므로 같은 값이라도 더 성기게 보이는데, 그 둘이
+    한 줄에 섞이는 화면이라 아주 조금만 벌린다 — 0.03em 을 넘기면 좁은 열에서 수치가
+    한 글자씩 다음 줄로 넘어간다.
+  */
+  letter-spacing: 0.02em;
+
+  color: var(--text);
+
+  /*
+    바탕.
+
+    도면 눈금은 시안 A·D 의 것이라 걷는다. 대신 오른쪽 아래 한 점에서 퍼지는 탐지 고리와
+    비스듬히 흐르는 결을 깐다 — 좌표를 재는 화면이 아니라 **무언가를 살피고 있는 화면**
+    으로 읽히게 하는 것이 이 시안의 몫이다. 고리는 59px 마다 한 줄씩만 남기고, 비스듬한
+    결은 115도로 눕혀 격자와 달리 두 방향이 만나 칸을 이루지 않게 한다.
+
+    네 겹 모두 주색과 보라 계열이라 판 위의 상태색(경고 주황·위험 빨강)과 다투지 않는다.
+  */
+  background:
+    repeating-radial-gradient(
+      circle at 78% 96%,
+      transparent 0 58px,
+      rgb(from var(--brand) r g b / 7%) 58px 59px
+    ),
+    repeating-linear-gradient(115deg, transparent 0 22px, rgb(from var(--brand) r g b / 4%) 22px 23px),
+    radial-gradient(62% 52% at 6% 0%, rgb(from var(--brand) r g b / 11%), transparent 70%),
+    radial-gradient(58% 48% at 96% 100%, rgb(from var(--ai-reason) r g b / 9%), transparent 72%),
+    var(--paper);
+  background-size: auto;
+
+  /* 판 제목은 한 단 더 벌린다 — 계측 장비의 주기는 글자 사이가 성기다 */
+  section[aria-label] h2 {
+    letter-spacing: 0.07em;
+  }
+
+  /* 도면 꺾쇠는 눈금이 있어야 몫을 한다 — 눈금을 걷었으니 함께 걷는다 */
+  &::before {
+    display: none;
+  }
+
+  /*
+    주사선.
+    브라운관을 흉내 내는 장식이지만 여기서는 몫이 있다 — 판 사이 빈 바탕이 눈금만 깔린 채
+    비어 보이던 것을 아주 옅은 결로 메워, 화면 전체가 하나의 계측기 표면으로 읽힌다.
+  */
+  &::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: repeating-linear-gradient(0deg, var(--room-scanline) 0 1px, transparent 1px 3px);
+    pointer-events: none;
+  }
+
+  /*
+    주사선과 꺾쇠는 바탕에 그린 것이지 화면 위에 덮은 막이 아니다.
+    띄워 두지 않으면 판과 글자 위로 가로줄이 지나가 글씨가 갉여 보인다 — 머리띠와 본문을
+    한 겹 올려 바탕 그림이 늘 뒤에 남게 한다.
+  */
+  .bar,
+  .room__body {
+    position: relative;
+    z-index: 1;
+  }
+
+  /*
+    판.
+    테두리를 주색으로 바꾸고 머리에 한 줄을 얹는다. 안쪽으로 옅게 번지는 광까지 더해야
+    판이 바탕에 뚫린 구멍이 아니라 빛나는 계기판으로 보인다.
+  */
+  section[aria-label] {
+    border-color: rgb(from var(--brand) r g b / 26%);
+    background:
+      linear-gradient(90deg, var(--brand), transparent 55%) top left / 100% 2px no-repeat,
+      var(--surface);
+    box-shadow: inset 0 0 32px rgb(from var(--brand) r g b / 6%), var(--shadow-sm);
+  }
+
+  /* ── 다크 ── 갈리는 것은 색뿐이다 */
+  [data-theme="dark"] & {
+    --paper: #0d0f14;
+    --paper-alt: #12141b;
+    --surface: #181b23;
+    --surface-raised: #1d212a;
+    --surface-sunken: #12141b;
+    --surface-hover: #272c37;
+
+    --text-strong: #eef1f5;
+    --text: #b0b6c0;
+    --text-muted: #8b929c;
+    --text-faint: #676d78;
+    --text-on-brand: #06131c;
+
+    --border: #2c333c;
+    --border-strong: #3b444f;
+    --border-subtle: #20262e;
+
+    --brand: #4bbdd6;
+    --brand-hover: #6fcfe0;
+    --brand-active: #9abde8;
+    --brand-soft: #06283a;
+    --brand-soft-border: #0f5c78;
+    --brand-contrast: #6fcfe0;
+
+    --ai-scan: #4bbdd6;
+    --ai-classify: #5590d8;
+    --ai-reason: #8b5cf6;
+    --ai-done: #00e08a;
+
+    --solar: #ffb020;
+    --solar-deep: #ff6a3d;
+    --solar-soft: #2b2008;
+    --solar-line: #ffc933;
+    --solar-text: #ffd966;
+
+    --ok: #00e08a;
+    --ok-soft: #062b1e;
+    --ok-text: #00e08a;
+    --caution: #ffc933;
+    --caution-soft: #33260a;
+    --caution-text: #ffd966;
+    --critical: #ff4d6d;
+    --critical-soft: #33101a;
+    --critical-text: #ff4d6d;
+    --offline: #676d78;
+    --offline-soft: #20262e;
+    --offline-text: #8b929c;
+
+    --chart-grid: #272c37;
+    --chart-axis: #676d78;
+    --chart-generation: #ffb020;
+    --chart-generation-soft: rgb(255 176 32 / 20%);
+    --chart-generation-focus: #ff6a3d;
+    --chart-irradiance: #4bbdd6;
+    --chart-compare: #3b444f;
+
+    --map-surface: #12141b;
+    --map-border: #2c333c;
+    --map-scale-1: #12252d;
+    --map-scale-2: #163a46;
+    --map-scale-3: #1c5566;
+    --map-scale-4: #2f8ba3;
+    --map-scale-5: #4bbdd6;
+
+    --shadow-sm: 0 1px 2px rgb(0 0 0 / 50%);
+    --shadow-md: 0 2px 6px rgb(0 0 0 / 55%);
+    --shadow-lg: 0 8px 24px rgb(0 0 0 / 60%);
+    --shadow-focus: 0 0 0 3px rgb(75 189 214 / 30%);
+
+    --room-scanline: rgb(0 0 0 / 22%);
+  }
+}

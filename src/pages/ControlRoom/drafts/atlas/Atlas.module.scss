@@ -1,0 +1,54 @@
+@use "@/styles/tokens/spacing" as s;
+@use "@/styles/utils/media" as media;
+
+/*
+  시안 C · 아틀라스의 배치.
+
+  지도책을 펼친 자리다. 지도가 왼쪽 한 면을 위에서 아래로 세 단에 걸쳐 쓰고, 오른쪽 면에
+  수치가 단을 나눠 깔린다. AI 진단은 두 칸을 함께 써서 지도와 글을 좌우로 펼 폭을 얻고,
+  집계표는 맨 아랫단 전체 폭으로 내려 다섯 칸이 접히지 않는다.
+
+  1920×1080 한 화면에 네 단이 모두 들어가야 하므로 단 높이를 빠듯하게 잡는다 — 여백(gap)을
+  넓히면 판 하나가 그만큼 잘리고, AI 단이 가장 크므로 나머지 셋이 그 나머지를 나눈다.
+*/
+.board {
+  display: grid;
+  gap: s.$space-3;
+  height: 100%;
+  min-height: 0;
+  grid-template:
+    "map out   yield"  minmax(196px, 0.8fr)
+    "map ai    ai"     minmax(284px, 1.4fr)
+    "map fault region" minmax(212px, 1.05fr)
+    "agg agg   agg"    minmax(198px, 1fr);
+  grid-template-columns: minmax(0, 1fr) 360px 360px;
+
+  @include media.kiosk {
+    grid-template-columns: minmax(0, 1fr) 380px 380px;
+  }
+
+  @include media.tablet {
+    grid-template: none !important;
+    height: auto;
+  }
+}
+
+.cell {
+  display: flex;
+  flex-direction: column;
+  gap: s.$space-3;
+  min-height: 0;
+
+  @include media.tablet {
+    grid-area: auto !important;
+  }
+
+  > section:only-child {
+    flex: 1;
+    min-height: 0;
+
+    @include media.tablet {
+      flex: none;
+    }
+  }
+}

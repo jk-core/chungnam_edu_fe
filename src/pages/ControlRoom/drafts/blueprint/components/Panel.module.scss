@@ -1,0 +1,62 @@
+@use "@/styles/tokens/spacing" as s;
+@use "@/styles/tokens/typography" as t;
+
+/*
+  판 골격.
+
+  껍데기의 색·테두리·유리 바탕·제목 표식은 스킨이 `section[aria-label]` 로 이미 쥐고 있으므로
+  여기서 다시 칠하지 않는다 — 칠하면 스킨과 다투어 유리가 불투명해지고 격자가 끊긴다.
+  이 파일은 자리(안쪽 여백)와 흐름(머리 고정·본문이 남는 높이를 받음)만 맡는다.
+*/
+.panel {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  padding: s.$space-4;
+
+  /* 스킨이 배경·테두리색을 덮어쓰지만, 스킨이 없을 때도 판꼴은 서 있게 밑값을 둔다 */
+  border: 1px solid var(--border);
+  background: var(--surface);
+  overflow: hidden;
+
+  &--grow {
+    flex: 1;
+  }
+
+  &__head {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: s.$space-3;
+
+    /* 스킨이 파선 밑줄과 아래 여백을 준다 — 본문과의 사이 간격만 보탠다 */
+    margin-bottom: s.$space-3;
+  }
+
+  &__title {
+    @include t.label-md;
+
+    /* 도면의 라벨 — 자간과 앞 표식은 스킨이 얹는다. 여기서는 색과 굵기만 */
+    margin: 0;
+    color: var(--text-strong);
+    white-space: nowrap;
+  }
+
+  &__note {
+    @include t.caption;
+
+    display: flex;
+    align-items: center;
+    gap: s.$space-2;
+    color: var(--text-muted);
+    font-family: var(--font-data);
+    white-space: nowrap;
+  }
+
+  &__body {
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+    min-height: 0;
+  }
+}

@@ -1,0 +1,386 @@
+@use "@/styles/tokens/spacing" as s;
+@use "@/styles/tokens/typography" as t;
+@use "@/styles/utils/media" as media;
+@use "@/styles/utils/mixins" as mx;
+
+/* 「지도」 보기 — 카카오 항공사진이 칸을 통째로 채운다 */
+.photo {
+  flex: 1;
+  min-height: 0;
+  border-radius: var(--room-radius);
+  overflow: hidden;
+}
+
+/*
+  「시·군」 보기.
+  왼쪽에 도형 지도를 크게 세우고 오른쪽 폭에 상세를 가로로 편다 — 넓은 칸을 좌우로 나눠 쓴다.
+*/
+.map {
+  display: flex;
+  gap: s.$space-5;
+  flex: 1;
+  min-height: 0;
+
+  &__canvas {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex: 0 0 40%;
+    min-width: 0;
+    min-height: 0;
+    padding: s.$space-2;
+    border-radius: var(--room-radius);
+    background-color: color-mix(in srgb, var(--surface-sunken) 55%, var(--surface));
+  }
+}
+
+/* 도형 지도. 칸 높이를 꽉 받아 A 의 손톱만 하던 지도를 크게 세운다 */
+.canvas {
+  width: 100%;
+  height: 100%;
+}
+
+/*
+  시·군 면. CI 여섯 색을 돌려 쓴다 (조치사항 #8) — 값의 크기를 뜻하지 않고 시·군을 가르는
+  구실만 한다. 그래서 단계색(--map-scale-*)을 쓰지 않는다. 선은 또렷하게 긋되 굵기는 그대로 둔다.
+*/
+.cell {
+  fill: color-mix(in srgb, var(--cell) 16%, var(--surface));
+  stroke: var(--map-border);
+  stroke-width: 1;
+  transition: fill 0.4s ease, stroke 0.4s ease;
+
+  &[data-pick] {
+    cursor: pointer;
+  }
+
+  &[data-pick]:hover {
+    fill: color-mix(in srgb, var(--cell) 32%, var(--surface));
+  }
+
+  &[data-on] {
+    fill: color-mix(in srgb, var(--cell) 60%, var(--surface));
+    stroke: var(--cell);
+    stroke-width: 2;
+  }
+
+  @include mx.keyboard-focus;
+}
+
+/* 시·군 이름표 — 늘 얹어 두고, 머무는 곳만 짙게 */
+.tag {
+  pointer-events: none;
+
+  &__name {
+    fill: var(--text-muted);
+    font-family: var(--font-sans);
+    font-size: 15px;
+    font-weight: 600;
+  }
+
+  &__count {
+    fill: var(--text-faint);
+    font-family: var(--font-data);
+    font-size: 12px;
+  }
+
+  &[data-on] {
+    .tag__name {
+      fill: var(--text-strong);
+      font-weight: 700;
+    }
+
+    .tag__count {
+      fill: var(--text);
+    }
+  }
+}
+
+/* 머무는 시·군의 상세 */
+.detail {
+  display: flex;
+  flex-direction: column;
+  gap: s.$space-3;
+  flex: 1;
+  min-width: 0;
+  min-height: 0;
+
+  &__head {
+    display: flex;
+    align-items: center;
+    gap: s.$space-2;
+    flex-shrink: 0;
+  }
+
+  &__color {
+    width: 12px;
+    height: 12px;
+    flex-shrink: 0;
+    border-radius: s.$radius-xs;
+  }
+
+  &__name {
+    @include t.title-sm;
+
+    color: var(--text-strong);
+  }
+
+  &__abnormal {
+    @include t.caption;
+
+    padding: 1px s.$space-2;
+    border-radius: s.$radius-full;
+    background-color: var(--critical-soft);
+    color: var(--critical-text);
+    font-weight: 700;
+  }
+
+  &__ok {
+    @include t.caption;
+
+    padding: 1px s.$space-2;
+    border-radius: s.$radius-full;
+    background-color: var(--ok-soft);
+    color: var(--ok-text);
+    font-weight: 700;
+  }
+
+  &__body {
+    display: flex;
+    gap: s.$space-4;
+    flex: 1;
+    min-height: 0;
+  }
+
+  &__side {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: s.$space-3;
+    flex: 1;
+    min-width: 0;
+  }
+}
+
+/* 여섯 수치를 3열 2행으로 — 넓은 폭이 있어 세로로 쌓지 않는다 */
+.figures {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: s.$space-2 s.$space-4;
+  align-content: center;
+  flex: 0 0 auto;
+}
+
+.figure {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  padding: s.$space-2 0;
+  border-top: 1px solid var(--border-subtle);
+
+  &__label {
+    @include t.caption;
+
+    color: var(--text-muted);
+  }
+
+  &__value {
+    display: flex;
+    align-items: baseline;
+    gap: 2px;
+    color: var(--text-strong);
+    font-family: var(--font-data);
+    font-variant-numeric: tabular-nums;
+    font-weight: 700;
+    font-size: 19px;
+    line-height: 1.1;
+  }
+
+  &__unit {
+    @include t.caption;
+
+    color: var(--text-faint);
+    font-weight: 500;
+  }
+}
+
+/*
+  도 대비 몫.
+  좁은 시·군 상세에서 A 가 세로로 쌓던 두 막대를 여기서도 세로로 두되, 넓어진 라벨·값과 함께
+  한 줄에 편다.
+*/
+.share {
+  display: flex;
+  flex-direction: column;
+  gap: s.$space-2;
+
+  &__row {
+    display: grid;
+    grid-template-columns: 4.5em minmax(0, 1fr) 3.2em;
+    align-items: center;
+    gap: s.$space-2;
+  }
+
+  &__label {
+    @include t.caption;
+
+    color: var(--text-muted);
+  }
+
+  &__track {
+    height: 8px;
+    border-radius: s.$radius-full;
+    background-color: var(--surface-sunken);
+    overflow: hidden;
+  }
+
+  &__bar {
+    display: block;
+    height: 100%;
+    border-radius: inherit;
+    transition: width 0.6s cubic-bezier(0.22, 0.68, 0.32, 1);
+  }
+
+  &__value {
+    color: var(--text-strong);
+    text-align: right;
+    font-family: var(--font-data);
+    font-variant-numeric: tabular-nums;
+    font-weight: 700;
+    font-size: 13px;
+  }
+}
+
+/* 손봐야 할 곳 — 급한 순으로 앞의 넷만 이름을, 나머지는 「외 N곳」 으로 */
+.faults {
+  display: flex;
+  align-items: center;
+  gap: s.$space-3;
+  flex-shrink: 0;
+  padding-top: s.$space-2;
+  border-top: 1px solid var(--border-subtle);
+
+  &__title {
+    @include t.caption;
+
+    display: inline-flex;
+    align-items: baseline;
+    gap: s.$space-1;
+    flex-shrink: 0;
+    color: var(--text-muted);
+    font-weight: 700;
+  }
+
+  &__more {
+    color: var(--text-faint);
+    font-weight: 500;
+  }
+
+  &__none {
+    @include t.caption;
+
+    color: var(--text-faint);
+  }
+
+  &__list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: s.$space-1 s.$space-2;
+    min-width: 0;
+    list-style: none;
+  }
+
+  &__item {
+    display: inline-flex;
+    align-items: center;
+    gap: s.$space-1;
+    max-width: 100%;
+
+    &[data-tone="caution"] {
+      --tone-text: var(--caution-text);
+    }
+
+    &[data-tone="critical"] {
+      --tone-text: var(--critical-text);
+    }
+
+    &[data-tone="offline"] {
+      --tone-text: var(--offline-text);
+    }
+  }
+
+  &__name {
+    @include t.caption;
+    @include mx.truncate;
+
+    max-width: 8em;
+    color: var(--text);
+  }
+
+  &__state {
+    @include t.caption;
+
+    flex-shrink: 0;
+    color: var(--tone-text);
+    font-weight: 700;
+  }
+}
+
+/* 순회 재생·정지와 점 눈금 — 머리 오른쪽에 세운다 */
+.tour {
+  display: inline-flex;
+  align-items: center;
+  gap: s.$space-2;
+  margin-left: auto;
+
+  &__play {
+    @include mx.keyboard-focus;
+
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 24px;
+    height: 24px;
+    padding: 0;
+    border: 1px solid var(--border-subtle);
+    border-radius: 50%;
+    background: none;
+    color: var(--text-muted);
+    cursor: pointer;
+    transition: border-color 0.16s ease, color 0.16s ease, background-color 0.16s ease;
+
+    &:hover {
+      border-color: var(--brand-soft-border);
+      background-color: var(--brand-soft);
+      color: var(--brand-contrast);
+    }
+  }
+
+  &__dots {
+    display: inline-flex;
+    align-items: center;
+    gap: s.$space-1;
+    list-style: none;
+
+    @include media.tablet {
+      display: none;
+    }
+  }
+
+  &__dot {
+    display: block;
+    width: 8px;
+    height: 8px;
+    padding: 0;
+    border: none;
+    border-radius: 50%;
+    background-color: var(--border-strong);
+    cursor: pointer;
+    transition: transform 0.2s ease, background-color 0.2s ease;
+
+    &[data-on] {
+      background-color: var(--dot, var(--brand));
+      transform: scale(1.4);
+    }
+  }
+}

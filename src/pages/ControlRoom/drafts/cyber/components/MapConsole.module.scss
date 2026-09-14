@@ -1,0 +1,30 @@
+@use "@/styles/tokens/spacing" as s;
+@use "@/styles/tokens/typography" as t;
+
+.tools {
+  display: flex;
+  align-items: center;
+  gap: s.$space-3;
+
+  &__count {
+    @include t.caption;
+
+    color: var(--text-muted);
+  }
+}
+
+/*
+  항공사진 보기.
+
+  `FaultMap` 의 루트(`.map[data-fill]`)는 `flex: 1` 로 자라도록 짜여 있어 **부모가 flex 세로
+  컨테이너라야** 높이를 받는다. 블록으로 두면 그 `flex: 1` 이 먹지 않아 지도가 내용 높이
+  (툴바 44px)로 접히고 카카오 캔버스가 0px 로 깔린다. 그래서 이 래퍼를 flex 세로로 세워
+  높이 전달 사슬(`flex: 1; min-height: 0`)을 이어 준다.
+*/
+.photo {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+}

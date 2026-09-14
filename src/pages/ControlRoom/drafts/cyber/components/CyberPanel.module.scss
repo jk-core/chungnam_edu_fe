@@ -1,0 +1,93 @@
+@use "@/styles/tokens/spacing" as s;
+@use "@/styles/tokens/typography" as t;
+
+/*
+  판 한 칸.
+
+  배경·테두리·머리에 켜지는 빛 한 줄은 스킨(`section[aria-label]`)이 쥔다 — 여기서 다시 적지
+  않는다. 이 파일이 정하는 것은 안쪽 여백과 머리 줄, 그리고 내용이 남는 높이를 받는 방식뿐이다.
+*/
+.panel {
+  display: flex;
+  flex-direction: column;
+  gap: s.$space-3;
+  min-height: 0;
+  height: 100%;
+  padding: s.$space-3 s.$space-4 s.$space-4;
+  overflow: hidden;
+
+  &__head {
+    display: flex;
+    align-items: center;
+    gap: s.$space-2;
+    flex-shrink: 0;
+    min-height: 22px;
+  }
+
+  &__title {
+    @include t.label-md;
+
+    display: flex;
+    align-items: center;
+    gap: s.$space-2;
+
+    /* 라틴·숫자만 Orbitron 이 받고 한글은 본문 글꼴로 떨어진다 — 계측기의 채널 이름처럼 자간을 벌린다 */
+    letter-spacing: 0.04em;
+    color: var(--text-strong);
+  }
+
+  /*
+    채널 표시등.
+
+    판마다 머리 왼쪽에 세우는 세로 막대다 — 스킨이 머리에 가로로 켜는 빛 한 줄과 짝을 이뤄,
+    계측기의 한 채널이 켜져 있는 것으로 읽힌다. `data-live` 가 붙은 판(AI 진단)만 맥동한다 —
+    스스로 돌고 있는 판임을 A 의 「테두리를 도는 빛」 대신 이 표시등으로 알린다.
+  */
+  &__mark {
+    width: 3px;
+    height: 14px;
+    flex-shrink: 0;
+    background: var(--brand);
+    box-shadow: 0 0 6px rgb(from var(--brand) r g b / 60%);
+
+    &[data-live] {
+      animation: cyber-pulse 1.6s ease-in-out infinite;
+
+      @media (prefers-reduced-motion: reduce) {
+        animation: none;
+      }
+    }
+  }
+
+  &__note {
+    @include t.caption;
+
+    display: flex;
+    align-items: center;
+    gap: s.$space-2;
+    margin-left: auto;
+    color: var(--text-muted);
+    text-align: right;
+  }
+
+  /* 내용이 머리 아래 남는 높이를 통째로 받는다 — 판이 셀 높이를 꽉 채우므로 여기가 그 여백을 쥔다 */
+  &__body {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    min-height: 0;
+  }
+}
+
+@keyframes cyber-pulse {
+  0%,
+  100% {
+    opacity: 1;
+    box-shadow: 0 0 6px rgb(from var(--brand) r g b / 60%);
+  }
+
+  50% {
+    opacity: 0.55;
+    box-shadow: 0 0 12px rgb(from var(--brand) r g b / 90%);
+  }
+}

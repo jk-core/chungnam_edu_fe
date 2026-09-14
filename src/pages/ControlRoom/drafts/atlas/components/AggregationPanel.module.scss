@@ -1,0 +1,229 @@
+@use "@/styles/tokens/spacing" as s;
+@use "@/styles/tokens/typography" as t;
+@use "./tone" as tone;
+
+.agg {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 2px;
+  min-height: 0;
+}
+
+/*
+  두 단. 자리가 얕아 표가 늘어날 곳이 없으므로 내용 높이 그대로 두고(늘이지 않고), 다섯 줄로
+  못 박아 늘 같은 높이로 앉힌다 — flex 로 늘이면 grid 안 표가 제 높이를 못 얻어 눌린다.
+*/
+.agg__frame {
+  display: grid;
+  gap: 0 s.$space-8;
+
+  &[data-cols="two"] {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  &[data-cols="one"] {
+    grid-template-columns: 1fr;
+  }
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  table-layout: fixed;
+
+  th,
+  td {
+    padding: 0 s.$space-2;
+    line-height: 1.25;
+    vertical-align: middle;
+  }
+
+  thead th {
+    @include t.caption;
+
+    height: 16px;
+    color: var(--text-muted);
+    font-weight: 600;
+    text-align: right;
+    white-space: nowrap;
+    border-bottom: 1.5px solid var(--text-strong);
+  }
+
+  tbody td,
+  tbody th {
+    height: 19px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  &__rank {
+    width: 3em;
+    text-align: right;
+
+    tbody & {
+      @include t.data-sm;
+
+      color: var(--text-faint);
+    }
+  }
+
+  &__name {
+    width: auto;
+    text-align: left;
+
+    thead & {
+      text-align: left;
+    }
+  }
+
+  &__nameInner {
+    display: flex;
+    align-items: center;
+    gap: s.$space-2;
+    min-width: 0;
+  }
+
+  &__swatch {
+    flex: none;
+    width: 9px;
+    height: 9px;
+    border: 1px solid var(--border-strong);
+    background: var(--row);
+  }
+
+  &__label {
+    @include t.body-sm;
+
+    overflow: hidden;
+    color: var(--text-strong);
+    white-space: nowrap;
+    text-overflow: ellipsis;
+  }
+
+  &__count {
+    @include t.caption;
+
+    flex: none;
+    color: var(--text-muted);
+  }
+
+  /* 상태 — 알약 대신 점+글씨. 줄 높이를 부풀리지 않으면서 상태색을 남긴다 */
+  &__stat {
+    @include t.label-sm;
+
+    display: inline-flex;
+    flex: none;
+    align-items: center;
+    gap: s.$space-1;
+
+    @include tone.paint(color);
+  }
+
+  &__statDot {
+    width: 7px;
+    height: 7px;
+    border: 1px solid var(--border-strong);
+
+    @include tone.paint(background-color);
+  }
+
+  &__num {
+    width: 6em;
+    text-align: right;
+    white-space: nowrap;
+
+    tbody & {
+      @include t.data-sm;
+
+      color: var(--text-strong);
+    }
+  }
+
+  &__hours {
+    @include t.data-sm;
+
+    font-weight: 700;
+    color: var(--solar-text);
+  }
+
+  &__unit {
+    margin-left: 1px;
+    color: var(--text-muted);
+    font-size: 0.74em;
+  }
+
+  &__filler td {
+    height: 19px;
+    border-bottom-color: var(--border-subtle);
+  }
+}
+
+/* 총계 — 두 단 아래 전체 폭 한 줄. 위에 굵은 선을 얹어 본문과 가른다 */
+.total {
+  display: flex;
+  align-items: baseline;
+  gap: s.$space-6;
+  margin: 0;
+  padding: 2px s.$space-2 0;
+  border-top: 2px solid var(--text-strong);
+
+  &__term {
+    @include t.label-md;
+
+    color: var(--text-strong);
+  }
+
+  &__cell {
+    @include t.data-sm;
+
+    display: inline-flex;
+    align-items: baseline;
+    gap: s.$space-2;
+    margin: 0;
+    color: var(--text-strong);
+  }
+
+  &__label {
+    @include t.caption;
+
+    color: var(--text-muted);
+  }
+}
+
+/* 쪽 표시 한 줄 — 전체 건수 · 점 눈금 · 현재/전체 쪽 */
+.pageline {
+  @include t.caption;
+
+  display: flex;
+  align-items: center;
+  gap: s.$space-2;
+  margin: 0;
+  color: var(--text-muted);
+
+  &__count {
+    color: var(--text);
+  }
+
+  &__dots {
+    display: inline-flex;
+    gap: s.$space-1;
+    margin-left: auto;
+  }
+
+  &__dot {
+    width: 6px;
+    height: 6px;
+    border: 1px solid var(--border-strong);
+
+    &[data-on] {
+      background: var(--brand);
+      border-color: var(--brand);
+    }
+  }
+
+  &__pos {
+    @include t.data-sm;
+
+    color: var(--text-strong);
+  }
+}

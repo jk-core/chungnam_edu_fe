@@ -1,0 +1,133 @@
+@use "@/styles/tokens/spacing" as s;
+@use "@/styles/tokens/typography" as t;
+
+.yield {
+  display: flex;
+  flex-direction: column;
+  gap: s.$space-3;
+  flex: 1;
+  min-height: 0;
+
+  /* 네 기간을 가로로 나란히 — 세로로 쌓지 않고 칸 폭을 편다 */
+  &__periods {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: s.$space-3;
+    flex: 1;
+    min-height: 0;
+    list-style: none;
+  }
+
+  &__foot {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: s.$space-3;
+    flex-shrink: 0;
+    padding-top: s.$space-2;
+    border-top: 1px solid var(--border-subtle);
+  }
+}
+
+/* 기간 한 칸 — 라벨·발전량·(발전시간·탄소) 석 줄 */
+.period {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+
+  /* 금일만 호박 밑줄로 짚는다 — 네 칸이 같은 모양이라 오늘치가 어디인지 표식이 필요하다 */
+  &[data-lead] {
+    padding-left: s.$space-2;
+    border-left: 2px solid var(--solar);
+  }
+
+  &__label {
+    @include t.caption;
+
+    color: var(--text-muted);
+  }
+
+  &__value {
+    display: flex;
+    align-items: baseline;
+    gap: 2px;
+    color: var(--text-strong);
+    font-family: var(--font-data);
+    font-variant-numeric: tabular-nums;
+    font-weight: 700;
+    font-size: 20px;
+    line-height: 1.1;
+  }
+
+  &__unit {
+    @include t.caption;
+
+    color: var(--text-faint);
+    font-weight: 500;
+  }
+
+  &__meta {
+    @include t.caption;
+
+    display: flex;
+    align-items: baseline;
+    gap: s.$space-1;
+    color: var(--text-muted);
+    font-family: var(--font-data);
+    font-variant-numeric: tabular-nums;
+  }
+
+  &__sep {
+    color: var(--text-faint);
+  }
+}
+
+/* 하나 전 같은 기간과의 증감 — 세 기간을 한 줄에 나란히 */
+.deltas {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 2px s.$space-3;
+
+  &__item {
+    @include t.caption;
+
+    color: var(--text-faint);
+    font-variant-numeric: tabular-nums;
+
+    &[data-way="up"] {
+      color: var(--ok-text);
+    }
+
+    &[data-way="down"] {
+      color: var(--critical-text);
+    }
+  }
+}
+
+/* 소나무 환산 — 톤은 체감이 어려워 그루로 바꿔 적는다 (2026-08-21 회의) */
+.tree {
+  @include t.caption;
+
+  display: inline-flex;
+  align-items: center;
+  gap: s.$space-1;
+  flex-shrink: 0;
+  padding: 2px s.$space-2;
+  border-radius: var(--room-radius);
+  background-color: var(--ok-soft);
+  color: var(--text-muted);
+  white-space: nowrap;
+
+  strong {
+    color: var(--ok-text);
+    font-family: var(--font-data);
+    font-variant-numeric: tabular-nums;
+    font-weight: 700;
+  }
+
+  &__mark {
+    display: inline-flex;
+    flex-shrink: 0;
+    color: var(--ok);
+  }
+}

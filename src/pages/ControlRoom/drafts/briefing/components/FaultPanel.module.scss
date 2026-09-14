@@ -1,0 +1,136 @@
+@use "@/styles/tokens/spacing" as s;
+@use "@/styles/tokens/typography" as t;
+@use "@/styles/utils/mixins" as mx;
+
+.fault {
+  display: flex;
+  flex-direction: column;
+  gap: s.$space-3;
+  flex: 1;
+  min-height: 0;
+
+  &__empty {
+    @include t.body-sm;
+
+    margin: auto;
+    color: var(--text-faint);
+  }
+
+  &__groups {
+    display: flex;
+    flex-direction: column;
+    gap: s.$space-2;
+    flex: 1;
+    min-height: 0;
+    list-style: none;
+  }
+}
+
+/*
+  묶음 한 줄.
+
+  왼쪽 색 기둥이 상태를, 그 옆 큰 수치가 건수를, 오른쪽이 원인과 대상 개소를 맡는다 —
+  가로로 넓은 칸을 좌우로 나눠 한 상태가 한 띠에 담긴다.
+*/
+.group {
+  display: grid;
+  grid-template-columns: 4.5em minmax(0, 1fr);
+  align-items: center;
+  gap: s.$space-3;
+  padding: s.$space-2 s.$space-3;
+  border-radius: var(--room-radius);
+  border-left: 3px solid var(--tone);
+  background-color: var(--tone-soft);
+
+  &[data-tone="caution"] {
+    --tone: var(--caution);
+    --tone-soft: var(--caution-soft);
+    --tone-text: var(--caution-text);
+  }
+
+  &[data-tone="critical"] {
+    --tone: var(--critical);
+    --tone-soft: var(--critical-soft);
+    --tone-text: var(--critical-text);
+  }
+
+  &[data-tone="offline"] {
+    --tone: var(--offline);
+    --tone-soft: var(--offline-soft);
+    --tone-text: var(--offline-text);
+  }
+
+  &__count {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    line-height: 1.1;
+  }
+
+  &__number {
+    color: var(--tone-text);
+    font-family: var(--font-data);
+    font-variant-numeric: tabular-nums;
+    font-weight: 700;
+    font-size: 24px;
+  }
+
+  &__label {
+    @include t.caption;
+
+    color: var(--tone-text);
+    font-weight: 700;
+  }
+
+  &__body {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    min-width: 0;
+  }
+
+  &__reason {
+    @include t.caption;
+    @include mx.truncate;
+
+    color: var(--text-muted);
+  }
+
+  &__time {
+    margin-left: s.$space-1;
+    color: var(--tone-text);
+    font-family: var(--font-data);
+    font-variant-numeric: tabular-nums;
+    font-weight: 600;
+  }
+}
+
+/* 대상 개소 이름 — 한 줄에 드는 만큼만 펴고 나머지는 「외 N곳」 으로 접는다 */
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: s.$space-1;
+  min-width: 0;
+  list-style: none;
+
+  &__more {
+    @include t.caption;
+
+    display: inline-flex;
+    align-items: center;
+    color: var(--text-faint);
+    font-weight: 600;
+  }
+}
+
+.chip {
+  @include t.caption;
+  @include mx.truncate;
+
+  max-width: 9em;
+  padding: 1px s.$space-2;
+  border-radius: s.$radius-xs;
+  background-color: var(--surface);
+  color: var(--text);
+  box-shadow: inset 0 0 0 1px var(--border-subtle);
+}
