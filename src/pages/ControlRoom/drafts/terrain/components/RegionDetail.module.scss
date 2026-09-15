@@ -5,6 +5,7 @@
 /*
   고른 시·군의 상세.
 
+  판 껍데기(테두리·제목 줄)는 시안 A 의 `Panel` 이 쥔다 — 여기서는 그 안에 담기는 층만 짠다.
   460px 폭에 열 항목을 층으로 쌓는다. 같은 크기로 늘어놓으면 전부 작아지므로, 오늘의 값을
   크게 세우고 규모·누적을 한 단 낮춘 뒤 상태·목록을 바닥에 접는다. 이 층이 이 시안의 설계다.
 */
@@ -12,10 +13,8 @@
   display: flex;
   flex-direction: column;
   gap: s.$space-1;
-  height: 100%;
+  flex: 1;
   min-height: 0;
-  padding: s.$space-3 s.$space-5;
-  border-radius: var(--room-radius, 8px);
   overflow: hidden;
 
   &__head {
@@ -34,16 +33,83 @@
     border-radius: s.$radius-xs;
   }
 
-  /*
-    지역 이름이 이 판의 제목이다. 결(_skins)이 `section h2` 를 title-md 로 매어 두었으므로,
-    히어로 이름이 그보다 커지려면 클래스 둘(`.detail .detail__name`)로 특정도를 높여 덮는다.
-  */
-  & &__name {
+  /* 시·군 이름 — 판 제목(선택 시·군 상세) 아래에서 이 판의 으뜸 이름으로 크게 선다 */
+  &__name {
     @include t.title-lg;
 
     margin: 0;
     margin-right: auto;
     color: var(--text-strong);
+  }
+
+  /* 아래 접힌 조각들의 작은 이름표 — 「설비 상태」·「문제 설비」 가 같은 크기로 선다 */
+  &__label {
+    @include t.label-md;
+
+    margin: 0;
+    color: var(--text-muted);
+  }
+}
+
+/*
+  설비 상태 — 이름표 아래에 A 의 상태 분포 막대(StatusMix)를 얹는다.
+  위아래를 실선으로 끊어 수치 묶음과 목록 사이에서 제 몫이 갈린다 (A 의 `.now__mix` 를 본떴다).
+*/
+.status {
+  display: flex;
+  flex-direction: column;
+  gap: s.$space-2;
+  padding: s.$space-2 0;
+  border-top: 1px solid var(--border-subtle);
+  border-bottom: 1px solid var(--border-subtle);
+  flex-shrink: 0;
+}
+
+/*
+  도 전체에서 차지하는 몫.
+  A 의 `.share` 를 본떴다 — 막대를 낮게 깔아 「많은 편인가 적은 편인가」 만 답한다. 다만
+  글자는 이 화면의 연령 배려에 맞춰 caption·label-sm 대신 label-md·data-sm 로 한 단 키운다.
+*/
+.share {
+  display: flex;
+  flex-direction: column;
+  gap: s.$space-2;
+  flex-shrink: 0;
+
+  &__row {
+    display: grid;
+    grid-template-columns: 84px minmax(0, 1fr) 56px;
+    align-items: center;
+    gap: s.$space-3;
+    margin: 0;
+  }
+
+  &__label {
+    @include t.label-md;
+
+    color: var(--text-muted);
+  }
+
+  &__track {
+    height: 6px;
+    border-radius: s.$radius-full;
+    background-color: var(--surface-sunken);
+    overflow: hidden;
+  }
+
+  &__bar {
+    display: block;
+    height: 100%;
+    border-radius: s.$radius-full;
+    transition: width 0.5s cubic-bezier(0.22, 0.68, 0.32, 1);
+  }
+
+  &__value {
+    @include t.data-sm;
+
+    color: var(--text-strong);
+    font-family: var(--font-data);
+    text-align: right;
   }
 }
 
@@ -59,14 +125,14 @@
   }
 
   &__value {
-    @include t.data-xl;
+    @include t.data-lg;
 
     margin: s.$space-1 0 0;
     color: var(--brand-contrast);
   }
 
   &__unit {
-    @include t.data-md;
+    @include t.data-sm;
 
     margin-left: s.$space-2;
     color: var(--text-muted);
@@ -79,44 +145,6 @@
   grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: s.$space-2;
   margin: 0;
-  flex-shrink: 0;
-
-  &__item {
-    display: flex;
-    flex-direction: column;
-    gap: 2px;
-    min-width: 0;
-
-    dt {
-      @include t.label-md;
-
-      color: var(--text-muted);
-    }
-
-    dd {
-      @include t.data-lg;
-
-      margin: 0;
-      color: var(--text-strong);
-
-      span {
-        @include t.label-md;
-
-        margin-left: 2px;
-        color: var(--text-muted);
-      }
-    }
-  }
-}
-
-/* 규모와 누적 — 실선으로 위아래를 끊어 오늘 값과 몫을 가른다 */
-.base {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: s.$space-2 s.$space-4;
-  margin: 0;
-  padding: s.$space-2 0 s.$space-1;
-  border-bottom: 1px solid var(--border-subtle);
   flex-shrink: 0;
 
   &__item {
@@ -147,89 +175,41 @@
   }
 }
 
-/*
-  설비 상태 분포.
-  한 줄 막대로 비율을, 아래 범례로 개소 수를 말한다 — 색만으로 갈리지 않게 이름과 수를 함께 적는다.
-*/
-.mix {
-  display: flex;
-  flex-direction: column;
-  gap: s.$space-2;
+/* 규모와 누적 — 실선으로 위를 끊어 오늘 값과 가른다 */
+.base {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: s.$space-2 s.$space-4;
+  margin: 0;
+  padding: s.$space-2 0 s.$space-1;
+  border-top: 1px solid var(--border-subtle);
   flex-shrink: 0;
 
-  &__title {
-    @include t.label-md;
-
-    margin: 0;
-    color: var(--text-muted);
-  }
-
-  &__bar {
-    display: flex;
-    height: 14px;
-    border-radius: s.$radius-xs;
-    overflow: hidden;
-    background-color: var(--surface-sunken);
-  }
-
-  &__seg {
-    height: 100%;
-
-    &--ok { background-color: var(--ok); }
-    &--brand { background-color: var(--brand); }
-    &--caution { background-color: var(--caution); }
-    &--critical { background-color: var(--critical); }
-
-    &--offline,
-    &--neutral { background-color: var(--offline); }
-  }
-
-  /*
-    다섯 상태를 3열 격자로 — 개소 수 자릿수가 늘어도(천안 정상 40여 개소) 줄 수가 그대로라
-    판 높이가 시·군마다 흔들리지 않는다. flex-wrap 으로 두면 자릿수에 따라 두 줄·세 줄로 갈려
-    이상이 많은 시·군에서 목록을 판 밖으로 밀어낸다.
-  */
-  &__legend {
-    display: grid;
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-    gap: s.$space-1 s.$space-3;
-    margin: 0;
-    padding: 0;
-    list-style: none;
-  }
-
   &__item {
-    display: inline-flex;
-    align-items: center;
-    gap: s.$space-2;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
     min-width: 0;
-  }
 
-  &__dot {
-    width: 12px;
-    height: 12px;
-    border-radius: s.$radius-full;
+    dt {
+      @include t.label-md;
 
-    &--ok { background-color: var(--ok); }
-    &--brand { background-color: var(--brand); }
-    &--caution { background-color: var(--caution); }
-    &--critical { background-color: var(--critical); }
+      color: var(--text-muted);
+    }
 
-    &--offline,
-    &--neutral { background-color: var(--offline); }
-  }
+    dd {
+      @include t.data-sm;
 
-  &__label {
-    @include t.label-md;
+      margin: 0;
+      color: var(--text-strong);
 
-    color: var(--text);
-  }
+      span {
+        @include t.label-md;
 
-  &__count {
-    @include t.label-md;
-
-    color: var(--text-strong);
-    font-family: var(--font-data);
+        margin-left: 2px;
+        color: var(--text-muted);
+      }
+    }
   }
 }
 

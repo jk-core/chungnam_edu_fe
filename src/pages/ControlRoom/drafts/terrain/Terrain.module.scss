@@ -15,9 +15,19 @@
   gap: s.$space-5;
   height: 100%;
   min-height: 0;
+
+  /*
+    지도를 화면의 주인으로 크게 세운다 (고객 요청 2026-09-15 — 「집계 줄이고 지도 키워줘」).
+
+    큰 자리와 아래 띠를 2.15 : 1 로 크게 기울인다. 1920×1080 에서 큰 자리 약 630px, 아래 띠
+    약 290px 이 되어 지도가 화면의 대부분을 쓴다. 집계는 작은 자리에서 세 줄만 보이지만
+    (`AggregationCell` 의 variant), 자동 넘김이 열다섯 시·군을 다섯 쪽으로 돌려 무엇 하나
+    빠지지 않는다 — A 판(`AggregationPanel`)은 여섯 줄로 못 박혀 짧은 자리에서 4~6 째 줄이
+    잘린 채 쪽만 넘어가므로, 그 표의 결만 가져오고 줄 수는 자리에 맞춰 B 가 쥔다.
+  */
   grid-template:
-    "big detail" minmax(440px, 1.6fr)
-    "small small" minmax(300px, 0.95fr);
+    "big detail" minmax(360px, 2.15fr)
+    "small small" minmax(280px, 1fr);
   grid-template-columns: minmax(0, 1fr) 460px;
 
   @include media.kiosk {

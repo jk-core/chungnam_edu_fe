@@ -34,18 +34,23 @@ interface Draft {
   label: string;
   /** 어느 판이 어디에 서는가 */
   layout: ComponentType<{ data: ControlRoomData }>;
-  /** 무슨 색·글꼴·바탕으로 보이는가 */
-  skin: RoomSkin;
+  /**
+   * 무슨 색·글꼴·바탕으로 보이는가. 주지 않으면 서비스 기본 결이다.
+   *
+   * 시안 B 는 「기존 UI 차용」 고객 요청으로 전용 결(terrain)을 걷어내 기본 결로 되돌렸고
+   * (2026-09-15), 지금 전용 결을 쓰는 것은 시안 C 하나뿐이다.
+   */
+  skin?: RoomSkin;
 }
 
 /**
  * 화면과 결은 시안마다 한 짝으로 묶인다.
  *
- * 지도를 크게 세운 화면에 시세판의 결을 얹는 식으로 섞으면 어느 조합을 보고 있는지 회의
- * 자리에서 가려지지 않는다. 둘이 저마다 한 벌씩만 갖고, 이름도 그 한 벌을 가리킨다.
+ * 시안 C 만 시세판 결을 걸치고, 시안 B 는 기본 결 위에서 배치(지도 중심)로만 갈린다 —
+ * 색·판 생김새·수치 표현은 시안 A 의 것을 그대로 가져다 쓴다.
  */
 const DRAFTS: Record<DraftKey, Draft> = {
-  b: { label: '시안 B · 지도 중심', layout: Terrain, skin: 'terrain' },
+  b: { label: '시안 B · 지도 중심', layout: Terrain },
   c: { label: '시안 C · 차트 중심', layout: Ticker, skin: 'ticker' },
 };
 

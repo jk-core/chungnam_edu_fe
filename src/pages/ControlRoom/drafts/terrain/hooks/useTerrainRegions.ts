@@ -4,7 +4,8 @@ import { currentOutputOf } from '@/mocks/schoolOutput';
 import { countOperation, isAbnormal, OPERATION_RANK } from '@/mocks/status';
 import type { School } from '@/interface/energy';
 import type { OperationStatus } from '@/interface/status';
-import { orderRegionNames, useRegionTour } from '@/pages/ControlRoom/utils/regionTour';
+import { orderRegionNames } from '@/pages/ControlRoom/utils/regionTour';
+import { useTerrainTour } from './useTerrainTour';
 
 /**
  * 한 시·군이 상세 판에 내놓는 값 전부.
@@ -43,7 +44,7 @@ export interface TerrainRegions {
   regions: RegionStat[];
   /** 지금 머무는 시·군 */
   active: RegionStat;
-  tour: ReturnType<typeof useRegionTour>;
+  tour: ReturnType<typeof useTerrainTour>;
   /** 시·군 면을 물들일 색. 발전소가 없으면 바탕색 */
   colorForRegion: (name: string) => string;
   /** 지도에서 이 시·군이 몇 번째 자리인지 — 없으면 -1 */
@@ -79,7 +80,7 @@ const EMPTY: RegionStat = {
  *
  * 지도(면 색·이름표)와 상세(수치·목록)가 같은 시·군을 같은 값으로 비춰야 한다 — 판마다 따로
  * 집계하면 같은 자리에 다른 수가 뜬다. 그래서 두 판이 이 훅 하나를 부르고, 순회 자리도
- * 모듈이 쥔 `useRegionTour` 한 곳에서만 나온다.
+ * 모듈이 쥔 `useTerrainTour` 한 곳에서만 나온다.
  *
  * 단계색은 **개소 수의 등수** 로 매긴다. 값 폭(천안 68 ↔ 계룡 7)을 그대로 다섯 칸에 나누면
  * 큰 한둘만 진하고 나머지가 옅은 쪽에 몰려 절반이 같은 색으로 보인다. 등수로 나누면 다섯 단이
@@ -153,7 +154,7 @@ export function useTerrainRegions(plants: School[]): TerrainRegions {
     [regions],
   );
 
-  const tour = useRegionTour(regions.length);
+  const tour = useTerrainTour(regions.length);
   const active = regions[tour.index] ?? regions[0] ?? EMPTY;
 
   const province = useMemo(() => {

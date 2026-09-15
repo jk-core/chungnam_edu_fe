@@ -1,5 +1,5 @@
 import { motion, useReducedMotion } from 'motion/react';
-import { useMemo, useRef } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { CountUp } from '@/components/common/CountUp';
 import { EChart } from '@/components/common/EChart';
 import { SegmentedControl } from '@/components/common/SegmentedControl';
@@ -15,6 +15,7 @@ import styles from './TargetDetail.module.scss';
 import type { TickerChartPalette } from '../utils/chartPalette';
 import type { TargetSeries } from '../utils/series';
 import type { TickerBoard, TickerRow } from '../useTickerBoard';
+import type { RefObject } from 'react';
 import type { Variants } from 'motion/react';
 import type { EChartsOption } from 'echarts';
 
@@ -29,6 +30,95 @@ import type { EChartsOption } from 'echarts';
 const CHART_LABEL_PX = 16;
 const CHART_MARK_PX = 15;
 
+/**
+ * y축 눈금 하나가 차지하는 최소 높이(px).
+ *
+ * 16px 글자가 위아래로 붙지 않으려면 글자 높이에 여유를 얹은 만큼은 떼어야 한다. 그리기 높이를
+ * 이 값으로 나눈 것이 곧 「눈금을 몇 칸까지 놓을 수 있나」다.
+ */
+const Y_TICK_MIN_GAP = Math.round(CHART_LABEL_PX * 1.4);
+
+/**
+ * 그리기 판의 안쪽 여백.
+ *
+ * 왼쪽은 눈금 글자와 축 이름이 함께 서는 자리라 16px 글자에 맞춰 넉넉히 두고, 위는 축 이름
+ * 한 줄이 그리드 밖에 서는 자리(`Y_NAME_GAP` + 글자 한 줄)만큼만 둔다 — 위아래를 더 벌리면
+ * 그만큼 그리기 높이가 깎여 놓을 수 있는 눈금 칸이 줄어든다.
+ */
+const GRID = { top: 34, right: 28, bottom: 36, left: 76 };
+
+/** 축 이름과 그리드 윗변 사이. 기본값(15)은 16px 글자에서 첫 눈금 글자와 맞붙는다. */
+const Y_NAME_GAP = 14;
+
+/** 눈금 간격 후보 — 1·2·2.5·5 계열만 쓴다. 다른 수를 끼우면 「0.3·0.6·0.9」 처럼 읽기 나쁜 눈금이 선다. */
+const NICE_STEPS = [1, 2, 2.5, 5];
+
+/** 간격을 있는 그대로 적는 데 필요한 소수 자릿수 — 2.5 는 한 자리, 25 는 없음. */
+function fractionDigitsOf(interval: number): number {
+  const text = interval.toFixed(6).replace(/0+$/u, '').replace(/\.$/u, '');
+  const dot = text.indexOf('.');
+
+  return dot < 0 ? 0 : text.length - dot - 1;
+}
+
+/**
+ * 겹치지 않는 y축 — 눈금 수를 그리기 높이가 정한다.
+ *
+ * ECharts 는 축 글자를 키워도 눈금 간격을 스스로 벌리지 않는다. 기본값(splitNumber 5 → 눈금
+ * 여섯)을 그대로 두면, 그리기 높이가 좁은 판에서 16px 글자가 세로로 포개져 읽을 수 없는 덩이가
+ * 된다 — 실제로 요약 판이 세로를 차지하던 때는 그리기 높이가 70px 남짓뿐이었다. 축 글자를
+ * 줄이는 것은 답이 아니므로(벽에서 읽는 화면이라 16px 이 바닥이다) 눈금 수를 높이에 맞춘다.
+ * 판을 넉넉히 잡은 지금은 같은 셈이 눈금을 예닐곱으로 늘려 준다 — 겹치지 않는 선에서 촘촘한
+ * 편이 읽기 좋으므로, 상한(6칸)까지는 높이가 허락하는 만큼 채운다.
+ *
+ * splitNumber 를 낮추는 것만으로는 모자란다. ECharts 는 그 값을 「이쯤이면 좋겠다」로만 받아
+ * 보기 좋은 수로 반올림하며 칸을 도로 늘리므로 눈금 수가 보장되지 않는다. 그래서 칸 수를 먼저
+ * 셈하고 1·2·2.5·5 계열 간격을 직접 골라 min·max·interval 을 못 박는다.
+ */
+function buildYScale(values: number[], plotHeight: number): { max: number; interval: number; decimals: number } {
+  const slots = Math.min(6, Math.max(2, Math.floor(plotHeight / Y_TICK_MIN_GAP)));
+  const peak = Math.max(...values, 0);
+
+  // 값이 모두 0 인 대상은 0~1 한 칸으로 세운다 — 간격이 0 이면 축이 무너진다.
+  if (peak <= 0) return { max: 1, interval: 1, decimals: 0 };
+
+  // 1·2·2.5·5 를 네 자리에 걸쳐 늘어놓고, 눈금이 slots 칸 안에 드는 첫(=가장 촘촘한) 간격을 집는다.
+  const base = 10 ** Math.floor(Math.log10(peak / slots));
+  const candidates = [0, 1, 2, 3].flatMap((round) => NICE_STEPS.map((step) => step * base * 10 ** round));
+  const raw = candidates.find((candidate) => Math.ceil(peak / candidate) <= slots) ?? peak / slots;
+
+  // 0.1 계열 곱셈에서 새는 오차(0.30000000000000004)를 여기서 끊는다 — 축 글자에 그대로 드러난다.
+  const interval = Number(raw.toPrecision(12));
+  const max = Number((interval * Math.ceil(peak / interval)).toPrecision(12));
+
+  return { max, interval, decimals: fractionDigitsOf(interval) };
+}
+
+/**
+ * 차트 상자의 높이(px)를 지켜본다.
+ *
+ * y축에 눈금을 몇 개까지 둘 수 있는지는 상자 높이가 정하는데(`buildYScale`), 그 높이는 위 요약
+ * 판이 얼마나 차지하느냐에 따라 달라져 코드에 못 박을 수 없다. 창을 줄이거나 판을 다시 잡아도
+ * 따라가야 하므로 ResizeObserver 로 지켜본다.
+ */
+function useBoxHeight(ref: RefObject<HTMLElement | null>): number {
+  const [height, setHeight] = useState(0);
+
+  useEffect(() => {
+    const element = ref.current;
+
+    if (!element) return undefined;
+
+    const observer = new ResizeObserver(([entry]) => setHeight(entry.contentRect.height));
+
+    observer.observe(element);
+
+    return () => observer.disconnect();
+  }, [ref]);
+
+  return height;
+}
+
 /** 부드럽게 감속하는 이징 — 시작은 빠르고 끝에서 멈춰 선다(cubic-bezier). */
 const EASE_OUT: [number, number, number, number] = [0.22, 0.68, 0.32, 1];
 
@@ -40,12 +130,17 @@ const ITEM_VARIANTS: Variants = {
   show: { opacity: 1, y: 0, transition: { duration: 0.3, ease: EASE_OUT } },
 };
 
-/** 축 글자·눈금선을 판의 글자 크기에 맞춘 공통 축 설정 — 벽에 걸어 두고 멀리서 읽는다. */
-function buildOption(series: TargetSeries, palette: TickerChartPalette): EChartsOption {
+/**
+ * 축 글자·눈금선을 판의 글자 크기에 맞춘 공통 축 설정 — 벽에 걸어 두고 멀리서 읽는다.
+ *
+ * 차트 상자 높이(`chartHeight`)를 받는 것은 y축 눈금 수를 그 높이가 정하기 때문이다(`buildYScale`).
+ */
+function buildOption(series: TargetSeries, palette: TickerChartPalette, chartHeight: number): EChartsOption {
   const axisLabel = { color: palette.axis, fontSize: CHART_LABEL_PX, fontFamily: 'Space Grotesk, sans-serif' };
+  const scale = buildYScale(series.values, chartHeight - GRID.top - GRID.bottom);
 
   const base: EChartsOption = {
-    grid: { top: 24, right: 28, bottom: 42, left: 72 },
+    grid: { ...GRID },
     tooltip: {
       trigger: 'axis',
       backgroundColor: palette.surface,
@@ -60,14 +155,21 @@ function buildOption(series: TargetSeries, palette: TickerChartPalette): ECharts
       boundaryGap: series.shape === 'bar',
       axisLine: { lineStyle: { color: palette.grid } },
       axisTick: { show: false },
-      axisLabel,
+      // 일별은 항목이 31개라 16px 글자로는 다 설 자리가 없다. 건너뛰며 찍는 것(interval: 'auto')에
+      // 더해, 자동 계산이 빠듯하게 잡아 스치는 경우까지 hideOverlap 으로 막는다.
+      axisLabel: { ...axisLabel, hideOverlap: true },
     },
     yAxis: {
       type: 'value',
       name: series.unit,
+      nameGap: Y_NAME_GAP,
       nameTextStyle: { color: palette.axis, fontSize: CHART_LABEL_PX, align: 'right' },
+      // 눈금을 ECharts 에 맡기지 않고 못 박는다 — 까닭은 `buildYScale` 주석에.
+      min: 0,
+      max: scale.max,
+      interval: scale.interval,
       splitLine: { lineStyle: { color: palette.grid, type: 'dashed' } },
-      axisLabel,
+      axisLabel: { ...axisLabel, formatter: (value: number) => formatNumber(value, scale.decimals) },
     },
   };
 
@@ -172,10 +274,14 @@ export function TargetDetail({ board }: { board: TickerBoard }) {
   const panelRef = useRef<HTMLElement>(null);
   const palette = useTickerChartPalette(panelRef);
 
+  // 차트가 받은 높이에 맞춰 y축 눈금 수를 정한다 — 상자를 재지 않으면 눈금이 글자보다 촘촘해진다.
+  const chartRef = useRef<HTMLDivElement>(null);
+  const chartHeight = useBoxHeight(chartRef);
+
   // selected 가 없어도 훅 순서를 지키려고 0 으로 계산해 두고, 그릴 때만 갈라친다.
   const todayKwh = selected?.todayKwh ?? 0;
   const series = useMemo(() => buildTargetSeries(todayKwh, period), [todayKwh, period]);
-  const option = useMemo(() => buildOption(series, palette), [series, palette]);
+  const option = useMemo(() => buildOption(series, palette, chartHeight), [series, palette, chartHeight]);
 
   if (!selected) {
     return (
@@ -300,12 +406,14 @@ export function TargetDetail({ board }: { board: TickerBoard }) {
           />
         </div>
 
-        <EChart
-          className={styles.chart}
-          option={option}
-          height="100%"
-          summary={`${selected.name}의 ${periodLabel} ${series.measure} 추이.`}
-        />
+        {/* 상자를 하나 덧대는 것은 차트가 실제로 받은 높이를 재기 위해서다 — EChart 는 figure 라 ref 를 받지 않는다 */}
+        <div ref={chartRef} className={styles.chart}>
+          <EChart
+            option={option}
+            height="100%"
+            summary={`${selected.name}의 ${periodLabel} ${series.measure} 추이.`}
+          />
+        </div>
       </section>
     </>
   );

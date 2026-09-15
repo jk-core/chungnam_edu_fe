@@ -133,37 +133,47 @@
   }
 }
 
+/*
+  줄 하나 = 한 단.
+
+  전에는 막대가 줄 아래 한 단을 통째로 차지해 목록이 두 단처럼 읽혔다. 막대를 지우고 줄 배경
+  자체를 게이지로 삼아(`row__gauge`), 순위·이름·값·등락 넷이 한 줄에 서고 줄마다 같은 세로선에
+  맞춰 선다 — 눈이 아래로 훑을 때 걸리는 곳이 없어야 한다(2026-09-15 고객 피드백).
+*/
 .row {
   border-radius: s.$radius-sm;
 
   /*
     고른 줄은 미끄러지는 표시(`row__marker`)가 비추므로, 여기서는 CSS 배경을 두지 않는다 —
     둘을 겹치면 반투명 브랜드색이 두 번 쌓여 다크에서 더 짙어진다. 다만 감소 모션에서는 그
-    표시를 렌더하지 않으므로, 그때만 CSS 로 즉시 칠한다.
+    표시를 렌더하지 않으므로, 그때만 CSS 로 즉시 칠한다(생김새는 `row__marker` 와 같게).
   */
   @include media.reduced-motion {
     &--active {
       background: var(--brand-soft);
-      box-shadow: inset 0 0 0 1px var(--brand-soft-border);
+      box-shadow: inset 3px 0 0 0 var(--brand);
     }
   }
 
+  /*
+    칸 너비를 못 박는 것은 정렬 때문이다 — 값과 등락 알약이 내용만큼(auto) 잡히면 줄마다 폭이
+    달라져 세로선이 어긋난다. 첫 칸은 세 자리 순위(학교별은 318개소)까지 넘치지 않을 만큼
+    잡고, 이름 칸만 남는 폭을 먹고 넘치면 자른다.
+  */
   &__button {
     position: relative;
     display: grid;
-    grid-template-columns: auto minmax(0, 1fr) auto auto;
-    grid-template-areas:
-      "rank name value delta"
-      "track track track track";
+    grid-template-columns: 34px minmax(0, 1fr) 86px 74px;
     align-items: center;
-    gap: s.$space-1 s.$space-3;
+    gap: 0 s.$space-3;
     width: 100%;
-    padding: s.$space-3;
+    padding: s.$space-3 s.$space-4;
     border: 0;
     border-radius: s.$radius-sm;
     background: none;
     text-align: left;
     cursor: pointer;
+    overflow: hidden; // 게이지의 오른쪽 끝을 줄의 둥근 모서리로 자른다
 
     @include mx.press(0.99);
 
@@ -172,36 +182,64 @@
     }
   }
 
-  /* 고른 줄의 배경 — layoutId 로 줄에서 줄로 미끄러진다. 내용보다 뒤에 깔린다(z-index). */
+  /*
+    고른 줄 — 테두리로 두르지 않는다. 목록에서 줄 하나만 상자가 되면 그 줄이 떠 보이므로,
+    옅은 면과 왼쪽 굵은 선으로 조용히 짚는다. layoutId 로 줄에서 줄로 미끄러진다.
+    내용보다 뒤에 깔리고(z-index 0), 게이지보다도 먼저 칠해져 게이지가 그 위에 남는다.
+  */
   &__marker {
     position: absolute;
     inset: 0;
     z-index: 0;
     border-radius: s.$radius-sm;
     background: var(--brand-soft);
-    box-shadow: inset 0 0 0 1px var(--brand-soft-border);
+    box-shadow: inset 3px 0 0 0 var(--brand);
   }
 
+  /*
+    값에 비례해 줄을 채우는 게이지.
+    오른쪽으로 갈수록 옅어져 끝선이 또렷한 경계로 서지 않는다 — 경계가 서면 그것이 다시 막대로
+    읽혀 한 줄에 조각이 둘이 된다.
+
+    짙기는 고른 줄의 면(`--brand-soft`)보다 한 단 옅게 잡는다. 게이지가 더 짙으면 값이 큰 줄이
+    고른 줄보다 도드라져, 지금 어디에 서 있는지가 흐려진다.
+  */
+  &__gauge {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    z-index: 0;
+    background: linear-gradient(90deg, rgb(from var(--brand) r g b / 12%) 0%, rgb(from var(--brand) r g b / 2%) 100%);
+    transition: width 0.4s cubic-bezier(0.22, 0.68, 0.32, 1);
+
+    @include media.reduced-motion {
+      transition: none;
+    }
+  }
+
+  /*
+    순위 숫자. 칸(배경 상자)을 두르지 않는다 — 줄 배경이 이미 게이지라 상자를 겹치면 한 줄에
+    면이 둘이 된다. 상위 몇 줄만 또렷하게 세워 층을 만든다.
+  */
   &__rank {
     @include t.data-sm;
 
-    grid-area: rank;
     z-index: 1;
-    display: grid;
-    width: 28px;
-    height: 28px;
-    place-items: center;
-    border-radius: s.$radius-xs;
-    background: var(--surface-sunken);
-    color: var(--text-muted);
-    font-family: var(--font-data);
+    color: var(--text-faint);
+    font-weight: 500;
+    text-align: right;
+
+    &--top {
+      color: var(--text-strong);
+      font-weight: 700;
+    }
   }
 
   &__name {
     @include t.body-md;
     @include mx.truncate;
 
-    grid-area: name;
     z-index: 1;
     color: var(--text-strong);
     font-weight: 600;
@@ -210,10 +248,10 @@
   &__value {
     @include t.data-md;
 
-    grid-area: value;
     z-index: 1;
     display: flex;
     align-items: baseline;
+    justify-content: flex-end;
     gap: 2px;
     color: var(--text-strong);
   }
@@ -224,16 +262,18 @@
     color: var(--text-muted);
   }
 
-  /* 오름/내림 알약 — 옅은 배경을 깔아 숫자만 색칠하는 것보다 먼저 잡히게 한다(토스 참고). */
+  /*
+    오름/내림 알약 — 옅은 배경을 깔아 숫자만 색칠하는 것보다 먼저 잡히게 한다(토스 참고).
+    칸을 꽉 채워(늘어나) 줄마다 알약의 좌우 끝이 같은 자리에 선다.
+  */
   &__delta {
     @include t.label-md;
 
-    grid-area: delta;
     z-index: 1;
-    justify-self: end;
-    display: inline-flex;
+    display: flex;
     align-items: center;
-    padding: 2px s.$space-2;
+    justify-content: center;
+    padding: 3px 0;
     border-radius: s.$radius-full;
     font-family: var(--font-data);
     white-space: nowrap;
@@ -252,25 +292,5 @@
     &--flat {
       color: var(--text-faint);
     }
-  }
-
-  /* 막대는 줄 폭을 다 쓴다 — 값은 위에 적혀 있으므로 안에 글자를 얹지 않는다 */
-  &__track {
-    grid-area: track;
-    z-index: 1;
-    display: block;
-    height: 8px;
-    margin-top: s.$space-1;
-    border-radius: s.$radius-full;
-    background: var(--surface-sunken);
-    overflow: hidden;
-  }
-
-  &__bar {
-    display: block;
-    height: 100%;
-    border-radius: s.$radius-full;
-    background: linear-gradient(90deg, rgb(from var(--brand) r g b / 45%) 0%, var(--brand) 100%);
-    transition: width 0.5s cubic-bezier(0.22, 0.68, 0.32, 1);
   }
 }

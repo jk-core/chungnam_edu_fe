@@ -9,11 +9,18 @@ import styles from './RankList.module.scss';
 import type { TickerBoard } from '../useTickerBoard';
 
 /**
- * 가장 낮은 줄에도 남기는 막대 길이.
+ * 가장 낮은 줄에도 남기는 게이지 길이.
  * 발전시간은 같은 하늘 아래 잰 값이라 대상끼리 크게 벌어지지 않는다 — 0부터 그리면 모든 줄이
- * 끝까지 차서 순위가 막대로 보이지 않는다. RegionOutput 과 같은 이유로 바닥을 띄운다.
+ * 끝까지 차서 순위가 길이로 보이지 않는다. RegionOutput 과 같은 이유로 바닥을 띄운다.
  */
 const FLOOR = 0.16;
+
+/**
+ * 따로 세워 보이는 상위 자리 수.
+ * 메달 같은 표식은 이 화면의 결과 맞지 않아, 색과 굵기만으로 목록에 층을 준다 — 증권 앱의
+ * 순위표가 위쪽 몇 줄만 또렷하게 세우는 것과 같다. 셋을 넘기면 「위쪽」이 더는 위쪽이 아니다.
+ */
+const HIGHLIGHT_RANKS = 3;
 
 /** 오름/내림과 그 표기. 국내 증시 관례대로 오른 쪽(도 평균 위)이 ▲, 내린 쪽이 ▼. */
 function deltaOf(delta: number): { tone: 'rise' | 'fall' | 'flat'; text: string } {
@@ -33,8 +40,10 @@ function deltaOf(delta: number): { tone: 'rise' | 'fall' | 'flat'; text: string 
  * 수 있게 둔다 — 자동 순회는 없애지 않고 함께 둔다(2026-09-14 고객 피드백). 순회로 대상이
  * 바뀌면 그 줄이 보이는 자리로 따라 스크롤되고, 사람이 손대면 잠시 멈췄다가 손을 뗀 뒤 다시 돈다.
  *
- * 한 줄에는 이름·발전시간·도 평균 대비·막대 넷만 둔다. 그리기만 하는 판이라 값은 상위에서
- * 받은 board 하나로만 그린다.
+ * 한 줄에는 순위·이름·발전시간·도 평균 대비 넷만 둔다. 값의 크기는 줄 배경을 채우는 게이지가
+ * 맡아, 막대를 따로 긋지 않는다 — 막대가 줄 아래 한 단을 더 차지하면 목록이 두 단으로 읽혀
+ * 눈이 아래로 훑을 때 걸린다(2026-09-15 고객 피드백: 「발전순위 디자인을 좀 더 세련되게」).
+ * 그리기만 하는 판이라 값은 상위에서 받은 board 하나로만 그린다.
  */
 export function RankList({ board }: { board: TickerBoard }) {
   const { axis, setAxis, rows, selected, selectKey, holdTour, isPlaying, togglePlay } = board;
@@ -93,7 +102,7 @@ export function RankList({ board }: { board: TickerBoard }) {
             >
               <button type="button" className={styles.row__button} onClick={() => selectKey(row.key)}>
                 {/* 고른 줄 표시가 줄에서 줄로 미끄러져 옮겨 간다 — 자동 전환으로 대상이 바뀔 때 눈이 따라간다.
-                    감소 모션이면 이 조각을 렌더하지 않고, 아래 CSS 의 `row--active` 배경만 즉시 켜진다. */}
+                    감소 모션이면 이 조각을 렌더하지 않고, 아래 CSS 의 `row--active` 표시만 즉시 켜진다. */}
                 {isActive && !reduceMotion ? (
                   <motion.span
                     layoutId="ticker-active-row"
@@ -101,7 +110,14 @@ export function RankList({ board }: { board: TickerBoard }) {
                     transition={{ duration: 0.3, ease: [0.22, 0.68, 0.32, 1] }}
                   />
                 ) : null}
-                <span className={styles.row__rank}>{index + 1}</span>
+                {/* 값에 비례해 줄 배경을 채운다 — 막대를 따로 긋지 않아 한 줄이 한 단으로 읽힌다 */}
+                <span className={styles.row__gauge} style={{ width: `${ratio * 100}%` }} />
+                <span className={cn(styles.row__rank, {
+                  [styles['row__rank--top']]: index < HIGHLIGHT_RANKS,
+                })}
+                >
+                  {index + 1}
+                </span>
                 <span className={styles.row__name}>{row.name}</span>
                 <span className={styles.row__value}>
                   {formatNumber(row.hours, 1)}
@@ -109,9 +125,6 @@ export function RankList({ board }: { board: TickerBoard }) {
                 </span>
                 <span className={cn(styles.row__delta, styles[`row__delta--${delta.tone}`])}>
                   {delta.text}
-                </span>
-                <span className={styles.row__track}>
-                  <span className={styles.row__bar} style={{ width: `${ratio * 100}%` }} />
                 </span>
               </button>
             </li>

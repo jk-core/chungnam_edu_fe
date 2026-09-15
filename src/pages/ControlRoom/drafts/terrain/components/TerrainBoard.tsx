@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import type { ControlRoomData } from '@/pages/ControlRoom/useControlRoomData';
 import styles from '../Terrain.module.scss';
-import { RegionAggregation } from './RegionAggregation';
+import { AggregationCell } from './AggregationCell';
 import { RegionDetail } from './RegionDetail';
 import { RegionMap } from './RegionMap';
 
@@ -38,7 +38,7 @@ export function TerrainBoard({ data }: { data: ControlRoomData }) {
         {mapIsBig ? (
           <RegionMap plants={data.rows} variant="big" mapView={mapView} onMapView={setMapView} />
         ) : (
-          <RegionAggregation plants={data.rows} variant="big" />
+          <AggregationCell plants={data.rows} variant="big" />
         )}
       </div>
 
@@ -48,7 +48,7 @@ export function TerrainBoard({ data }: { data: ControlRoomData }) {
 
       <div className={styles.cell} style={{ gridArea: 'small' }}>
         {mapIsBig ? (
-          <RegionAggregation plants={data.rows} variant="small" onExpand={() => setBig('table')} />
+          <AggregationCell plants={data.rows} variant="small" onExpand={() => setBig('table')} />
         ) : (
           <RegionMap
             plants={data.rows}
