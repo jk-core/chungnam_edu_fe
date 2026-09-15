@@ -1,0 +1,51 @@
+@use "@/styles/tokens/spacing" as s;
+@use "@/styles/utils/media" as media;
+
+/*
+  시안 B · 지형의 배치.
+
+  큰 자리(왼쪽 위)·상세(오른쪽)·작은 띠(아래) 셋이다. 지도가 주인공이라 큰 자리가 화면의
+  대부분을 쓰고, 아래 띠는 나머지 한 판을 눕힌다. 큰 자리와 작은 띠의 주인은 자리바꿈으로
+  맞바뀐다 — 판 배치는 같고 어느 컴포넌트가 어느 칸에 들어가는지만 달라진다.
+
+  고객이 「지도 더 크게, 집계 더 작게」 를 요구해 큰 자리 쪽으로 비율을 크게 기울였다.
+*/
+.board {
+  display: grid;
+  gap: s.$space-5;
+  height: 100%;
+  min-height: 0;
+  grid-template:
+    "big detail" minmax(440px, 1.6fr)
+    "small small" minmax(300px, 0.95fr);
+  grid-template-columns: minmax(0, 1fr) 460px;
+
+  @include media.kiosk {
+    grid-template-columns: minmax(0, 1fr) 520px;
+  }
+
+  @include media.tablet {
+    grid-template: none !important;
+    height: auto;
+  }
+}
+
+.cell {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+
+  @include media.tablet {
+    grid-area: auto !important;
+  }
+
+  > section {
+    flex: 1;
+    min-height: 0;
+
+    @include media.tablet {
+      flex: none;
+      min-height: 420px;
+    }
+  }
+}

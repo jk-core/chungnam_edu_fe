@@ -1,0 +1,136 @@
+@use "@/styles/tokens/spacing" as s;
+@use "@/styles/tokens/typography" as t;
+
+/*
+  지도 판.
+  머리 한 줄(제목·도 요약·범례·순회·크게보기)이 위에 눕고, 그 아래를 지도가 통째로 받는다.
+  큰 자리든 작은 자리든 같은 골격이라 자리를 맞바꿔도 말이 된다 — 지도는 칸이 어떤 꼴이든 채운다.
+*/
+.map {
+  display: flex;
+  flex-direction: column;
+  gap: s.$space-3;
+  height: 100%;
+  min-height: 0;
+  padding: s.$space-3 s.$space-4 s.$space-4;
+  border-radius: var(--room-radius, 8px);
+  overflow: hidden;
+
+  &__bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: s.$space-3 s.$space-5;
+    flex-wrap: wrap;
+    flex-shrink: 0;
+  }
+
+  &__lead {
+    display: flex;
+    align-items: baseline;
+    gap: s.$space-2 s.$space-4;
+    flex-wrap: wrap;
+    min-width: 0;
+  }
+
+  /* 제목 크기는 결(_skins)이 title-md 로 매어 둔다 */
+  &__title {
+    margin: 0;
+  }
+
+  &__province {
+    @include t.body-md;
+
+    margin: 0;
+    color: var(--text-muted);
+
+    strong {
+      @include t.data-sm;
+
+      margin: 0 2px;
+      color: var(--text-strong);
+    }
+  }
+
+  &__tools {
+    display: flex;
+    align-items: center;
+    gap: s.$space-3 s.$space-4;
+    flex-wrap: wrap;
+  }
+
+  &__figure {
+    flex: 1;
+    min-height: 0;
+    border: 1px solid var(--map-border);
+    border-radius: s.$radius-sm;
+    overflow: hidden;
+    background-color: var(--map-surface);
+  }
+}
+
+/*
+  지도 보기 고르개.
+  공용 SegmentedControl 은 md(높이 36 · 라벨 14px)까지다. 이 화면은 벽에서 읽혀야 해 한 단
+  키운다 — 자식 클래스는 다른 모듈 소유라 DOM 의 요소·속성으로 짚는다(집계표 축 고르개와 같은 수법).
+*/
+.view {
+  button[aria-pressed] {
+    height: 46px;
+    padding-inline: s.$space-5;
+
+    /* label-md 대신 title-sm — 연령 배려 제약 */
+    @include t.title-sm;
+  }
+}
+
+/* 단계 범례 — 색이 개소 수를 뜻한다는 것을 이 줄이 말한다 */
+.legend {
+  display: flex;
+  align-items: center;
+  gap: s.$space-2;
+
+  &__title {
+    @include t.label-md;
+
+    color: var(--text-muted);
+  }
+
+  &__scale {
+    display: inline-flex;
+    gap: 2px;
+  }
+
+  &__step {
+    width: 24px;
+    height: 14px;
+    border: 1px solid var(--map-border);
+    border-radius: 3px;
+  }
+
+  &__ends {
+    @include t.label-md;
+
+    color: var(--text-muted);
+    font-family: var(--font-data);
+  }
+}
+
+/* 순회 손잡이 — 아이콘 하나로 좁게 둬 머리글이 한 줄에 든다 (뜻은 aria-label 이 잇는다) */
+.play {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  border: 1px solid var(--border);
+  border-radius: s.$radius-full;
+  background: none;
+  color: var(--text-strong);
+
+  &:hover {
+    border-color: var(--border-strong);
+    background-color: var(--surface-hover);
+  }
+}

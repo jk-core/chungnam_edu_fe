@@ -73,8 +73,6 @@ export const routes: RouteObject[] = [
       // 배치 시안. 보여 주는 값과 판은 같고 어디에 세우는지·무슨 색인지만 다르다.
       { path: PATH.CONTROL_B, element: <ControlRoomDraftPage draft="b" /> },
       { path: PATH.CONTROL_C, element: <ControlRoomDraftPage draft="c" /> },
-      { path: PATH.CONTROL_D, element: <ControlRoomDraftPage draft="d" /> },
-      { path: PATH.CONTROL_E, element: <ControlRoomDraftPage draft="e" /> },
       {
         path: PATH.HOME,
         element: <RootLayout />,

@@ -1,0 +1,292 @@
+@use "@/styles/tokens/spacing" as s;
+@use "@/styles/tokens/typography" as t;
+@use "@/styles/utils/media" as media;
+@use "@/styles/utils/mixins" as mx;
+
+/*
+  학교·기관·지역별 발전 현황 집계.
+
+  글자는 어느 자리에서도 줄이지 않고 줄 수로 자리에 맞춘다 — 작은 띠에서는 네 줄, 큰 자리에서는
+  아홉 줄. 담다 남는 줄은 스스로 넘긴다. 벽면에는 스크롤을 굴려 줄 사람이 없다.
+*/
+.agg {
+  display: flex;
+  flex-direction: column;
+  gap: s.$space-2;
+  height: 100%;
+  min-height: 0;
+  padding: s.$space-3 s.$space-5 s.$space-4;
+  border-radius: var(--room-radius, 8px);
+  overflow: hidden;
+
+  &__head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: s.$space-4;
+    flex-shrink: 0;
+  }
+
+  /* 제목 크기는 결(_skins)이 title-md 로 매어 둔다 */
+  &__title {
+    margin: 0;
+  }
+
+  &__tools {
+    display: flex;
+    align-items: center;
+    gap: s.$space-4;
+  }
+
+  &__frame {
+    flex: 1;
+    min-height: 0;
+    overflow: hidden;
+  }
+}
+
+/*
+  집계 축 고르개.
+  공용 SegmentedControl 은 md(높이 36 · 라벨 14px)까지다. 이 화면은 벽에서 읽혀야 해 한 단
+  키운다 — 자식 클래스는 다른 모듈 소유라 여기서 부를 수 없어, DOM 에 있는 요소·속성으로 짚는다.
+*/
+.axis {
+  button[aria-pressed] {
+    height: 46px;
+    padding-inline: s.$space-5;
+
+    /* label-md(14) 대신 title-sm(17) — 연령 배려 제약 */
+    @include t.title-sm;
+  }
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  table-layout: fixed;
+
+  &__caption {
+    @include mx.sr-only;
+  }
+
+  thead th {
+    @include t.label-md;
+
+    padding: s.$space-2 s.$space-3;
+    color: var(--text-muted);
+    border-bottom: 2px solid var(--border-strong);
+    white-space: nowrap;
+  }
+
+  tbody td,
+  tbody th,
+  tfoot td,
+  tfoot th {
+    padding: s.$space-2 s.$space-3;
+    border-bottom: 1px solid var(--border-subtle);
+    vertical-align: middle;
+  }
+
+  /* 정렬은 열 클래스가 쥔다 — 넓은 요소 규칙에 text-align 을 두지 않아 특정도 다툼을 피한다 */
+  &__rank {
+    width: 92px;
+    text-align: center;
+  }
+
+  &__name {
+    text-align: left;
+  }
+
+  &__num {
+    width: 200px;
+    text-align: right;
+  }
+
+  /* 값은 데이터 글꼴로 크게 — 본문·머리보다 한 단 위다 */
+  tbody &__num,
+  tfoot &__num {
+    @include t.data-md;
+
+    color: var(--text-strong);
+    white-space: nowrap;
+  }
+
+  /* 순위 숫자 자체 */
+  tbody &__rank {
+    @include t.data-md;
+
+    color: var(--text-muted);
+  }
+
+  &__nameInner {
+    display: flex;
+    align-items: center;
+    gap: s.$space-3;
+    min-width: 0;
+  }
+
+  &__label {
+    @include t.body-lg;
+    @include mx.truncate;
+
+    color: var(--text-strong);
+    font-weight: 600;
+  }
+
+  &__count {
+    @include t.label-md;
+
+    flex-shrink: 0;
+    color: var(--text-muted);
+    font-family: var(--font-data);
+  }
+
+  /* 값에 붙는 단위 — 숫자보다 한 단 작게, 다만 이 시안의 최소(label-md)는 지킨다 */
+  &__unit {
+    @include t.label-md;
+
+    margin-left: s.$space-1;
+    color: var(--text-muted);
+    font-family: var(--font-sans);
+  }
+
+  /* 1·2·3 위만 금·은·동을 얹는다 */
+  &__medal {
+    @include t.label-md;
+
+    display: inline-grid;
+    place-items: center;
+    width: 34px;
+    height: 34px;
+    border-radius: s.$radius-full;
+    font-family: var(--font-data);
+    font-weight: 700;
+  }
+
+  /* 자리만 지키는 빈 줄 */
+  &__filler {
+    visibility: hidden;
+  }
+
+  &__foot {
+    th,
+    td {
+      border-top: 2px solid var(--border-strong);
+      border-bottom: 0;
+      color: var(--text-strong);
+      font-weight: 700;
+    }
+
+    .table__rank {
+      @include t.label-md;
+
+      font-family: var(--font-sans);
+      white-space: nowrap;
+    }
+  }
+}
+
+/*
+  금·은·동.
+  메달 금속색은 테마색이 아니라 실제 금속의 색이라 토큰이 없다 — 밝고 어두운 화면 어디서나
+  같은 금색이어야 하므로, 참고 판(AggregationPanel)과 같은 값을 그대로 둔다.
+*/
+.medal {
+  &--gold {
+    background-color: color-mix(in srgb, #d4a017 24%, transparent);
+    color: #b8860b;
+  }
+
+  &--silver {
+    background-color: color-mix(in srgb, #8c93a3 24%, transparent);
+    color: #6f7686;
+  }
+
+  &--bronze {
+    background-color: color-mix(in srgb, #c07a4b 24%, transparent);
+    color: #a4643a;
+  }
+}
+
+[data-theme="dark"] .medal {
+  &--gold { color: #e8c265; }
+  &--silver { color: #b3bacb; }
+  &--bronze { color: #d09468; }
+}
+
+/*
+  쪽 넘김 표시.
+  쪽이 수십인 축(학교별)이라 눈금 점을 다 찍지 않는다 — 지금·전체 쪽과, 다음 쪽까지 남은
+  시간을 채우는 막대만 둔다.
+*/
+.pager {
+  display: flex;
+  align-items: center;
+  gap: s.$space-3;
+  flex-shrink: 0;
+
+  &__play {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    padding: 0;
+    border: 1px solid var(--border);
+    border-radius: s.$radius-full;
+    background: none;
+    color: var(--text-muted);
+
+    &:hover {
+      border-color: var(--border-strong);
+      color: var(--text-strong);
+    }
+  }
+
+  &__count {
+    @include t.label-md;
+
+    color: var(--text-muted);
+    font-family: var(--font-data);
+    white-space: nowrap;
+
+    strong {
+      @include t.data-sm;
+
+      color: var(--text-strong);
+    }
+  }
+
+  &__track {
+    flex: 1;
+    height: 6px;
+    border-radius: s.$radius-full;
+    background-color: var(--surface-sunken);
+    overflow: hidden;
+  }
+
+  &__fill {
+    display: block;
+    width: 0;
+    height: 100%;
+    border-radius: s.$radius-full;
+    background-color: var(--brand);
+    animation-name: pager-fill;
+    animation-timing-function: linear;
+    animation-fill-mode: forwards;
+
+    &[data-paused] {
+      animation-play-state: paused;
+    }
+
+    @include media.reduced-motion {
+      width: 100%;
+      animation: none;
+    }
+  }
+}
+
+@keyframes pager-fill {
+  from { width: 0; }
+  to { width: 100%; }
+}

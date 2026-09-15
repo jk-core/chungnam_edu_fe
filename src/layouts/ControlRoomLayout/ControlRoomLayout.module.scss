@@ -379,26 +379,18 @@
 }
 
 /* ── 시안의 결 ──────────────────────────────────────────────────────────
-   시안 A(`/control`)는 위에 적은 그대로다. 아래 넷은 `/control/b` ~ `/control/e` 가 걸치는
+   시안 A(`/control`)는 위에 적은 그대로다. 아래 둘은 `/control/b`·`/control/c` 가 걸치는
    껍데기라, 규칙을 모두 `[data-skin]` 안에 가둔다 — 밖으로 한 줄이라도 새면 최종 시안이
    견줌용 시안의 색을 물려받는다.
 
    결의 내용은 `_skins.scss` 가 쥔다. 이 파일은 어느 화면이 어느 결을 입는지만 정한다.
    ──────────────────────────────────────────────────────────────────── */
 .room {
-  &[data-skin="briefing"] {
-    @include skins.briefing;
+  &[data-skin="terrain"] {
+    @include skins.terrain;
   }
 
-  &[data-skin="atlas"] {
-    @include skins.atlas;
-  }
-
-  &[data-skin="blueprint"] {
-    @include skins.blueprint;
-  }
-
-  &[data-skin="cyber"] {
-    @include skins.cyber;
+  &[data-skin="ticker"] {
+    @include skins.ticker;
   }
 }

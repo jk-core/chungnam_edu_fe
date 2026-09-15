@@ -1,0 +1,55 @@
+@use "@/styles/tokens/spacing" as s;
+@use "@/styles/utils/media" as media;
+
+/*
+  시안 C · 시세판의 배치.
+
+  증권 앱의 종목 화면이다. 위에서 무엇을 볼지(학교별·기관별·지역별) 고르고, 왼쪽 목록에서
+  대상 하나를 고르면 오른쪽에 그 대상의 차트와 값이 펼쳐진다. 한 화면이 답하는 물음을
+  「고른 하나가 어떤가」 로 좁혀, 남는 자리를 전부 글자 크기에 쓴다.
+*/
+.board {
+  display: grid;
+  gap: s.$space-5;
+  height: 100%;
+  min-height: 0;
+
+  /*
+    맨 위 요약 띠가 두 단을 가로지르고(strip), 그 아래 목록·상세가 선다. 띠는 내용만큼(auto)만
+    차지하고 남는 높이를 아래로 넘긴다 — 아래가 그만큼 줄지만 차트가 납작해지지 않는 선에서
+    띠를 얇게 잡았다(요약 덩이 한 행 높이).
+  */
+  grid-template:
+    "strip strip" auto
+    "list  detail" minmax(0, 1fr) / 440px minmax(0, 1fr);
+
+  @include media.kiosk {
+    grid-template-columns: 500px minmax(0, 1fr);
+  }
+
+  @include media.tablet {
+    grid-template: none !important;
+    height: auto;
+  }
+}
+
+.cell {
+  display: flex;
+  flex-direction: column;
+  gap: s.$space-5;
+  min-height: 0;
+
+  @include media.tablet {
+    grid-area: auto !important;
+  }
+
+  > section:only-child {
+    flex: 1;
+    min-height: 0;
+
+    @include media.tablet {
+      flex: none;
+      min-height: 420px;
+    }
+  }
+}

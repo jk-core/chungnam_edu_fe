@@ -1,0 +1,276 @@
+@use "@/styles/tokens/spacing" as s;
+@use "@/styles/tokens/typography" as t;
+@use "@/styles/utils/mixins" as mx;
+@use "@/styles/utils/media" as media;
+
+/*
+  발전 순위 판.
+
+  결(흰 면·테두리·그림자·모서리)은 스킨(`_skins.scss` 의 ticker)이 `section[aria-label]` 로 쥔다.
+  여기서는 안쪽 여백과 뼈대만 세운다. 판이 배경이고 큰 수치가 전경인 결이라, 판 자체는 조용히 둔다.
+*/
+.panel {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-height: 0;
+  padding: s.$space-6;
+  border-radius: var(--room-radius);
+  overflow: hidden;
+
+  &__head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: s.$space-3;
+    margin-bottom: s.$space-4;
+
+    h2 {
+      margin: 0;
+    }
+  }
+
+  /* 자동 순회를 멈추고 다시 트는 손잡이 — 벽에 걸어 두는 화면이라 손대지 않을 때는 스스로 돈다 */
+  &__toggle {
+    @include t.label-md;
+
+    display: inline-flex;
+    align-items: center;
+    height: 40px;
+    padding: 0 s.$space-4;
+    border: 1px solid var(--border);
+    border-radius: s.$radius-full;
+    background: none;
+    color: var(--text-muted);
+    white-space: nowrap;
+    transition: color 0.16s ease, background-color 0.16s ease, border-color 0.16s ease;
+
+    &:hover {
+      border-color: var(--border-strong);
+      color: var(--text-strong);
+    }
+
+    &[aria-pressed="true"] {
+      border-color: var(--brand-soft-border);
+      background: var(--brand-soft);
+      color: var(--brand-contrast);
+    }
+  }
+}
+
+/*
+  축 고르개.
+
+  SegmentedControl 은 글자 크기를 rem 믹스인으로 못 박아 밖에서 상속되지 않는다. 이 화면은
+  고령 사용자를 위해 가장 자주 누르는 이 고르개를 크게 세워야 하므로, 렌더된 button 을 직접
+  짚어 키운다 — 믹스인만으로는 14px 이 최대라, 이 한 곳만 예외로 크기를 덮고 까닭을 남긴다.
+*/
+.picker {
+  margin-bottom: s.$space-3;
+
+  > * {
+    width: 100%;
+  }
+
+  button {
+    flex: 1;
+    min-height: 52px;
+    font-size: 1.0625rem; // 17px — 축 고르개는 화면의 첫 조작점이라 라벨보다 한 단 키운다
+  }
+}
+
+.sub {
+  @include t.body-md;
+
+  margin: 0 0 s.$space-3;
+  color: var(--text-muted);
+}
+
+/*
+  대상이 많은 축은 스크롤로 직접 훑는다(2026-09-14 피드백). 스크롤 손잡이는 굵고 또렷하게 둔다 —
+  연령이 높은 사용자에게는 「여기는 더 있다」가 보여야 하므로, 가늘고 흐린 스크롤바는 쓰지 않는다.
+*/
+.list {
+  display: flex;
+  flex: 1;
+  min-height: 0;
+  flex-direction: column;
+  gap: s.$space-1;
+  margin: 0;
+  padding: 0 s.$space-2 0 0;
+  overflow-y: auto;
+  list-style: none;
+
+  /*
+    스크롤 손잡이를 늘 보이게 둔다. 연령이 높은 사용자에게는 「여기는 더 있다」가 보여야 하므로,
+    손댈 때만 떴다 사라지는 macOS 겹침(overlay) 스크롤바 대신 자리를 차지하는 고전 스크롤바를 쓴다.
+
+    전역(styles/base/_global.scss)이 `* { scrollbar-width: thin }` 로 모든 요소를 얇은 표준
+    스크롤바로 묶어 두었는데, 표준 속성이 걸려 있으면 크로미움이 ::-webkit-scrollbar 를 무시한다.
+    그래서 이 목록만 두 표준 속성을 초깃값(auto)으로 되돌려 ::-webkit 쪽이 다시 먹게 하고, 굵고
+    또렷한 손잡이로 그린다.
+  */
+  scrollbar-width: auto;
+  scrollbar-color: auto;
+
+  &::-webkit-scrollbar {
+    width: 14px;
+  }
+
+  &::-webkit-scrollbar-track {
+    border-radius: s.$radius-full;
+    background: var(--surface-sunken);
+  }
+
+  &::-webkit-scrollbar-thumb {
+    border: 2px solid var(--surface-sunken);
+    border-radius: s.$radius-full;
+    background: var(--border-strong);
+
+    &:hover {
+      background: var(--text-faint);
+    }
+  }
+}
+
+.row {
+  border-radius: s.$radius-sm;
+
+  /*
+    고른 줄은 미끄러지는 표시(`row__marker`)가 비추므로, 여기서는 CSS 배경을 두지 않는다 —
+    둘을 겹치면 반투명 브랜드색이 두 번 쌓여 다크에서 더 짙어진다. 다만 감소 모션에서는 그
+    표시를 렌더하지 않으므로, 그때만 CSS 로 즉시 칠한다.
+  */
+  @include media.reduced-motion {
+    &--active {
+      background: var(--brand-soft);
+      box-shadow: inset 0 0 0 1px var(--brand-soft-border);
+    }
+  }
+
+  &__button {
+    position: relative;
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr) auto auto;
+    grid-template-areas:
+      "rank name value delta"
+      "track track track track";
+    align-items: center;
+    gap: s.$space-1 s.$space-3;
+    width: 100%;
+    padding: s.$space-3;
+    border: 0;
+    border-radius: s.$radius-sm;
+    background: none;
+    text-align: left;
+    cursor: pointer;
+
+    @include mx.press(0.99);
+
+    &:hover {
+      background: var(--surface-hover);
+    }
+  }
+
+  /* 고른 줄의 배경 — layoutId 로 줄에서 줄로 미끄러진다. 내용보다 뒤에 깔린다(z-index). */
+  &__marker {
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+    border-radius: s.$radius-sm;
+    background: var(--brand-soft);
+    box-shadow: inset 0 0 0 1px var(--brand-soft-border);
+  }
+
+  &__rank {
+    @include t.data-sm;
+
+    grid-area: rank;
+    z-index: 1;
+    display: grid;
+    width: 28px;
+    height: 28px;
+    place-items: center;
+    border-radius: s.$radius-xs;
+    background: var(--surface-sunken);
+    color: var(--text-muted);
+    font-family: var(--font-data);
+  }
+
+  &__name {
+    @include t.body-md;
+    @include mx.truncate;
+
+    grid-area: name;
+    z-index: 1;
+    color: var(--text-strong);
+    font-weight: 600;
+  }
+
+  &__value {
+    @include t.data-md;
+
+    grid-area: value;
+    z-index: 1;
+    display: flex;
+    align-items: baseline;
+    gap: 2px;
+    color: var(--text-strong);
+  }
+
+  &__unit {
+    @include t.label-md;
+
+    color: var(--text-muted);
+  }
+
+  /* 오름/내림 알약 — 옅은 배경을 깔아 숫자만 색칠하는 것보다 먼저 잡히게 한다(토스 참고). */
+  &__delta {
+    @include t.label-md;
+
+    grid-area: delta;
+    z-index: 1;
+    justify-self: end;
+    display: inline-flex;
+    align-items: center;
+    padding: 2px s.$space-2;
+    border-radius: s.$radius-full;
+    font-family: var(--font-data);
+    white-space: nowrap;
+
+    &--rise {
+      background: var(--rise-soft);
+      color: var(--rise);
+    }
+
+    &--fall {
+      background: var(--fall-soft);
+      color: var(--fall);
+    }
+
+    /* 평(平)은 강조할 것이 없어 알약 없이 흐리게 둔다 */
+    &--flat {
+      color: var(--text-faint);
+    }
+  }
+
+  /* 막대는 줄 폭을 다 쓴다 — 값은 위에 적혀 있으므로 안에 글자를 얹지 않는다 */
+  &__track {
+    grid-area: track;
+    z-index: 1;
+    display: block;
+    height: 8px;
+    margin-top: s.$space-1;
+    border-radius: s.$radius-full;
+    background: var(--surface-sunken);
+    overflow: hidden;
+  }
+
+  &__bar {
+    display: block;
+    height: 100%;
+    border-radius: s.$radius-full;
+    background: linear-gradient(90deg, rgb(from var(--brand) r g b / 45%) 0%, var(--brand) 100%);
+    transition: width 0.5s cubic-bezier(0.22, 0.68, 0.32, 1);
+  }
+}

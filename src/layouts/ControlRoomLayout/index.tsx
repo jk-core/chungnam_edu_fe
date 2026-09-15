@@ -11,12 +11,11 @@ import type { ReactNode } from 'react';
 /**
  * 상황판이 입을 수 있는 결.
  *
- * 이름은 색이 아니라 **어떤 물건으로 보이게 하는가** 로 붙인다 — `briefing` 은 회의실에 걸린
- * 보드, `atlas` 는 펼쳐 놓은 지도책, `blueprint` 는 설계 도면, `cyber` 는 계측 장비다.
- * 「파랑」 「밝은 것」 으로 부르면 색 한 줄만 바꾸고도 이름이 맞는 것처럼 보여, 결이 무너진 줄
- * 모르고 지나간다.
+ * 이름은 색이 아니라 **어떤 물건으로 보이게 하는가** 로 붙인다 — `terrain` 은 지도가 주인공인
+ * 화면, `ticker` 는 증권 앱의 시세판이다. 「파랑」 「밝은 것」 으로 부르면 색 한 줄만 바꾸고도
+ * 이름이 맞는 것처럼 보여, 결이 무너진 줄 모르고 지나간다.
  */
-export type RoomSkin = 'briefing' | 'atlas' | 'blueprint' | 'cyber';
+export type RoomSkin = 'terrain' | 'ticker';
 
 interface ControlRoomLayoutProps {
   /**

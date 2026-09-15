@@ -1,30 +1,33 @@
 import { useState } from 'react';
 import { ControlRoomLayout } from '@/layouts/ControlRoomLayout';
 import { PlantSearchModal } from '@/components/plant/PlantSearchModal';
+import { useRootClass } from '@/hooks/useRootClass';
 import type { RoomSkin } from '@/layouts/ControlRoomLayout';
 import { SCOPE_LABEL, useControlRoomData } from '../useControlRoomData';
-import { Atlas } from './atlas';
-import { Blueprint } from './blueprint';
-import { Briefing } from './briefing';
-import { Cyber } from './cyber';
+import { Terrain } from './terrain';
+import { Ticker } from './ticker';
 import type { ComponentType } from 'react';
 import type { ControlRoomData } from '../useControlRoomData';
 
 /**
- * 상황판 시안 (`/control/b` ~ `/control/e`).
+ * 상황판 견줌용 시안 (`/control/b`·`/control/c`).
  *
- * `/control` 의 시안 A 가 최종 시안이고 이쪽은 견줌용이다 — **들어가는 내용은 넷이 똑같다**.
- * 어느 판에 무엇이 담기는지는 넷이 한 벌을 쓰고, 그것을 **어떻게 그리는가** 는 시안마다 따로
- * 간다. 배치도 색도 판 안의 생김새도 시안이 제 폴더 안에서 끝까지 쥔다.
+ * `/control` 의 시안 A 가 요구사항을 모두 담은 최종 시안이고, 이 둘은 **덜 담는 대신 한눈에
+ * 들어오는** 쪽을 시험한다. 그래서 A 의 판 일곱을 그대로 가져오지 않는다 — 시안마다 제
+ * 물음에 답하는 데 필요한 것만 세운다.
  *
- * 그래서 시안 하나가 폴더 하나다. 폴더끼리 서로 부르지 않으므로 고르고 나면 이긴 하나만
+ * 보는 사람의 연령이 높다는 것이 두 시안의 첫 번째 제약이다. 한 화면에 담는 것을 줄이고
+ * 그만큼 글자를 키운다 — 정보를 많이 넣을수록 글자는 작아지므로, 무엇을 **빼는가** 가
+ * 이 둘의 설계다.
+ *
+ * 시안 하나가 폴더 하나다. 폴더끼리 서로 부르지 않으므로 고르고 나면 이긴 하나만
  * `/control` 에 옮기고 나머지 폴더를 통째로 지운다.
  *
  * 값과 셈은 `useControlRoomData` 와 `../utils` 한 곳에서만 나온다 — 시안마다 따로 세면
  * 같은 화면을 견주는 자리에서 개소 수가 갈린다.
  */
 
-export type DraftKey = 'b' | 'c' | 'd' | 'e';
+export type DraftKey = 'b' | 'c';
 
 interface Draft {
   /** 회의 자리에서 "왼쪽 그거" 로 불리지 않도록 붙이는 이름 */
@@ -36,20 +39,28 @@ interface Draft {
 }
 
 /**
- * 배치와 결은 시안마다 한 짝으로 묶인다.
+ * 화면과 결은 시안마다 한 짝으로 묶인다.
  *
- * 가로로 눕는 배치에 도면의 결을 얹는 식으로 섞으면 어느 조합을 보고 있는지 회의 자리에서
- * 가려지지 않는다. 넷이 저마다 한 벌씩만 갖고, 이름도 그 한 벌을 가리킨다.
+ * 지도를 크게 세운 화면에 시세판의 결을 얹는 식으로 섞으면 어느 조합을 보고 있는지 회의
+ * 자리에서 가려지지 않는다. 둘이 저마다 한 벌씩만 갖고, 이름도 그 한 벌을 가리킨다.
  */
 const DRAFTS: Record<DraftKey, Draft> = {
-  b: { label: '시안 B · 브리핑 보드', layout: Briefing, skin: 'briefing' },
-  c: { label: '시안 C · 아틀라스', layout: Atlas, skin: 'atlas' },
-  d: { label: '시안 D · 청사진', layout: Blueprint, skin: 'blueprint' },
-  e: { label: '시안 E · 사이버네틱', layout: Cyber, skin: 'cyber' },
+  b: { label: '시안 B · 지도 중심', layout: Terrain, skin: 'terrain' },
+  c: { label: '시안 C · 차트 중심', layout: Ticker, skin: 'ticker' },
 };
 
 export function ControlRoomDraft({ draft }: { draft: DraftKey }) {
   const { label, layout: Layout, skin } = DRAFTS[draft];
+
+  /*
+    글자 기준을 15px 에서 18px 로 올린다 (`_global.scss` 의 `.control-draft`).
+
+    연령이 높은 사용자를 앞에 둔 시안들이라 화면 전체가 한 단 커져야 한다. 판마다 크기를
+    따로 키우면 빠뜨린 자리가 생기고 판끼리 비율이 어긋나므로, 뿌리 하나로 올린다.
+    시안 A 는 이 클래스를 붙이지 않아 종전 크기 그대로다.
+  */
+  useRootClass('control-draft');
+
   const data = useControlRoomData();
   const [isSearchOpen, setIsSearchOpen] = useState(false);
 

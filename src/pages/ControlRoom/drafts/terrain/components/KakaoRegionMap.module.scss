@@ -1,0 +1,231 @@
+@use "@/styles/tokens/spacing" as s;
+@use "@/styles/tokens/typography" as t;
+@use "@/styles/utils/media" as media;
+
+/* 지도는 칸을 꽉 채운다 */
+.canvas {
+  position: relative; /* 「전체 보기」 손잡이를 지도 위에 얹기 위한 기준 */
+  width: 100%;
+  height: 100%;
+
+  /*
+    카카오가 경계선을 그리는 판을 되살린다.
+
+    전역 리셋이 `img, svg { max-width: 100% }` 를 두는데, 카카오는 시·군 경계를 담는 `<svg>`
+    를 폭 0 인 절대 배치 칸 안에 넣고 인라인으로 `width: 6470px` 를 준다. 그러면 `100%` 가
+    0 이 되어 리셋이 인라인 폭을 이기고, **경로 열다섯이 그려진 채로 폭 0 에 눌려** 화면에는
+    아무것도 안 나온다. 경계가 통째로 사라져 보이던 원인이 이것이다.
+
+    이 칸 안에는 우리가 그리는 `svg` 가 없다 — 배지도 점도 HTML 이다. 그래서 지도 안에서만
+    리셋을 되돌려도 다른 그림에 닿지 않는다.
+  */
+  :global(svg) {
+    max-width: none;
+  }
+}
+
+/*
+  시·군 배지.
+
+  실지도 타일 위에 서므로 스스로 또렷한 상자여야 한다 — 흰(다크에선 짙은) 면에 굵은 테두리와
+  그림자를 얹어 배경에 번지지 않게 한다. 개소 수 단계를 왼쪽 색 띠로 이어, 도형 지도의
+  단계색과 같은 값을 실지도 위에서도 읽게 한다. 벽에서 읽혀야 하므로 글자를 크게 세운다.
+*/
+.badge {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: s.$space-2;
+  padding: 2px s.$space-3;
+  border: 1.5px solid var(--text-strong);
+  border-radius: s.$radius-full;
+  background-color: var(--surface);
+
+  /*
+    어느 타일 위에서도 같은 굵기로 읽히게 두 겹으로 두른다 (고객 요청 2026-09-14).
+    안쪽은 짙은 키라인(text-strong), 그 바깥에 밝은 면색(surface) 한 겹 — 밝은 도심 타일에서는
+    짙은 선이, 짙은 산지·바다 타일에서는 밝은 겹이 배경을 버틴다. 그 뒤에 원래의 그림자.
+  */
+  box-shadow: 0 0 0 3px var(--surface), var(--shadow-lg);
+  cursor: pointer;
+  white-space: nowrap;
+
+  /*
+    고른 시·군이 들리는 동작 (고객 요청 2026-09-14).
+
+    배지는 무게중심에 못 박혀 있어, 개소가 몰린 북부(천안·아산·당진)에서는 이웃과 겹쳐 어느
+    것이 어느 시·군인지 가려지지 않는다. 고른 것을 살짝 키워 다른 것들 위로 올리면 그 한
+    장만 온전히 드러나므로, 겹침을 자리로 풀지 않고 층으로 푼다.
+
+    커지는 기준점을 아래 끝에 둔다 — 배지가 가리키는 자리는 그 아래 한 점이므로, 가운데를
+    기준으로 키우면 배지가 가리키던 자리에서 떠오른다.
+
+    담긴 것을 줄여도(이상 표기를 점으로) 북부 무게중심들은 여전히 가까워, 고르지 않은 배지를
+    한 단 더 줄여(0.92) 겹침을 덜어낸다 (고객 요청 2026-09-15). 더 줄이고 싶어도 이 화면은
+    보는 사람의 연령이 높아 실제로 그려지는 글자가 14px 아래로 내려가면 안 된다. 이름이
+    label-md(뿌리 18px 기준 15.75px)라 0.92 배에서도 14.5px 로 하한을 지킨다 — 그래서
+    0.88 같은 더 낮은 값을 버렸다. 아래 끝을 기준으로 줄어들어 가리키던 자리에서 뜨지 않는다.
+
+    도 전체 뷰에서 이웃과 겹치는 배지는 화면에서 조금 밀어 둔다(③) — 미는 값은 컴포넌트가
+    `--badge-shift-x/y` 로 내려 준다. translate 를 scale 앞에 두어(`translate(...) scale(...)`),
+    scale 이 좌표에 먼저 걸려도 민 거리는 배율의 영향을 받지 않는다 — 고른 배지가 1.16 배로
+    커져도 민 거리가 그대로 유지된다. 값이 없는 배지는 0px 이라 제자리다.
+  */
+  $shift: translate(var(--badge-shift-x, 0px), var(--badge-shift-y, 0px));
+
+  transform: $shift scale(0.92);
+  transform-origin: 50% 100%;
+  transition: transform 0.22s cubic-bezier(0.22, 0.68, 0.32, 1.4), border-color 0.18s ease,
+    box-shadow 0.18s ease;
+
+  &:hover {
+    transform: $shift scale(0.98);
+  }
+
+  @include media.reduced-motion {
+    transition: none;
+  }
+
+  /* 개소 수 단계 색점 — 옅은 단계(1)도 안쪽이라 타일에 묻히지 않는다 */
+  &__pip {
+    width: 12px;
+    height: 12px;
+    flex-shrink: 0;
+    border: 1px solid var(--text-strong);
+    border-radius: s.$radius-full;
+
+    &[data-scale="1"] { background-color: var(--map-scale-1); }
+    &[data-scale="2"] { background-color: var(--map-scale-2); }
+    &[data-scale="3"] { background-color: var(--map-scale-3); }
+    &[data-scale="4"] { background-color: var(--map-scale-4); }
+    &[data-scale="5"] { background-color: var(--map-scale-5); }
+  }
+
+  &__name {
+    @include t.label-md;
+
+    color: var(--text-strong);
+  }
+
+  &__count {
+    @include t.data-sm;
+
+    color: var(--text);
+
+    span {
+      @include t.label-md;
+
+      margin-left: 1px;
+      color: var(--text-muted);
+    }
+  }
+
+  &__alert {
+    @include t.label-md;
+
+    padding: 0 s.$space-2;
+    border-radius: s.$radius-full;
+    background-color: var(--critical-soft);
+    color: var(--critical-text);
+  }
+
+  /*
+    고르지 않은 배지의 이상 표식.
+    「이상 N」 텍스트 칸을 지운 자리에 남기는 작은 점 하나 — 폭을 아껴 겹침을 줄이는 것이
+    목적이므로 글자가 아니라 점이다(글자였다면 14px 하한에 걸린다). 상태 점과 같은 이중
+    윤곽(밝은 테 + 짙은 링)으로 밝은 도심 타일에도, 짙은 산지 타일에도 묻히지 않게 세운다.
+  */
+  &__flag {
+    width: 10px;
+    height: 10px;
+    flex-shrink: 0;
+    border: 1.5px solid var(--surface);
+    border-radius: s.$radius-full;
+    background-color: var(--critical);
+    box-shadow: 0 0 0 1px var(--text-strong);
+  }
+
+  /*
+    고른 시·군.
+    키라인이 브랜드색으로 바뀌고 이름·개소가 한 단 커진다. 바깥 밝은 겹은 그대로 둬 어느
+    타일 위에서도 선다 — 색만으로는 실지도 위에서 어느 것이 골라진 것인지 곧바로 잡히지 않는다.
+  */
+  &[data-on] {
+    border-color: var(--brand);
+    background-color: var(--surface-raised);
+
+    /* 들린 만큼 그림자도 깊어져 이웃 위에 떠 있는 것으로 읽힌다 */
+    box-shadow: 0 0 0 4px var(--surface), 0 10px 28px rgb(0 0 0 / 34%);
+    transform: $shift scale(1.16);
+
+    &:hover {
+      transform: $shift scale(1.16);
+    }
+
+    .badge__name {
+      @include t.title-sm;
+
+      color: var(--brand-contrast);
+    }
+
+    .badge__count {
+      @include t.data-md;
+    }
+  }
+}
+
+/*
+  발전소 점.
+  고른 시·군의 것만 찍는다. 상태 색 면에 밝은 테두리(surface)를 두르고 그 바깥에 짙은 링
+  (text-strong)을 한 겹 더 둔다 — 밝은 타일에선 짙은 링이, 짙은 타일에선 밝은 테두리가 버텨
+  개소가 많아 점이 겹쳐도 하나하나가 배경에 묻히지 않는다 (고객 요청 2026-09-14).
+*/
+.dot {
+  display: block;
+  width: 15px;
+  height: 15px;
+  border: 2px solid var(--surface);
+  border-radius: s.$radius-full;
+  box-shadow: 0 0 0 1px var(--text-strong), var(--shadow-md);
+
+  &--ok { background-color: var(--ok); }
+  &--brand { background-color: var(--brand); }
+  &--caution { background-color: var(--caution); }
+  &--critical { background-color: var(--critical); }
+  &--offline { background-color: var(--offline); }
+}
+
+/*
+  「전체 보기」 손잡이.
+
+  한 시·군에 확대해 들어갔을 때만 뜬다. 지도 왼쪽 위 모서리에 얹되, 배지와 같은 이중 윤곽
+  (밝은 겹 + 짙은 키라인)으로 어느 타일 위에서도 서게 한다 — 확대해 들어가면 그 밑이 산지든
+  도심이든 제각각이라, 배경에 묻히면 되돌아갈 길을 잃는다. 글자는 배지 이름과 같은 label-md 로
+  둬(뿌리 18px 기준 15.75px) 이 화면의 14px 하한을 지킨다.
+*/
+.overview {
+  position: absolute;
+  top: s.$space-3;
+  left: s.$space-3;
+  z-index: 30; /* 배지(최대 20)·발전소 점 위에 뜬다 */
+  padding: s.$space-2 s.$space-4;
+  border: 1.5px solid var(--text-strong);
+  border-radius: s.$radius-full;
+  background-color: var(--surface);
+  box-shadow: 0 0 0 3px var(--surface), var(--shadow-lg);
+  color: var(--text-strong);
+  cursor: pointer;
+
+  @include t.label-md;
+
+  transition: background-color 0.16s ease, border-color 0.16s ease;
+
+  &:hover {
+    border-color: var(--brand);
+    background-color: var(--surface-raised);
+  }
+
+  @include media.reduced-motion {
+    transition: none;
+  }
+}
