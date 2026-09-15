@@ -70,6 +70,9 @@ export function ReportEditor({ origin, onClose }: ReportEditorProps) {
         size: 0,
         type: 'image/jpeg',
         previewUrl: null,
+        file: null,
+        // 목업 보고서는 서버 첨부 짝(fileId·fileSeq)을 들고 있지 않다.
+        saved: null,
       })),
       photoLinks: Object.fromEntries(
         origin.photos.filter((photo) => photo.itemId).map((photo) => [photo.id, photo.itemId as string]),
