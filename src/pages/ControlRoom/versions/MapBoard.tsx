@@ -1,6 +1,7 @@
 import { useMemo } from 'react';
 import { formatNumber } from '@/utils/format';
 import { isAbnormal } from '@/mocks/status';
+import type { AlertRecord } from '@/interface/alert';
 import type { CollectionStatus } from '@/interface/collection';
 import type { School } from '@/interface/energy';
 import { Panel } from '../components/Panel';
@@ -40,8 +41,15 @@ interface Totals {
  * 이름이 서면 어느 쪽을 봐야 하는지 흐려진다.
  */
 export function MapBoard({
-  plants, totals, abnormalCount, collection,
-}: { plants: School[]; totals: Totals; abnormalCount: number; collection: Map<string, CollectionStatus> }) {
+  plants, totals, abnormalCount, collection, alerts,
+}: {
+  plants: School[];
+  totals: Totals;
+  abnormalCount: number;
+  collection: Map<string, CollectionStatus>;
+  /** 아직 손대지 않은 알림 — 감지 목록이 「언제부터 걸렸나」 를 여기서 센다 */
+  alerts: AlertRecord[];
+}) {
   // 순회 차례는 상세 칸·감지 리스트와 같은 것을 쓴다 — 셋이 늘 같은 시·군을 가리켜야 한다
   const regions = useMemo(() => {
     const byRegion = new Map<string, School[]>();
@@ -92,6 +100,7 @@ export function MapBoard({
             plants={active?.rows ?? []}
             regionName={active?.name ?? ''}
             collection={collection}
+            alerts={alerts}
           />
         </div>
       </div>

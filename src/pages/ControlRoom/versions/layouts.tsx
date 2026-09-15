@@ -51,6 +51,7 @@ export function KpiStage({ data }: LayoutProps) {
         totals={data.totals}
         abnormalCount={data.abnormalCount}
         collection={data.collection.byId}
+        alerts={data.openAlerts}
       />
 
       <Rail>
@@ -78,6 +79,7 @@ export function MapStage({ data }: LayoutProps) {
         totals={data.totals}
         abnormalCount={data.abnormalCount}
         collection={data.collection.byId}
+        alerts={data.openAlerts}
       />
 
       <Rail>
@@ -106,6 +108,7 @@ export function DiagnosisStage({ data }: LayoutProps) {
         totals={data.totals}
         abnormalCount={data.abnormalCount}
         collection={data.collection.byId}
+        alerts={data.openAlerts}
       />
 
       <Rail>

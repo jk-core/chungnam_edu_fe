@@ -1,7 +1,9 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { AiOrbit } from '@/components/common/AiOrbit';
 import { isAbnormal, OPERATION_LABEL, OPERATION_RANK, OPERATION_TONE } from '@/mocks/status';
-import { formatNumber } from '@/utils/format';
+import { formatNumber, formatRelative } from '@/utils/format';
+import { NOW } from '@/mocks/today';
+import type { AlertRecord } from '@/interface/alert';
 import type { CollectionStatus } from '@/interface/collection';
 import type { School } from '@/interface/energy';
 import { FaultGroupModal } from '../components/FaultGroupModal';
@@ -22,7 +24,11 @@ import styles from './ScanStrip.module.scss';
  * 「더보기」 가 모달로 펴 준다.
  *
  * 열 이름을 세운다. 「24kW」 만 적혀 있으면 그것이 설비 크기인지 지금 내는 힘인지 알 수 없다 —
- * 설비용량과 마지막 수신을 이름으로 못 박아 두면 숫자가 저 혼자 해석되지 않는다.
+ * 설비용량과 발생 일시를 이름으로 못 박아 두면 숫자가 저 혼자 해석되지 않는다.
+ *
+ * 발생 일시는 시각이 아니라 **얼마나 됐는지**로 적는다. 「07-30 23:45」 는 지금이 며칠인지 알아야
+ * 읽히지만 「48일 전」 은 그 자체로 급한 정도를 말한다 — 벽에 걸어 두고 지나가며 보는 화면에서는
+ * 날짜를 셈하게 두면 안 읽힌다.
  */
 
 /** 줄 하나가 차지하는 높이(px) — 스타일의 `$row-h` 와 같은 값이라야 셈이 맞는다 */
@@ -32,11 +38,13 @@ interface ScanStripProps {
   /** 지금 비치고 있는 시·군의 발전소 */
   plants: School[];
   regionName: string;
-  /** 마지막 수신 시각 — 값이 끊긴 곳은 이 시각이 곧 단서다 */
+  /** 전체보기 모달이 마지막 수신 시각을 함께 적는다 */
   collection: Map<string, CollectionStatus>;
+  /** 아직 손대지 않은 알림 — 학교마다 언제부터 걸렸는지를 여기서 센다 */
+  alerts: AlertRecord[];
 }
 
-export function ScanStrip({ plants, regionName, collection }: ScanStripProps) {
+export function ScanStrip({ plants, regionName, collection, alerts }: ScanStripProps) {
   const listRef = useRef<HTMLDivElement>(null);
   const [capacity, setCapacity] = useState(0);
   const [isOpen, setIsOpen] = useState(false);
@@ -58,6 +66,25 @@ export function ScanStrip({ plants, regionName, collection }: ScanStripProps) {
 
     return () => observer.disconnect();
   }, []);
+
+  /*
+    학교마다 **가장 먼저 걸린** 알림의 시각.
+
+    한 학교에 알림이 여럿 걸려 있을 수 있는데, 물어야 할 것은 「언제부터 이러고 있나」 이므로
+    나중 것이 아니라 처음 것을 잡는다 — 최근 것을 잡으면 며칠째 방치된 설비가 방금 난 일처럼
+    보인다.
+  */
+  const occurredAt = useMemo(() => {
+    const out = new Map<string, string>();
+
+    alerts.forEach((alert) => {
+      const kept = out.get(alert.schoolId);
+
+      if (!kept || alert.occurredAt < kept) out.set(alert.schoolId, alert.occurredAt);
+    });
+
+    return out;
+  }, [alerts]);
 
   // 급한 것부터, 같으면 설비가 큰 곳부터 — 큰 설비가 멈추면 잃는 양도 크다
   const found = useMemo(() => plants
@@ -96,7 +123,7 @@ export function ScanStrip({ plants, regionName, collection }: ScanStripProps) {
           <p className={styles.head}>
             <span className={styles.head__name}>학교</span>
             <span className={styles.head__capacity}>설비용량</span>
-            <span className={styles.head__seen}>마지막 수신</span>
+            <span className={styles.head__seen}>발생 일시</span>
             <span className={styles.head__state}>상태</span>
           </p>
 
@@ -109,16 +136,11 @@ export function ScanStrip({ plants, regionName, collection }: ScanStripProps) {
                     {formatNumber(plant.capacityKw)}
                     <i>kW</i>
                   </span>
-                  {/*
-                    날짜까지 적는다.
-
-                    시각만 적어 두었더니 「09:45」 가 오늘 아침인지 어제인지 알 수 없었다 — 값이
-                    끊긴 곳일수록 그 차이가 중요한데, 며칠째 끊긴 설비가 방금 들어온 것처럼 읽혔다.
-                    해는 떼고 월·일만 남긴다. 상황판은 늘 올해를 보고 있고, 네 자리를 더 적으면
-                    칸이 그만큼 넓어진다.
-                  */}
+                  {/* 걸린 지 얼마나 됐는지 — 「48일 전」 이 「07-30」 보다 급한 정도를 곧바로 말한다 */}
                   <span className={styles.row__seen}>
-                    {collection.get(plant.id)?.lastCollectedAt?.slice(5) ?? '—'}
+                    {occurredAt.has(plant.id)
+                      ? formatRelative(new Date(occurredAt.get(plant.id)!.replace(' ', 'T')), NOW.toDate())
+                      : '—'}
                   </span>
                   <span className={styles.row__state}>{OPERATION_LABEL[plant.status]}</span>
                 </li>

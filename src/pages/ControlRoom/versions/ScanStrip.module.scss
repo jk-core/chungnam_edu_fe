@@ -18,7 +18,7 @@ $row-h: 30px;
     5.4em 으로 두었더니 「주의」 두 글자짜리 배지가 「통신단절」 과 같은 폭으로 늘어나 줄마다
     커다란 색면이 섰다 — 배지는 상태를 말하는 표지이지 칸을 채우는 면이 아니다.
   */
-  grid-template-columns: minmax(0, 1fr) 5.2em 7.6em 4.4em;
+  grid-template-columns: minmax(0, 1fr) 5.2em 5.4em 4.4em;
   align-items: center;
   gap: s.$space-3;
 }
