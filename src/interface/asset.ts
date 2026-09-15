@@ -1,3 +1,4 @@
+import type { FileMeta } from '@/service/common';
 import type { SchoolLevel } from './energy';
 import type { RtuStatus } from './status';
 
@@ -38,6 +39,8 @@ export interface PlantAsset {
   plantType: SchoolLevel;
   /** 비고 (etc) */
   etc: string;
+  /** 대표이미지 (photoList) — 없을 수 있다 */
+  photos: FileMeta[];
 }
 
 /** RTU 한 대. 관리 화면은 없고 수집 주기·상태를 읽는 쪽만 쓴다 */

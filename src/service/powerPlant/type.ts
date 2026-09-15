@@ -1,5 +1,6 @@
 import { z } from 'zod';
 import { ZodStatusCode } from '@/configs/codes';
+import { fileSchema } from '@/service/common';
 
 /**
  * 도 전체를 한 번에 준다 (300개 안팎). 거르기·쪽나눔은 화면이 받아 둔 배열 위에서 한다.
@@ -90,10 +91,7 @@ export const powerPlantMarkerInfoSchema = z.object({
     /** 미수집이면 null */
     currentPower: z.number().nullable(),
   })),
-  photoList: z.array(z.object({
-    url: z.string(),
-    caption: z.string(),
-  })),
+  photoList: z.array(fileSchema),
 });
 
 /**
@@ -167,8 +165,5 @@ export const powerPlantInfoSchema = z.object({
     statusCode: ZodStatusCode.CODE,
     statusName: ZodStatusCode.NAME,
   })),
-  photoList: z.array(z.object({
-    url: z.string(),
-    caption: z.string(),
-  })),
+  photoList: z.array(fileSchema),
 });

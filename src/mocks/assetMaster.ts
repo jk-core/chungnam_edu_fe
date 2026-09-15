@@ -1,4 +1,5 @@
 import type { ChangeLog } from '@/interface/changeLog';
+import type { FileMeta } from '@/service/common';
 import type { PlantAsset } from '@/interface/asset';
 import { regionCodeOf } from '@/configs/regions';
 import { SCHOOLS } from './schools';
@@ -23,6 +24,24 @@ const MANAGERS = [
 
 const RTU_MAKERS = ['에이치에너지', '나눔에너지', '해줌', '솔라커넥트'];
 const ADDRESS_DETAILS = ['본관 옥상', '체육관 옥상', '급식동 옥상', '별관 옥상', '주차장 캐노피'];
+
+/**
+ * 대표이미지 시드.
+ *
+ * 장수를 0·1·2 로 돌려 가며 심는 것은 **없는 발전소가 실제로 있어야** 빈 상태가 화면에서
+ * 어떻게 보이는지 볼 수 있기 때문이다. 파일은 아직 들어오지 않아 화면은 자리표시자로 떨어진다.
+ * `fileId` 는 발전소당 하나이고 한 장을 가리키는 것은 `fileSeq` 다 — 계약이 그렇다.
+ */
+const PHOTO_NAMES = ['전경', '모듈 배열'];
+
+function buildPhotos(plantId: string, count: number): FileMeta[] {
+  return PHOTO_NAMES.slice(0, count).map((angle, order) => ({
+    fileId: `PF-${plantId}`,
+    fileSeq: order + 1,
+    fileName: `${angle}.jpg`,
+    url: `/image/plant/${plantId}-${order + 1}.jpg`,
+  }));
+}
 
 /** 담당자로 등록된 계정을 발전소에 이어 준다 — 서버의 `userId` 자리다. */
 const OWNER_BY_PLANT = new Map(
@@ -51,6 +70,7 @@ function buildAsset(schoolIndex: number): PlantAsset {
     // 시드는 모두 학교다 — 기관은 화면에서 새로 등록하며 들어온다.
     plantType: school.level,
     etc: '',
+    photos: buildPhotos(school.id, schoolIndex % 3),
   };
 }
 

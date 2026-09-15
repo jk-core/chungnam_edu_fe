@@ -9,6 +9,7 @@ import { MapStatusFilter, useStatusFilter } from '@/components/plant/MapStatusFi
 import { ChevronLeftIcon, ChevronRightIcon, CloseIcon, PauseIcon, PlayIcon } from '@/components/common/Icon';
 import { PlantDetailPanel } from '@/components/plant/PlantDetailPanel';
 import { PlantPhotos } from '@/components/plant/PlantPhotos';
+import { usePlantAssets } from '@/hooks/usePlantAssets';
 import type { School } from '@/interface/energy';
 import styles from './FaultMap.module.scss';
 
@@ -42,6 +43,8 @@ const TOUR_MS = 7000;
 export function FaultMap({ plants, scope = 'faults', height = MAP_HEIGHT, selectable, tour }: FaultMapProps) {
   const mapStatus = useKakaoMaps();
   const reduceMotion = useReducedMotion();
+  // 사진은 등록 정보가 갖는다 — 지도가 든 `School` 에는 없다.
+  const assets = usePlantAssets();
   const [openId, setOpenId] = useState<string | null>(null);
   /*
     순회가 멈추는 까닭은 둘인데 서로 다른 것이라 따로 쥔다.
@@ -169,7 +172,11 @@ export function FaultMap({ plants, scope = 'faults', height = MAP_HEIGHT, select
               상황판을 지켜보는 사람은 그 학교에 가 본 적이 없다. 이름과 주소만 들고 현장에
               전화하면 어디를 말하는지부터 맞춰야 하는데, 사진 몇 장이 그 왕복을 없앤다.
             */}
-            <PlantPhotos plantId={openPlant.id} className={styles.side__photos} />
+            <PlantPhotos
+              photos={assets.find((asset) => asset.plantId === openPlant.id)?.photos ?? []}
+              plantName={openPlant.name}
+              className={styles.side__photos}
+            />
           </motion.div>
         </AnimatePresence>
       </div>
