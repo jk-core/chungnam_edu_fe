@@ -32,7 +32,12 @@ export function usePlantAssets(): PlantAsset[] {
   return useMemo(
     () => [...plantCreated, ...SEED_ASSETS]
       .filter((asset) => !plantDeleted.includes(asset.plantId))
-      .map((asset) => ({ ...asset, ...assetPatched[asset.plantId] })),
+      .map((asset) => {
+        const merged = { ...asset, ...assetPatched[asset.plantId] };
+
+        // 사진 칸이 생기기 전에 저장된 것에는 그 키가 없다 — persist 판을 올리면 변경분이 통째로 날아간다.
+        return { ...merged, photos: merged.photos ?? [] };
+      }),
     [plantCreated, plantDeleted, assetPatched],
   );
 }

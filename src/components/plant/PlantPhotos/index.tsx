@@ -30,17 +30,26 @@ export function PlantPhotos({ photos, plantName, className }: PlantPhotosProps) 
   const settle = useRef(0);
   const [index, setIndex] = useState(0);
 
+  /*
+    보고 있는 칸은 매번 목록 길이 안으로 접어 넣는다.
+
+    지도는 패널을 띄워 둔 채 다른 발전소로 갈아탄다(순회는 7초마다 저절로 갈아탄다) — 이때
+    컴포넌트는 그대로 살아 있어 번호만 남는다. 두 장짜리에서 둘째를 보던 채로 한 장짜리가
+    들어오면 「2 / 1」 이 적힌다.
+  */
+  const current = Math.min(index, photos.length - 1);
+
   // 번호가 바뀌면 그 칸으로 민다.
   useEffect(() => {
     const track = trackRef.current;
 
     if (!track) return;
 
-    const left = index * track.clientWidth;
+    const left = current * track.clientWidth;
 
     // 손으로 밀어 넘긴 뒤에는 이미 그 자리다 — 다시 넣으면 스냅이 한 번 더 튄다.
     if (Math.abs(track.scrollLeft - left) > 1) track.scrollLeft = left;
-  }, [index]);
+  }, [current]);
 
   if (photos.length === 0) return null;
 
@@ -132,29 +141,29 @@ export function PlantPhotos({ photos, plantName, className }: PlantPhotosProps) 
         </div>
 
         {/* 넘길 곳이 남아 있을 때만 화살표를 세운다 — 눌러도 안 움직이는 단추는 고장으로 읽힌다 */}
-        {index > 0 ? (
+        {current > 0 ? (
           <button
             type="button"
             className={`${styles.arrow} ${styles['arrow--prev']}`}
-            onClick={() => goTo(index - 1)}
+            onClick={() => goTo(current - 1)}
             aria-label="이전 사진"
           >
             <ChevronLeftIcon width={16} height={16} aria-hidden />
           </button>
         ) : null}
 
-        {index < photos.length - 1 ? (
+        {current < photos.length - 1 ? (
           <button
             type="button"
             className={`${styles.arrow} ${styles['arrow--next']}`}
-            onClick={() => goTo(index + 1)}
+            onClick={() => goTo(current + 1)}
             aria-label="다음 사진"
           >
             <ChevronRightIcon width={16} height={16} aria-hidden />
           </button>
         ) : null}
 
-        <span className={styles.counter}>{index + 1} / {photos.length}</span>
+        <span className={styles.counter}>{current + 1} / {photos.length}</span>
       </div>
 
       {/* 한 장뿐이면 넘길 것이 없어 점을 두지 않는다 */}
@@ -164,10 +173,10 @@ export function PlantPhotos({ photos, plantName, className }: PlantPhotosProps) 
             <button
               key={`${photo.fileId}-${photo.fileSeq}`}
               type="button"
-              className={order === index ? `${styles.dot} ${styles['dot--on']}` : styles.dot}
+              className={order === current ? `${styles.dot} ${styles['dot--on']}` : styles.dot}
               onClick={() => goTo(order)}
               aria-label={`${order + 1}번째 사진 보기`}
-              aria-current={order === index ? 'true' : undefined}
+              aria-current={order === current ? 'true' : undefined}
             />
           ))}
         </div>
