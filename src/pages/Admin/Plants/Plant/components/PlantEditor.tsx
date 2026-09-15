@@ -6,13 +6,13 @@ import { AddressSearchModal } from '@/components/common/AddressSearch';
 import { geocode } from '@/mocks/addresses';
 import { Button } from '@/components/common/Button';
 import { ConfirmDialog } from '@/components/common/ConfirmDialog';
-import { createForm, FormRow, FormSection } from '@/components/common/Form';
+import { createForm, FileUpload, FormRow, FormSection } from '@/components/common/Form';
 import { formatCapacity, formatPhone } from '@/utils/format';
 import { FormPage } from '@/pages/Admin/_shared/FormPage';
 import { listPath } from '@/pages/Admin/_shared/adminPath';
 import { Modal } from '@/components/common/Modal';
 import { MSG } from '@/configs/messages';
-import { NAME_MAX, plantFormSchema } from '@/service/plant/type';
+import { NAME_MAX, PHOTO_MAX_COUNT, plantFormSchema } from '@/service/plant/type';
 import { SCHOOL_LEVELS, SCHOOLS } from '@/mocks/schools';
 import { RecordPicker } from '@/components/common/RecordPicker';
 import { regionNameOfCode } from '@/configs/regions';
@@ -20,13 +20,22 @@ import { toast } from '@/stores/toastStore';
 import { useManagedUsers, usePlantAssets } from '@/hooks/usePlantAssets';
 import { usePyranometerRows } from '@/pages/Admin/Plants/Pyranometer/hooks/usePyranometerRows';
 import useAssetStore from '@/stores/assetStore';
+import type { UploadFile } from '@/components/common/Form';
 import type { PlantFormValues } from '@/service/plant/type';
 import type { ChangeLog } from '@/interface/changeLog';
 import type { PlantAsset } from '@/interface/asset';
 import styles from '@/pages/Admin/Admin.module.scss';
 import { usePlantChangeLog } from '../hooks/usePlantChangeLog';
 import { usePlantCapacity } from '../hooks/usePlantData';
-import { EMPTY_VALUES, irradLabelOf, toFormValues, userLabelOf } from './values';
+import {
+  EMPTY_VALUES,
+  irradLabelOf,
+  photoNames,
+  toFormValues,
+  toPhotos,
+  toUploadFiles,
+  userLabelOf,
+} from './values';
 
 /** 서버가 매기는 번호 자리. 시드가 10000 번대를 쓰므로 그 뒤에서 이어 붙인다. */
 const PLANT_NO_BASE = 10000;
@@ -59,6 +68,11 @@ export function PlantEditor({ powerPlantId }: { powerPlantId: number | null }) {
 
   const [pending, setPending] = useState<PlantFormValues | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
+  /*
+    대표이미지는 폼 밖에 둔다 — `File` 객체는 zod 가 검증할 것이 없고, 이미 저장된 사진과
+    방금 고른 사진을 한 목록으로 다뤄야 해서 첨부판이 쓰는 모양 그대로 든다.
+  */
+  const [photos, setPhotos] = useState<UploadFile[]>(() => toUploadFiles(asset?.photos ?? []));
 
   const regionCode = useWatch({ control: methods.control, name: 'regionCode' });
   const address = useWatch({ control: methods.control, name: 'address' });
@@ -97,6 +111,7 @@ export function PlantEditor({ powerPlantId }: { powerPlantId: number | null }) {
       irradId: null,
       plantType: values.powerPlantType,
       etc: values.etc.trim(),
+      photos: toPhotos(photos, created),
     }, entryOf(
       { id: created, name: values.powerPlantName },
       '신규 등록',
@@ -111,7 +126,14 @@ export function PlantEditor({ powerPlantId }: { powerPlantId: number | null }) {
   const update = (values: PlantFormValues) => {
     if (!asset) return;
 
+    /*
+      API 가 붙으면 새로 고른 것은 `fileList` part 로, 뺀 것은 `removeFileList` 로 나간다.
+      목업은 남은 목록을 통째로 다시 지어 넣는다 — `File` 객체는 스토어에 넣지 않는다.
+    */
+    const nextPhotos = toPhotos(photos, asset.plantId);
+
     const next: Partial<PlantAsset> = {
+      photos: nextPhotos,
       plantName: values.powerPlantName,
       plantType: values.powerPlantType,
       regionCode: values.regionCode,
@@ -145,6 +167,8 @@ export function PlantEditor({ powerPlantId }: { powerPlantId: number | null }) {
       ['사용자', nameOfUser(asset.userId), nameOfUser(values.userId)],
       ['연결 일사량계', irradNameOf(asset.irradId), irradNameOf(values.irradId)],
       ['비고', asset.etc || '—', next.etc || '—'],
+      // 장수만 견주면 같은 장수로 갈아 끼운 것을 놓쳐 저장 자체가 거부된다.
+      ['현장 사진', photoNames(asset.photos) || '—', photoNames(nextPhotos) || '—'],
     ]
       .filter(([, before, after]) => before !== after)
       .map(([field, before, after]) => entryOf(plant, field, before, after));
@@ -359,6 +383,20 @@ export function PlantEditor({ powerPlantId }: { powerPlantId: number | null }) {
               name="etc"
               optional
               placeholder="점검 주기, 접근 경로처럼 담당자가 알아야 할 내용"
+            />
+          </FormSection>
+
+          <FormSection
+            legend="현장 사진"
+            hint={`설치 현장을 찍은 대표이미지입니다. ${PHOTO_MAX_COUNT}장까지, 없어도 저장됩니다.`}
+          >
+            <FileUpload
+              label="사진 올리기"
+              value={photos}
+              onChange={setPhotos}
+              maxCount={PHOTO_MAX_COUNT}
+              hint={`사진 ${PHOTO_MAX_COUNT}장까지, 한 장에 5MB 까지 올릴 수 있습니다.`}
+              onError={(message) => toast.error(message)}
             />
           </FormSection>
 

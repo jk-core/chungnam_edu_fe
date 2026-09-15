@@ -148,13 +148,6 @@
   font-family: var(--font-data);
 }
 
-.caption {
-  @include t.caption;
-  @include mx.truncate;
-
-  color: var(--text-muted);
-}
-
 .dots {
   display: flex;
   justify-content: center;

@@ -1,12 +1,13 @@
 import { useEffect, useRef, useState } from 'react';
 import { ChevronLeftIcon, ChevronRightIcon, PhotoIcon } from '@/components/common/Icon';
-import { getPlantPhotos } from '@/mocks/plantPhotos';
-import type { PlantPhoto } from '@/mocks/plantPhotos';
+import type { FileMeta } from '@/service/common';
 import styles from './PlantPhotos.module.scss';
 import type { PointerEvent } from 'react';
 
 interface PlantPhotosProps {
-  plantId: string;
+  photos: FileMeta[];
+  /** 대체 텍스트를 짓는 데 쓴다 — 사진 자체는 무엇을 찍은 것인지 말해 주지 않는다 */
+  plantName: string;
   className?: string;
 }
 
@@ -21,8 +22,7 @@ interface PlantPhotosProps {
  * 한 장인 곳과 세 장인 곳의 사진 크기가 딴판이 되고, 좁은 칸에서는 셋 다 우표만 해진다.
  * 칸은 늘 같은 크기·같은 비율이고, 사진은 제 비율을 지킨 채 그 안에 담긴다.
  */
-export function PlantPhotos({ plantId, className }: PlantPhotosProps) {
-  const photos = getPlantPhotos(plantId);
+export function PlantPhotos({ photos, plantName, className }: PlantPhotosProps) {
   const trackRef = useRef<HTMLDivElement>(null);
   /** 끄는 동안의 시작 지점. 렌더에 쓰이지 않아 상태로 두지 않는다 */
   const drag = useRef<{ x: number; from: number } | null>(null);
@@ -122,8 +122,12 @@ export function PlantPhotos({ plantId, className }: PlantPhotosProps) {
             ? `현장 사진 ${photos.length}장. 좌우로 밀어 넘깁니다.`
             : '현장 사진 1장'}
         >
-          {photos.map((photo) => (
-            <Slide key={photo.src} photo={photo} />
+          {photos.map((photo, order) => (
+            <Slide
+              key={`${photo.fileId}-${photo.fileSeq}`}
+              photo={photo}
+              label={`${plantName} 현장 사진 ${order + 1}`}
+            />
           ))}
         </div>
 
@@ -153,14 +157,12 @@ export function PlantPhotos({ plantId, className }: PlantPhotosProps) {
         <span className={styles.counter}>{index + 1} / {photos.length}</span>
       </div>
 
-      <p className={styles.caption}>{photos[Math.min(index, photos.length - 1)].caption}</p>
-
       {/* 한 장뿐이면 넘길 것이 없어 점을 두지 않는다 */}
       {photos.length > 1 ? (
         <div className={styles.dots}>
           {photos.map((photo, order) => (
             <button
-              key={photo.src}
+              key={`${photo.fileId}-${photo.fileSeq}`}
               type="button"
               className={order === index ? `${styles.dot} ${styles['dot--on']}` : styles.dot}
               onClick={() => goTo(order)}
@@ -180,21 +182,21 @@ export function PlantPhotos({ plantId, className }: PlantPhotosProps) {
  * 실린 뒤에야 실패를 알 수 있어 상태를 각 칸이 따로 쥔다 — 한 장이 없다고 나머지까지
  * 자리표시자로 떨어뜨리면, 파일이 하나씩 들어오는 동안 화면이 실제보다 비어 보인다.
  */
-function Slide({ photo }: { photo: PlantPhoto }) {
+function Slide({ photo, label }: { photo: FileMeta; label: string }) {
   const [failed, setFailed] = useState(false);
 
   return (
     <div className={styles.slide}>
       {failed ? (
-        <span className={styles.blank} role="img" aria-label={`${photo.caption} 사진 준비 중`}>
+        <span className={styles.blank} role="img" aria-label={`${label} 준비 중`}>
           <PhotoIcon width={22} height={22} aria-hidden />
           사진 준비 중
         </span>
       ) : (
         <img
           className={styles.image}
-          src={photo.src}
-          alt={photo.caption}
+          src={photo.url}
+          alt={label}
           loading="lazy"
           draggable={false}
           onError={() => setFailed(true)}
