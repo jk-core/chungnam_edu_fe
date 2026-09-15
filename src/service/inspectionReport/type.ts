@@ -1,7 +1,7 @@
 import { z } from 'zod';
 import { MSG } from '@/configs/messages';
 import { INSPECTION_TARGET_OPTIONS } from '@/mocks/fieldReport';
-import { pagingParamsSchema } from '@/service/common';
+import { fileSchema, fileToRemoveSchema, pagingParamsSchema } from '@/service/common';
 
 export const LABEL_MAX = 60;
 export const CHECK_NAME_MAX = 200;
@@ -106,12 +106,7 @@ export const inspectionReportDetailSchema = inspectionReportListItemSchema.exten
     result: checkResultMarkSchema,
     note: z.string(),
   })),
-  photoList: z.array(z.object({
-    fileId: z.string(),
-    fileSeq: z.number().int(),
-    fileName: z.string(),
-    url: z.string(),
-  })),
+  photoList: z.array(fileSchema),
   historyList: z.array(z.object({
     actionDtm: z.string(),
     userName: z.string(),
@@ -156,10 +151,7 @@ export const inspectionReportAddSchema = z.object({
 export type InspectionReportModifyParams = z.infer<typeof inspectionReportModifySchema>;
 export const inspectionReportModifySchema = inspectionReportAddSchema.extend({
   inspectionReportId: z.number().int(),
-  removeFileList: z.array(z.object({
-    fileId: z.string(),
-    fileSeq: z.number().int(),
-  })).optional(),
+  removeFileList: z.array(fileToRemoveSchema).optional(),
 });
 
 /**

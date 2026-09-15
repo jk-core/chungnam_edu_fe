@@ -52,3 +52,19 @@ export function pagingResponseSchema<T extends z.ZodType>(content: T) {
   return pagingEnvelopeSchema.extend({ content: z.array(content) });
 }
 export type PagingResponse<T> = z.infer<typeof pagingEnvelopeSchema> & { content: Array<T> };
+
+/** 응답에 실려 오는 첨부 한 건. 공지·문의·점검보고서·발전소가 같은 모양을 쓴다 */
+export type FileMeta = z.infer<typeof fileSchema>;
+export const fileSchema = z.object({
+  fileId: z.string(),
+  fileSeq: z.number().int(),
+  fileName: z.string(),
+  url: z.string(),
+});
+
+/**
+ * 뺄 파일은 상세 응답의 `fileId`·`fileSeq` 를 그대로 돌려보낸다.
+ * `fileId` 는 한 건의 첨부 묶음을 가리켜 혼자서는 파일 한 장을 특정하지 못한다.
+ */
+export type FileToRemove = z.infer<typeof fileToRemoveSchema>;
+export const fileToRemoveSchema = fileSchema.pick({ fileId: true, fileSeq: true });

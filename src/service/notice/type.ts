@@ -1,27 +1,13 @@
 import { z } from 'zod';
-import { pagingParamsSchema } from '@/service/common';
+import { fileSchema, fileToRemoveSchema, pagingParamsSchema } from '@/service/common';
 
-/** 게시판이 함께 쓰는 첨부 한 장 */
+/** 게시판 첨부는 이미지와 문서를 함께 받아 구분이 따라온다 */
 export type BoardFile = z.infer<typeof boardFileSchema>;
-export const boardFileSchema = z.object({
-  fileId: z.string(),
-  fileSeq: z.number().int(),
-  fileName: z.string(),
-  url: z.string(),
-  /** 첨부구분 */
+export const boardFileSchema = fileSchema.extend({
   fileType: z.enum(['image', 'file']),
 });
 
-/**
- * 뺄 파일은 상세 응답의 fileId·fileSeq 를 그대로 돌려보낸다 —
- * fileId 는 글 한 건의 첨부 묶음을 가리켜 혼자서는 파일 한 장을 특정하지 못한다.
- */
-export type BoardFileToRemove = z.infer<typeof boardFileToRemoveSchema>;
-export const boardFileToRemoveSchema = z.object({
-  fileId: z.string(),
-  fileSeq: z.number().int(),
-});
-
+/** 게시판이 답변·댓글에 함께 쓰는 한 줄 */
 export type BoardComment = z.infer<typeof boardCommentSchema>;
 export const boardCommentSchema = z.object({
   commentId: z.number().int(),
@@ -103,7 +89,7 @@ export const noticeAddSchema = z.object({
 export type NoticeModifyParams = z.infer<typeof noticeModifySchema>;
 export const noticeModifySchema = noticeAddSchema.extend({
   noticeId: z.number().int(),
-  removeFileList: z.array(boardFileToRemoveSchema).optional(),
+  removeFileList: z.array(fileToRemoveSchema).optional(),
 });
 
 export type NoticeRemoveParams = z.infer<typeof noticeRemoveParamsSchema>;
