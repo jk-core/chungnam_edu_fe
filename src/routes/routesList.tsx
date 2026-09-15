@@ -19,6 +19,7 @@ const LoginPage = lazy(() => import('@/pages/Login'));
 const SolarEduPage = lazy(() => import('@/pages/SolarEdu'));
 const ControlRoomPage = lazy(() => import('@/pages/ControlRoom'));
 const ControlRoomDraftPage = lazy(() => import('@/pages/ControlRoom/drafts'));
+const ControlRoomVersionPage = lazy(() => import('@/pages/ControlRoom/versions'));
 const AdminLayout = lazy(() => import('@/layouts/AdminLayout'));
 const AdminPage = lazy(() => import('@/pages/Admin'));
 
@@ -75,6 +76,10 @@ export const routes: RouteObject[] = [
       { path: PATH.CONTROL_C, element: <ControlRoomDraftPage draft="c" /> },
       { path: PATH.CONTROL_D, element: <ControlRoomDraftPage draft="d" /> },
       { path: PATH.CONTROL_E, element: <ControlRoomDraftPage draft="e" /> },
+      // 「한눈에 보는」 시안 — 겹치는 판을 덜고 남는 판·글자를 키운 갈래다.
+      { path: PATH.CONTROL_V1, element: <ControlRoomVersionPage version="v1" /> },
+      { path: PATH.CONTROL_V2, element: <ControlRoomVersionPage version="v2" /> },
+      { path: PATH.CONTROL_V3, element: <ControlRoomVersionPage version="v3" /> },
       {
         path: PATH.HOME,
         element: <RootLayout />,

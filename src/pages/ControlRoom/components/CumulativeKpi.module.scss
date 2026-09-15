@@ -72,27 +72,24 @@
   }
 }
 
-/* 하나 전 같은 기간과의 증감 — 세 기간을 한 줄에 나란히 둔다 */
+/*
+  하나 전 같은 기간과의 증감.
+
+  표 아래 한 줄에 셋을 몰아 두었다가 표 안으로 들였다 — 「전일 ▲23.5%」 가 금일 줄과 짝이라는
+  것을 읽는 사람이 이어 붙여야 했다. 이제 같은 줄에 서므로 무엇과 견줬는지는 맨 왼쪽의 기간
+  이름이 말한다.
+*/
 .delta {
-  display: flex;
-  flex-wrap: wrap;
-  gap: s.$space-1 s.$space-4;
-  padding-top: s.$space-2;
-  border-top: 1px solid var(--border-subtle);
+  color: var(--text-faint);
+  font-family: var(--font-data);
+  font-variant-numeric: tabular-nums;
 
-  &__item {
-    @include t.caption;
+  &[data-way="up"] {
+    color: var(--ok-text);
+  }
 
-    color: var(--text-faint);
-    font-variant-numeric: tabular-nums;
-
-    &[data-way="up"] {
-      color: var(--ok-text);
-    }
-
-    &[data-way="down"] {
-      color: var(--critical-text);
-    }
+  &[data-way="down"] {
+    color: var(--critical-text);
   }
 }
 
@@ -124,5 +121,14 @@
     display: inline-flex;
     flex-shrink: 0;
     color: var(--ok);
+  }
+
+  /* 무엇을 기준으로 센 그루인지 — 문장 끝에 조용히 붙인다 */
+  &__basis {
+    margin-left: auto;
+    color: var(--text-faint);
+    font-size: 0.9em;
+    font-style: normal;
+    white-space: nowrap;
   }
 }

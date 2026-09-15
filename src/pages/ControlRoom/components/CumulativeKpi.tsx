@@ -59,11 +59,20 @@ export function CumulativeKpi({ todayKwh, monthKwh, yearKwh, capacityKw }: Cumul
   // 발전시간 = 발전량 ÷ 설비용량. 크기가 다른 기간을 같은 눈금에 세운다.
   const hoursOf = (kwh: number) => (capacityKw > 0 ? kwh / capacityKw : 0);
 
+  /*
+    기간마다 짝이 되는 증감을 함께 들려 보낸다.
+
+    전에는 표 아래 한 줄에 「전일 ▲23.5% · 전월 ▼7.0% · 전년 ▲7.1%」 로 몰아 두었다. 값은 있었지만
+    어느 줄과 짝인지는 읽는 사람이 이어 붙여야 했다 — 금일 줄을 보다가 눈을 아래로 내려 전일을
+    찾고 다시 올라와야 했다. 같은 줄에 세우면 「금일 … 전일 대비 ▲23.5%」 가 한 번에 읽힌다.
+
+    누적은 견줄 하나 전이 없다. `DELTAS` 는 일·월·년 셋뿐이므로 넷째 줄은 비워 둔다.
+  */
   const periods = [
-    { key: 'today', label: '금일', kwh: todayKwh },
-    { key: 'month', label: '금월', kwh: monthKwh },
-    { key: 'year', label: '금년', kwh: yearKwh },
-    { key: 'total', label: '누적', kwh: CUMULATIVE.totalKwh },
+    { key: 'today', label: '금일', kwh: todayKwh, delta: DELTAS[0] },
+    { key: 'month', label: '금월', kwh: monthKwh, delta: DELTAS[1] },
+    { key: 'year', label: '금년', kwh: yearKwh, delta: DELTAS[2] },
+    { key: 'total', label: '누적', kwh: CUMULATIVE.totalKwh, delta: null },
   ];
 
   return (
@@ -75,6 +84,7 @@ export function CumulativeKpi({ todayKwh, monthKwh, yearKwh, capacityKw }: Cumul
             <th>발전량</th>
             <th>발전시간</th>
             <th>탄소저감</th>
+            <th>증감</th>
           </tr>
         </thead>
         <tbody>
@@ -97,26 +107,31 @@ export function CumulativeKpi({ todayKwh, monthKwh, yearKwh, capacityKw }: Cumul
                   {carbon.value}
                   <span>{carbon.unit}</span>
                 </td>
+                {/* 하나 전 같은 기간과의 증감 — 무엇과 견줬는지는 옆의 기간 이름이 말한다 */}
+                <td
+                  className={styles.delta}
+                  data-way={row.delta?.ratio == null ? undefined : row.delta.ratio >= 0 ? 'up' : 'down'}
+                >
+                  {row.delta?.ratio == null
+                    ? '—'
+                    : `${row.delta.ratio >= 0 ? '▲' : '▼'}${formatPercent(Math.abs(row.delta.ratio), 1)}`}
+                </td>
               </tr>
             );
           })}
         </tbody>
       </table>
 
-      {/* 하나 전 같은 기간과의 증감 — 세 기간을 한 줄에 나란히 둔다 */}
-      <p className={styles.delta}>
-        {DELTAS.map(({ label, ratio }) => (
-          <span key={label} className={styles.delta__item} data-way={ratio === null ? undefined : ratio >= 0 ? 'up' : 'down'}>
-            {label}
-            {ratio === null ? ' —' : ` ${ratio >= 0 ? '▲' : '▼'}${formatPercent(Math.abs(ratio), 1)}`}
-          </span>
-        ))}
-      </p>
+      {/*
+        톤은 체감이 어렵다 — 소나무 그루로 바꿔 적는다.
 
-      {/* 톤은 체감이 어렵다 — 소나무 그루로 바꿔 적는다 */}
+        무엇을 기준으로 센 그루인지 밝힌다. 바로 위 표에 금일·금월·금년·누적 넷이 서 있어, 기준이
+        없으면 맨 아랫줄(누적)의 값인지 금일 값인지 알 수 없다.
+      */}
       <p className={styles.tree}>
         <span className={styles.tree__mark} aria-hidden="true"><LeafIcon width={13} height={13} /></span>
         소나무 <strong>{formatKoCount(CUMULATIVE.pineTrees)}</strong>그루 심은 효과
+        <em className={styles.tree__basis}>누적 발전량 기준</em>
       </p>
     </div>
   );

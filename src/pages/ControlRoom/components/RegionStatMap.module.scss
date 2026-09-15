@@ -12,10 +12,21 @@
   좌우로 갈라 도형에 높이를 다 주면 같은 판에서 글자가 배로 커진다.
 */
 .map {
+  position: relative;
   display: flex;
   gap: s.$space-4;
   flex: 1;
   min-height: 0;
+
+  /* 도형과 범례가 한 단으로 선다 — 범례가 도형 위에 얹히면 서로 글자를 갉는다 */
+  &__side {
+    display: flex;
+    flex-direction: column;
+    gap: s.$space-2;
+    flex: 1;
+    min-width: 0;
+    min-height: 0;
+  }
 
   &__canvas {
     flex: 1;
@@ -163,6 +174,19 @@
       flex-direction: column;
       gap: 1px;
       min-width: 0;
+
+      /*
+        상태를 말하는 값의 결.
+        「충남 전체」 박스와 같은 짝을 쓴다 — 두 칸이 위아래로 서므로 같은 값이 다른 색으로
+        적혀 있으면 견주기 전에 색부터 맞춰 봐야 한다.
+      */
+      &[data-tone="ok"] {
+        --tone-text: var(--ok-text);
+      }
+
+      &[data-tone="critical"] {
+        --tone-text: var(--critical-text);
+      }
     }
 
     dt {
@@ -175,7 +199,7 @@
       @include t.data-sm;
 
       margin: 0;
-      color: var(--text-strong);
+      color: var(--tone-text, var(--text-strong));
 
       span {
         @include t.label-sm;
@@ -385,5 +409,77 @@
     @include t.caption;
 
     color: var(--text-faint);
+  }
+}
+
+/*
+  면 색 기준.
+
+  도형 **아래**에 제 줄로 둔다.
+
+  도형 위에 띄워 얹어 보았으나 두 번 다 실패했다 — 왼쪽 아래에서는 보령·서천 면과 겹쳤고,
+  왼쪽 위로 옮긴 뒤에는 띄운 상자가 제 폭을 319px 로 줄이면서 눈금이 「정상 비율」 글자 위로
+  올라탔다. `width: max-content` 로도 풀리지 않았다. 도형이 20px 남짓 작아지지만, 겹쳐 읽히지
+  않는 것이 먼저다.
+*/
+.legend {
+  display: flex;
+  align-items: center;
+  gap: s.$space-3;
+  flex-shrink: 0;
+
+  /* 눈금 앞에 서는 이름 — 뒤의 숫자들이 무엇의 몫인지 여기서 정해진다 */
+
+  /*
+    눈금 앞에 서는 이름.
+
+    `flex-shrink: 0` 만으로는 상자가 9px 로 찌그러졌고, `white-space: nowrap` 탓에 글자가 그
+    밖으로 흘러 「90% 이상」 위에 겹쳐 그려졌다 — 줄어들지 말라고만 이르고 얼마가 필요한지는
+    말하지 않은 셈이다. `min-width: max-content` 로 글자만큼은 반드시 차지하게 못 박는다.
+  */
+  &__name {
+    flex: 0 0 auto;
+    min-width: max-content;
+    color: var(--text-strong);
+
+    /*
+      눈금 글자와 **같은 크기·같은 줄높이**로 맞춘다.
+
+      0.82rem / 기본 줄높이로 두었더니 0.8rem 인 눈금들보다 글자 상자가 조금 높아, 가운데
+      맞춤을 해도 「정상 비율」 만 한 단 내려앉아 보였다. 굵기로만 갈라도 이름과 눈금은 충분히
+      구분된다.
+    */
+    font-size: 0.8rem;
+    font-weight: 700;
+    line-height: 1;
+    white-space: nowrap;
+  }
+
+  ul {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 2px s.$space-3;
+    list-style: none;
+  }
+
+  li {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    color: var(--text-muted);
+    font-size: 0.8rem;
+    font-weight: 500;
+    line-height: 1;
+    white-space: nowrap;
+  }
+
+  span {
+    width: 9px;
+    height: 9px;
+    border-radius: 2px;
+
+    /* 도형은 32% 로 깔리므로 견본도 같은 농도라야 같은 색으로 읽힌다 */
+    opacity: 0.55;
   }
 }

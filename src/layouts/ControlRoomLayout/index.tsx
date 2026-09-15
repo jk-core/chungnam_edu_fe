@@ -29,8 +29,6 @@ interface ControlRoomLayoutProps {
   onSearch: () => void;
   /** 걸어 둔 조건 요약. 없으면 안내 문구를 대신 띄운다 */
   searchSummary?: string;
-  /** 화면에 깔린 값이 언제 수집된 것인지 (`YYYY-MM-DD HH:mm`) */
-  collectedAt?: string;
   /**
    * 화면의 결. 주지 않으면 서비스 기본 색을 쓴다.
    *
@@ -51,7 +49,6 @@ export function ControlRoomLayout({
   alertTone,
   onSearch,
   searchSummary,
-  collectedAt,
   skin,
   children,
 }: ControlRoomLayoutProps) {
@@ -93,14 +90,13 @@ export function ControlRoomLayout({
           </button>
 
           {/*
-            화면에 깔린 값이 언제 기준인지.
-            벽시계 옆에 붙여 지금 시각과 곧바로 견주게 한다 — 둘이 벌어져 있으면 그 자체가
-            수집이 밀렸다는 신호다 (SFR-004-04/05).
+            「최근 수집」 을 벽시계 옆에 붙여 두었다가 걷어냈다.
+
+            도 전체에서 가장 늦게 들어온 한 값이라 언제나 방금 시각이 찍혔다 — 300개소 가운데
+            어느 하나만 들어와도 이 값이 갱신되므로, 정작 며칠째 끊긴 설비가 있어도 머리 줄은
+            멀쩡해 보였다. 수집이 밀렸는지는 「실시간 이상 감지」 목록의 마지막 수신 시각이
+            학교별로 답한다 — 거기서는 07-30 처럼 오래된 날짜가 그대로 드러난다.
           */}
-          <span className={styles.collected}>
-            최근 수집
-            <strong>{collectedAt}</strong>
-          </span>
 
           <RoomClock />
 

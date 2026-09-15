@@ -1,6 +1,6 @@
 import { useMemo } from 'react';
 import { REGION_CI_COLOR, REGION_SHAPE_BOX, REGION_SHAPES, REGION_VIEW } from '@/assets/geo/chungnamRegions';
-import { PauseIcon, PlayIcon } from '@/components/common/Icon';
+import { ChevronLeftIcon, ChevronRightIcon, PauseIcon, PlayIcon } from '@/components/common/Icon';
 import { isAbnormal, OPERATION_LABEL, OPERATION_RANK, OPERATION_TONE } from '@/mocks/status';
 import { currentOutputOf } from '@/mocks/schoolOutput';
 import { formatCapacity, formatEnergy, formatNumber, formatPercent } from '@/utils/format';
@@ -8,6 +8,7 @@ import type { School } from '@/interface/energy';
 import { orderRegionNames, useRegionTour } from '../utils/regionTour';
 import { StatusMix } from './StatusMix';
 import styles from './RegionStatMap.module.scss';
+import type { ReactNode } from 'react';
 
 /** 이름표가 시·군 면 밖으로 밀려나지 않게 두는 여백 */
 const EDGE_PAD = 34;
@@ -17,6 +18,39 @@ const NAMED_FAULTS = 3;
 
 function clamp(value: number, min: number, max: number) {
   return Math.min(max, Math.max(min, value));
+}
+
+/**
+ * 면 색이 뜻하는 것 — 그 시·군에서 정상 가동 중인 개소의 몫.
+ *
+ * 본디 충남 CI 여섯 색을 도형 차례대로 돌려 썼다. 「행정구역별 색상을 반영하면 좋겠음」 (2026-09-04
+ * 노트) 을 받은 것이지만, 색이 아무 값도 뜻하지 않아 열다섯 면을 보고도 어디가 성치 않은지 알
+ * 수 없었다 — 「색깔별로 뭐가 다른지 모르겠다」 는 말이 그래서 나왔다.
+ *
+ * 비율로 칠하는 까닭은 개소 수에 휘둘리지 않기 때문이다. 조치 대상 「N개소」 는 큰 시가 늘 크게
+ * 나오지만(천안 49곳 중 11), 몫으로 보면 계룡(5곳 중 1)과 크게 다르지 않다. 절대 수는 옆 칸과
+ * 아래 목록이 이미 말하므로 면은 몫을 맡는다.
+ *
+ * 단계는 넷이다. 다섯을 넘기면 옆 단계와 구분이 서지 않고, 셋으로 줄이면 「한 곳 빠진 곳」 과
+ * 「절반이 빠진 곳」 이 같은 색이 된다.
+ *
+ * 경계는 90·80·70 이다. 처음에 100·95·85 로 잡았더니 열다섯 곳이 거의 다 주황과 분홍으로 물들어
+ * 「어디가 급한가」 가 되레 묻혔다 — 한두 곳이 빠진 것은 늘 있는 일이라 그것까지 경보로 칠하면
+ * 경보가 바탕이 된다.
+ */
+const RUN_STEPS: { min: number; color: string; label: string }[] = [
+  { min: 0.9, color: 'var(--ok)', label: '90% 이상' },
+  { min: 0.8, color: 'var(--brand)', label: '80% 이상' },
+  { min: 0.7, color: 'var(--caution)', label: '70% 이상' },
+  { min: 0, color: 'var(--critical)', label: '70% 미만' },
+];
+
+function runColor(count: number, abnormal: number): string {
+  if (count === 0) return 'var(--offline)';
+
+  const ratio = (count - abnormal) / count;
+
+  return (RUN_STEPS.find((step) => ratio >= step.min) ?? RUN_STEPS[RUN_STEPS.length - 1]).color;
 }
 
 /** 시·군 면의 한가운데 — 이름표가 앉는 자리다 */
@@ -52,6 +86,27 @@ interface RegionStat {
 interface RegionStatMapProps {
   /** 조회 조건에 걸린 발전소 전부 */
   plants: School[];
+  /**
+   * 「도 대비 설비·발전」 막대 두 줄을 둘지.
+   *
+   * 도 전체를 제 칸으로 따로 세우는 화면에서는 끈다 — 몫(%)과 도 전체 수치가 같은 칸에 함께
+   * 서면 무엇과 무엇을 견주는 자리인지 흐려진다.
+   */
+  showShare?: boolean;
+  /**
+   * 「손봐야 할 곳」 목록을 둘지.
+   *
+   * 잡힌 이상을 따로 세우는 화면에서는 끈다 — 같은 학교 이름이 두 자리에 서면 어느 쪽을 봐야
+   * 하는지 흐려지고, 상세 칸만 그만큼 길어진다.
+   */
+  showFaults?: boolean;
+  /**
+   * 시·군 상세 아래에 덧붙일 것.
+   *
+   * 견줌 대상을 같은 칸에 세우라고 낸 자리다 — 지금 보는 시·군 바로 아래 도 전체가 같은 모양으로
+   * 서면 「이 시·군이 도 안에서 어느 만큼인지」 를 눈이 두 줄만 오르내리며 읽는다.
+   */
+  aside?: ReactNode;
 }
 
 /**
@@ -70,7 +125,7 @@ interface RegionStatMapProps {
  * 이름표의 수치가 말하고, 색은 시·군을 가르는 구실만 한다. 그래서 단계색(`--map-scale-*`)을
  * 쓰지 않는다. 값에 따라 진해지는 색과 섞이면 둘 다 읽히지 않는다.
  */
-export function RegionStatMap({ plants }: RegionStatMapProps) {
+export function RegionStatMap({ plants, showShare = true, showFaults = true, aside }: RegionStatMapProps) {
   const rows = useMemo((): RegionStat[] => {
     const byRegion = new Map<string, School[]>();
 
@@ -135,12 +190,14 @@ export function RegionStatMap({ plants }: RegionStatMapProps) {
 
   return (
     <div className={styles.map}>
-      <svg
-        className={styles.map__canvas}
-        viewBox={`0 0 ${REGION_VIEW.width} ${REGION_VIEW.height}`}
-        aria-label={`충청남도 시·군별 현황. 지금 ${active.name}`}
-      >
-        {/*
+      {/* 도형과 범례를 한 단으로 묶는다 — 범례가 도형 위에 얹히면 서로 글자를 갉는다 */}
+      <div className={styles.map__side}>
+        <svg
+          className={styles.map__canvas}
+          viewBox={`0 0 ${REGION_VIEW.width} ${REGION_VIEW.height}`}
+          aria-label={`충청남도 시·군별 현황. 지금 ${active.name}`}
+        >
+          {/*
           면을 눌러 그 시·군으로 (2026-09-07 지시).
 
           순회를 기다리지 않고 보고 싶은 곳으로 바로 간다. 아래 눈금으로도 갈 수 있지만 그쪽은
@@ -149,58 +206,85 @@ export function RegionStatMap({ plants }: RegionStatMapProps) {
           발전소가 없어 순회에 들지 않은 시·군은 누를 것이 없다. 눌러도 갈 자리가 없으므로
           단추로 만들지 않는다.
         */}
-        {REGION_SHAPES.map((shape) => {
-          const at = rows.findIndex((row) => row.name === shape.region);
+          {REGION_SHAPES.map((shape) => {
+            const at = rows.findIndex((row) => row.name === shape.region);
 
-          return (
-            <path
-              key={shape.id}
-              className={styles.map__cell}
-              style={{ '--cell': REGION_CI_COLOR[shape.region] } as React.CSSProperties}
-              data-on={shape.region === active.name ? '' : undefined}
-              data-pick={at >= 0 ? '' : undefined}
-              role={at >= 0 ? 'button' : undefined}
-              tabIndex={at >= 0 ? 0 : undefined}
-              aria-label={at >= 0 ? `${shape.region} 보기` : undefined}
-              aria-current={shape.region === active.name ? 'true' : undefined}
-              onClick={at >= 0 ? () => tour.goTo(at) : undefined}
-              onKeyDown={at >= 0 ? (event) => {
-                if (event.key !== 'Enter' && event.key !== ' ') return;
+            return (
+              <path
+                key={shape.id}
+                className={styles.map__cell}
+                style={{
+                  '--cell': at >= 0 ? runColor(rows[at].count, rows[at].abnormal) : 'var(--offline)',
+                } as React.CSSProperties}
+                data-on={shape.region === active.name ? '' : undefined}
+                data-pick={at >= 0 ? '' : undefined}
+                role={at >= 0 ? 'button' : undefined}
+                tabIndex={at >= 0 ? 0 : undefined}
+                aria-label={at >= 0 ? `${shape.region} 보기` : undefined}
+                aria-current={shape.region === active.name ? 'true' : undefined}
+                onClick={at >= 0 ? () => tour.goTo(at) : undefined}
+                onKeyDown={at >= 0 ? (event) => {
+                  if (event.key !== 'Enter' && event.key !== ' ') return;
 
-                event.preventDefault();
-                tour.goTo(at);
-              } : undefined}
-              d={shape.d}
-              transform={shape.transform}
-              vectorEffect="non-scaling-stroke"
-            />
-          );
-        })}
+                  event.preventDefault();
+                  tour.goTo(at);
+                } : undefined}
+                d={shape.d}
+                transform={shape.transform}
+                vectorEffect="non-scaling-stroke"
+              />
+            );
+          })}
 
-        {/*
+          {/*
           이름표는 면을 다 그린 뒤에 얹는다.
 
           면과 섞어 그리면 뒤에 오는 시·군의 면이 앞서 그린 이름표를 덮는다 — 경계가 맞물린
           지도에서는 어느 이름이 덮일지가 도형 차례에 달리게 되어, 볼 때마다 다른 이름이 사라진다.
         */}
-        {rows.map((row) => {
-          const at = centerOf(row.name);
+          {rows.map((row) => {
+            const at = centerOf(row.name);
 
-          return (
-            <g
-              key={row.name}
-              className={styles.tag}
-              data-on={row.name === active.name ? '' : undefined}
-              transform={`translate(${at.x} ${at.y})`}
-            >
-              <text className={styles.tag__name} y={0} textAnchor="middle">{row.name}</text>
-              <text className={styles.tag__count} y={17} textAnchor="middle">
-                {row.count > 0 ? `${formatNumber(row.count)}개소` : '-'}
-              </text>
-            </g>
-          );
-        })}
-      </svg>
+            return (
+              <g
+                key={row.name}
+                className={styles.tag}
+                data-on={row.name === active.name ? '' : undefined}
+                transform={`translate(${at.x} ${at.y})`}
+              >
+                <text className={styles.tag__name} y={0} textAnchor="middle">{row.name}</text>
+                <text className={styles.tag__count} y={17} textAnchor="middle">
+                  {row.count > 0 ? `${formatNumber(row.count)}개소` : '-'}
+                </text>
+              </g>
+            );
+          })}
+        </svg>
+
+        {/*
+        면 색이 무엇을 뜻하는지.
+
+        기준 없이 색만 칠해 두면 보는 사람이 뜻을 찾다가 없다는 것을 알게 된다 — 칠했으면 무엇으로
+        칠했는지도 함께 적어야 한다. 도형 위에 얹어 자리를 따로 먹지 않는다.
+      */}
+        <div className={styles.legend}>
+          {/*
+          무엇의 몫인지 먼저 적는다.
+          「90% 이상」 만 적어 두면 그 90% 가 발전량인지 가동 개소인지 알 수 없다 — 눈금 앞에
+          이름을 세워야 뒤의 숫자들이 한 가지로 읽힌다.
+        */}
+          <span className={styles.legend__name}>정상 비율</span>
+
+          <ul aria-label="면 색 기준 — 정상 가동 중인 개소의 몫">
+            {RUN_STEPS.map((step) => (
+              <li key={step.label}>
+                <span style={{ backgroundColor: step.color }} aria-hidden />
+                {step.label}
+              </li>
+            ))}
+          </ul>
+        </div>
+      </div>
 
       {/*
         머무는 시·군의 상세.
@@ -210,17 +294,39 @@ export function RegionStatMap({ plants }: RegionStatMapProps) {
       */}
       <div className={styles.now} aria-live="off">
         <div className={styles.now__head}>
-          <span className={styles.now__color} style={{ backgroundColor: REGION_CI_COLOR[active.name] }} aria-hidden />
+          {/* 지도에서 물든 면과 같은 색 — 아래 값들이 위 어느 면의 이야기인지 색 하나로 이어진다 */}
+          <span
+            className={styles.now__color}
+            style={{ backgroundColor: runColor(active.count, active.abnormal) }}
+            aria-hidden
+          />
+          {/*
+            머리에 「이상 N」 배지를 달아 두었으나 걷어냈다 — 아래 여섯 값에 「조치 대상」 칸이
+            생겨 같은 수를 두 자리에서 말하게 됐다. 셈이 갈릴 자리를 남기지 않는다.
+          */}
           <strong className={styles.now__name}>{active.name}</strong>
-          {active.abnormal > 0 ? (
-            <span className={styles.now__abnormal}>이상 {formatNumber(active.abnormal)}</span>
-          ) : null}
         </div>
 
         <dl className={styles.now__figures}>
-          <div>
-            <dt>개소</dt>
-            <dd>{formatNumber(active.count)}</dd>
+          {/*
+            여섯 값은 「충남 전체」 박스와 같은 것을 같은 차례로 세운다.
+
+            전에는 개소·설비용량·실시간 출력·금일 발전량·발전시간·이용률이었다. 도 전체를 재는
+            박스와 항목이 어긋나 있어, 시·군과 도 전체를 견주려면 어느 값이 어느 값에 대응하는지부터
+            맞춰 봐야 했다. 이용률은 실시간 출력 ÷ 설비용량이라 바로 옆 칸과 같은 것을 두 번 말하기도
+            했다 — 그 자리를 「조치 대상」 이 받는다.
+          */}
+          {/* 결은 「충남 전체」 박스와 같은 짝을 쓴다 — 정상은 초록, 손봐야 할 곳은 빨강 */}
+          <div data-tone="ok">
+            <dt>정상 가동</dt>
+            <dd>
+              {formatNumber(active.count - active.abnormal)}
+              <span>/ {formatNumber(active.count)}개소</span>
+            </dd>
+          </div>
+          <div data-tone={active.abnormal > 0 ? 'critical' : 'ok'}>
+            <dt>조치 대상</dt>
+            <dd>{formatNumber(active.abnormal)}<span>개소</span></dd>
           </div>
           <div>
             <dt>설비용량</dt>
@@ -235,16 +341,12 @@ export function RegionStatMap({ plants }: RegionStatMapProps) {
             <dd>{today.value}<span>{today.unit}</span></dd>
           </div>
           {/*
-            발전시간과 이용률은 나눈 값이라 개소 수에 휘둘리지 않는다 — 천안시(68개소)와
-            계룡시(7개소)를 같은 눈금에 세우는 것이 이 둘이다. 위의 넷만으로는 늘 큰 시가 이긴다.
+            발전시간은 나눈 값이라 개소 수에 휘둘리지 않는다 — 천안시(68개소)와 계룡시(7개소)를
+            같은 눈금에 세우는 것이 이 값이다. 위의 넷만으로는 늘 큰 시가 이긴다.
           */}
           <div>
             <dt>발전시간</dt>
             <dd>{formatNumber(active.hours, 1)}<span>h</span></dd>
-          </div>
-          <div>
-            <dt>이용률</dt>
-            <dd>{formatPercent(active.utilization, 1)}</dd>
           </div>
         </dl>
 
@@ -254,63 +356,70 @@ export function RegionStatMap({ plants }: RegionStatMapProps) {
           설비와 발전을 나란히 둔다. 둘이 어긋나 있는 것 자체가 읽을거리다 — 설비 몫보다 발전
           몫이 작으면 그 시·군이 오늘 제 몫을 못 낸 것이고, 까닭은 날씨거나 고장이다.
         */}
-        <div className={styles.share}>
-          {[
-            { id: 'capacity', label: '도 대비 설비', ratio: active.capacityShare },
-            { id: 'today', label: '도 대비 발전', ratio: active.todayShare },
-          ].map((item) => (
-            <p key={item.id} className={styles.share__row}>
-              <span className={styles.share__label}>{item.label}</span>
-              <span className={styles.share__track}>
-                <span
-                  className={styles.share__bar}
-                  style={{
-                    width: `${Math.min(100, item.ratio * 100)}%`,
-                    backgroundColor: REGION_CI_COLOR[active.name],
-                  }}
-                />
-              </span>
-              <span className={styles.share__value}>{formatPercent(item.ratio, 1)}</span>
-            </p>
-          ))}
-        </div>
+        {showShare ? (
+          <div className={styles.share}>
+            {[
+              { id: 'capacity', label: '도 대비 설비', ratio: active.capacityShare },
+              { id: 'today', label: '도 대비 발전', ratio: active.todayShare },
+            ].map((item) => (
+              <p key={item.id} className={styles.share__row}>
+                <span className={styles.share__label}>{item.label}</span>
+                <span className={styles.share__track}>
+                  <span
+                    className={styles.share__bar}
+                    style={{
+                      width: `${Math.min(100, item.ratio * 100)}%`,
+                      backgroundColor: REGION_CI_COLOR[active.name],
+                    }}
+                  />
+                </span>
+                <span className={styles.share__value}>{formatPercent(item.ratio, 1)}</span>
+              </p>
+            ))}
+          </div>
+        ) : null}
 
         {/* 설비 상태 분포 — 도 전체를 보여 주던 부품을 이 시·군만으로 다시 그린다 */}
         <div className={styles.now__mix}>
           <StatusMix plants={active.schools} />
         </div>
 
-        <div className={styles.faults}>
-          {/*
+        {showFaults ? (
+          <div className={styles.faults}>
+            {/*
             남은 곳의 수를 제목 줄 오른쪽에 붙인다.
 
             목록의 넷째 줄로 두었더니 이상이 많은 시·군에서 칸을 7px 넘겼다. 제목 줄은 어차피
             오른쪽이 비어 있고, 「손봐야 할 곳 … 외 4곳」 은 한 문장으로 이어 읽히기도 한다.
           */}
-          <p className={styles.faults__title}>
-            손봐야 할 곳
-            {faults.length > NAMED_FAULTS ? (
-              <span className={styles.faults__more}>외 {formatNumber(faults.length - NAMED_FAULTS)}곳</span>
-            ) : null}
-          </p>
+            <p className={styles.faults__title}>
+              손봐야 할 곳
+              {faults.length > NAMED_FAULTS ? (
+                <span className={styles.faults__more}>외 {formatNumber(faults.length - NAMED_FAULTS)}곳</span>
+              ) : null}
+            </p>
 
-          {faults.length === 0 ? (
-            <p className={styles.faults__none}>없습니다</p>
-          ) : (
-            <ul className={styles.faults__list}>
-              {faults.slice(0, NAMED_FAULTS).map((school) => (
-                <li key={school.id} className={styles.faults__item}>
-                  <span className={styles.faults__name}>{school.name}</span>
-                  <span
-                    className={`${styles.faults__state} ${styles[`faults__state--${OPERATION_TONE[school.status]}`]}`}
-                  >
-                    {OPERATION_LABEL[school.status]}
-                  </span>
-                </li>
-              ))}
-            </ul>
-          )}
-        </div>
+            {faults.length === 0 ? (
+              <p className={styles.faults__none}>없습니다</p>
+            ) : (
+              <ul className={styles.faults__list}>
+                {faults.slice(0, NAMED_FAULTS).map((school) => (
+                  <li key={school.id} className={styles.faults__item}>
+                    <span className={styles.faults__name}>{school.name}</span>
+                    <span
+                      className={`${styles.faults__state} ${styles[`faults__state--${OPERATION_TONE[school.status]}`]}`}
+                    >
+                      {OPERATION_LABEL[school.status]}
+                    </span>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
+        ) : null}
+
+        {/* 견줌 대상 — 도 전체처럼 이 시·군과 나란히 놓고 읽을 것이 있으면 여기 선다 */}
+        {aside}
 
         {/*
           순회 눈금이자 고르개.
@@ -318,6 +427,20 @@ export function RegionStatMap({ plants }: RegionStatMapProps) {
           기다렸다가 한 바퀴를 다시 돌게 하면, 그 한 바퀴 동안 화면 앞을 떠난다.
         */}
         <div className={styles.now__tour}>
+          {/*
+            앞뒤로 한 칸씩.
+            아래 눈금으로도 갈 수 있지만 그쪽은 열다섯 칸이 이름 없이 늘어서 있어 「바로 앞 시·군」
+            을 짚으려면 지금 어느 칸인지부터 세어야 한다 — 되짚어 보는 걸음은 이 둘이 받는다.
+          */}
+          <button
+            type="button"
+            className={styles.now__play}
+            onClick={() => tour.step(-1)}
+            aria-label="이전 시·군"
+          >
+            <ChevronLeftIcon width={13} height={13} />
+          </button>
+
           <button
             type="button"
             className={styles.now__play}
@@ -325,6 +448,15 @@ export function RegionStatMap({ plants }: RegionStatMapProps) {
             aria-label={tour.isPlaying ? '순회 멈춤' : '순회 시작'}
           >
             {tour.isPlaying ? <PauseIcon width={13} height={13} /> : <PlayIcon width={13} height={13} />}
+          </button>
+
+          <button
+            type="button"
+            className={styles.now__play}
+            onClick={() => tour.step(1)}
+            aria-label="다음 시·군"
+          >
+            <ChevronRightIcon width={13} height={13} />
           </button>
 
           <ol className={styles.now__dots}>

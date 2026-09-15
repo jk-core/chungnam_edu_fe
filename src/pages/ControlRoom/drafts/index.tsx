@@ -42,7 +42,6 @@ export function ControlRoomDraft({ draft }: { draft: DraftKey }) {
       alertTone={data.alertTone}
       onSearch={() => setIsSearchOpen(true)}
       searchSummary={data.searchSummary}
-      collectedAt={data.collection.latest}
       skin={skin}
     >
       <Layout data={data} />

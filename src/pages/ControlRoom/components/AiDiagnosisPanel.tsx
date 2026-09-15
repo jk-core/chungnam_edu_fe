@@ -26,7 +26,7 @@ const TICK_MS = 700;
 const ANALYZED_BASE = 1_284_000;
 const ANALYZED_STEP = 137;
 
-interface RegionSummary {
+export interface RegionSummary {
   name: string;
   /** 그 지역 발전소 — 지도에 상태 색 점으로 찍는다 */
   plants: School[];
@@ -108,7 +108,7 @@ function hoursTone(gap: number): BadgeTone | undefined {
   return undefined;
 }
 
-function briefingOf(region: RegionSummary, averageHours: number): BriefLine[] {
+export function briefingOf(region: RegionSummary, averageHours: number): BriefLine[] {
   const load = region.capacityKw > 0 ? region.outputKw / region.capacityKw : 0;
   const gap = region.hours - averageHours;
   const normal = region.count - region.abnormal;

@@ -18,7 +18,7 @@
   flex-direction: column;
   width: 100%;
   height: max(100vh, 1080px);
-  padding: s.$space-4 s.$space-5 s.$space-5;
+  padding: s.$space-3 s.$space-5 s.$space-4;
   overflow: hidden;
 
   /*
@@ -230,7 +230,13 @@
   justify-content: space-between;
   flex-wrap: wrap;
   gap: s.$space-4;
-  padding-bottom: s.$space-4;
+
+  /*
+    머리 줄을 한 단 조인다.
+    이 줄이 먹는 높이는 아래 판 전부에서 그대로 깎인다 — 로고와 시계는 제 크기를 지키므로
+    줄어드는 것은 여백뿐이고, 그만큼이 지도의 크기가 된다.
+  */
+  padding-bottom: s.$space-3;
   border-bottom: 1px solid var(--border-subtle);
 
   /*

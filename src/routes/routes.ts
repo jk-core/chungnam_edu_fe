@@ -33,6 +33,14 @@ export const PATH = {
   CONTROL_C: '/control/c',
   CONTROL_D: '/control/d',
   CONTROL_E: '/control/e',
+  /*
+    「한눈에 보는」 시안. 값과 판은 그대로 두되, 겹치는 판을 덜어 내고 남는 판과 글자를 키워
+    벽에서 읽히게 한 갈래다 (글자가 작다는 말에서 나왔다). 고르고 나면 이긴 하나만 `/control`
+    에 옮기고 나머지는 지운다.
+  */
+  CONTROL_V1: '/control/v1',
+  CONTROL_V2: '/control/v2',
+  CONTROL_V3: '/control/v3',
   /** 마이페이지 (SFR-024) */
   MY: '/my',
 
