@@ -5,7 +5,7 @@ import { CheckIcon, SchoolIcon, SearchIcon } from '@/components/common/Icon';
 import { EmptyState } from '@/components/common/EmptyState';
 import { KIND_LABEL } from '@/configs/scope';
 import { Modal } from '@/components/common/Modal';
-import { CHUNGNAM_REGIONS } from '@/configs/regions';
+import { isInRegion, SIGUNGU_REGIONS } from '@/configs/regions';
 import { usePowerPlantList } from '@/hooks/usePowerPlantList';
 import { Select } from '@/components/common/Select';
 import { cn } from '@/utils/cn';
@@ -17,7 +17,7 @@ import styles from './PlantPicker.module.scss';
 
 const REGION_OPTIONS = [
   { value: 'all', label: '전체 지역' },
-  ...CHUNGNAM_REGIONS.map((region) => ({ value: region.code, label: region.name })),
+  ...SIGUNGU_REGIONS.map((region) => ({ value: region.regionCode, label: region.name })),
 ];
 
 interface PlantPickerProps {
@@ -49,7 +49,7 @@ export function PlantPicker({ variant = 'inline' }: PlantPickerProps) {
 
     return plants.filter((item) => {
       if (isScoped && !allowedIds.includes(item.id)) return false;
-      if (regionCode !== 'all' && item.regionCode !== regionCode) return false;
+      if (regionCode !== 'all' && !isInRegion(item.regionCode, regionCode)) return false;
       if (!keyword) return true;
 
       return item.name.includes(keyword) || item.address.includes(keyword);

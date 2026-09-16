@@ -3,7 +3,7 @@ import { Badge } from '@/components/common/Badge';
 import { Button } from '@/components/common/Button';
 import { Modal } from '@/components/common/Modal';
 import { OPERATION_LABEL, OPERATION_ORDER, OPERATION_RANK, OPERATION_TONE } from '@/mocks/status';
-import { CHUNGNAM_REGIONS } from '@/configs/regions';
+import { isInRegion, SIGUNGU_REGIONS } from '@/configs/regions';
 import { SCHOOL_LEVELS } from '@/mocks/schools';
 import { usePowerPlantList } from '@/hooks/usePowerPlantList';
 import { Select } from '@/components/common/Select';
@@ -88,7 +88,7 @@ export function PlantSearchModal({ isOpen, filters, onClose, onApply, onSelect }
             label="지역"
             value={draft.region}
             onChange={(value) => setDraft({ ...draft, region: value })}
-            options={[{ value: ALL, label: '전체 지역' }, ...CHUNGNAM_REGIONS.map((item) => ({ value: item.code, label: item.name }))]}
+            options={[{ value: ALL, label: '전체 지역' }, ...SIGUNGU_REGIONS.map((item) => ({ value: item.regionCode, label: item.name }))]}
           />
           <Select
             label="기관별"
@@ -150,7 +150,7 @@ export function matchPlants(plants: School[], filters: PlantFilters): School[] {
 
   return plants
     .filter((plant) => {
-      if (filters.region !== ALL && plant.regionCode !== filters.region) return false;
+      if (filters.region !== ALL && !isInRegion(plant.regionCode, filters.region)) return false;
       if (filters.level !== ALL && plant.level !== filters.level) return false;
       if (filters.status !== ALL && plant.status !== filters.status) return false;
       if (!query) return true;

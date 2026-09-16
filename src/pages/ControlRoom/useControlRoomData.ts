@@ -11,7 +11,7 @@ import { isAbnormal, OPERATION_LABEL } from '@/mocks/status';
 import { formatNumber } from '@/utils/format';
 import { useAutoRefresh } from '@/hooks/useAutoRefresh';
 import { ALERT_RECORDS } from '@/mocks/alerts';
-import { CHUNGNAM_REGIONS } from '@/configs/regions';
+import { regionNameOfCode } from '@/configs/regions';
 import { ALL, EMPTY_FILTERS, matchPlants } from '@/components/plant/PlantSearchModal';
 import type { PlantFilters } from '@/components/plant/PlantSearchModal';
 import type { AlertRecord } from '@/interface/alert';
@@ -107,7 +107,7 @@ export function useControlRoomData(): ControlRoomData {
   const searchSummary = useMemo(() => {
     const chips = [
       filters.keyword.trim() ? `"${filters.keyword.trim()}"` : null,
-      filters.region !== ALL ? CHUNGNAM_REGIONS.find((item) => item.code === filters.region)?.name ?? null : null,
+      filters.region !== ALL ? regionNameOfCode(filters.region) : null,
       filters.level !== ALL ? filters.level : null,
       filters.status !== ALL ? OPERATION_LABEL[filters.status as OperationStatus] : null,
     ].filter((chip): chip is string => Boolean(chip));

@@ -4,7 +4,7 @@ import type { OperationStatus, RtuStatus } from '@/interface/status';
 import type { School, SchoolLevel } from '@/interface/energy';
 import type { PowerPlantListItem } from '@/service/powerPlant/type';
 import { PLANT_SEEDS } from './plantMaster';
-import { REGION_HOURS } from './regions';
+import { regionHoursOf } from './regions';
 import { countOperation, isProducing, operationFromCode } from './status';
 import { createRandom, hashSeed, pickNumber } from './random';
 import type { PlantSeed } from './plantMaster';
@@ -79,7 +79,7 @@ function toSchool(seed: PlantSeed): School {
   // 같은 시·군이라도 방위각·그늘·오염도가 달라, 지역 발전시간을 중심으로 흩뿌린다.
   // 성한 설비가 아니면 그만큼 덜 낸다 — 어느 상태든 한 번씩 뽑아야 정상 학교의 값이 흔들리지 않는다.
   const [derateFrom, derateTo] = OUTPUT_DERATE[status];
-  const hours = (REGION_HOURS[seed.regionCode] ?? 3.8)
+  const hours = regionHoursOf(seed.regionCode)
     * pickNumber(next, 0.82, 1.14, 3)
     * pickNumber(next, derateFrom, derateTo, 3);
   const todayKwh = Math.round(seed.capacityKw * hours * 10) / 10;
@@ -138,7 +138,7 @@ export function schoolFromPowerPlant(row: PowerPlantListItem): School {
   const status = operationFromCode(row.statusCode);
   const next = createRandom(hashSeed(id));
   const [derateFrom, derateTo] = OUTPUT_DERATE[status];
-  const hours = (REGION_HOURS[row.regionCode] ?? 3.8)
+  const hours = regionHoursOf(row.regionCode)
     * pickNumber(next, 0.82, 1.14, 3)
     * pickNumber(next, derateFrom, derateTo, 3);
   const todayKwh = Math.round(row.powerPlantCapacity * hours * 10) / 10;

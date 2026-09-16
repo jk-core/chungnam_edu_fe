@@ -8,7 +8,7 @@ import { MapStatusFilter, useStatusFilter } from '@/components/plant/MapStatusFi
 import { ALL, EMPTY_FILTERS, matchPlants, PlantSearchModal } from '@/components/plant/PlantSearchModal';
 import { NOW } from '@/mocks/today';
 import { isAbnormal, OPERATION_LABEL, OPERATION_ORDER } from '@/mocks/status';
-import { CHUNGNAM_REGIONS } from '@/configs/regions';
+import { regionNameOfCode } from '@/configs/regions';
 import { PlantDetailPanel } from '@/components/plant/PlantDetailPanel';
 import { Reveal } from '@/components/common/Reveal';
 import { SearchIcon } from '@/components/common/Icon';
@@ -71,7 +71,7 @@ export function MonitoringBoard() {
   // 걸어 둔 조건을 짧은 말로 되짚는다.
   const chips = [
     filters.keyword.trim() ? `"${filters.keyword.trim()}"` : null,
-    filters.region !== ALL ? CHUNGNAM_REGIONS.find((item) => item.code === filters.region)?.name ?? null : null,
+    filters.region !== ALL ? regionNameOfCode(filters.region) : null,
     filters.level !== ALL ? filters.level : null,
     filters.status !== ALL ? OPERATION_LABEL[filters.status as OperationStatus] : null,
   ].filter((chip): chip is string => Boolean(chip));

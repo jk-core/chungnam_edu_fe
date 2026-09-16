@@ -1,7 +1,7 @@
 import type { ChangeLog } from '@/interface/changeLog';
 import type { FileMeta } from '@/service/common';
 import type { PlantAsset } from '@/interface/asset';
-import { regionCodeOf } from '@/configs/regions';
+
 import { SCHOOLS } from './schools';
 import { SEED_USERS } from './accounts';
 import { createRandom, hashSeed, pickOne } from './random';
@@ -56,7 +56,7 @@ function buildAsset(schoolIndex: number): PlantAsset {
     // 서버 번호는 1부터 이어 붙되, 학교 id 와 섞이지 않게 앞자리를 띄운다.
     powerPlantId: 10000 + schoolIndex + 1,
     plantName: school.name,
-    regionCode: regionCodeOf(school.regionCode),
+    regionCode: school.regionCode,
     address: school.address,
     addressDetail: pickOne(next, ADDRESS_DETAILS),
     latitude: school.location.lat,
