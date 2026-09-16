@@ -3,8 +3,8 @@ import { ZodPhaseTypeCode, ZodStatusCode } from '@/configs/codes';
 import { fileSchema } from '@/service/common';
 
 /*
-  일사량계 상태(`irradStatusCode`)는 발전 운전상태와 다른 축이고 코드값이 아직 미정이라
-  숫자·문자로 둔다 (`configs/codes.ts` 의 「BE 확정 대기」 참조).
+  일사량계 상태(`irradStatusCode`)는 발전 운전상태와 같은 축을 쓴다.
+  일사량계가 달리지 않은 발전소는 null 이다.
 */
 
 /**
@@ -25,8 +25,8 @@ export const powerPlantListItemSchema = z.object({
   powerPlantCapacity: z.number(),
   statusCode: ZodStatusCode.CODE,
   statusName: ZodStatusCode.NAME,
-  irradStatusCode: z.number().int().nullable(),
-  irradStatusName: z.string().nullable(),
+  irradStatusCode: ZodStatusCode.CODE.nullable(),
+  irradStatusName: ZodStatusCode.NAME.nullable(),
   latitude: z.number(),
   longitude: z.number(),
 });
@@ -50,8 +50,8 @@ export const powerPlantMarkerInfoSchema = z.object({
   address: z.string(),
   statusCode: ZodStatusCode.CODE,
   statusName: ZodStatusCode.NAME,
-  irradStatusCode: z.number().int().nullable(),
-  irradStatusName: z.string().nullable(),
+  irradStatusCode: ZodStatusCode.CODE.nullable(),
+  irradStatusName: ZodStatusCode.NAME.nullable(),
   powerPlantCapacity: z.number(),
   currentOutput: z.number(),
   dayPower: z.number(),
