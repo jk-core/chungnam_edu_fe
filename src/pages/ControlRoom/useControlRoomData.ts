@@ -2,7 +2,8 @@ import { useMemo, useState } from 'react';
 import { getCollectionStatus } from '@/mocks/collection';
 import { getQualityStatus, summarizeQuality } from '@/mocks/quality';
 import { ROOT_ID } from '@/configs/scope';
-import { getNode } from '@/stores/scopeTreeStore';
+import { useNode } from '@/stores/scopeTreeStore';
+import { usePowerPlantList } from '@/hooks/usePowerPlantList';
 import { getNodeStat } from '@/mocks/nodeStats';
 import { liveTotalOutput } from '@/mocks/schoolOutput';
 import { NOW, TODAY } from '@/mocks/today';
@@ -98,7 +99,8 @@ export function useControlRoomData(): ControlRoomData {
   );
 
   // 조건에 걸린 발전소를 이상부터 세운다 (SFR-004-13). 조건이 없으면 전체가 대상이다.
-  const rows = useMemo(() => matchPlants(filters), [filters]);
+  const { plants } = usePowerPlantList();
+  const rows = useMemo(() => matchPlants(plants, filters), [plants, filters]);
   const plantIds = useMemo(() => new Set(rows.map((row) => row.id)), [rows]);
 
   /** 검색창에 되짚어 줄 조건 요약 — 무엇으로 좁혀 놓았는지 한 줄로 적는다. */
@@ -123,7 +125,9 @@ export function useControlRoomData(): ControlRoomData {
     yearKwh: rows.reduce((sum, school) => sum + school.yearKwh, 0),
   }), [rows]);
 
-  const stat = useMemo(() => getNodeStat(getNode(ROOT_ID), 'day', TODAY.toDate()), []);
+  // 트리가 도착하면 다시 셈한다 — 빈 트리로 한 번 셈하고 굳으면 상황판이 0 으로 멈춘다.
+  const root = useNode(ROOT_ID);
+  const stat = useMemo(() => getNodeStat(root, 'day', TODAY.toDate()), [root]);
   const abnormalCount = useMemo(() => rows.filter((school) => isAbnormal(school.status)).length, [rows]);
 
   /*

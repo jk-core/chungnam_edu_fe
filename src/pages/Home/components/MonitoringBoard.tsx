@@ -15,6 +15,7 @@ import { SearchIcon } from '@/components/common/Icon';
 import { formatNumber, formatPercent } from '@/utils/format';
 import { getCollectionStatus } from '@/mocks/collection';
 import { PATH } from '@/routes/routes';
+import { usePowerPlantList } from '@/hooks/usePowerPlantList';
 import { useSelectNode } from '@/stores/plantStore';
 import type { OperationStatus } from '@/interface/status';
 import type { PlantFilters } from '@/components/plant/PlantSearchModal';
@@ -62,7 +63,8 @@ export function MonitoringBoard() {
     };
   }, []);
 
-  const rows = useMemo(() => matchPlants(filters), [filters]);
+  const { plants } = usePowerPlantList();
+  const rows = useMemo(() => matchPlants(plants, filters), [plants, filters]);
   // 범례가 곧 필터다 — 지도에 무엇을 남길지 여기서 고른다.
   const status = useStatusFilter(rows);
 

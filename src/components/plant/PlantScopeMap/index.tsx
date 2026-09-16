@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { MapPinIcon } from '@/components/common/Icon';
-import { SCHOOLS } from '@/mocks/schools';
+import { usePowerPlantList } from '@/hooks/usePowerPlantList';
 import { useAllowedPlantIds } from '@/hooks/useScopeClamp';
 import { usePlantScope } from '@/hooks/usePlantScope';
 import { useSelectNode } from '@/stores/plantStore';
@@ -23,10 +23,11 @@ export function PlantScopeMap() {
   const { plant } = usePlantScope();
   const selectNode = useSelectNode();
   const allowedIds = useAllowedPlantIds();
+  const { plants } = usePowerPlantList();
   const [isOpen, setIsOpen] = useState(false);
 
   // 교육기관 계정은 담당 발전소만 찍는다 (SFR-023-03).
-  const marks = allowedIds.length > 0 ? SCHOOLS.filter((school) => allowedIds.includes(school.id)) : SCHOOLS;
+  const marks = allowedIds.length > 0 ? plants.filter((item) => allowedIds.includes(item.id)) : plants;
 
   return (
     <div className={styles.mini}>
