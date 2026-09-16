@@ -2,10 +2,9 @@ import { useState } from 'react';
 import { ControlRoomLayout } from '@/layouts/ControlRoomLayout';
 import { PlantSearchModal } from '@/components/plant/PlantSearchModal';
 import { useRootClass } from '@/hooks/useRootClass';
-import type { RoomSkin } from '@/layouts/ControlRoomLayout';
 import { SCOPE_LABEL, useControlRoomData } from '../useControlRoomData';
+import { Kpi } from './kpi';
 import { Terrain } from './terrain';
-import { Ticker } from './ticker';
 import type { ComponentType } from 'react';
 import type { ControlRoomData } from '../useControlRoomData';
 
@@ -34,28 +33,21 @@ interface Draft {
   label: string;
   /** 어느 판이 어디에 서는가 */
   layout: ComponentType<{ data: ControlRoomData }>;
-  /**
-   * 무슨 색·글꼴·바탕으로 보이는가. 주지 않으면 서비스 기본 결이다.
-   *
-   * 시안 B 는 「기존 UI 차용」 고객 요청으로 전용 결(terrain)을 걷어내 기본 결로 되돌렸고
-   * (2026-09-15), 지금 전용 결을 쓰는 것은 시안 C 하나뿐이다.
-   */
-  skin?: RoomSkin;
 }
 
 /**
- * 화면과 결은 시안마다 한 짝으로 묶인다.
+ * 시안 둘은 같은 색 위에서 배치로만 갈린다.
  *
- * 시안 C 만 시세판 결을 걸치고, 시안 B 는 기본 결 위에서 배치(지도 중심)로만 갈린다 —
- * 색·판 생김새·수치 표현은 시안 A 의 것을 그대로 가져다 쓴다.
+ * B 는 지표를, C 는 지도를 앞에 세운다. 색·판 생김새·수치 표현은 둘 다 시안 A 의 것을 그대로
+ * 가져다 쓰므로, 나란히 놓고 보면 **무엇을 앞세웠는가** 만 눈에 걸린다.
  */
 const DRAFTS: Record<DraftKey, Draft> = {
-  b: { label: '시안 B · 지도 중심', layout: Terrain },
-  c: { label: '시안 C · 차트 중심', layout: Ticker, skin: 'ticker' },
+  b: { label: '시안 B · 지표 전면', layout: Kpi },
+  c: { label: '시안 C · 지도 중심', layout: Terrain },
 };
 
 export function ControlRoomDraft({ draft }: { draft: DraftKey }) {
-  const { label, layout: Layout, skin } = DRAFTS[draft];
+  const { label, layout: Layout } = DRAFTS[draft];
 
   /*
     글자 기준을 15px 에서 18px 로 올린다 (`_global.scss` 의 `.control-draft`).
@@ -77,7 +69,6 @@ export function ControlRoomDraft({ draft }: { draft: DraftKey }) {
       onSearch={() => setIsSearchOpen(true)}
       searchSummary={data.searchSummary}
       collectedAt={data.collection.latest}
-      skin={skin}
     >
       <Layout data={data} />
 

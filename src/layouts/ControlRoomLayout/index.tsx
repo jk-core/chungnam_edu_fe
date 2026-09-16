@@ -8,19 +8,6 @@ import { useRoomTheme } from './useRoomTheme';
 import styles from './ControlRoomLayout.module.scss';
 import type { ReactNode } from 'react';
 
-/**
- * 상황판이 입을 수 있는 결.
- *
- * 이름은 색이 아니라 **어떤 물건으로 보이게 하는가** 로 붙인다 — `ticker` 는 증권 앱의
- * 시세판이다. 「파랑」 「밝은 것」 으로 부르면 색 한 줄만 바꾸고도 이름이 맞는 것처럼 보여,
- * 결이 무너진 줄 모르고 지나간다.
- *
- * 한때 시안 B 의 `terrain`(지도 중심) 결도 있었으나, 「기존 UI 를 차용하라」 는 고객 요청으로
- * 걷어내고 서비스 기본 결로 되돌렸다(2026-09-15). 지금 전용 결을 쓰는 것은 시안 C 하나뿐이라,
- * 결을 주지 않으면(`skin` 생략) 기본 결이 되는 것이 통상이다.
- */
-export type RoomSkin = 'ticker';
-
 interface ControlRoomLayoutProps {
   /**
    * 보고 있는 대상 이름 — 이 화면은 늘 도 전체다.
@@ -44,13 +31,6 @@ interface ControlRoomLayoutProps {
   searchSummary?: string;
   /** 화면에 깔린 값이 언제 수집된 것인지 (`YYYY-MM-DD HH:mm`) */
   collectedAt?: string;
-  /**
-   * 화면의 결. 주지 않으면 서비스 기본 색을 쓴다 — 최종 시안인 `/control` 이 그쪽이다.
-   *
-   * 시안을 견주는 동안에만 쓴다. 판도 값도 넷이 같은 것을 쓰고 **무슨 색으로, 무슨 글꼴로,
-   * 어떤 바탕 위에 보이는가** 만 갈린다. 결의 내용은 `_skins.scss` 가 쥔다.
-   */
-  skin?: RoomSkin;
   children: ReactNode;
 }
 
@@ -65,15 +45,13 @@ export function ControlRoomLayout({
   onSearch,
   searchSummary,
   collectedAt,
-  skin,
   children,
 }: ControlRoomLayoutProps) {
   const { isFullscreen, toggle: toggleFullscreen } = useFullscreen();
   const { theme, toggle: toggleTheme } = useRoomTheme();
 
   return (
-    /* 결을 화면 전체가 물려받는다 — 바탕과 가장자리가 같은 색으로 함께 점등한다 */
-    <div className={styles.room} data-alert={alertTone ?? undefined} data-skin={skin}>
+    <div className={styles.room} data-alert={alertTone ?? undefined}>
       {/* 멀리서도 "지금 뭔가 잘못됐다" 가 읽히도록 화면 가장자리가 맥동한다 */}
       {/*
         가장자리 경보 등 — 상시 점멸이 되어 걷어냈다(2026-08-21 회의). 되살릴 때는 이 줄만 풀면 된다.
