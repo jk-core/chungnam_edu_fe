@@ -3,7 +3,7 @@ import { Badge } from '@/components/common/Badge';
 import { OPERATION_LABEL, OPERATION_TONE, RTU_LABEL, RTU_TONE } from '@/mocks/status';
 import { CheckIcon, SchoolIcon, SearchIcon } from '@/components/common/Icon';
 import { EmptyState } from '@/components/common/EmptyState';
-import { KIND_LABEL } from '@/mocks/tree';
+import { KIND_LABEL } from '@/configs/scope';
 import { Modal } from '@/components/common/Modal';
 import { CHUNGNAM_REGIONS } from '@/configs/regions';
 import { SCHOOLS } from '@/mocks/schools';

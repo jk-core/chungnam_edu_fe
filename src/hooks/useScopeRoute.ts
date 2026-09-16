@@ -1,6 +1,6 @@
 import { useEffect, useRef } from 'react';
 import { useLocation, useNavigate, useParams } from 'react-router-dom';
-import { getNode, getNodePath } from '@/mocks/tree';
+import { getNode, getNodePath } from '@/stores/scopeTreeStore';
 import usePlantStore, { useSelectedNodeId, useSelectedPlantId, useSelectNode } from '@/stores/plantStore';
 
 /** 주소를 만드는 쪽. 화면마다 접두어가 다르니 밖에서 받는다. */

@@ -1,12 +1,12 @@
 import dayjs from 'dayjs';
 import type { FaultTimeline, TimelineStep } from '@/interface/faultTimeline';
 import { withParticle } from '@/utils/korean';
-import { getChildNodes, getNode } from './tree';
+import { getChildNodes, getNode } from '@/stores/scopeTreeStore';
+import type { ScopeNode } from '@/interface/tree';
 import { getFaultCode, getInverterById } from './equipment';
 import { TODAY } from './today';
 import { createRandom, hashSeed, pickNumber } from './random';
 import { isAbnormal } from './status';
-import type { ScopeNode } from './tree';
 
 export const PHASE_LABEL = {
   detected: '이상 검출',

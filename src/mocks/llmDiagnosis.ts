@@ -3,7 +3,8 @@ import type { AnalysisStage, DiagnosisFinding, DiagnosisReport } from '@/interfa
 import type { OperationStatus } from '@/interface/status';
 import { withParticle } from '@/utils/korean';
 import { DIAG_EFFICIENCY_CRITICAL, DIAG_EFFICIENCY_WARN } from '@/configs/diagnosis';
-import { getChildNodes, getNode } from './tree';
+import { getChildNodes, getNode } from '@/stores/scopeTreeStore';
+import type { ScopeNode } from '@/interface/tree';
 import {
   getDiagEfficiencySeries,
   getFaultCode,
@@ -12,7 +13,6 @@ import {
 } from './equipment';
 import { isAbnormal, OPERATION_RANK } from './status';
 import { createRandom, hashSeed, pickNumber } from './random';
-import type { ScopeNode } from './tree';
 
 /**
  * 판정을 내린 모델 이름 — 진단 기록에 함께 남긴다.

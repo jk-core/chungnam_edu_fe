@@ -1,8 +1,7 @@
 import { create } from 'zustand';
 import { createJSONStorage, persist } from 'zustand/middleware';
-import { getNode, getNodePath, hasNode } from '@/mocks/tree';
-import { SCHOOLS } from '@/mocks/schools';
-import type { ScopeNode } from '@/mocks/tree';
+import { getNode, getNodePath, hasNode, useNode } from '@/stores/scopeTreeStore';
+import type { ScopeNode } from '@/interface/tree';
 
 interface PlantState {
   /**
@@ -35,18 +34,14 @@ interface PlantState {
   도 전체 합산 조회는 제공하지 않는다 — 300개 설비를 한 판에 접으면 카드도 차트도
   읽히지 않고, 요구사항이 말하는 조회 단위도 발전소부터다. 전체 집계가 필요한 자리는
   통합관제 상황판과 홈 지도가 따로 맡는다.
+
+  처음 여는 발전소는 목록이 도착해야 알 수 있다 — 빈 값으로 두고 `useScopeTree` 가 채운다.
 */
-const DEFAULT_PLANT_ID = SCHOOLS[0].id;
-
-/** 저장값이 비었거나 없는 발전소를 가리키면 첫 발전소로 되돌린다. */
-const plantOrDefault = (plantId: string | null | undefined) =>
-  (plantId && hasNode(plantId) ? plantId : DEFAULT_PLANT_ID);
-
 const usePlantStore = create<PlantState>()(
   persist(
     (set) => ({
-      selectedPlantId: DEFAULT_PLANT_ID,
-      selectedNodeId: DEFAULT_PLANT_ID,
+      selectedPlantId: '',
+      selectedNodeId: '',
       selectNode: (id) =>
         set((state) => {
           const candidate = hasNode(id) ? getNode(id) : null;
@@ -58,7 +53,7 @@ const usePlantStore = create<PlantState>()(
           // 그대로 남아 있으면 어디를 보고 있는지 흐려진다.
           return {
             selectedNodeId: nodeId,
-            selectedPlantId: plantOrDefault(getNode(nodeId).plantId),
+            selectedPlantId: getNode(nodeId).plantId ?? state.selectedPlantId,
             expandedIds: getNodePath(nodeId).map((item) => item.id),
           };
         }),
@@ -88,13 +83,21 @@ const usePlantStore = create<PlantState>()(
       storage: createJSONStorage(() => localStorage),
       // 발전소와 패널 접힘만 남긴다. 파고든 계층·트리 펼침은 화면을 옮기면 리셋된다.
       partialize: (state) => ({ selectedPlantId: state.selectedPlantId, isScopeOpen: state.isScopeOpen }),
-      // 저장된 발전소가 있으면 그 계층에서 시작한다.
+      /*
+        저장된 발전소가 있으면 그 계층에서 시작한다. 그 발전소가 아직 있는지는 여기서 가릴 수
+        없다 — 목록이 오기 전이다. 목록이 닿으면 `useScopeTree` 가 없는 발전소를 걸러 낸다.
+      */
       onRehydrateStorage: () => (state) => {
         if (!state) return;
 
-        state.selectedPlantId = plantOrDefault(state.selectedPlantId);
         state.selectedNodeId = state.selectedPlantId;
       },
+      /*
+        2 판까지는 목업 발전소 id(`cheonan-1`)를 담아 두었다. 서버 식별자로 바뀌어 그대로는
+        가리킬 자리가 없으므로, 판이 다르면 첫 발전소에서 다시 시작한다.
+      */
+      version: 3,
+      migrate: () => ({ selectedPlantId: '', isScopeOpen: true }),
     },
   ),
 );
@@ -118,9 +121,9 @@ export const useIsScopeOpen = () => usePlantStore((state) => state.isScopeOpen);
 
 export const useToggleScope = () => usePlantStore((state) => state.toggleScope);
 
-/** 지금 보고 있는 노드 */
+/** 지금 보고 있는 노드. 트리가 바뀌면 함께 다시 그려진다 */
 export function useSelectedNode(): ScopeNode {
-  return getNode(useSelectedNodeId());
+  return useNode(useSelectedNodeId());
 }
 
 export default usePlantStore;

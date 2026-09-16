@@ -1,7 +1,8 @@
 import { useMemo, useState } from 'react';
 import { getCollectionStatus } from '@/mocks/collection';
 import { getQualityStatus, summarizeQuality } from '@/mocks/quality';
-import { getNode, ROOT_ID } from '@/mocks/tree';
+import { ROOT_ID } from '@/configs/scope';
+import { getNode } from '@/stores/scopeTreeStore';
 import { getNodeStat } from '@/mocks/nodeStats';
 import { liveTotalOutput } from '@/mocks/schoolOutput';
 import { NOW, TODAY } from '@/mocks/today';

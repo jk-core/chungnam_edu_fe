@@ -1,6 +1,6 @@
 import dayjs from 'dayjs';
 import type { DiagnosisFaultCode } from '@/interface/equipment';
-import { getNode } from './tree';
+import { getNode } from '@/stores/scopeTreeStore';
 import { getPredictionSeries } from './prediction';
 import { getDayWeather } from './weather';
 

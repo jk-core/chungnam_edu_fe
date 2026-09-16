@@ -1,8 +1,11 @@
+import { plantNodeId } from '@/configs/scope';
+import { STATUS_TYPE } from '@/configs/codes';
 import type { OperationStatus, RtuStatus } from '@/interface/status';
 import type { School, SchoolLevel } from '@/interface/energy';
+import type { PowerPlantListItem } from '@/service/powerPlant/type';
 import { PLANT_SEEDS } from './plantMaster';
 import { REGION_HOURS } from './regions';
-import { countOperation, isProducing } from './status';
+import { countOperation, isProducing, operationFromCode } from './status';
 import { createRandom, hashSeed, pickNumber } from './random';
 import type { PlantSeed } from './plantMaster';
 
@@ -113,4 +116,48 @@ export function getSchoolById(id: string | null): School | null {
 /** 금일 발전량 기준 상위 학교 */
 export function getTopSchools(count: number): School[] {
   return [...SCHOOLS].sort((a, b) => b.todayKwh - a.todayKwh).slice(0, count);
+}
+
+/** 일사량계 상태는 운전상태와 같은 축으로 온다. 달리지 않은 발전소는 null 이다 */
+function pyranometerFromCode(code: number | null): RtuStatus {
+  if (code === null) return 'disconnected';
+  if (code === STATUS_TYPE.CODE.정상) return 'normal';
+  if (code === STATUS_TYPE.CODE.통신단절) return 'disconnected';
+
+  return 'abnormal';
+}
+
+/**
+ * API 목록 한 줄을 화면이 쓰는 발전소로 옮긴다.
+ *
+ * 이름·지역·주소·용량·운전상태·일사량계 상태·좌표는 서버 값이다. 발전량·이용률·인버터 수는
+ * 아직 내려주는 API 가 없어 여기서 짓는다 — 그 칸이 실리기 시작하면 이 함수를 지운다.
+ */
+export function schoolFromPowerPlant(row: PowerPlantListItem): School {
+  const id = plantNodeId(row.powerPlantId);
+  const status = operationFromCode(row.statusCode);
+  const next = createRandom(hashSeed(id));
+  const [derateFrom, derateTo] = OUTPUT_DERATE[status];
+  const hours = (REGION_HOURS[row.regionCode] ?? 3.8)
+    * pickNumber(next, 0.82, 1.14, 3)
+    * pickNumber(next, derateFrom, derateTo, 3);
+  const todayKwh = Math.round(row.powerPlantCapacity * hours * 10) / 10;
+
+  return {
+    id,
+    name: row.powerPlantName,
+    regionCode: row.regionCode,
+    regionName: row.regionName,
+    level: SCHOOL_LEVELS.find((item) => item === row.powerPlantType) ?? '교육기관',
+    address: row.address,
+    capacityKw: row.powerPlantCapacity,
+    inverterCount: Math.max(1, Math.round(row.powerPlantCapacity / 48)),
+    pyranometerStatus: pyranometerFromCode(row.irradStatusCode),
+    todayKwh: isProducing(status) ? todayKwh : 0,
+    monthKwh: Math.round(todayKwh * pickNumber(next, 24, 29, 2)),
+    yearKwh: Math.round(row.powerPlantCapacity * pickNumber(next, 980, 1420, 1)),
+    utilization: Math.round((hours / 24) * 10000) / 10000,
+    status,
+    location: { lng: row.longitude, lat: row.latitude },
+  };
 }

@@ -2,7 +2,7 @@ import dayjs from 'dayjs';
 import type { DiagEfficiencyPoint, ModelMetrics, PredictionPoint } from '@/interface/diagnosisDetail';
 import type { OperationStatus } from '@/interface/status';
 import { NORMAL_BAND } from '@/configs/diagnosis';
-import { getNode } from './tree';
+import { getNode } from '@/stores/scopeTreeStore';
 import { FAULT_BY_STATUS } from './faultCodes';
 import { SUNRISE_HOUR, SUNSET_HOUR } from './generation';
 import { createRandom, hashSeed, pickNumber } from './random';
