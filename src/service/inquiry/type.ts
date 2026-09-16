@@ -1,6 +1,6 @@
 import { z } from 'zod';
-import { boardCommentSchema, boardFileSchema, boardFileToRemoveSchema } from '@/service/notice/type';
-import { pagingParamsSchema } from '@/service/common';
+import { boardCommentSchema, boardFileSchema } from '@/service/notice/type';
+import { fileToRemoveSchema, pagingParamsSchema } from '@/service/common';
 
 /**
  * 최신순 정렬. 고정 글이 없어 공지사항과 정렬 규칙이 다르다.
@@ -70,7 +70,7 @@ export const inquiryAddSchema = z.object({
 export type InquiryModifyParams = z.infer<typeof inquiryModifySchema>;
 export const inquiryModifySchema = inquiryAddSchema.extend({
   inquiryId: z.number().int(),
-  removeFileList: z.array(boardFileToRemoveSchema).optional(),
+  removeFileList: z.array(fileToRemoveSchema).optional(),
 });
 
 export type InquiryRemoveParams = z.infer<typeof inquiryRemoveParamsSchema>;

@@ -9,6 +9,7 @@ import { PlantPhotos } from '@/components/plant/PlantPhotos';
 import { Select } from '@/components/common/Select';
 import { formatNumber } from '@/utils/format';
 import { useKakaoMaps } from '@/hooks/useKakaoMaps';
+import { usePlantAssets } from '@/hooks/usePlantAssets';
 import type { School } from '@/interface/energy';
 import { PlantMapCanvas } from './PlantMapCanvas';
 import styles from './PlantScopeMap.module.scss';
@@ -45,6 +46,8 @@ export function PlantMapModal({ isOpen, onClose, plants, selectedId, onSelect }:
   /** 눌러서 펼쳐 본 발전소. 아직 고른 것은 아니다 */
   const [previewId, setPreviewId] = useState<string | null>(null);
   const mapStatus = useKakaoMaps();
+  // 사진은 등록 정보가 갖는다 — 지도가 든 `School` 에는 없다.
+  const assets = usePlantAssets();
 
   const inRegion = useMemo(
     () => (regionCode === ALL ? plants : plants.filter((plant) => plant.regionCode === regionCode)),
@@ -131,7 +134,11 @@ export function PlantMapModal({ isOpen, onClose, plants, selectedId, onSelect }:
             <aside className={styles.preview} aria-label={`${preview.name} 상세`}>
               <div className={styles.preview__body}>
                 <PlantDetailPanel plant={preview} />
-                <PlantPhotos plantId={preview.id} className={styles.preview__photos} />
+                <PlantPhotos
+                  photos={assets.find((asset) => asset.plantId === preview.id)?.photos ?? []}
+                  plantName={preview.name}
+                  className={styles.preview__photos}
+                />
               </div>
 
               <Button onClick={confirm} isFullWidth>이 발전소로 조회</Button>

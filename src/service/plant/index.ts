@@ -1,9 +1,7 @@
 import apiClient from '@/service';
 import type { PagingResponse } from '@/service/common';
 import type {
-  ManagePowerPlantAddParams,
   ManagePowerPlantDetail,
-  ManagePowerPlantModifyParams,
   ManagePowerPlantPage,
   ManagePowerPlantPageParams,
 } from './type';
@@ -21,8 +19,13 @@ export const getManagePowerPlantDetail = async (powerPlantId: number) => {
   return data;
 };
 
-export const postManagePowerPlant = (data: ManagePowerPlantAddParams) => apiClient.post('/manage/powerPlant', data);
+/** 대표이미지와 본문을 part 로 가른다 — fileList 는 개수만큼 반복, 나머지는 json part 하나 */
+export const postManagePowerPlant = (data: FormData) => apiClient.post('/manage/powerPlant', data, {
+  headers: { 'Content-Type': 'multipart/form-data' },
+});
 
-export const putManagePowerPlant = (data: ManagePowerPlantModifyParams) => apiClient.put('/manage/powerPlant', data);
+export const putManagePowerPlant = (data: FormData) => apiClient.put('/manage/powerPlant', data, {
+  headers: { 'Content-Type': 'multipart/form-data' },
+});
 
 export const deleteManagePowerPlant = (powerPlantId: number) => apiClient.delete('/manage/powerPlant', { params: { powerPlantId } });

@@ -1,9 +1,12 @@
 import { z } from 'zod';
 import { MSG } from '@/configs/messages';
 import { ZodStatusCode } from '@/configs/codes';
-import { pagingParamsSchema } from '@/service/common';
+import { fileSchema, fileToRemoveSchema, pagingParamsSchema } from '@/service/common';
 
 export const NAME_MAX = 120;
+
+/** 대표이미지 장수 상한 — 필수가 아니라 0장도 된다 */
+export const PHOTO_MAX_COUNT = 2;
 
 /** 기관 구분. 계약은 문자열로 받지만 화면이 고를 수 있는 것은 이 여섯이다 */
 export const plantTypeSchema = z.enum(['유치원', '초등학교', '중학교', '고등학교', '특수학교', '교육기관']);
@@ -53,6 +56,8 @@ export const managePowerPlantDetailSchema = z.object({
   /** 딸린 설비 용량의 합(kW) — 발전소가 직접 갖는 값이 아니라 읽어 오는 값이다 */
   powerPlantCapacity: z.number(),
   etc: z.string(),
+  /** 수정 폼이 이미 붙어 있는 대표이미지를 불러오는 자리 */
+  photoList: z.array(fileSchema),
 });
 
 /**
@@ -79,11 +84,15 @@ export const managePowerPlantAddSchema = z.object({
   userId: z.number().int().nullable(),
   irradId: z.number().int().nullable(),
   etc: z.string(),
+  /** 대표이미지 — 필수가 아니다. fileList part 로 개수만큼 반복해 실린다 */
+  fileList: z.array(z.instanceof(File)).optional(),
 });
 
 export type ManagePowerPlantModifyParams = z.infer<typeof managePowerPlantModifySchema>;
 export const managePowerPlantModifySchema = managePowerPlantAddSchema.extend({
   powerPlantId: z.number().int(),
+  /** 뺄 대표이미지 — json part 안이다 */
+  removeFileList: z.array(fileToRemoveSchema).optional(),
 });
 
 export type ManagePowerPlantRemoveParams = z.infer<typeof managePowerPlantRemoveParamsSchema>;
@@ -99,9 +108,12 @@ export const managePowerPlantRemoveParamsSchema = z.object({
  * 요청 스키마를 넓혀 쓴다 — 담당 사용자는 서버가 비워 두는 것을 허용하지만 화면은 고르게 하고,
  * `*Label` 은 화면에 보일 이름이라 저장 때 떨군다. 보일 이름에는 규칙을 걸지 않는다:
  * 참조하던 계정이 지워지면 이름만 비는데, 그 칸에는 오류를 보여 줄 자리가 없다.
+ *
+ * 대표이미지는 폼 밖 state 가 든다 — `File` 객체는 zod 검증 대상이 아니고, 이미 저장된 사진과
+ * 방금 고른 사진을 함께 다뤄야 해서 `UploadFile[]` 한 벌로 들고 저장 직전에 갈라 보낸다.
  */
 export type PlantFormValues = z.infer<typeof plantFormSchema>;
-export const plantFormSchema = managePowerPlantAddSchema.extend({
+export const plantFormSchema = managePowerPlantAddSchema.omit({ fileList: true }).extend({
   userId: z.number(MSG.selectRequired('사용자')).int(),
   userLabel: z.string(),
   irradLabel: z.string(),
