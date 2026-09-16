@@ -1,6 +1,8 @@
 import dayjs from 'dayjs';
 import type { Inverter, PerformancePoint, StringUnit } from '@/interface/equipment';
 import type { OperationStatus, RtuStatus } from '@/interface/status';
+import { getChildNodes, getNode } from '@/stores/scopeTreeStore';
+import { ROOT_ID } from '@/configs/scope';
 import type { ScopeNode } from '@/interface/tree';
 import { FAULT_BY_STATUS } from './faultCodes';
 import { REGION_TOTAL } from './regions';
@@ -167,28 +169,36 @@ export function inverterFromNode(node: ScopeNode, strings: ScopeNode[]): Inverte
   };
 }
 
-const INVERTERS_BY_SCHOOL = INVERTERS.reduce<Record<string, Inverter[]>>((acc, inverter) => {
-  (acc[inverter.schoolId] ??= []).push(inverter);
-
-  return acc;
-}, {});
-
-const INVERTER_BY_ID = new Map(INVERTERS.map((inverter) => [inverter.id, inverter]));
-
+/*
+  설비는 계층 응답(`/powerPlant/hierarchy`)이 준 트리에서 편다 — 받아 둔 것은 **고른 발전소 한
+  곳**뿐이라, 그 밖의 발전소를 물으면 빈 배열이다.
+*/
 export function getInverterById(id: string | null): Inverter | null {
-  return id ? (INVERTER_BY_ID.get(id) ?? null) : null;
+  if (!id) return null;
+
+  const node = getNode(id);
+
+  return node.kind === 'inverter' ? inverterFromNode(node, getChildNodes(node.id)) : null;
 }
 
-/** 발전소에 달린 인버터 전부 */
-export function getInvertersOf(schoolId: string): Inverter[] {
-  return INVERTERS_BY_SCHOOL[schoolId] ?? [];
+/** 발전소에 달린 인버터 전부. 계층을 아직 안 받은 발전소는 빈 배열이다 */
+export function getInvertersOf(plantNodeId: string): Inverter[] {
+  return getChildNodes(plantNodeId)
+    .filter((child) => child.kind === 'inverter')
+    .map((child) => inverterFromNode(child, getChildNodes(child.id)));
 }
 
-/** 발전소를 지정하면 그 발전소 인버터만, 지정하지 않으면 이상이 있는 인버터를 앞세워 돌려준다. */
-export function getInverters(schoolId: string | null, limit = 12): Inverter[] {
-  if (schoolId) return INVERTERS_BY_SCHOOL[schoolId] ?? [];
+/**
+ * 발전소를 지정하면 그 발전소 인버터만, 지정하지 않으면 이상이 있는 인버터를 앞세워 돌려준다.
+ * 대상을 안 주면 지금 펼쳐 둔 발전소의 것만 나온다 — 도 전체 설비를 한 번에 받는 API 가 없다.
+ */
+export function getInverters(plantNodeId: string | null, limit = 12): Inverter[] {
+  if (plantNodeId) return getInvertersOf(plantNodeId);
 
-  return [...INVERTERS].sort((a, b) => OPERATION_RANK[a.status] - OPERATION_RANK[b.status] || b.capacityKw - a.capacityKw).slice(0, limit);
+  return getChildNodes(ROOT_ID)
+    .flatMap((plant) => getInvertersOf(plant.id))
+    .sort((a, b) => OPERATION_RANK[a.status] - OPERATION_RANK[b.status] || b.capacityKw - a.capacityKw)
+    .slice(0, limit);
 }
 
 export function countInverterStatus(inverters: Inverter[]): Record<OperationStatus, number> {

@@ -1,4 +1,5 @@
 import dayjs from 'dayjs';
+import { scopeTreeVersion } from '@/stores/scopeTreeStore';
 import type { FaultTimeline, TimelineStep } from '@/interface/faultTimeline';
 import { withParticle } from '@/utils/korean';
 import { getChildNodes, getNode } from '@/stores/scopeTreeStore';
@@ -114,7 +115,9 @@ const cache = new Map<string, FaultTimeline[]>();
  * 조회 범위를 선택한 발전소 소속으로 제한한다 (SFR-015-05).
  */
 export function getFaultTimelines(node: ScopeNode): FaultTimeline[] {
-  const cached = cache.get(node.id);
+  // 트리가 새로 깔리면 다시 짓는다 — 트리가 서기 전에 만든 빈 결과가 굳지 않게 한다.
+  const key = `${scopeTreeVersion()}-${node.id}`;
+  const cached = cache.get(key);
 
   if (cached) return cached;
 
@@ -122,7 +125,7 @@ export function getFaultTimelines(node: ScopeNode): FaultTimeline[] {
     .map(buildTimeline)
     .sort((a, b) => dayjs(b.startedAt).valueOf() - dayjs(a.startedAt).valueOf());
 
-  cache.set(node.id, rows);
+  cache.set(key, rows);
 
   return rows;
 }

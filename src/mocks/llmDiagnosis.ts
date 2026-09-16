@@ -1,4 +1,5 @@
 import dayjs from 'dayjs';
+import { scopeTreeVersion } from '@/stores/scopeTreeStore';
 import type { AnalysisStage, DiagnosisFinding, DiagnosisReport } from '@/interface/diagnosis';
 import type { OperationStatus } from '@/interface/status';
 import { withParticle } from '@/utils/korean';
@@ -162,7 +163,7 @@ const reportCache = new Map<string, DiagnosisReport>();
  * 고장 판정 자체는 규칙엔진(상태·고장코드)이 확정하고, 생성형 모델은 서술만 맡는 구조를 흉내 낸다.
  */
 export function getDiagnosisReport(node: ScopeNode, start: Date, end: Date): DiagnosisReport {
-  const key = `${node.id}-${dayjs(start).format('YYYYMMDD')}-${dayjs(end).format('YYYYMMDD')}`;
+  const key = `${scopeTreeVersion()}-${node.id}-${dayjs(start).format('YYYYMMDD')}-${dayjs(end).format('YYYYMMDD')}`;
   const cached = reportCache.get(key);
 
   if (cached) return cached;

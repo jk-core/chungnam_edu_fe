@@ -1,4 +1,5 @@
 import dayjs from 'dayjs';
+import { scopeTreeVersion } from '@/stores/scopeTreeStore';
 import type { DiagnosisFaultCode } from '@/interface/equipment';
 import { getNode } from '@/stores/scopeTreeStore';
 import { getPredictionSeries } from './prediction';
@@ -47,7 +48,7 @@ const trendCache = new Map<string, DiagTrendPoint[]>();
  * 상태로 실측이 깎인다.
  */
 export function getUnitTrend(unitId: string, start: Date, end: Date): DiagTrendPoint[] {
-  const key = `${unitId}-${dayjs(start).format('YYYYMMDD')}-${dayjs(end).format('YYYYMMDD')}`;
+  const key = `${scopeTreeVersion()}-${unitId}-${dayjs(start).format('YYYYMMDD')}-${dayjs(end).format('YYYYMMDD')}`;
   const cached = trendCache.get(key);
 
   if (cached) return cached;
