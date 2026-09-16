@@ -1,11 +1,10 @@
 import dayjs from 'dayjs';
 import { useCallback, useLayoutEffect, useRef, useState } from 'react';
 import { TODAY } from '@/mocks/today';
-import { WEATHER_META } from '@/mocks/weather';
 import { buildMonthGrid, CALENDAR_MAX, CALENDAR_MIN, DAY_CALENDAR_MIN, WEEKDAY_LABELS } from '@/utils/date';
 import { cn } from '@/utils/cn';
 import { formatNumber } from '@/utils/format';
-import type { DayWeather, MonthPower } from '@/interface/weather';
+import type { CalendarDayCell, MonthPower } from '@/interface/weather';
 import type { Granularity } from '@/utils/date';
 import styles from './DataCalendar.module.scss';
 import { WeatherIcon } from './WeatherIcon';
@@ -26,7 +25,7 @@ interface ScrollCalendarProps {
   granularity: Granularity;
   selected: Date;
   onSelect: (value: Date) => void;
-  getDays: (year: number, month: number) => DayWeather[];
+  getDays: (year: number, month: number) => CalendarDayCell[];
   getMonths: (year: number) => MonthPower[];
 }
 
@@ -230,7 +229,7 @@ function MonthGrid({
 }: {
   year: number;
   month: number;
-  days: DayWeather[];
+  days: CalendarDayCell[];
   selected: string;
   onSelect: (key: string) => void;
 }) {
@@ -281,7 +280,7 @@ function MonthGrid({
                     onClick={() => onSelect(key)}
                     aria-current={key === selected ? 'date' : undefined}
                     aria-label={data
-                      ? `${cell.format('M월 D일')}, ${WEATHER_META[data.kind].label}`
+                      ? `${cell.format('M월 D일')}, ${data.label}`
                       : cell.format('M월 D일')}
                   >
                     <span className={styles.cell__top}>
@@ -296,6 +295,7 @@ function MonthGrid({
                       {data ? (
                         <WeatherIcon
                           kind={data.kind}
+                          label={data.label}
                           size={17}
                           className={cn(styles.cell__weather, styles[`cell__weather--${data.kind}`])}
                         />

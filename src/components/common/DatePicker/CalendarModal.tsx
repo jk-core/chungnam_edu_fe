@@ -1,11 +1,9 @@
-import { useCallback } from 'react';
 import { Button } from '@/components/common/Button';
 import { formatByGranularity } from '@/utils/date';
-import { getMonthDays, getYearMonths } from '@/mocks/weather';
 import { Modal } from '@/components/common/Modal';
 import { ScrollCalendar } from '@/components/common/DataCalendar/ScrollCalendar';
-import { usePlantScope } from '@/hooks/usePlantScope';
 import type { Granularity } from '@/utils/date';
+import { useCalendarData } from './hooks/useCalendarData';
 import styles from './DatePicker.module.scss';
 
 interface CalendarModalProps {
@@ -46,14 +44,8 @@ const HINT: Record<Granularity, string> = {
  * 상자(`Form.Date`). 방아쇠는 각자 갖고 창만 함께 쓴다.
  */
 export function CalendarModal({ isOpen, onClose, granularity, value, onSelect }: CalendarModalProps) {
-  const { plant } = usePlantScope();
-
-  // 굴려 보는 달력이라 달마다 그때그때 읽어 간다. 조회 대상이 바뀌면 그 발전소 값으로 갈린다.
-  const getDays = useCallback(
-    (year: number, month: number) => getMonthDays(plant?.id ?? null, year, month),
-    [plant?.id],
-  );
-  const getMonths = useCallback((year: number) => getYearMonths(plant?.id ?? null, year), [plant?.id]);
+  // 조회 대상이 바뀌면 그 발전소 값으로 갈린다.
+  const { getDays, getMonths } = useCalendarData();
 
   const choose = (next: Date) => {
     onSelect(next);

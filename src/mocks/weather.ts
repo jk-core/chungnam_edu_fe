@@ -1,4 +1,6 @@
 import dayjs from 'dayjs';
+import { WEATHER_TYPE } from '@/configs/codes';
+import type { WeatherCode } from '@/configs/codes';
 import type { DayWeather, MonthPower, WeatherKind } from '@/interface/weather';
 import { MONTH_FACTOR } from './generation';
 import { REGION_TOTAL } from './regions';
@@ -16,6 +18,22 @@ export const WEATHER_META: Record<WeatherKind, { label: string; factor: number }
   rain: { label: '비', factor: 0.36 },
   snow: { label: '눈', factor: 0.28 },
 };
+
+/**
+ * 응답의 `weatherCode` 를 화면 어휘로 옮긴다.
+ *
+ * 서버는 일곱 가지를 주는데 아이콘은 다섯 벌이라 둘을 접는다 — 비/눈은 눈으로, 소나기는 비로.
+ * 접힌 뒤에도 이름은 남아야 해서, 칸에 붙는 글자는 응답의 `weatherName` 을 그대로 쓴다.
+ */
+export function weatherKindFromCode(code: WeatherCode): WeatherKind {
+  if (code === WEATHER_TYPE.CODE.맑음) return 'clear';
+  if (code === WEATHER_TYPE.CODE.구름많음) return 'partlyCloudy';
+  if (code === WEATHER_TYPE.CODE.흐림) return 'cloudy';
+  if (code === WEATHER_TYPE.CODE.비) return 'rain';
+  if (code === WEATHER_TYPE.CODE.소나기) return 'rain';
+
+  return 'snow';
+}
 
 /** 계절에 맞는 날씨를 고른다. 겨울에는 눈이, 여름에는 비가 잦다. */
 function pickWeather(next: () => number, month: number): WeatherKind {
