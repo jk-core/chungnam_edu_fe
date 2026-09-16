@@ -1,6 +1,6 @@
 import { USER_TYPE } from '@/configs/codes';
-import type { UserFormValues } from '@/service/user/type';
 import type { ManagedUser } from '@/interface/account';
+import type { UserFormValues } from './form';
 
 export const EMPTY_VALUES: UserFormValues = {
   userName: '',

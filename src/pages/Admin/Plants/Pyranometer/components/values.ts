@@ -1,6 +1,6 @@
-import type { IrradFormValues } from '@/service/irrad/type';
 import type { PlantAsset } from '@/interface/asset';
 import type { Pyranometer } from '@/interface/deviceMaster';
+import type { IrradFormValues } from './form';
 
 export const EMPTY_VALUES: IrradFormValues = {
   // 빈 숫자 칸은 NaN 이다 — 0 은 「0번 발전소」라는 뜻이 되어 버린다.

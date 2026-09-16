@@ -1,64 +1,61 @@
 import { z } from 'zod';
 import { ZodUserTypeCode } from '@/configs/codes';
+import { dropdownSchema } from '@/service/common';
 
-export type UserSignInParams = z.infer<typeof userSignInSchema>;
-export const userSignInSchema = z.object({
+export type SignInParams = z.infer<typeof signInParamsSchema>;
+export const signInParamsSchema = z.object({
   loginId: z.string(),
   password: z.string(),
 });
 
-export type UserSignIn = z.infer<typeof userSignInResponseSchema>;
-export const userSignInResponseSchema = z.object({
+/**
+ * 로그인 응답. 사용자 이름·등급은 여기 없다 — 토큰을 쥔 뒤 `getUserInfo` 로 따로 받는다.
+ * `refreshTokenId` 는 재발급할 때 refreshToken 과 짝으로 함께 보내야 한다.
+ */
+export type SignIn = z.infer<typeof signInSchema>;
+export const signInSchema = z.object({
+  userId: z.number().int(),
+  refreshTokenId: z.string(),
   accessToken: z.string(),
   refreshToken: z.string(),
+});
+
+/** 재발급은 새 accessToken 문자열 하나만 돌려준다 — 감싼 객체가 아니다 */
+export type ReissuanceParams = z.infer<typeof reissuanceParamsSchema>;
+export const reissuanceParamsSchema = z.object({
   refreshTokenId: z.string(),
+  refreshToken: z.string(),
+});
+
+/** 관리자가 남의 비밀번호를 새로 정한다 — 기존 비밀번호를 묻지 않는다 */
+export type InitializePasswordParams = z.infer<typeof initializePasswordParamsSchema>;
+export const initializePasswordParamsSchema = z.object({
+  loginId: z.string(),
+  newPassword: z.string(),
+});
+
+/** 본인이 바꾼다 — 기존 비밀번호를 함께 보낸다 */
+export type ChangePasswordParams = z.infer<typeof changePasswordParamsSchema>;
+export const changePasswordParamsSchema = z.object({
+  password: z.string(),
+  newPassword: z.string(),
+});
+
+/** 헤더 프로필·메뉴 노출·라우트 가드가 함께 본다 */
+export type UserDetail = z.infer<typeof userDetailSchema>;
+export const userDetailSchema = z.object({
   userId: z.number().int(),
+  loginId: z.string(),
   userName: z.string(),
   userTypeCode: ZodUserTypeCode.CODE,
   userTypeName: ZodUserTypeCode.NAME,
 });
 
 /**
- * 실패 응답 본문. 잠금까지 몇 번 남았는지를 화면이 세지 않는다 —
- * 브라우저를 바꾸거나 새로고침하면 클라이언트가 센 값은 틀어진다.
+ * 사용자 드롭다운 한 줄.
+ *
+ * 여기서만 `id` 가 문자열(로그인 ID)이다 — 다른 드롭다운은 모두 숫자 식별자를 준다.
+ * 발전소·설비가 담당자를 걸 때 쓰는 `userId` 는 숫자라, 이 값을 그대로 실어 보내면 맞지 않는다.
  */
-export type UserSignInFail = z.infer<typeof userSignInFailSchema>;
-export const userSignInFailSchema = z.object({
-  message: z.string(),
-  failCount: z.number().int(),
-  maxFailCount: z.number().int(),
-  isLocked: z.boolean(),
-});
-
-export type UserReissueParams = z.infer<typeof userReissueSchema>;
-export const userReissueSchema = z.object({
-  refreshToken: z.string(),
-  refreshTokenId: z.string(),
-});
-
-export type UserReissue = z.infer<typeof userReissueResponseSchema>;
-export const userReissueResponseSchema = z.object({
-  accessToken: z.string(),
-});
-
-/** 헤더 프로필·메뉴 노출·라우트 가드가 함께 본다 */
-export type UserInfo = z.infer<typeof userInfoSchema>;
-export const userInfoSchema = z.object({
-  userId: z.number().int(),
-  loginId: z.string(),
-  userName: z.string(),
-  userTypeCode: ZodUserTypeCode.CODE,
-  userTypeName: ZodUserTypeCode.NAME,
-  orgName: z.string(),
-  department: z.string(),
-  email: z.string(),
-  /** 조회가능발전소 — 빈 배열이면 제한 없음 */
-  powerPlantIds: z.array(z.number().int()),
-  expireDtm: z.string(),
-});
-
-export type UserPasswordParams = z.infer<typeof userPasswordSchema>;
-export const userPasswordSchema = z.object({
-  password: z.string(),
-  newPassword: z.string(),
-});
+export type UserDropdown = z.infer<typeof userDropdownSchema>;
+export const userDropdownSchema = dropdownSchema(z.string());

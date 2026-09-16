@@ -1,8 +1,8 @@
 import { INVERTER_TYPE, PHASE_TYPE } from '@/configs/codes';
 import { inverterTypeCodeOf } from '@/mocks/deviceMaster';
 import type { PhaseTypeCode } from '@/configs/codes';
-import type { InverterFormValues } from '@/service/inverter/type';
 import type { InverterProduct } from '@/interface/deviceMaster';
+import type { InverterFormValues } from './form';
 
 export const phaseFromCode = (code: PhaseTypeCode): InverterProduct['phase'] =>
   (code === PHASE_TYPE.CODE.단상 ? '단상' : '삼상');

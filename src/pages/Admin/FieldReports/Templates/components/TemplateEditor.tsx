@@ -3,7 +3,6 @@ import { useFieldArray, useForm, useWatch } from 'react-hook-form';
 import { useNavigate } from 'react-router-dom';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Button } from '@/components/common/Button';
-import { CHECK_NAME_MAX, LABEL_MAX, REVISION_NOTE_MAX, templateFormSchema } from '@/service/inspectionReport/type';
 import { ConfirmDialog } from '@/components/common/ConfirmDialog';
 import { createForm, FormRow, FormSection } from '@/components/common/Form';
 import { FormPage } from '@/pages/Admin/_shared/FormPage';
@@ -15,10 +14,11 @@ import { PlusIcon } from '@/components/common/Icon';
 import { toast } from '@/stores/toastStore';
 import { useAuthUser } from '@/stores/authStore';
 import useFieldReportStore from '@/stores/fieldReportStore';
-import type { TemplateFormValues } from '@/service/inspectionReport/type';
 import type { ReportTemplate } from '@/interface/fieldReport';
 import styles from '@/pages/Admin/Admin.module.scss';
+import { CHECK_NAME_MAX, LABEL_MAX, REVISION_NOTE_MAX, templateFormSchema } from './form';
 import { EMPTY_VALUES, hasItemChange, toCheckNameList, toFormValues } from './values';
+import type { TemplateFormValues } from './form';
 
 const INSPECT_TYPES = [
   { value: '정기점검' as const, label: '정기점검' },

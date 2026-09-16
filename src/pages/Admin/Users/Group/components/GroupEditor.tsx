@@ -7,7 +7,6 @@ import { ConfirmDialog } from '@/components/common/ConfirmDialog';
 import { createForm, FormSection } from '@/components/common/Form';
 import { formatCapacity, formatNumber } from '@/utils/format';
 import { FormPage } from '@/pages/Admin/_shared/FormPage';
-import { groupFormSchema } from '@/service/user/type';
 import { listPath } from '@/pages/Admin/_shared/adminPath';
 import { Modal } from '@/components/common/Modal';
 import { MSG } from '@/configs/messages';
@@ -18,10 +17,11 @@ import { toast } from '@/stores/toastStore';
 import { useManagedUsers, usePlantAssets } from '@/hooks/usePlantAssets';
 import { usePlantCapacity } from '@/pages/Admin/Plants/Plant/hooks/usePlantData';
 import useAssetStore from '@/stores/assetStore';
-import type { GroupFormValues } from '@/service/user/type';
 import type { ManagedUser } from '@/interface/account';
 import styles from '@/pages/Admin/Admin.module.scss';
 import { useUserChangeLog } from '../../Account/hooks/useUserChangeLog';
+import { groupFormSchema } from './form';
+import type { GroupFormValues } from './form';
 
 const Form = createForm<GroupFormValues>();
 

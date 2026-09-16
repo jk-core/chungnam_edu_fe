@@ -1,8 +1,8 @@
 import { useEffect, useRef } from 'react';
 import { useWatch } from 'react-hook-form';
 import { computeEquipmentCapacity } from '@/mocks/deviceMaster';
-import type { EquipmentFormValues } from '@/service/equipment/type';
 import type { ModuleProduct } from '@/interface/deviceMaster';
+import type { EquipmentFormValues } from '../components/form';
 import type { UseFormReturn } from 'react-hook-form';
 
 /**

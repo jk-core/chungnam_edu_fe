@@ -9,8 +9,8 @@ import {
   STRING_COUNT_MIN,
   STRING_NUMBER_MAX,
   STRING_NUMBER_MIN,
-} from '@/service/string/type';
-import type { StringRow, StringRowsShape } from '@/service/string/type';
+} from '@/schemas/stringRow';
+import type { StringRow, StringRowsShape } from '@/schemas/stringRow';
 import styles from '@/pages/Admin/Admin.module.scss';
 import type { FieldValues } from 'react-hook-form';
 

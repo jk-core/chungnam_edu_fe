@@ -11,15 +11,15 @@ import { createForm, FormRow, FormSection } from '@/components/common/Form';
 import { formatNumber } from '@/utils/format';
 import { FormPage } from '@/pages/Admin/_shared/FormPage';
 import { listPath } from '@/pages/Admin/_shared/adminPath';
-import { moduleFormSchema, NUMERIC } from '@/service/module/type';
 import { MSG } from '@/configs/messages';
 import { toast } from '@/stores/toastStore';
 import { useAuthUser } from '@/stores/authStore';
 import { useModuleProducts } from '@/pages/Admin/Plants/Equipment/hooks/useEquipmentRows';
 import useEquipmentStore, { mergeEquipment } from '@/stores/equipmentStore';
-import type { ModuleFormValues, NumericKey } from '@/service/module/type';
 import type { ModuleProduct } from '@/interface/deviceMaster';
+import { moduleFormSchema, NUMERIC } from './form';
 import { cellTypeFromCode, EMPTY_VALUES, toFormValues } from './values';
+import type { ModuleFormValues, NumericKey } from './form';
 
 const Form = createForm<ModuleFormValues>();
 

@@ -12,7 +12,6 @@ import { FormPage } from '@/pages/Admin/_shared/FormPage';
 import { listPath } from '@/pages/Admin/_shared/adminPath';
 import { Modal } from '@/components/common/Modal';
 import { MSG } from '@/configs/messages';
-import { NAME_MAX, PHOTO_MAX_COUNT, plantFormSchema } from '@/service/plant/type';
 import { SCHOOL_LEVELS, SCHOOLS } from '@/mocks/schools';
 import { RecordPicker } from '@/components/common/RecordPicker';
 import { regionNameOfCode } from '@/configs/regions';
@@ -21,12 +20,12 @@ import { useManagedUsers, usePlantAssets } from '@/hooks/usePlantAssets';
 import { usePyranometerRows } from '@/pages/Admin/Plants/Pyranometer/hooks/usePyranometerRows';
 import useAssetStore from '@/stores/assetStore';
 import type { UploadFile } from '@/components/common/Form';
-import type { PlantFormValues } from '@/service/plant/type';
 import type { ChangeLog } from '@/interface/changeLog';
 import type { PlantAsset } from '@/interface/asset';
 import styles from '@/pages/Admin/Admin.module.scss';
 import { usePlantChangeLog } from '../hooks/usePlantChangeLog';
 import { usePlantCapacity } from '../hooks/usePlantData';
+import { NAME_MAX, PHOTO_MAX_COUNT, plantFormSchema } from './form';
 import {
   EMPTY_VALUES,
   irradLabelOf,
@@ -36,6 +35,7 @@ import {
   toUploadFiles,
   userLabelOf,
 } from './values';
+import type { PlantFormValues } from './form';
 
 /** 서버가 매기는 번호 자리. 시드가 10000 번대를 쓰므로 그 뒤에서 이어 붙인다. */
 const PLANT_NO_BASE = 10000;

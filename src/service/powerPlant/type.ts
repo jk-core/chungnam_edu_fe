@@ -1,6 +1,11 @@
 import { z } from 'zod';
-import { ZodStatusCode } from '@/configs/codes';
+import { ZodPhaseTypeCode, ZodStatusCode } from '@/configs/codes';
 import { fileSchema } from '@/service/common';
+
+/*
+  일사량계 상태(`irradStatusCode`)는 발전 운전상태와 다른 축이고 코드값이 아직 미정이라
+  숫자·문자로 둔다 (`configs/codes.ts` 의 「BE 확정 대기」 참조).
+*/
 
 /**
  * 도 전체를 한 번에 준다 (300개 안팎). 거르기·쪽나눔은 화면이 받아 둔 배열 위에서 한다.
@@ -26,50 +31,18 @@ export const powerPlantListItemSchema = z.object({
   longitude: z.number(),
 });
 
-/**
- * 조회 대상 패널의 설비 트리. 발전소 → 인버터 → 스트링을 상태와 함께 펼친다.
- * 요약 줄(주소·일사량계 상태)은 목록에서 그 발전소 행을 집어 쓴다 — 여기서 또 주면 발전소를
- * 바꿀 때 요약이 이 응답을 기다렸다 바뀐다.
- */
-export type PowerPlantHierarchyParams = z.infer<typeof powerPlantHierarchyParamsSchema>;
-export const powerPlantHierarchyParamsSchema = z.object({
-  powerPlantId: z.number().int(),
-});
-
-export type PowerPlantHierarchy = z.infer<typeof powerPlantHierarchySchema>;
-export const powerPlantHierarchySchema = z.object({
-  powerPlantId: z.number().int(),
-  powerPlantName: z.string(),
-  powerPlantCapacity: z.number(),
-  statusCode: ZodStatusCode.CODE,
-  statusName: ZodStatusCode.NAME,
-  inverterList: z.array(z.object({
-    cid: z.number().int(),
-    equipmentName: z.string(),
-    equipmentCapacity: z.number(),
-    phaseTypeCode: z.number().int(),
-    phaseTypeName: z.string(),
-    statusCode: ZodStatusCode.CODE,
-    statusName: ZodStatusCode.NAME,
-    stringList: z.array(z.object({
-      stringId: z.number().int(),
-      stringName: z.string(),
-      stringCapacity: z.number(),
-      statusCode: ZodStatusCode.CODE,
-      statusName: ZodStatusCode.NAME,
-    })),
-  })),
+/** 발전 추이 차트의 한 점 */
+export type PowerPlantFlowChartPoint = z.infer<typeof powerPlantFlowChartPointSchema>;
+export const powerPlantFlowChartPointSchema = z.object({
+  dateTime: z.string(),
+  /** 미수집이면 null */
+  currentPower: z.number().nullable(),
 });
 
 /**
  * 마커를 눌렀을 때 오른쪽에 펼쳐지는 패널 한 벌.
  * 이름·주소도 함께 싣는다 — 그 패널이 그리는 것이라면 목록에 있든 없든 여기서 준다.
  */
-export type PowerPlantMarkerInfoParams = z.infer<typeof powerPlantMarkerInfoParamsSchema>;
-export const powerPlantMarkerInfoParamsSchema = z.object({
-  powerPlantId: z.number().int(),
-});
-
 export type PowerPlantMarkerInfo = z.infer<typeof powerPlantMarkerInfoSchema>;
 export const powerPlantMarkerInfoSchema = z.object({
   powerPlantName: z.string(),
@@ -86,84 +59,42 @@ export const powerPlantMarkerInfoSchema = z.object({
   yearPower: z.number(),
   capacityFactor: z.number(),
   inverterCount: z.number().int(),
-  flowChartData: z.array(z.object({
-    dateTime: z.string(),
-    /** 미수집이면 null */
-    currentPower: z.number().nullable(),
-  })),
+  flowChartData: z.array(powerPlantFlowChartPointSchema),
   photoList: z.array(fileSchema),
 });
 
 /**
- * 등록 제원 조회 전용.
- * 관리자 콘솔의 `/manage/powerPlant/detail` 과 달리 코드값 대신 이름으로 준다.
+ * 조회 대상 패널의 설비 트리. 발전소 → 인버터 → 스트링을 상태와 함께 펼친다.
+ * 요약 줄(주소·일사량계 상태)은 목록에서 그 발전소 행을 집어 쓴다 — 여기서 또 주면 발전소를
+ * 바꿀 때 요약이 이 응답을 기다렸다 바뀐다.
  */
-export type PowerPlantInfoParams = z.infer<typeof powerPlantInfoParamsSchema>;
-export const powerPlantInfoParamsSchema = z.object({
-  powerPlantId: z.number().int(),
-});
-
-export type PowerPlantInfo = z.infer<typeof powerPlantInfoSchema>;
-export const powerPlantInfoSchema = z.object({
-  powerPlantId: z.number().int(),
-  powerPlantName: z.string(),
-  powerPlantType: z.string(),
-  regionName: z.string(),
-  address: z.string(),
-  addressDetail: z.string(),
-  powerPlantCapacity: z.number(),
-  rtuEnterpriseName: z.string(),
-  installerName: z.string(),
-  installerPhone: z.string(),
-  managerEnterpriseName: z.string(),
-  managerEnterprisePhone: z.string(),
-  managerName: z.string(),
-  managerPhone: z.string(),
-  etc: z.string(),
+export type PowerPlantHierarchyString = z.infer<typeof powerPlantHierarchyStringSchema>;
+export const powerPlantHierarchyStringSchema = z.object({
+  stringId: z.number().int(),
+  stringName: z.string(),
+  stringCapacity: z.number(),
   statusCode: ZodStatusCode.CODE,
   statusName: ZodStatusCode.NAME,
-  latitude: z.number(),
-  longitude: z.number(),
-  rtu: z.object({
-    model: z.string(),
-    serial: z.string(),
-    firmware: z.string(),
-    intervalMinute: z.number().int(),
-    /* RTU 통신상태는 발전 운전상태와 다른 축이고 코드값이 미정이다 (configs/codes.ts) */
-    statusCode: z.number().int(),
-    statusName: z.string(),
-    lastGathDtm: z.string().nullable(),
-  }).nullable(),
-  irrad: z.object({
-    irradId: z.number().int(),
-    irradName: z.string(),
-    rtuPort: z.number().int(),
-    calibrationFactor: z.number(),
-    isModTemp: z.boolean(),
-    /* 일사량계 상태는 발전 운전상태와 다른 축이고 코드값이 미정이다 (configs/codes.ts) */
-    statusCode: z.number().int(),
-    statusName: z.string(),
-  }).nullable(),
-  inverterList: z.array(z.object({
-    cid: z.number().int(),
-    equipmentName: z.string(),
-    equipmentCapacity: z.number(),
-    inverterEnterpriseName: z.string(),
-    inverterName: z.string(),
-    moduleName: z.string(),
-    /** 모듈장수 (직렬×병렬 합) */
-    moduleCount: z.number().int(),
-    moduleSerialCount: z.number().int(),
-    moduleParallelCount: z.number().int(),
-    moduleSerialCountSecond: z.number().int(),
-    moduleParallelCountSecond: z.number().int(),
-    installDate: z.string(),
-    rtuCommunicationId: z.string(),
-    rtuPort: z.number().int(),
-    /** 한 번도 수집되지 않은 설비는 없다 */
-    lastGathDtm: z.string().nullable(),
-    statusCode: ZodStatusCode.CODE,
-    statusName: ZodStatusCode.NAME,
-  })),
-  photoList: z.array(fileSchema),
+});
+
+export type PowerPlantHierarchyInverter = z.infer<typeof powerPlantHierarchyInverterSchema>;
+export const powerPlantHierarchyInverterSchema = z.object({
+  cid: z.number().int(),
+  equipmentName: z.string(),
+  equipmentCapacity: z.number(),
+  phaseTypeCode: ZodPhaseTypeCode.CODE,
+  phaseTypeName: ZodPhaseTypeCode.NAME,
+  statusCode: ZodStatusCode.CODE,
+  statusName: ZodStatusCode.NAME,
+  stringList: z.array(powerPlantHierarchyStringSchema),
+});
+
+export type PowerPlantHierarchy = z.infer<typeof powerPlantHierarchySchema>;
+export const powerPlantHierarchySchema = z.object({
+  powerPlantId: z.number().int(),
+  powerPlantName: z.string(),
+  powerPlantCapacity: z.number(),
+  statusCode: ZodStatusCode.CODE,
+  statusName: ZodStatusCode.NAME,
+  inverterList: z.array(powerPlantHierarchyInverterSchema),
 });
