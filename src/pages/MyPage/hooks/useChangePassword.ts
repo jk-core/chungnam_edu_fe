@@ -1,17 +1,8 @@
 import { useMutation } from '@tanstack/react-query';
 import { postChangePassword } from '@/service/auth';
+import { serverMessageOf } from '@/service/error';
 import { toast } from '@/stores/toastStore';
 import type { ChangePasswordParams } from '@/service/auth/type';
-
-/** 서버가 내려준 문구를 그대로 쓴다 — 지난 비밀번호 재사용 같은 규칙은 서버만이 안다 */
-function messageOf(error: unknown): string {
-  const body = (error as { response?: { data?: unknown } }).response?.data;
-  const serverMessage = typeof body === 'string'
-    ? body
-    : (body as { message?: string } | undefined)?.message;
-
-  return serverMessage ?? '비밀번호를 바꾸지 못했습니다. 현재 비밀번호를 다시 확인해 주세요.';
-}
 
 /**
  * 비밀번호 변경 (SFR-024).
@@ -26,7 +17,8 @@ export function useChangePassword(onDone: () => void) {
       toast.success('비밀번호를 변경했습니다. 다음 로그인부터 새 비밀번호를 사용하세요.');
       onDone();
     },
-    onError: (error) => toast.error(messageOf(error)),
+    // 지난 비밀번호 재사용 같은 규칙은 서버만이 알아, 내려준 문구가 있으면 그것을 쓴다.
+    onError: (error) => toast.error(serverMessageOf(error) ?? '비밀번호를 바꾸지 못했습니다. 현재 비밀번호를 다시 확인해 주세요.'),
   });
 
   return { changePassword: mutate, isPending };
