@@ -10,7 +10,7 @@ import { FormPage } from '@/pages/Admin/_shared/FormPage';
 import { listPath } from '@/pages/Admin/_shared/adminPath';
 import { MSG } from '@/configs/messages';
 import { PASSWORD_HINT } from '@/schemas/password';
-import { ROLE_LABEL, ROLE_SCOPE_NOTE, roleFromCode } from '@/mocks/accounts';
+import { ROLE_LABEL, ROLE_SCOPE_NOTE, roleFromCode } from '@/configs/roles';
 import { toast } from '@/stores/toastStore';
 import { useManagedUsers } from '@/hooks/usePlantAssets';
 import { USER_TYPE } from '@/configs/codes';

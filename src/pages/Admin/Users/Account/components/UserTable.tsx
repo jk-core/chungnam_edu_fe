@@ -7,7 +7,7 @@ import { DEFAULT_PAGE_SIZE, Pagination } from '@/components/common/Pagination';
 import { MaskedText } from '@/components/common/MaskedText';
 import { maskEmail } from '@/utils/mask';
 import { Reveal } from '@/components/common/Reveal';
-import { isReviewRole, ROLE_LABEL } from '@/mocks/accounts';
+import { isReviewRole, ROLE_LABEL } from '@/configs/roles';
 import { Table } from '@/components/common/Table';
 import type { Column } from '@/components/common/Table';
 import type { ManagedUser } from '@/interface/account';

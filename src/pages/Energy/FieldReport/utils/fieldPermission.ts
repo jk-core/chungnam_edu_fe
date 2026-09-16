@@ -1,4 +1,4 @@
-import { isReviewRole, isScopedRole } from '@/mocks/accounts';
+import { isReviewRole } from '@/configs/roles';
 import type { AuthUser } from '@/interface/account';
 import type { FieldReport } from '@/interface/fieldReport';
 
@@ -25,12 +25,11 @@ export function getFieldPermission(user: AuthUser | null): FieldPermission {
   const role = user?.role ?? 'institution';
 
   /*
-    맡은 발전소가 정해진 등급은 그 밖을 읽지 못한다 — 기관담당자는 자기 것, 그룹관리자는 맡은 곳들.
-    그런데 v2.0 의 `/user/userInfo` 가 담당 발전소를 주지 않아 「어느 곳인지」를 모른다.
-    모르는 채로 전부 열어 주면 기관담당자가 남의 학교 보고서를 읽게 되므로, 목록이 올 때까지는
-    묶이는 등급에게 아무것도 열지 않는다. BE 가 칸을 늘리면 그 목록으로 판정한다.
+    맡은 발전소가 정해진 계정은 그 밖을 읽지 못한다 — 기관담당자는 자기 것, 그룹관리자는 맡은 곳들.
+    범위는 `powerPlantIds` 가 정하고 빈 배열이 「제한 없음」이다. BE 가 아직 그 칸을 주지 않아
+    지금은 모두 제한 없음이며, 값이 실리면 여기서 보고서의 발전소와 맞대 본다.
   */
-  const isReadable = !isScopedRole(role);
+  const isReadable = user === null || user.powerPlantIds.length === 0;
 
   return {
     canSubmit: (report) => isReadable && report.state === 'draft',

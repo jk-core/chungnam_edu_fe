@@ -1,7 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
 import { getUserInfo } from '@/service/auth';
-import { roleFromCode } from '@/mocks/accounts';
-import { useAuthUser } from '@/stores/authStore';
+import { toAuthUser, useAuthUser } from '@/stores/authStore';
 import type { AuthUser } from '@/interface/account';
 
 export const MY_ACCOUNT_KEY = ['user', 'info'] as const;
@@ -21,14 +20,7 @@ export function useMyAccount(): { user: AuthUser | null; isLoading: boolean } {
     staleTime: 5 * 60 * 1000,
   });
 
-  const user: AuthUser | null = data
-    ? {
-      userId: data.userId,
-      loginId: data.loginId,
-      name: data.userName,
-      role: roleFromCode(data.userTypeCode),
-    }
-    : cached;
+  const user: AuthUser | null = data ? toAuthUser(data) : cached;
 
   return { user, isLoading: isLoading && cached === null };
 }

@@ -1,7 +1,7 @@
 import { Badge } from '@/components/common/Badge';
 import { Card } from '@/components/common/Card';
 import { Reveal } from '@/components/common/Reveal';
-import { isReviewRole, ROLE_LABEL, ROLE_SCOPE_NOTE } from '@/mocks/accounts';
+import { isReviewRole, ROLE_LABEL, ROLE_SCOPE_NOTE } from '@/configs/roles';
 import styles from '../MyPage.module.scss';
 import { useMyAccount } from '../hooks/useMyAccount';
 

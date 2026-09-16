@@ -1,7 +1,8 @@
+import axios from 'axios';
 import { useMutation } from '@tanstack/react-query';
 import { getUserInfo, postSignIn } from '@/service/auth';
-import { roleFromCode } from '@/mocks/accounts';
-import { useSetAuthUser, useSetSession } from '@/stores/authStore';
+import { serverMessageOf } from '@/service/error';
+import { toAuthUser, useSetAuthUser, useSetSession } from '@/stores/authStore';
 import type { SignInParams } from '@/service/auth/type';
 
 export interface FormError {
@@ -11,15 +12,11 @@ export interface FormError {
 
 /** 서버가 내려준 문구를 그대로 쓴다 — 실패 횟수·잠금 안내는 서버만이 정확히 안다 */
 function messageOf(error: unknown): FormError {
-  const response = (error as { response?: { status?: number; data?: unknown } }).response;
-  const body = response?.data;
-  const serverMessage = typeof body === 'string'
-    ? body
-    : (body as { message?: string } | undefined)?.message;
+  const serverMessage = serverMessageOf(error);
 
   if (serverMessage) return { title: serverMessage, action: '입력한 내용을 다시 확인해 주세요.' };
 
-  if (response?.status === 401) {
+  if (axios.isAxiosError(error) && error.response?.status === 401) {
     return {
       title: '아이디 또는 비밀번호가 올바르지 않습니다.',
       action: '대소문자를 구분합니다. 반복해서 실패하면 계정이 잠깁니다.',
@@ -53,14 +50,7 @@ export function useSignIn() {
 
       return getUserInfo();
     },
-    onSuccess: (info) => {
-      setUser({
-        userId: info.userId,
-        loginId: info.loginId,
-        name: info.userName,
-        role: roleFromCode(info.userTypeCode),
-      });
-    },
+    onSuccess: (info) => setUser(toAuthUser(info)),
   });
 
   return {

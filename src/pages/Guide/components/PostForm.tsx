@@ -9,7 +9,7 @@ import { MSG } from '@/configs/messages';
 import { Reveal } from '@/components/common/Reveal';
 import { buildPath } from '@/routes/buildPath';
 import { daysAhead, NOW, TODAY } from '@/mocks/today';
-import { isReviewRole } from '@/mocks/accounts';
+import { isReviewRole } from '@/configs/roles';
 import { toast } from '@/stores/toastStore';
 import { useAuthUser } from '@/stores/authStore';
 import useBoardStore from '@/stores/boardStore';

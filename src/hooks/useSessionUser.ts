@@ -1,8 +1,7 @@
 import { useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { getUserInfoByToken } from '@/service/auth';
-import { roleFromCode } from '@/mocks/accounts';
-import useAuthStore, { useSetAuthUser } from '@/stores/authStore';
+import useAuthStore, { toAuthUser, useSetAuthUser } from '@/stores/authStore';
 
 export const SESSION_USER_KEY = ['user', 'token'] as const;
 
@@ -31,11 +30,6 @@ export function useSessionUser() {
   useEffect(() => {
     if (!data) return;
 
-    setUser({
-      userId: data.userId,
-      loginId: data.loginId,
-      name: data.userName,
-      role: roleFromCode(data.userTypeCode),
-    });
+    setUser(toAuthUser(data));
   }, [data, setUser]);
 }

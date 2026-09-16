@@ -41,7 +41,12 @@ export const changePasswordParamsSchema = z.object({
   newPassword: z.string(),
 });
 
-/** 헤더 프로필·메뉴 노출·라우트 가드가 함께 본다 */
+/**
+ * 헤더 프로필·메뉴 노출·라우트 가드가 함께 본다.
+ *
+ * `powerPlantIds` 는 조회할 수 있는 발전소다 — **빈 배열이 「제한 없음」**이다.
+ * BE 가 아직 이 칸을 내려주지 않아 `getUserInfo` 가 빈 배열로 메운다.
+ */
 export type UserDetail = z.infer<typeof userDetailSchema>;
 export const userDetailSchema = z.object({
   userId: z.number().int(),
@@ -49,6 +54,7 @@ export const userDetailSchema = z.object({
   userName: z.string(),
   userTypeCode: ZodUserTypeCode.CODE,
   userTypeName: ZodUserTypeCode.NAME,
+  powerPlantIds: z.array(z.number().int()),
 });
 
 /**

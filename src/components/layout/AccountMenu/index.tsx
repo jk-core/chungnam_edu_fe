@@ -14,7 +14,7 @@ import {
 import { Badge } from '@/components/common/Badge';
 import { buildPath } from '@/routes/buildPath';
 import { PATH } from '@/routes/routes';
-import { isAdminRole, isReviewRole, ROLE_LABEL, ROLE_SCOPE_NOTE } from '@/mocks/accounts';
+import { isAdminRole, isReviewRole, ROLE_LABEL, ROLE_SCOPE_NOTE } from '@/configs/roles';
 import { cn } from '@/utils/cn';
 import { useAuthUser } from '@/stores/authStore';
 import { useSelectedPlantId } from '@/stores/plantStore';

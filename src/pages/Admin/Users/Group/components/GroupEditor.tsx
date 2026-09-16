@@ -12,7 +12,7 @@ import { Modal } from '@/components/common/Modal';
 import { MSG } from '@/configs/messages';
 import { PlusIcon } from '@/components/common/Icon';
 import { RecordPicker } from '@/components/common/RecordPicker';
-import { ROLE_LABEL } from '@/mocks/accounts';
+import { ROLE_LABEL } from '@/configs/roles';
 import { toast } from '@/stores/toastStore';
 import { useManagedUsers, usePlantAssets } from '@/hooks/usePlantAssets';
 import { usePlantCapacity } from '@/pages/Admin/Plants/Plant/hooks/usePlantData';

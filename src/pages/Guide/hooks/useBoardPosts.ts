@@ -1,5 +1,5 @@
 import { useMemo } from 'react';
-import { isReviewRole } from '@/mocks/accounts';
+import { isReviewRole } from '@/configs/roles';
 import { mergePosts } from '@/stores/boardStore';
 import useBoardStore from '@/stores/boardStore';
 import type { BoardKind, BoardPost } from '@/interface/board';

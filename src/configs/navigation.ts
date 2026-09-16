@@ -1,4 +1,4 @@
-import { ADMIN_ROLES } from '@/mocks/accounts';
+import { ADMIN_ROLES } from '@/configs/roles';
 import { PATH } from '@/routes/routes';
 import type { Role } from '@/interface/account';
 

@@ -1,7 +1,17 @@
 import { create } from 'zustand';
 import { createJSONStorage, persist } from 'zustand/middleware';
-import { isAdminRole, isScopedRole } from '@/mocks/accounts';
+import { isAdminRole, roleFromCode } from '@/configs/roles';
+import type { UserDetail } from '@/service/auth/type';
 import type { AuthUser, Role } from '@/interface/account';
+
+/** 응답의 계정을 화면이 쓰는 모양으로 옮긴다 — 로그인·세션 확인·마이페이지가 같은 길을 탄다 */
+export const toAuthUser = (detail: UserDetail): AuthUser => ({
+  userId: detail.userId,
+  loginId: detail.loginId,
+  name: detail.userName,
+  role: roleFromCode(detail.userTypeCode),
+  powerPlantIds: detail.powerPlantIds,
+});
 
 /** 로그인이 돌려준 토큰 한 벌 (`SignInResForm`) */
 export interface Session {
@@ -74,12 +84,11 @@ export const useClearSession = () => useAuthStore((state) => state.clear);
 /**
  * 권한이 전체 조회인지 (SFR-023-02).
  *
- * 등급으로 가른다 — `/user/userInfo` 가 담당 발전소(`powerPlantIds`)를 아직 주지 않아서다.
- * 「비어 있으면 제한 없음」으로 두면 기관담당자까지 도 전체를 보게 되어 권한이 넓어진다.
- * 로그인하지 않은 채 열리는 화면(교육용 대시보드)은 제한 없이 본다.
+ * 담당 발전소가 비어 있으면 제한 없음이다 — 계약이 그렇게 정의돼 있다.
+ * 로그인하지 않은 채 열리는 화면(교육용 대시보드)도 제한 없이 본다.
  */
 export function useCanSeeAllPlants(): boolean {
-  return useAuthStore((state) => state.user === null || !isScopedRole(state.user.role));
+  return useAuthStore((state) => state.user === null || state.user.powerPlantIds.length === 0);
 }
 
 /** 관리자 콘솔 진입 가능 여부 (SFR-018-05, SER-001-18) */
