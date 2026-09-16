@@ -8,6 +8,7 @@
 const user = ['user'] as const;
 const powerPlant = ['powerPlant'] as const;
 const calendar = ['calendar'] as const;
+const area = ['area'] as const;
 
 export const queryKeys = {
   user: {
@@ -22,6 +23,11 @@ export const queryKeys = {
     /** 도 전체를 한 번에 받는다 — 거르기·쪽나눔은 화면이 한다 */
     list: () => [...powerPlant, 'list'] as const,
     hierarchy: (powerPlantId: number | null) => [...powerPlant, 'hierarchy', powerPlantId] as const,
+  },
+  area: {
+    all: area,
+    /** 지역 드롭다운 — 이름으로 좁힐 수 있으나 화면은 전체를 받아 둔다 */
+    dropdown: () => [...area, 'dropdown'] as const,
   },
   calendar: {
     all: calendar,

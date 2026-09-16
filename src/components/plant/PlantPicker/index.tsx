@@ -5,7 +5,8 @@ import { CheckIcon, SchoolIcon, SearchIcon } from '@/components/common/Icon';
 import { EmptyState } from '@/components/common/EmptyState';
 import { KIND_LABEL } from '@/configs/scope';
 import { Modal } from '@/components/common/Modal';
-import { isInRegion, SIGUNGU_REGIONS } from '@/configs/regions';
+import { isInRegion } from '@/configs/regions';
+import { useAreaOptions } from '@/hooks/useAreaOptions';
 import { usePowerPlantList } from '@/hooks/usePowerPlantList';
 import { Select } from '@/components/common/Select';
 import { cn } from '@/utils/cn';
@@ -14,11 +15,6 @@ import { useAllowedPlantIds } from '@/hooks/useScopeClamp';
 import { usePlantScope } from '@/hooks/usePlantScope';
 import { useSelectNode } from '@/stores/plantStore';
 import styles from './PlantPicker.module.scss';
-
-const REGION_OPTIONS = [
-  { value: 'all', label: '전체 지역' },
-  ...SIGUNGU_REGIONS.map((region) => ({ value: region.regionCode, label: region.name })),
-];
 
 interface PlantPickerProps {
   /**
@@ -43,6 +39,7 @@ export function PlantPicker({ variant = 'inline' }: PlantPickerProps) {
   const allowedIds = useAllowedPlantIds();
   const isScoped = allowedIds.length > 0;
   const { plants } = usePowerPlantList();
+  const areaOptions = useAreaOptions();
 
   const results = useMemo(() => {
     const keyword = query.trim();
@@ -143,7 +140,13 @@ export function PlantPicker({ variant = 'inline' }: PlantPickerProps) {
               onChange={(event) => setQuery(event.target.value)}
             />
           </label>
-          <Select label="지역" value={regionCode} options={REGION_OPTIONS} onChange={setRegionCode} hideLabel />
+          <Select
+            label="지역"
+            value={regionCode}
+            options={[{ value: 'all', label: '전체 지역' }, ...areaOptions]}
+            onChange={setRegionCode}
+            hideLabel
+          />
         </div>
 
         {/*

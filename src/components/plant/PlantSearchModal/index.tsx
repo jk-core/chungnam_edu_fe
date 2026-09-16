@@ -3,7 +3,8 @@ import { Badge } from '@/components/common/Badge';
 import { Button } from '@/components/common/Button';
 import { Modal } from '@/components/common/Modal';
 import { OPERATION_LABEL, OPERATION_ORDER, OPERATION_RANK, OPERATION_TONE } from '@/mocks/status';
-import { isInRegion, SIGUNGU_REGIONS } from '@/configs/regions';
+import { isInRegion } from '@/configs/regions';
+import { useAreaOptions } from '@/hooks/useAreaOptions';
 import { SCHOOL_LEVELS } from '@/mocks/schools';
 import { usePowerPlantList } from '@/hooks/usePowerPlantList';
 import { Select } from '@/components/common/Select';
@@ -51,6 +52,7 @@ interface PlantSearchModalProps {
 export function PlantSearchModal({ isOpen, filters, onClose, onApply, onSelect }: PlantSearchModalProps) {
   const [draft, setDraft] = useState<PlantFilters>(filters);
   const { plants } = usePowerPlantList();
+  const areaOptions = useAreaOptions();
 
   const results = useMemo(() => matchPlants(plants, draft), [plants, draft]);
 
@@ -88,7 +90,7 @@ export function PlantSearchModal({ isOpen, filters, onClose, onApply, onSelect }
             label="지역"
             value={draft.region}
             onChange={(value) => setDraft({ ...draft, region: value })}
-            options={[{ value: ALL, label: '전체 지역' }, ...SIGUNGU_REGIONS.map((item) => ({ value: item.regionCode, label: item.name }))]}
+            options={[{ value: ALL, label: '전체 지역' }, ...areaOptions]}
           />
           <Select
             label="기관별"
