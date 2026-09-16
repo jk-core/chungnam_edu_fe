@@ -1,9 +1,8 @@
 import { useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { getUserInfoByToken } from '@/service/auth';
+import { queryKeys } from '@/service/queryKeys';
 import useAuthStore, { toAuthUser, useSetAuthUser } from '@/stores/authStore';
-
-export const SESSION_USER_KEY = ['user', 'token'] as const;
 
 /**
  * 토큰이 가리키는 계정을 다시 확인한다 (`/user/token/Info`).
@@ -19,7 +18,7 @@ export function useSessionUser() {
   const setUser = useSetAuthUser();
 
   const { data } = useQuery({
-    queryKey: SESSION_USER_KEY,
+    queryKey: queryKeys.user.byToken(),
     queryFn: getUserInfoByToken,
     enabled: session !== null,
     // 등급이 바뀌는 일은 드물다. 화면을 옮길 때마다 물을 값이 아니다.

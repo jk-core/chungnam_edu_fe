@@ -1,9 +1,8 @@
 import { useQuery } from '@tanstack/react-query';
 import { getUserInfo } from '@/service/auth';
+import { queryKeys } from '@/service/queryKeys';
 import { toAuthUser, useAuthUser } from '@/stores/authStore';
 import type { AuthUser } from '@/interface/account';
-
-export const MY_ACCOUNT_KEY = ['user', 'info'] as const;
 
 /**
  * 마이페이지가 그리는 계정 (SFR-024).
@@ -15,7 +14,7 @@ export function useMyAccount(): { user: AuthUser | null; isLoading: boolean } {
   const cached = useAuthUser();
 
   const { data, isLoading } = useQuery({
-    queryKey: MY_ACCOUNT_KEY,
+    queryKey: queryKeys.user.info(),
     queryFn: getUserInfo,
     staleTime: 5 * 60 * 1000,
   });
