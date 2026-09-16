@@ -89,7 +89,7 @@ export function PaperBoard({
   const pager = useAutoPager({ total: CHAPTER_IDS.length, perPage: 1, intervalMs: turnMs });
 
   const chapters: Record<ChapterId, ReactNode> = {
-    principle: <ChapterPrinciple stats={stats} script={script} />,
+    principle: <ChapterPrinciple stats={stats} script={script} level={level} />,
     summary: <ChapterSummary stats={stats} script={script} level={level} />,
     carbon: <ChapterCarbon stats={stats} script={script} level={level} />,
   };

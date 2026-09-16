@@ -31,9 +31,47 @@ const STAGE = { w: 520, h: 200 };
 const SCAN_TRAIL = 26;
 
 interface PlantScanSceneProps {
-  /** 지금 들여다보는 자리 */
-  focus: PlantSpot;
+  /**
+   * 지금 들여다보는 자리.
+   *
+   * 주지 않으면 **당기지 않고 넷을 한 번에** 보인다. 한 자리씩 넘겨 보는 것은 그 자리의 속내
+   * (셀의 층, 인버터 안의 파형)를 읽히게 하려는 것인데, 「전체가 어떻게 이어지는가」 를 말하는
+   * 자리에서는 넘김 자체가 방해가 된다 — 보는 사람이 넷을 다 볼 때까지 기다려야 하고, 그동안
+   * 아래 네 걸음의 글과 그림이 서로 다른 자리를 가리킨다.
+   */
+  focus?: PlantSpot;
+  /**
+   * 넷을 한 번에 보일 때 자리마다 얹는 번호와 값.
+   *
+   * 아래 네 걸음이 「01 햇빛 · 02 태양전지 …」 로 번호를 달고 있으므로 그림에도 같은 번호를 찍어
+   * 둘을 잇는다 — 번호가 없으면 글을 읽다가 그림의 어느 자리를 말하는지 눈으로 다시 찾아야 한다.
+   * 값까지 얹는 까닭은 그 자리에서 **지금 재고 있는 수**가 붙어야 원리가 오늘의 일로 읽히기 때문이다.
+   *
+   * 주지 않으면 번호도 해도 그리지 않는다 — 한 자리씩 당겨 보는 화면(`StagePanel`)은 그 자리
+   * 하나만 말하므로 번호가 오히려 방해가 된다.
+   */
+  marks?: Partial<Record<MarkId, string>>;
 }
+
+/** 그림에 번호를 찍는 자리. 아래 네 걸음과 차례가 같다 */
+type MarkId = 'sun' | 'cell' | 'inverter' | 'grid';
+
+/*
+  번호와 값이 앉는 자리.
+
+  도형 위쪽 빈 띠에 나란히 세운다 — 해 아래와 셀 아래에 두었더니 값이 셀의 전극선 위에 얹히고
+  둘째 값은 바닥선 밖으로 나갔다. 값은 배지 아래 한 줄로 붙으므로 그만큼(21px) 위가 비어야 한다.
+
+  2번은 셀 확대 그림이 아니라 **패널**에 붙인다. 셀 그림은 왼쪽에서 「태양전지 속이 어떻게
+  생겼나」 를 따로 보이는 자리라 번호를 얹을 빈 곳이 없고, 걸음의 이름(태양전지)은 패널 쪽이
+  눈에 더 곧바로 맞는다.
+*/
+const MARKS: { id: MarkId; n: number; x: number; y: number }[] = [
+  { id: 'sun', n: 1, x: 100, y: 34 },
+  { id: 'cell', n: 2, x: 208, y: 88 },
+  { id: 'inverter', n: 3, x: 328, y: 88 },
+  { id: 'grid', n: 4, x: 440, y: 84 },
+];
 
 /**
  * AI 가 들여다보는 설비 한 벌 (SFR-005-02).
@@ -44,14 +82,18 @@ interface PlantScanSceneProps {
  *
  * 왼쪽부터 오른쪽으로 전기가 만들어져 흘러가는 순서다 — 그림 자체가 발전 원리의 차례이기도 하다.
  */
-export function PlantScanScene({ focus }: PlantScanSceneProps) {
-  const box = SPOTS[focus];
-  const tone = (spot: PlantSpot) => cn(styles.zone, { [styles['zone--dim']]: spot !== focus });
-  // 자리의 한가운데를 화면 한가운데로 끌어온 뒤 그만큼 키운다.
-  const shift = {
-    x: STAGE.w / 2 - ZOOM * (box.x + box.w / 2),
-    y: STAGE.h / 2 - ZOOM * (box.y + box.h / 2),
-  };
+export function PlantScanScene({ focus, marks }: PlantScanSceneProps) {
+  const box = SPOTS[focus ?? 'cell'];
+  // 당기지 않을 때는 넷이 다 제 색으로 선다 — 하나만 살아 있으면 「지금 저기만 본다」 로 읽힌다
+  const tone = (spot: PlantSpot) => cn(styles.zone, { [styles['zone--dim']]: Boolean(focus) && spot !== focus });
+  // 자리의 한가운데를 화면 한가운데로 끌어온 뒤 그만큼 키운다. 당기지 않을 때는 제자리다.
+  const shift = focus
+    ? {
+      x: STAGE.w / 2 - ZOOM * (box.x + box.w / 2),
+      y: STAGE.h / 2 - ZOOM * (box.y + box.h / 2),
+    }
+    : { x: 0, y: 0 };
+  const scale = focus ? ZOOM : 1;
 
   return (
     <svg
@@ -59,7 +101,7 @@ export function PlantScanScene({ focus }: PlantScanSceneProps) {
       viewBox="0 0 520 200"
       fill="none"
       role="img"
-      aria-label={`설비 그림 — 지금 ${box.label} 를 살펴보는 중`}
+      aria-label={focus ? `설비 그림 — 지금 ${box.label} 를 살펴보는 중` : '설비 그림 — 태양전지 셀부터 학교까지 네 자리'}
     >
       <defs>
         {/* 읽는 선이 끌고 오는 꼬리 — 지나온 쪽일수록 옅어진다 */}
@@ -71,8 +113,30 @@ export function PlantScanScene({ focus }: PlantScanSceneProps) {
       </defs>
       <g
         className={styles.stage}
-        style={{ transform: `translate(${shift.x.toFixed(1)}px, ${shift.y.toFixed(1)}px) scale(${ZOOM})` }}
+        style={{ transform: `translate(${shift.x.toFixed(1)}px, ${shift.y.toFixed(1)}px) scale(${scale})` }}
       >
+        {/*
+          해. 빛이 어디서 오는지가 없으면 첫 걸음(햇빛)이 그림에 없는 말이 된다.
+
+          중심을 빛 알갱이의 출발점(`.photon` 의 `offset-path` 시작점)과 **같은 좌표**에 둔다 —
+          어긋나면 빛이 해가 아닌 허공에서 떨어진다. 한쪽만 고치면 다시 벌어지므로 둘을 함께 옮긴다.
+        */}
+        {marks ? (
+          <g className={styles.zone}>
+            <circle cx="34" cy="30" r="12" fill="var(--solar)" />
+            {[0, 45, 90, 135, 180, 225, 270, 315].map((deg) => (
+              <path
+                key={deg}
+                d="M34 12V5"
+                stroke="var(--solar)"
+                strokeWidth="2.4"
+                strokeLinecap="round"
+                transform={`rotate(${deg} 34 30)`}
+              />
+            ))}
+          </g>
+        ) : null}
+
         {/* 전기가 지나는 길. 자리와 자리를 잇는 굵은 선이 순서를 만든다 */}
         <path d="M118 150H150M256 150H292M372 150H408" stroke="var(--border-strong)" strokeWidth="2.5" strokeLinecap="round" />
 
@@ -138,7 +202,7 @@ export function PlantScanScene({ focus }: PlantScanSceneProps) {
             strokeLinecap="round"
             strokeDasharray="5 5"
           />
-          <text x="208" y="163" fill="var(--text-muted)" fontSize="10" textAnchor="middle">직렬 연결</text>
+          <text x="208" y="163" fill="var(--text-muted)" fontSize="10" textAnchor="middle">직·병렬 연결</text>
         </g>
 
         {/* ── 3. 인버터 — 직류를 교류로 ────────────────────────── */}
@@ -177,58 +241,75 @@ export function PlantScanScene({ focus }: PlantScanSceneProps) {
         {/*
         겨냥 표시. 자리가 바뀌면 상자가 미끄러지듯 옮겨 가고, 그 안을 빛줄기가 훑는다 —
         AI 의 시선이 옮겨 가는 것을 상자 하나가 대신 말해 준다.
+
+        넷을 한 번에 보일 때는 두지 않는다. 가리킬 자리가 없는데 상자만 남으면 셀 하나에 표가
+        붙어 「지금 저기를 보는 중」 으로 읽힌다.
       */}
-        <g className={styles.aim} style={{ '--x': `${box.x}px`, '--y': `${box.y}px` } as CSSProperties}>
-          <rect
-            className={styles.aim__box}
-            x="0"
-            y="0"
-            width={box.w}
-            height={box.h}
-            rx="6"
-          />
-          {[
-            'M0 14V4a4 4 0 0 1 4-4h10',
-            `M${box.w - 14} 0h10a4 4 0 0 1 4 4v10`,
-            `M${box.w} ${box.h - 14}v10a4 4 0 0 1-4 4h-10`,
-            `M14 ${box.h}H4a4 4 0 0 1-4-4v-10`,
-          ].map((d) => (
-            <path key={d} className={styles.aim__corner} d={d} />
-          ))}
-          {/*
+        {marks ? MARKS.map((mark) => (
+          <g key={mark.id} className={styles.mark}>
+            <circle className={styles.mark__no} cx={mark.x} cy={mark.y} r="8.5" />
+            <text className={styles.mark__n} x={mark.x} y={mark.y + 3.4} textAnchor="middle">{mark.n}</text>
+            <text className={styles.mark__value} x={mark.x} y={mark.y + 21} textAnchor="middle">
+              {marks[mark.id] ?? ''}
+            </text>
+          </g>
+        )) : null}
+
+        {focus ? (
+          <>
+            <g className={styles.aim} style={{ '--x': `${box.x}px`, '--y': `${box.y}px` } as CSSProperties}>
+              <rect
+                className={styles.aim__box}
+                x="0"
+                y="0"
+                width={box.w}
+                height={box.h}
+                rx="6"
+              />
+              {[
+                'M0 14V4a4 4 0 0 1 4-4h10',
+                `M${box.w - 14} 0h10a4 4 0 0 1 4 4v10`,
+                `M${box.w} ${box.h - 14}v10a4 4 0 0 1-4 4h-10`,
+                `M14 ${box.h}H4a4 4 0 0 1-4-4v-10`,
+              ].map((d) => (
+                <path key={d} className={styles.aim__corner} d={d} />
+              ))}
+              {/*
             상자 안을 훑는 빛.
 
             납작한 반투명 띠 하나로는 무언가가 지나간다는 것만 보이지, 어디를 읽는 중인지는 안 보인다.
             읽는 선(밝은 한 줄)과 지나온 자리(옅어지며 사라지는 꼬리)를 갈라 놓으면 그 둘이 함께 읽힌다.
             꼬리가 상자 밖으로 새지 않도록 상자 모양대로 오려 낸다.
           */}
-          <clipPath id="plant-aim-clip">
-            <rect x="1" y="1" width={box.w - 2} height={box.h - 2} rx="5" />
-          </clipPath>
+              <clipPath id="plant-aim-clip">
+                <rect x="1" y="1" width={box.w - 2} height={box.h - 2} rx="5" />
+              </clipPath>
 
-          <g clipPath="url(#plant-aim-clip)">
-            <g
-              className={styles.aim__scan}
-              style={{ '--scan-h': `${box.h}px` } as CSSProperties}
-            >
-              <rect x="1" y={-SCAN_TRAIL} width={box.w - 2} height={SCAN_TRAIL} fill="url(#plant-scan-trail)" />
-              <path
-                className={styles.aim__edge}
-                d={`M1 0h${box.w - 2}`}
-              />
+              <g clipPath="url(#plant-aim-clip)">
+                <g
+                  className={styles.aim__scan}
+                  style={{ '--scan-h': `${box.h}px` } as CSSProperties}
+                >
+                  <rect x="1" y={-SCAN_TRAIL} width={box.w - 2} height={SCAN_TRAIL} fill="url(#plant-scan-trail)" />
+                  <path
+                    className={styles.aim__edge}
+                    d={`M1 0h${box.w - 2}`}
+                  />
+                </g>
+              </g>
             </g>
-          </g>
-        </g>
 
-        <text
-          className={styles.aim__label}
-          x={box.x + box.w / 2}
-          y={box.y - 7}
-          textAnchor="middle"
-          fontSize="10"
-        >
-          {box.label}
-        </text>
+            <text
+              className={styles.aim__label}
+              x={box.x + box.w / 2}
+              y={box.y - 7}
+              textAnchor="middle"
+              fontSize="10"
+            >
+              {box.label}
+            </text>
+          </>
+        ) : null}
       </g>
     </svg>
   );

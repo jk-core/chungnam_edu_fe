@@ -54,8 +54,8 @@ interface Draft {
  * 넘겨 표 끝이 잘린다. C 는 처음부터 키운 글씨를 전제로 짠 시안이라 그대로 둔다.
  */
 const DRAFTS: Record<DraftKey, Draft> = {
-  b: { label: '시안 B · 지표 전면', layout: Kpi, theme: 'dark', isEnlarged: false },
-  c: { label: '시안 C · 지도 중심', layout: Terrain, theme: 'light', isEnlarged: true },
+  b: { label: '시안 B · 정보 줄이고 크게', layout: Kpi, theme: 'dark', isEnlarged: false },
+  c: { label: '시안 C · 카카오맵 기반', layout: Terrain, theme: 'light', isEnlarged: true },
 };
 
 export function ControlRoomDraft({ draft }: { draft: DraftKey }) {

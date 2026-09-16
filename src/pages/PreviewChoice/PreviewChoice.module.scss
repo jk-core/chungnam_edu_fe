@@ -92,16 +92,29 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  min-width: 56px;
-  height: 44px;
-  padding: 0 s.$space-4;
+  flex-direction: column;
+  gap: 1px;
+  min-width: 96px;
+  padding: s.$space-2 s.$space-3;
   border: 1px solid var(--brand-soft-border);
   border-radius: s.$radius-md;
   background-color: var(--brand-soft);
   color: var(--brand-contrast);
   transition: background-color 0.16s ease, border-color 0.16s ease;
 
-  @include t.label-md;
+  /* 글자와 컨셉이 한 단추 안에 위아래로 선다 — 큰 글자가 무엇인지, 아래가 어떤 화면인지 */
+  b {
+    @include t.label-md;
+
+    font-weight: 700;
+  }
+
+  span {
+    @include t.caption;
+
+    color: var(--text-muted);
+    white-space: nowrap;
+  }
 
   &:hover {
     border-color: var(--brand);

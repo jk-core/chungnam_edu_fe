@@ -29,7 +29,7 @@ export const CHAPTER_IDS: ChapterId[] = ['principle', 'summary', 'carbon'];
 
 /** 궤도 눈금에 적는 짧은 이름 — 질문 전문은 지면에서 크게 다시 나온다 */
 export const CHAPTER_MARK: Record<ChapterId, string> = {
-  principle: '전기가 되는 길',
+  principle: '햇빛이 전기가 되기까지',
   summary: '오늘의 발전',
   carbon: '줄인 탄소',
 };

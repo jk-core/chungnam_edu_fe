@@ -3,6 +3,7 @@ import { paperExtraReadings, paperReadings, type PaperScript } from '@/mocks/edu
 import type { EduLevel } from '@/interface/edu';
 import type { EduStats } from '@/mocks/solarEdu';
 import { formatCapacity, formatPercent } from '@/utils/format';
+import { DayCurve } from '../../shared/DayCurve';
 import { PaperDayArt } from './PaperDayArt';
 import styles from './ChapterSummary.module.scss';
 
@@ -66,9 +67,16 @@ export function ChapterSummary({ stats, script, level }: ChapterSummaryProps) {
 
         <p className={styles.now__note}>{hero.note}</p>
 
-        {/* 지금 한 점만으로는 오늘이 어떤 하루였는지 알 수 없다 — 하루 전체를 산 모양으로 한 번 그린다 */}
-        <div className={styles.now__art}>
-          <PaperDayArt stats={stats} />
+        {/*
+          지금 한 점만으로는 오늘이 어떤 하루였는지 알 수 없다 — 하루 전체를 한 번 그린다.
+
+          눈높이가 그리는 방식을 가른다. 중등까지는 산 모양 한 덩이로 「이만큼 솟았다 내렸다」 만
+          전하고, 고등은 눈금이 선 곡선에 **일사량 점선을 겹쳐** 둔다. 두 선이 함께 오르내리는
+          것이 보이면 「출력은 일사량에 거의 비례한다」 는 위의 설명이 글이 아니라 그림으로 읽힌다 —
+          중등 a 와 고등 a 가 같은 지면을 쓰면서도 다른 화면이 되는 자리다.
+        */}
+        <div className={styles.now__art} data-curve={level === 'high' ? '' : undefined}>
+          {level === 'high' ? <DayCurve stats={stats} showIrradiance showNow /> : <PaperDayArt stats={stats} />}
         </div>
       </section>
 

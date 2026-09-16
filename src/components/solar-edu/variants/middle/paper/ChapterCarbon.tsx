@@ -2,7 +2,9 @@ import { CountUp } from '@/components/common/CountUp';
 import { CARBON_BASIS, paperCarbonFigure, paperScales, type PaperScript } from '@/mocks/eduPaper';
 import type { EduLevel } from '@/interface/edu';
 import type { EduStats } from '@/mocks/solarEdu';
-import { formatKoCount } from '@/utils/format';
+import { formatKoCount, formatNumber, scaleCarbon, scaleSi } from '@/utils/format';
+import { GrowingTree } from '@/components/solar-edu/GrowingTree';
+import { CO2_PER_KWH, growthStage, kwhToTrees } from '@/utils/eco';
 import { ScaleGlyph } from './PaperGlyphs';
 import styles from './ChapterCarbon.module.scss';
 
@@ -42,6 +44,24 @@ export function ChapterCarbon({ stats, script, level }: ChapterCarbonProps) {
         <p className={styles.total__note}>{script.heads.carbon.lead}</p>
 
         {showsBasis && <p className={styles.total__basis}>{CARBON_BASIS}</p>}
+
+        {/* 고등은 나무 자리에 식을 놓는다 — 화면에 글을 늘리지 않고 판을 가르는 쪽 */}
+        {showsBasis && <CarbonMath stats={stats} />}
+
+        {/*
+          중등까지는 그림이 한 장 선다 (2026-09-16 지시 — 중·고등을 다른 시안으로).
+
+          「오늘 줄인 탄소 28.6t」 은 크기를 가늠할 수 없는 수다. 나무가 자란 만큼으로 바꿔 두면
+          그 수가 눈에 잡히는 크기가 된다 — 아래 잣대 셋이 말로 하는 환산을 그림이 한 번에 한다.
+
+          고등에는 두지 않는다. 그쪽은 같은 자리를 **셈의 근거**(`CARBON_BASIS`)가 받는다 —
+          무엇으로 나눈 값인지가 궁금해지는 눈높이라, 그림보다 분모가 먼저다.
+        */}
+        {!showsBasis && (
+          <div className={styles.total__tree}>
+            <GrowingTree stage={growthStage(stats.loadRatio)} trees={kwhToTrees(stats.todayKwh)} />
+          </div>
+        )}
       </section>
 
       <ol className={styles.scales}>
@@ -72,6 +92,50 @@ export function ChapterCarbon({ stats, script, level }: ChapterCarbonProps) {
             <p className={styles.scale__note}>{scale.note}</p>
 
             {showsBasis && <p className={styles.scale__basis}>{scale.basis}</p>}
+          </li>
+        ))}
+      </ol>
+    </div>
+  );
+}
+
+/** 발전량 × 계수 = 탄소. 오늘치와 누적치 두 줄뿐이고 설명은 붙이지 않는다 (2026-09-16 지시). */
+function CarbonMath({ stats }: { stats: EduStats }) {
+  const rows = [
+    { id: 'today', term: '오늘', kwh: stats.todayKwh },
+    { id: 'total', term: '지금까지', kwh: stats.totalKwh },
+  ].map((row) => ({
+    ...row,
+    power: scaleSi(row.kwh, 'Wh'),
+    carbon: scaleCarbon(row.kwh * CO2_PER_KWH),
+  }));
+
+  return (
+    <div className={styles.math}>
+      {/* 계수는 두 줄이 같다 — 줄마다 되풀이하지 않고 머리에 한 번만 건다 */}
+      <p className={styles.math__rate}>
+        × {CO2_PER_KWH}
+        <i>kg/kWh</i>
+      </p>
+
+      <ol className={styles.math__rows}>
+        {rows.map((row) => (
+          <li key={row.id} className={styles.math__row}>
+            <span className={styles.math__term}>{row.term}</span>
+
+            <span className={styles.math__cell}>
+              {formatNumber(row.power.amount, row.power.fractionDigits)}
+              <i>{row.power.unit}</i>
+            </span>
+
+            <span className={styles.math__sign} aria-hidden="true">
+              →
+            </span>
+
+            <span className={styles.math__cell} data-out="">
+              {formatNumber(row.carbon.amount, row.carbon.fractionDigits)}
+              <i>{row.carbon.unit}</i>
+            </span>
           </li>
         ))}
       </ol>

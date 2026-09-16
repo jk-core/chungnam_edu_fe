@@ -19,6 +19,16 @@
   [data-level="elementary"] & {
     gap: s.$space-4;
   }
+
+  /*
+    고등은 그림이 제 비율만큼만 쓰므로(`.art[data-kind="plant"]`) 남는 높이를 받는 것이 없다.
+    그대로 두면 네 걸음 아래로 화면 삼분의 일이 빈다 — 덩이를 세로 가운데로 모아 위아래 여백을
+    고르게 나눈다. 늘려서 채우지 않는 까닭은 그림도 글도 커질수록 나아지는 것이 아니기 때문이다.
+  */
+  [data-level="high"] & {
+    justify-content: center;
+    gap: s.$space-7;
+  }
 }
 
 /*
@@ -33,6 +43,29 @@
 
   @include media.tablet {
     min-height: 220px;
+  }
+
+  /*
+    설비 그림은 제 비율(520:200)만큼만 쓴다.
+
+    칸이 남는 높이를 모두 받는데(`flex: 1`) 그림이 그 안에서 100% 로 늘어나, 벽걸이 화면에서는
+    셀 하나가 화면 절반을 덮었다 — 당겨 보는 그림이라 커질수록 무엇을 보고 있는지가 되레 흐려진다.
+    비율을 묶고 폭에 상한을 두어 가운데 세운다. 남는 높이는 아래 네 걸음이 가져간다.
+  */
+  &[data-kind="plant"] {
+    flex: none;
+    inline-size: min(100%, 760px);
+    margin-inline: auto;
+    min-height: 0;
+    aspect-ratio: 520 / 200;
+
+    @include media.tablet {
+      min-height: 0;
+    }
+
+    @include media.kiosk {
+      inline-size: min(100%, 1020px);
+    }
   }
 }
 

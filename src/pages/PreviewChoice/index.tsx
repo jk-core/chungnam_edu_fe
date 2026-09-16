@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom';
 import { EDU_LEVEL_LABEL, EDU_LEVELS } from '@/mocks/eduContent';
+import { EDU_CELLS, EDU_VARIANTS as EDU_KEYS } from '@/components/solar-edu/variants/EduBoard';
 import { Logo } from '@/components/layout/Logo';
 import { PATH } from '@/routes/routes';
 import type { EduLevel } from '@/interface/edu';
@@ -16,31 +17,43 @@ import styles from './PreviewChoice.module.scss';
  * (`EDU_CELLS` 가 눈높이×시안 아홉 칸을 저마다 다른 컴포넌트로 잇는다), A·B·C 석 줄로는
  * 아홉 화면 가운데 어디로 가는지 고를 수 없다.
  *
- * 설명을 적지 않는다. 이 화면이 하는 일은 「어디로 갈지 고르는 것」 하나뿐이고, 시연을 여는
- * 사람은 이미 무엇이 무엇인지 알고 온다. 설명을 달면 고르는 자리가 그만큼 뒤로 밀린다.
+ * 글자 이름 아래에 컨셉을 한마디로 붙인다. 「A·B·C」 만으로는 시연을 여는 사람도 어느 것이
+ * 어느 화면인지 눌러 봐야 알고, 같은 글자가 줄마다 다른 화면을 가리키므로 더 그렇다 — 교육용
+ * A 는 초등에서는 「걸음마다 한 장」 이고 고등에서는 「세 개의 질문」 이다.
+ *
+ * 컨셉 이름은 **시안이 스스로 달고 있는 이름을 끌어다 쓴다**(`EDU_CELLS`). 여기서 따로 지으면
+ * 시안 이름을 고쳤을 때 이 화면만 옛말로 남는다. 「시안 a · 」 같은 앞머리는 떼고 뒤만 쓴다 —
+ * 어느 시안인지는 옆의 큰 글자가 이미 말한다.
  */
 
-/** 교육용 시안 주소. 눈높이는 쿼리로 얹는다 — `resolveEduLevel` 이 이 값을 먼저 본다 */
-const EDU_VARIANTS = [
-  { label: 'A', to: PATH.SOLAR_EDU_A },
-  { label: 'B', to: PATH.SOLAR_EDU_B },
-  { label: 'C', to: PATH.SOLAR_EDU_C },
+/** 「시안 a · 세 개의 질문」 에서 뒤쪽 한마디만 — 앞머리는 옆 글자와 겹친다 */
+function conceptOf(label: string): string {
+  const [, concept] = label.split('·');
+
+  return (concept ?? label).trim();
+}
+
+const CONTROL_LINKS = [
+  { label: 'A', concept: '모든 정보 한번에', to: PATH.CONTROL },
+  { label: 'B', concept: '정보 줄이고 크게', to: PATH.CONTROL_B },
+  { label: 'C', concept: '카카오맵 기반', to: PATH.CONTROL_C },
 ];
 
-const eduLinks = (level: EduLevel) => EDU_VARIANTS.map(({ label, to }) => ({
-  label,
-  to: `${to}?level=${level}`,
+/** 교육용 시안 주소. 눈높이는 쿼리로 얹는다 — `resolveEduLevel` 이 이 값을 먼저 본다 */
+const EDU_PATH: Record<string, string> = {
+  a: PATH.SOLAR_EDU_A,
+  b: PATH.SOLAR_EDU_B,
+  c: PATH.SOLAR_EDU_C,
+};
+
+const eduLinks = (level: EduLevel) => EDU_KEYS.map((key) => ({
+  label: key.toUpperCase(),
+  concept: conceptOf(EDU_CELLS[level][key].label),
+  to: `${EDU_PATH[key]}?level=${level}`,
 }));
 
 const GROUPS = [
-  {
-    kind: '통합관제',
-    links: [
-      { label: 'A', to: PATH.CONTROL },
-      { label: 'B', to: PATH.CONTROL_B },
-      { label: 'C', to: PATH.CONTROL_C },
-    ],
-  },
+  { kind: '통합관제', links: CONTROL_LINKS },
   ...EDU_LEVELS.map((level) => ({
     kind: `교육용 · ${EDU_LEVEL_LABEL[level]}`,
     links: eduLinks(level),
@@ -62,7 +75,8 @@ export default function PreviewChoicePage() {
             <span className={styles.row__links}>
               {group.links.map((link) => (
                 <Link key={link.to} className={styles.go} to={link.to}>
-                  {link.label}
+                  <b>{link.label}</b>
+                  <span>{link.concept}</span>
                 </Link>
               ))}
             </span>

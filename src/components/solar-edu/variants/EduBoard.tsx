@@ -56,26 +56,27 @@ export interface EduCell {
  */
 export const EDU_CELLS: Record<EduLevel, Record<EduVariant, EduCell>> = {
   elementary: {
-    a: { label: '시안 a · 걸음마다 한 장', script: 'elementary', headline: true, facts: false },
+    a: { label: '시안 a · 한 걸음씩', script: 'elementary', headline: true, facts: false },
     // 글 대신 그림이 본문인 두 판. 위쪽 띠를 떼어 낸 자리를 그림이 물려받는다.
-    b: { label: '시안 b · 하루 한 바퀴', script: 'elementary', headline: false, facts: false },
-    c: { label: '시안 c · 한 장에 다, 입체', script: 'elementary', headline: false, facts: false },
+    b: { label: '시안 b · 해 따라 한 바퀴', script: 'elementary', headline: false, facts: false },
+    c: { label: '시안 c · 입체 한 장', script: 'elementary', headline: false, facts: false },
   },
   middle: {
-    a: { label: '시안 a · 세 개의 질문', script: 'middle', headline: true, facts: false, standalone: true },
-    b: { label: '시안 b · 한 장에 다, 책', script: 'elementary', headline: true, facts: false },
-    c: { label: '시안 c · 한 장씩 넘겨 읽기', script: 'elementary', headline: true, facts: false },
+    a: { label: '시안 a · 묻고 답하기', script: 'middle', headline: true, facts: false, standalone: true },
+    b: { label: '시안 b · 관제 콘솔', script: 'elementary', headline: true, facts: false },
+    c: { label: '시안 c · 넘겨 읽는 카드', script: 'elementary', headline: true, facts: false },
   },
   high: {
     /*
-      중등 a 와 골격·구성이 같고 대본만 갈린다 (2026-09-09 지시).
+      중등 a 와 같은 지면·같은 이름을 쓴다 (2026-09-16 지시). 고르개에서 a 줄이 눈높이와
+      상관없이 한 컨셉으로 읽혀야 해서, 이름은 시안을 가리키지 눈높이를 가리키지 않는다.
 
-      같은 세 질문을 같은 지면으로 묻되, 값을 재는 기준(일사량·이용률)과 셈의 근거를 더 편다 —
-      시안을 견주는 자리에서 「눈높이가 무엇을 바꾸는가」 가 판형이 아니라 내용으로 드러난다.
+      읽는 방식은 갈린다 — 요약 장이 산 모양 한 덩이가 아니라 눈금 선 곡선에 일사량 점선이
+      겹치고, 3장은 나무 그림 자리에 셈 두 줄이 선다.
     */
-    a: { label: '시안 a · 세 개의 질문', script: 'high', headline: true, facts: false, standalone: true },
-    b: { label: '시안 b · 데이터 콘솔', script: 'high', headline: true, facts: true },
-    c: { label: '시안 c · 설명 카드 셋', script: 'middle', headline: true, facts: true },
+    a: { label: '시안 a · 묻고 답하기', script: 'high', headline: true, facts: false, standalone: true },
+    b: { label: '시안 b · 관제 콘솔', script: 'high', headline: true, facts: true },
+    c: { label: '시안 c · 설명 카드', script: 'middle', headline: true, facts: true },
   },
 };
 

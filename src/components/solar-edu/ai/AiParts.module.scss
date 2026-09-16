@@ -141,8 +141,16 @@
 }
 
 /* 셀 위로 비스듬히 떨어지는 빛 알갱이 */
+
+/*
+  빛 알갱이가 해에서 떨어진다.
+
+  출발점이 (14,34) 였는데 그림 왼쪽 끝이라 해를 세울 자리가 없었다 — 해를 옆에 두었더니 빛이
+  해가 아닌 허공에서 나오는 것으로 보였다. 출발점을 안쪽으로 옮겨 해와 같은 자리에 맞춘다
+  (`PlantScanScene` 의 해 중심과 같은 좌표라야 하므로 한쪽만 고치면 다시 어긋난다).
+*/
 .photon {
-  offset-path: path("M14 34 40 88");
+  offset-path: path("M34 30 56 88");
   offset-rotate: 0deg;
   animation: photon-drop 2.2s linear infinite;
 }
@@ -378,5 +386,36 @@
   .pipe__node,
   .pipe__label {
     transition: none;
+  }
+}
+
+/*
+  그림 위의 번호와 값.
+
+  아래 네 걸음이 「01 햇빛 · 02 태양전지 …」 로 번호를 달고 있어 그림에도 같은 번호를 찍는다 —
+  둘을 잇는 표가 없으면 글을 읽다가 그림의 어느 자리를 말하는지 눈으로 다시 찾아야 한다.
+*/
+.mark {
+  &__no {
+    fill: var(--brand);
+  }
+
+  &__n {
+    fill: var(--text-on-brand);
+    font-family: var(--font-data);
+    font-size: 10px;
+    font-weight: 700;
+  }
+
+  /* 값은 번호 아래 한 줄. 도형 위에 얹히므로 바탕색 획을 둘러 어느 면 위에서도 읽히게 한다 */
+  &__value {
+    paint-order: stroke fill;
+    fill: var(--text-strong);
+    font-family: var(--font-data);
+    font-size: 11px;
+    font-weight: 700;
+    stroke: var(--surface);
+    stroke-width: 3.5;
+    stroke-linejoin: round;
   }
 }

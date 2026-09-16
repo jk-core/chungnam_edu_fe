@@ -24,7 +24,7 @@ export function ControlRoomBoard() {
   return (
     <ControlRoomLayout
       scopeLabel={SCOPE_LABEL}
-      variantLabel="시안 A · 요구사항 모두 충족한 버전"
+      variantLabel="시안 A · 모든 정보 한번에"
       theme="light"
       alertTone={data.alertTone}
       onSearch={() => setIsSearchOpen(true)}
