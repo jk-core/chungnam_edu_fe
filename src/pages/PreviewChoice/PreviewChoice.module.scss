@@ -1,0 +1,136 @@
+@use "@/styles/tokens/spacing" as s;
+@use "@/styles/tokens/typography" as t;
+@use "@/styles/utils/media" as media;
+
+/*
+  시연용 화면 고르개.
+
+  껍데기(헤더·LNB)를 두지 않는다. 이 화면이 하는 일은 「어디로 갈지 고르는 것」 하나뿐이라,
+  갈 수 없는 메뉴가 둘러싸고 있으면 고르는 자리가 도리어 흐려진다.
+*/
+.choice {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: s.$space-8;
+  min-height: 100vh;
+  padding: s.$space-9 s.$space-6;
+  background:
+    radial-gradient(120% 80% at 50% -10%, var(--brand-soft) 0%, transparent 60%),
+    var(--surface-sunken);
+
+  &__head {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: s.$space-3;
+    text-align: center;
+  }
+
+  &__note {
+    @include t.body-lg;
+
+    margin: 0;
+    color: var(--text-muted);
+  }
+
+  &__foot {
+    @include t.caption;
+
+    margin: 0;
+    color: var(--text-faint);
+    line-height: 1.7;
+    text-align: center;
+  }
+}
+
+/*
+  넉 장을 한 줄에 세운다.
+
+  좁아지면 둘씩, 더 좁아지면 하나씩 내려앉는다 — 시연은 대개 큰 화면에서 하지만 노트북에서
+  열어 보는 일도 있어, 카드가 찌그러지느니 줄을 바꾸는 편이 낫다.
+*/
+.list {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: s.$space-4;
+  width: 100%;
+  max-width: 1080px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+
+  @include media.tablet {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  @include media.mobile {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+/*
+  카드 한 장이 통째로 링크다.
+
+  안에 버튼을 따로 두지 않는다 — 시연 자리에서 누르는 사람은 카드를 겨냥하지 그 안의 작은
+  글자를 겨냥하지 않는다. 「열기」 는 누를 곳이 아니라 누르면 무슨 일이 나는지를 적은 표시다.
+*/
+.card {
+  display: flex;
+  flex-direction: column;
+  gap: s.$space-2;
+  height: 100%;
+  padding: s.$space-6;
+  border: 1px solid var(--border-subtle);
+  border-radius: s.$radius-lg;
+  background-color: var(--surface);
+  text-decoration: none;
+  transition: border-color 0.16s ease, transform 0.16s ease, box-shadow 0.16s ease;
+
+  &:hover {
+    border-color: var(--brand);
+    box-shadow: var(--shadow-lg);
+    transform: translateY(-2px);
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--brand);
+    outline-offset: 2px;
+  }
+
+  &__kind {
+    @include t.eyebrow;
+
+    color: var(--brand-contrast);
+  }
+
+  &__name {
+    @include t.title-lg;
+
+    color: var(--text-strong);
+  }
+
+  &__body {
+    @include t.body-sm;
+
+    flex: 1;
+    color: var(--text-muted);
+  }
+
+  /* 바닥에 붙는다 — 설명 길이가 카드마다 달라도 이 줄의 자리는 흔들리지 않는다 */
+  &__go {
+    @include t.label-sm;
+
+    margin-top: s.$space-2;
+    color: var(--brand);
+  }
+
+  @include media.reduced-motion {
+    transition: none;
+
+    &:hover {
+      transform: none;
+    }
+  }
+}

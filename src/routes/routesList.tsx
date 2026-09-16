@@ -5,7 +5,8 @@ import AuthLayout from '@/layouts/AuthLayout';
 import RootLayout from '@/layouts/RootLayout';
 import SubPageLayout from '@/layouts/SubPageLayout';
 import HomePage from '@/pages/Home';
-import { RequireAuth } from './guards/RequireAuth';
+import { PreviewGate } from './guards/PreviewGate';
+import { ONLY_PREVIEW } from './previewMode';
 import { buildPath } from './buildPath';
 import { PATH } from './routes';
 import type { RouteObject } from 'react-router-dom';
@@ -21,6 +22,7 @@ const ControlRoomPage = lazy(() => import('@/pages/ControlRoom'));
 const ControlRoomDraftPage = lazy(() => import('@/pages/ControlRoom/drafts'));
 const AdminLayout = lazy(() => import('@/layouts/AdminLayout'));
 const AdminPage = lazy(() => import('@/pages/Admin'));
+const PreviewChoicePage = lazy(() => import('@/pages/PreviewChoice'));
 
 /** 옛 `/kiosk/:orgId` 를 같은 학교의 교육 화면으로 넘긴다. */
 function KioskRedirect() {
@@ -37,6 +39,11 @@ function SolarEduRedirect() {
 }
 
 export const routes: RouteObject[] = [
+  /*
+    시연용 화면 고르개 — 공개 모드에서만 선다 (`VITE_ONLY_PREVIEW`).
+    끌 때 이 줄까지 함께 사라지므로, 평소 라우트에는 없는 주소가 된다.
+  */
+  ...(ONLY_PREVIEW ? [{ path: PATH.PREVIEW_CHOICE, element: <PreviewChoicePage /> }] : []),
   {
     element: <AuthLayout />,
     children: [{ path: PATH.LOGIN, element: <LoginPage /> }],
@@ -66,7 +73,7 @@ export const routes: RouteObject[] = [
   { path: `${PATH.KIOSK}/:orgId`, element: <KioskRedirect /> },
   {
     // 로그인하지 않으면 아래 화면 전부 막힌다.
-    element: <RequireAuth />,
+    element: <PreviewGate />,
     children: [
       // 통합관제 상황판은 운영자용이라 로그인은 받되, 헤더·LNB 없이 화면을 다 쓴다.
       { path: PATH.CONTROL, element: <ControlRoomPage /> },
@@ -114,7 +121,7 @@ export const routes: RouteObject[] = [
           },
           {
             // 관리자 콘솔은 내부망 전용이고 관리자 역할만 통과한다 (SER-001-18, SFR-018-05).
-            element: <RequireAuth roles={ADMIN_ROLES} />,
+            element: <PreviewGate roles={ADMIN_ROLES} />,
             children: [
               {
                 path: 'admin',
@@ -157,7 +164,14 @@ export const routes: RouteObject[] = [
           { path: 'reports/board', element: <Navigate to={PATH.GUIDE_NOTICE} replace /> },
           { path: 'reports/*', element: <Navigate to={PATH.ENERGY_FIELD_REPORT} replace /> },
           { path: 'diagnosis/*', element: <Navigate to={PATH.AI_DIAGNOSIS_OVERVIEW} replace /> },
-          { path: '*', element: <Navigate to={PATH.HOME} replace /> },
+          {
+            /*
+              어디에도 걸리지 않은 주소.
+              공개 모드에서는 고르개로 보낸다 — 홈으로 보내면 그 화면이 막혀 있어 한 번 더 튕긴다.
+            */
+            path: '*',
+            element: <Navigate to={ONLY_PREVIEW ? PATH.PREVIEW_CHOICE : PATH.HOME} replace />,
+          },
         ],
       },
     ],

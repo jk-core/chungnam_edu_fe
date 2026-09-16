@@ -11,6 +11,11 @@ export const PATH = {
 
   /** 인증·특수 레이아웃 */
   LOGIN: '/login',
+  /**
+   * 시연용 화면 고르개 (`VITE_ONLY_PREVIEW`).
+   * 공개 모드에서 막힌 주소로 들어오면 모두 이리로 모인다.
+   */
+  PREVIEW_CHOICE: '/preview-choice',
   /** 교육청 산하기관 교육용 대시보드 (SFR-005) */
   KIOSK: '/kiosk',
   /** 학생 교육용 태양광 대시보드 — 전기의 여정 (SFR-005) */
