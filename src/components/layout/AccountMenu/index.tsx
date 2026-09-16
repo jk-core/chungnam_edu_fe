@@ -16,17 +16,11 @@ import { buildPath } from '@/routes/buildPath';
 import { PATH } from '@/routes/routes';
 import { isAdminRole, isReviewRole, ROLE_LABEL, ROLE_SCOPE_NOTE } from '@/mocks/accounts';
 import { cn } from '@/utils/cn';
-import useAuthStore, { useAuthUser, useLogout } from '@/stores/authStore';
+import { useAuthUser } from '@/stores/authStore';
 import { useSelectedPlantId } from '@/stores/plantStore';
 import { useSetTheme, useTheme } from '@/stores/themeStore';
 import styles from './AccountMenu.module.scss';
-
-/** 남은 로그인 유지시간(분). 0 이하면 표시하지 않는다. */
-function remainingMinutes(expiresAt: number | null): number {
-  if (expiresAt === null) return 0;
-
-  return Math.max(0, Math.ceil((expiresAt - Date.now()) / 60000));
-}
+import { useLogout } from './hooks/useLogout';
 
 /** 헤더 우측 계정 메뉴. 로그아웃과 권한 안내를 담는다. */
 interface AccountMenuProps {
@@ -36,7 +30,7 @@ interface AccountMenuProps {
 
 export function AccountMenu({ onOpenHelp }: AccountMenuProps) {
   const user = useAuthUser();
-  const logout = useLogout();
+  const { logout, logoutAll, isPending } = useLogout();
   const selectedPlantId = useSelectedPlantId();
   const theme = useTheme();
   const setTheme = useSetTheme();
@@ -64,8 +58,6 @@ export function AccountMenu({ onOpenHelp }: AccountMenuProps) {
   }, [isOpen]);
 
   if (!user) return null;
-
-  const minutesLeft = remainingMinutes(useAuthStore.getState().expiresAt);
 
   return (
     <div className={styles.account} ref={rootRef}>
@@ -103,9 +95,7 @@ export function AccountMenu({ onOpenHelp }: AccountMenuProps) {
               <p className={styles.panel__name}>
                 {user.name} <Badge tone={isReviewRole(user.role) ? 'brand' : 'neutral'}>{ROLE_LABEL[user.role]}</Badge>
               </p>
-              <p className={styles.panel__org}>
-                {user.orgName} · {user.department}
-              </p>
+              <p className={styles.panel__org}>{user.loginId}</p>
               <p className={styles.panel__note}>{ROLE_SCOPE_NOTE[user.role]}</p>
             </div>
 
@@ -204,6 +194,7 @@ export function AccountMenu({ onOpenHelp }: AccountMenuProps) {
                 type="button"
                 role="menuitem"
                 className={cn(styles.panel__item, styles['panel__item--danger'])}
+                disabled={isPending}
                 onClick={() => {
                   setIsOpen(false);
                   logout();
@@ -211,7 +202,21 @@ export function AccountMenu({ onOpenHelp }: AccountMenuProps) {
               >
                 <LogoutIcon width={18} height={18} />
                 로그아웃
-                {minutesLeft > 0 ? <span className={styles.panel__itemNote}>{minutesLeft}분 남음</span> : null}
+              </button>
+
+              {/* 남의 자리에서 들어왔거나 비밀번호를 바꾼 뒤 다른 기기를 끊는 길 */}
+              <button
+                type="button"
+                role="menuitem"
+                className={cn(styles.panel__item, styles['panel__item--danger'])}
+                disabled={isPending}
+                onClick={() => {
+                  setIsOpen(false);
+                  logoutAll();
+                }}
+              >
+                <LogoutIcon width={18} height={18} />
+                모든 기기에서 로그아웃
               </button>
             </div>
           </motion.div>

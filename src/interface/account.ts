@@ -5,22 +5,21 @@
  */
 export type Role = 'institution' | 'group' | 'educationOffice' | 'admin' | 'superAdmin' | 'developer';
 
-/** 로그인한 사용자 */
+/**
+ * 로그인한 사용자 — `/user/userInfo` 가 주는 것이 전부다.
+ *
+ * 소속·부서·이메일·담당 발전소는 v2.0 응답에 없어 여기 두지 않는다. 자리만 남겨 두면 화면이
+ * 언제나 빈 칸을 그리게 되고, 그 빈 칸이 「등록하지 않은 계정」인지 「서버가 안 주는 값」인지
+ * 구분되지 않는다. BE 가 칸을 늘리면 그때 다시 세운다.
+ */
 export interface AuthUser {
-  id: string;
+  /** 서버가 매기는 사용자 번호 (userId) */
+  userId: number;
+  /** 로그인 계정 (loginId) */
+  loginId: string;
   name: string;
   role: Role;
-  /** 소속 기관 표기 */
-  orgName: string;
-  department: string;
-  email: string;
-  /**
-   * 조회 가능한 발전소 id 목록.
-   * 빈 배열이면 제한 없음(도 전체) — 교육지원청·관리자가 여기에 해당한다.
-   */
-  plantIds: string[];
 }
-
 /** 사용자 관리 화면이 다루는 설비 담당자 (SFR-018) */
 export interface ManagedUser {
   id: string;

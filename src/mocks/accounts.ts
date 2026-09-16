@@ -1,6 +1,6 @@
 import { USER_TYPE } from '@/configs/codes';
 import type { UserTypeCode } from '@/configs/codes';
-import type { AuthUser, LoginPolicy, ManagedUser, Role } from '@/interface/account';
+import type { LoginPolicy, ManagedUser, Role } from '@/interface/account';
 import type { ChangeLog } from '@/interface/changeLog';
 import { getSchoolById, SCHOOLS } from './schools';
 import { createRandom, hashSeed, pickNumber, pickOne } from './random';
@@ -12,10 +12,22 @@ const INSTITUTION_PLANT_ID = 'cheonan-1';
 const institutionSchool = getSchoolById(INSTITUTION_PLANT_ID);
 
 /**
- * 데모 계정.
- * 실제로는 서버가 인증하지만, 목업에서는 아이디로 이 목록을 찾아 로그인한다.
+ * 사용자 관리 시드가 쓰는 계정 한 벌.
+ *
+ * 로그인한 사용자(`AuthUser`)와 더는 같은 모양이 아니다 — 서버가 주는 계정에는 소속·부서·
+ * 이메일·담당 발전소가 없다. 여기 남은 값들은 아직 API 가 없는 사용자 관리 화면의 시드다.
  */
-export const ACCOUNTS: AuthUser[] = [
+interface SeedAccount {
+  id: string;
+  name: string;
+  role: Role;
+  orgName: string;
+  department: string;
+  email: string;
+  plantIds: string[];
+}
+
+export const ACCOUNTS: SeedAccount[] = [
   {
     id: 'cne-admin',
     name: '김도현',
@@ -109,6 +121,18 @@ export function isAdminRole(role: Role | undefined): boolean {
   return role !== undefined && ADMIN_ROLES.includes(role);
 }
 
+/**
+ * 조회 범위가 담당 발전소로 묶이는 등급 (SFR-023-02/03).
+ *
+ * `/user/userInfo` 가 담당 발전소를 아직 주지 않으므로 등급으로 가른다 — 여기 없는 등급은
+ * 도 전체를 본다. 한 줄로 모아 두는 것은 화면마다 따로 판정하면 한 곳만 늘어나 권한이 새기 때문이다.
+ */
+export const SCOPED_ROLES: Role[] = ['institution', 'group'];
+
+export function isScopedRole(role: Role | undefined): boolean {
+  return role !== undefined && SCOPED_ROLES.includes(role);
+}
+
 /** 등급별로 무엇까지 볼 수 있는지 — 로그인 화면과 계정 메뉴에서 그대로 쓴다. */
 export const ROLE_SCOPE_NOTE: Record<Role, string> = {
   institution: '자기 발전소의 설비를 조회하고 현장보고서를 씁니다.',
@@ -118,12 +142,6 @@ export const ROLE_SCOPE_NOTE: Record<Role, string> = {
   superAdmin: '전체 발전소 조회와 관리자 콘솔을 씁니다.',
   developer: '전체를 보고 관리자 콘솔을 씁니다. 화면에는 세우지 않습니다.',
 };
-
-const ACCOUNT_BY_ID = new Map(ACCOUNTS.map((account) => [account.id, account]));
-
-export function getAccountById(id: string): AuthUser | null {
-  return ACCOUNT_BY_ID.get(id.trim()) ?? null;
-}
 
 // ── 사용자 관리 시드 (SFR-018) ──────────────────────────────
 const USER_SURNAME = ['김', '이', '박', '최', '정', '강', '조', '윤', '장', '임'];

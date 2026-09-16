@@ -1,28 +1,27 @@
-import { useEffect } from 'react';
-import { useAuthUser } from '@/stores/authStore';
-import { useSelectedNode, useSelectNode } from '@/stores/plantStore';
+/*
+  조회 범위 (SFR-023-02/03).
+
+  v2.0 의 `/user/userInfo` 는 담당 발전소(`powerPlantIds`)를 주지 않는다. 그래서 지금 알 수
+  있는 것은 「범위가 묶이는 등급인가」(`useCanSeeAllPlants`)까지이고, 「어느 발전소로
+  묶이는가」는 알지 못한다.
+
+  모르는 채로 전부 열어 주면 권한이 넓어지고, 임의로 좁히면 근거 없는 화면이 된다. 그래서
+  목록을 요구하는 자리는 빈 배열을 받아 「좁힐 것이 없다」로 두고, 등급으로 가리는 자리만
+  실제로 가린다. BE 가 칸을 늘리면 이 두 함수만 그 목록으로 되돌리면 된다.
+*/
+
+/** 배열을 매번 새로 만들면 이것을 의존성으로 쓰는 effect 가 렌더마다 다시 돈다. */
+const NONE: string[] = [];
 
 /**
- * 교육기관 계정의 조회 범위를 담당 발전소로 묶는다 (SFR-023-03).
- * persist 된 이전 선택이 권한 밖일 수 있으므로, 로그인 직후와 계정 전환 때 담당 발전소로 되돌린다.
+ * 담아 둔 선택이 권한 밖이면 담당 발전소로 되돌린다 (SFR-023-03).
+ * 담당 발전소 목록이 없는 동안에는 되돌릴 자리를 알 수 없어 아무것도 하지 않는다.
  */
 export function useScopeClamp() {
-  const user = useAuthUser();
-  const node = useSelectedNode();
-  const selectNode = useSelectNode();
-
-  useEffect(() => {
-    if (!user || user.plantIds.length === 0) return;
-
-    const outOfScope = node.kind === 'root' || (node.plantId !== null && !user.plantIds.includes(node.plantId));
-
-    if (outOfScope) selectNode(user.plantIds[0]);
-  }, [user, node.kind, node.plantId, selectNode]);
+  // 목록이 오기 시작하면 여기서 selectNode 로 되돌린다.
 }
 
-/** 지금 계정이 조회할 수 있는 발전소 id 목록. 비어 있으면 제한 없음. */
+/** 지금 계정이 조회할 수 있는 발전소 id 목록. 비어 있으면 이 축으로는 좁히지 않는다. */
 export function useAllowedPlantIds(): string[] {
-  const user = useAuthUser();
-
-  return user?.plantIds ?? [];
+  return NONE;
 }

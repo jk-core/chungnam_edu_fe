@@ -56,14 +56,14 @@ export function PostView({ kind }: { kind: BoardKind }) {
 
   const images = post.attachments.filter((file) => file.kind === 'image' && file.url);
   const files = post.attachments.filter((file) => file.kind !== 'image' || !file.url);
-  const canManage = canManagePost(post, user);
+  const canManage = canManagePost(user);
 
   const addComment = () => {
     if (!commentBody.trim()) return;
 
     comment(post.id, {
       id: `${post.id}-C${post.comments.length + 1}`,
-      author: user?.orgName ?? '작성자',
+      author: user?.name ?? '작성자',
       body: commentBody.trim(),
       at: NOW.format('YYYY-MM-DD HH:mm'),
     });

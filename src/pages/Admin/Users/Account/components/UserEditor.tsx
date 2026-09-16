@@ -9,6 +9,7 @@ import { formatPhone } from '@/utils/format';
 import { FormPage } from '@/pages/Admin/_shared/FormPage';
 import { listPath } from '@/pages/Admin/_shared/adminPath';
 import { MSG } from '@/configs/messages';
+import { PASSWORD_HINT } from '@/schemas/password';
 import { ROLE_LABEL, ROLE_SCOPE_NOTE, roleFromCode } from '@/mocks/accounts';
 import { toast } from '@/stores/toastStore';
 import { useManagedUsers } from '@/hooks/usePlantAssets';
@@ -22,7 +23,6 @@ import {
   EMAIL_MAX,
   NAME_MAX,
   ORG_NAME_MAX,
-  PASSWORD_HINT,
   SELECTABLE_USER_TYPE_CODES,
   userFormSchema,
 } from './form';

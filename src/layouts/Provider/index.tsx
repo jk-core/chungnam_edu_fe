@@ -2,15 +2,11 @@ import { useEffect } from 'react';
 import { MotionConfig } from 'motion/react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { applyTheme, useTheme } from '@/stores/themeStore';
-import { pruneExpiredSession } from '@/stores/authStore';
 import type { ReactNode } from 'react';
 
 interface ProviderProps {
   children: ReactNode;
 }
-
-// 새로고침 시점에 이미 만료된 세션은 화면을 그리기 전에 정리한다.
-pruneExpiredSession();
 
 const queryClient = new QueryClient({
   defaultOptions: {
