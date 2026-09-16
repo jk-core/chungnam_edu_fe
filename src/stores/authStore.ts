@@ -55,10 +55,11 @@ const useAuthStore = create<AuthState>()(
       storage: createJSONStorage(() => localStorage),
       partialize: (state) => ({ session: state.session, user: state.user }),
       /*
-        2 판까지는 목 계정을 통째로 담아 두었다. 그 모양에는 토큰이 없어 살려 둘 수 없으므로
+        2 판까지는 목 계정을 통째로 담아 두었고, 3 판에는 담당 발전소(`powerPlantIds`)가 없다.
+        빠진 칸을 그대로 되살리면 권한을 판정하는 자리가 `undefined` 를 읽으므로,
         판이 다르면 로그인부터 다시 받는다.
       */
-      version: 3,
+      version: 4,
       migrate: () => ({ session: null, user: null }),
     },
   ),

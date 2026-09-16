@@ -29,7 +29,7 @@ export function getFieldPermission(user: AuthUser | null): FieldPermission {
     범위는 `powerPlantIds` 가 정하고 빈 배열이 「제한 없음」이다. BE 가 아직 그 칸을 주지 않아
     지금은 모두 제한 없음이며, 값이 실리면 여기서 보고서의 발전소와 맞대 본다.
   */
-  const isReadable = user === null || user.powerPlantIds.length === 0;
+  const isReadable = user !== null && user.powerPlantIds.length === 0;
 
   return {
     canSubmit: (report) => isReadable && report.state === 'draft',
