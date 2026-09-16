@@ -53,10 +53,17 @@
   /* 칸이 좁아져 내용이 넘칠 때 아래 티커를 침범하지 않게 카드 안에서 끊는다 */
   overflow: hidden;
   padding: s.$space-3 s.$space-5;
-  border: 1px solid var(--border-subtle);
-  border-radius: s.$radius-lg;
+
+  /*
+    판의 결 — 시안 C (2026-09-16 지시).
+
+    바탕에 인쇄된 면이다. 시안 B 의 판이 하늘 위에 뜬 유리라면 여기서는 선으로 구획된 면이라,
+    그림자를 걷고 모서리의 각을 세운다. 두 시안이 같은 값을 보여 주므로 갈리는 것은 이 결뿐이라야
+    무엇을 견주는 자리인지가 분명해진다. 값은 `edu--flat` 이 매어 둔다.
+  */
+  border: 1px solid var(--border);
+  border-radius: var(--edu-card-radius, #{s.$radius-lg});
   background-color: var(--surface);
-  box-shadow: var(--shadow-sm);
 
   /*
     카드 머리를 한 단 낮췄다 (2026-09-07 지시 — 글자와 그림이 겹친다).

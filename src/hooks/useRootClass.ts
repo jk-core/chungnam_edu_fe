@@ -6,6 +6,10 @@ import { useLayoutEffect } from 'react';
  * 글자 크기 기준(`rem`)처럼 문서 뿌리에서만 정할 수 있는 것을 화면 하나에만 다르게 주려고 둔다.
  * 컴포넌트가 사라지면 클래스도 함께 떨어지므로, 다른 화면으로 넘어가면 원래 기준으로 돌아온다.
  *
+ * 빈 문자열을 주면 아무것도 붙이지 않는다 — 같은 자리에 선 화면들이 서로 다른 기준을 쓸 때,
+ * 부르는 쪽이 조건문으로 훅을 건너뛰지 않아도 되게 한다 (훅은 건너뛸 수 없다).
+ * `classList.add('')` 는 예외를 던지므로 여기서 걸러야 한다.
+ *
  * `useLayoutEffect` 인 것은 순서 때문이다. 리액트는 자식의 `useEffect` 를 부모보다 먼저 돌리는데,
  * 칸 높이를 재어 그림에 넘기는 컴포넌트(차트)가 그때 재면 **글씨가 커지기 전의 높이**를 집는다.
  * 그 값이 그대로 굳어 그림이 제 칸보다 크게 그려지고, 아래 글 위에 겹쳐 앉는다 —
@@ -14,6 +18,8 @@ import { useLayoutEffect } from 'react';
  */
 export function useRootClass(className: string) {
   useLayoutEffect(() => {
+    if (!className) return;
+
     const root = document.documentElement;
 
     root.classList.add(className);

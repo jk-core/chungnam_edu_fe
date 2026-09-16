@@ -27,11 +27,16 @@
   }
 }
 
-/* 줄 셋 — 갈래마다 한 줄이다 */
+/*
+  갈래마다 한 줄이다.
+
+  교육용이 눈높이로 갈려 줄이 다섯이 되었다. 줄 사이를 한 단 좁히지 않으면 목록이 화면
+  높이를 넘겨, 고르는 자리가 스크롤 아래로 내려간다.
+*/
 .list {
   display: flex;
   flex-direction: column;
-  gap: s.$space-4;
+  gap: s.$space-3;
   width: 100%;
   max-width: 560px;
   margin: 0;
@@ -39,27 +44,29 @@
   list-style: none;
 }
 
-/*
-  갈래 한 줄.
-
-  이름은 왼쪽 끝에, 시안 단추는 오른쪽 끝에 붙인다. 가운데로 모으면 갈래마다 이름 길이가
-  달라(「통합관제」 와 「교육용 대시보드」) 단추의 세로줄이 어긋난다 — 눈이 아래로 훑을 때
-  단추가 같은 자리에 있어야 셋을 한 묶음으로 센다.
-*/
+/* 갈래 한 줄. 이름은 왼쪽 끝에, 시안 단추는 오른쪽 끝에 붙인다. */
 .row {
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: s.$space-5;
-  padding: s.$space-4 s.$space-5;
+  padding: s.$space-3 s.$space-5;
   border: 1px solid var(--border-subtle);
   border-radius: s.$radius-lg;
   background-color: var(--surface);
   box-shadow: var(--shadow-sm);
 
+  /*
+    갈래 이름.
+
+    「통합관제」 와 「교육용 · 초등」 은 글자 수가 달라 단추의 세로줄이 어긋난다 — 눈이 아래로
+    훑을 때 단추가 같은 자리에 있어야 셋을 한 묶음으로 센다. 그래서 이름 칸에 너비를 준다.
+  */
   &__kind {
     @include t.title-sm;
 
+    flex: 0 0 auto;
+    min-width: 150px;
     color: var(--text-strong);
   }
 

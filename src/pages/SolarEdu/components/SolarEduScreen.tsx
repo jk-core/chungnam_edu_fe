@@ -35,6 +35,9 @@ export function SolarEduScreen({ variant }: { variant: EduVariant }) {
 
   const cell = EDU_CELLS[level][variant];
 
+  /** 시안 C 는 하늘 대신 멎은 바탕에 선다 — 눈높이 셋이 모두 같은 결을 쓴다 */
+  const isFlat = variant === 'c';
+
   /*
     껍데기가 읽을 대본. 본문과 같은 것을 봐야 한다 —
     본문은 쉬운 말인데 위 다섯 줄만 어려운 화면이 되지 않게 칸이 정한 대본을 그대로 따른다.
@@ -107,13 +110,15 @@ export function SolarEduScreen({ variant }: { variant: EduVariant }) {
       scopeInfo={scopeInfo}
       scopePicker={scopePicker}
       /*
-        하늘은 어느 칸에나 깐다 (2026-09-04 지시).
+        하늘은 눈높이를 가리지 않고 깐다 (2026-09-04 지시) — 눈높이를 오갈 때마다 배경이
+        있었다 없었다 하면 같은 학교의 화면이 서로 다른 곳처럼 보인다.
 
-        한때 그림이 주인공인 칸에만 깔았다 — 값이 주인공인 칸에서는 배경이 숫자를 흐린다고 보았다.
-        그런데 눈높이를 오갈 때마다 배경이 있었다 없었다 해서 같은 학교의 화면이 서로 다른 곳처럼
-        보였다. 카드가 화면을 덮고 있어 숫자가 흐려지지도 않는다.
+        가르는 것은 **시안**이다 (2026-09-16 지시). C 는 하늘을 걷고 멎은 바탕 위에 선다 —
+        시각과 날씨를 타는 배경은 어제 본 것과 오늘 본 것을 견주기 어렵게 한다. 두 시안이 같은
+        값을 보여 주므로, 바탕과 판의 결만 갈려야 무엇을 견주는 자리인지가 분명해진다.
       */
-      backdrop={<SkyBackdrop nowHour={nowHour} kind={weather.kind} />}
+      backdrop={isFlat ? undefined : <SkyBackdrop nowHour={nowHour} kind={weather.kind} />}
+      tone={isFlat ? 'flat' : undefined}
       levelPicker={(
         <>
           <LevelPicker />

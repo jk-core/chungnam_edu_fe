@@ -1,8 +1,9 @@
 import { Link } from 'react-router-dom';
 import { Logo } from '@/components/layout/Logo';
-import { CloseIcon, ExpandIcon, MoonIcon, SearchIcon, SunIcon } from '@/components/common/Icon';
+import { CloseIcon, ExpandIcon, SearchIcon } from '@/components/common/Icon';
 import { PATH } from '@/routes/routes';
 import { useFullscreen } from '@/hooks/useFullscreen';
+import type { Theme } from '@/stores/themeStore';
 import { RoomClock } from './RoomClock';
 import { useRoomTheme } from './useRoomTheme';
 import styles from './ControlRoomLayout.module.scss';
@@ -23,6 +24,19 @@ interface ControlRoomLayoutProps {
    * 이름표가 없으면 회의 자리에서 "왼쪽 그거" 로만 불리게 된다. 고르고 나면 지운다.
    */
   variantLabel?: string;
+  /**
+   * 화면 밝기. 시안마다 못 박는다 (2026-09-16 지시) — 고르개를 두지 않는다.
+   * 나란히 놓고 견주는 자리라, 누가 한 번 바꾸면 그 값이 남아 시안이 제 밝기로 서지 않는다.
+   */
+  theme: Theme;
+  /**
+   * 머리 줄의 성김.
+   *
+   * `compact` 는 머리 줄을 한 단 조인다. 이 줄이 먹는 높이는 아래 판 전부에서 그대로
+   * 깎인다 — 로고와 시계는 제 크기를 지키므로 줄어드는 것은 여백뿐이고, 그만큼이 지도의
+   * 크기가 된다. 판 높이를 px 로 못 박아 둔 시안이 이 한 단에 넘치고 잘린다.
+   */
+  density?: 'compact';
   /** 손봐야 할 경보 중 가장 급한 결. 없으면 null — 화면 테두리와 바탕이 그 색으로 점등한다. */
   alertTone: 'critical' | 'caution' | 'offline' | null;
   /** 검색창을 눌렀을 때 — 조회 조건 모달을 연다 (SFR-004-11/12) */
@@ -41,6 +55,8 @@ interface ControlRoomLayoutProps {
 export function ControlRoomLayout({
   scopeLabel,
   variantLabel,
+  theme,
+  density,
   alertTone,
   onSearch,
   searchSummary,
@@ -48,10 +64,11 @@ export function ControlRoomLayout({
   children,
 }: ControlRoomLayoutProps) {
   const { isFullscreen, toggle: toggleFullscreen } = useFullscreen();
-  const { theme, toggle: toggleTheme } = useRoomTheme();
+
+  useRoomTheme(theme);
 
   return (
-    <div className={styles.room} data-alert={alertTone ?? undefined}>
+    <div className={styles.room} data-alert={alertTone ?? undefined} data-density={density}>
       {/* 멀리서도 "지금 뭔가 잘못됐다" 가 읽히도록 화면 가장자리가 맥동한다 */}
       {/*
         가장자리 경보 등 — 상시 점멸이 되어 걷어냈다(2026-08-21 회의). 되살릴 때는 이 줄만 풀면 된다.
@@ -94,16 +111,6 @@ export function ControlRoomLayout({
           </span>
 
           <RoomClock />
-
-          {/* 어두운 화면이 기본이지만 고를 수 있게 둔다 (2026-09-04 회의) */}
-          <button
-            type="button"
-            className={styles.bar__action}
-            onClick={toggleTheme}
-            aria-label={theme === 'dark' ? '밝은 화면으로 전환' : '어두운 화면으로 전환'}
-          >
-            {theme === 'dark' ? <SunIcon width={16} height={16} /> : <MoonIcon width={16} height={16} />}
-          </button>
 
           <button type="button" className={styles.bar__action} onClick={toggleFullscreen}>
             <ExpandIcon width={16} height={16} />

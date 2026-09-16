@@ -190,9 +190,17 @@
   gap: s.$space-1;
   min-height: 0;
   padding: s.$space-3 s.$space-2;
+
+  /*
+    판의 결 — 시안 C (2026-09-16 지시).
+
+    하늘을 걷어낸 뒤로 비치는 흰 면을 쓸 까닭이 없다. 비침은 뒤에 그림이 있을 때 그 그림을
+    살리려고 두는 것인데, 그림 없는 바탕 위에서는 판만 뿌예진다. 불투명한 면에 각을 세워
+    「바탕에 인쇄된 칸」 으로 읽히게 한다.
+  */
   border: 4px solid var(--border);
-  border-radius: s.$radius-lg;
-  background-color: rgb(255 255 255 / 78%);
+  border-radius: var(--edu-card-radius, #{s.$radius-lg});
+  background-color: var(--surface);
   text-align: center;
 
   /*
@@ -281,8 +289,8 @@
     min-height: 0;
     padding: s.$space-2;
     border: 4px solid var(--border);
-    border-radius: s.$radius-lg;
-    background-color: rgb(255 255 255 / 78%);
+    border-radius: var(--edu-card-radius, #{s.$radius-lg});
+    background-color: var(--surface);
     list-style: none;
   }
 }

@@ -27,6 +27,15 @@ interface SolarEduLayoutProps {
   /** 화면 뒤에 까는 그림. 초등 판이 하늘을 깐다 (SFR-005-06) */
   backdrop?: ReactNode;
   /**
+   * 바탕의 결.
+   *
+   * `flat` 은 배경 그림을 두지 않고 멎은 바탕 위에 판을 세운다 — 오른쪽 위에서 해가 비쳐 드는
+   * 빛 한 덩이만 깔릴 뿐 시각도 날씨도 타지 않아, 같은 화면이 하루 종일 같은 낯으로 선다.
+   * 판도 함께 갈린다: 유리처럼 비치는 대신 불투명하고, 그림자 대신 선으로 구획된다
+   * (2026-09-16 지시 — 시안 C).
+   */
+  tone?: 'flat';
+  /**
    * 깔린 배경이 어떤 결인지.
    *
    * `bright` 는 밝은 하늘을 못 박은 그림이라 그 위 글자색까지 밝은 바탕용으로 고정한다 —
@@ -71,6 +80,7 @@ export function SolarEduLayout({
   scopeInfo,
   levelPicker,
   backdrop,
+  tone,
   weather,
   isLive,
   stoppedNote,
@@ -96,6 +106,7 @@ export function SolarEduLayout({
     <div
       className={cn(styles.edu, {
         [styles['edu--backdrop']]: Boolean(backdrop),
+        [styles['edu--flat']]: tone === 'flat',
       })}
     >
       {backdrop}

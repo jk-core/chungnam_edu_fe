@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { ControlRoomLayout } from '@/layouts/ControlRoomLayout';
 import { PlantSearchModal } from '@/components/plant/PlantSearchModal';
 import { useRootClass } from '@/hooks/useRootClass';
+import type { Theme } from '@/stores/themeStore';
 import { SCOPE_LABEL, useControlRoomData } from '../useControlRoomData';
 import { Kpi } from './kpi';
 import { Terrain } from './terrain';
@@ -33,30 +34,35 @@ interface Draft {
   label: string;
   /** 어느 판이 어디에 서는가 */
   layout: ComponentType<{ data: ControlRoomData }>;
+  /** 화면 밝기 — 시안마다 못 박는다 (2026-09-16 지시) */
+  theme: Theme;
+  /**
+   * 글자 기준을 15px 에서 18px 로 올릴지 (`_global.scss` 의 `.control-draft`).
+   *
+   * 연령이 높은 사용자를 앞에 둔 시안이라면 화면 전체가 한 단 커져야 한다. 판마다 크기를
+   * 따로 키우면 빠뜨린 자리가 생기고 판끼리 비율이 어긋나므로, 뿌리 하나로 올린다.
+   */
+  isEnlarged: boolean;
 }
 
 /**
- * 시안 둘은 같은 색 위에서 배치로만 갈린다.
+ * B 는 지표를, C 는 지도를 앞에 세운다.
  *
- * B 는 지표를, C 는 지도를 앞에 세운다. 색·판 생김새·수치 표현은 둘 다 시안 A 의 것을 그대로
- * 가져다 쓰므로, 나란히 놓고 보면 **무엇을 앞세웠는가** 만 눈에 걸린다.
+ * **글자 기준이 둘에서 갈린다.** B 는 `feat/권영서-상황판시안` 의 v1 을 그대로 옮겨 온 것이라
+ * 그쪽에서 잰 15px 기준을 지켜야 한다 — 그 시안의 판들은 집계표 430px · 실적표 353px 처럼
+ * 높이를 px 로 못 박고 화면 949px 에 맞춰 잰 것이라, 글씨만 18px 로 키우면 고정 높이 박스를
+ * 넘겨 표 끝이 잘린다. C 는 처음부터 키운 글씨를 전제로 짠 시안이라 그대로 둔다.
  */
 const DRAFTS: Record<DraftKey, Draft> = {
-  b: { label: '시안 B · 지표 전면', layout: Kpi },
-  c: { label: '시안 C · 지도 중심', layout: Terrain },
+  b: { label: '시안 B · 지표 전면', layout: Kpi, theme: 'dark', isEnlarged: false },
+  c: { label: '시안 C · 지도 중심', layout: Terrain, theme: 'light', isEnlarged: true },
 };
 
 export function ControlRoomDraft({ draft }: { draft: DraftKey }) {
-  const { label, layout: Layout } = DRAFTS[draft];
+  const { label, layout: Layout, theme, isEnlarged } = DRAFTS[draft];
 
-  /*
-    글자 기준을 15px 에서 18px 로 올린다 (`_global.scss` 의 `.control-draft`).
-
-    연령이 높은 사용자를 앞에 둔 시안들이라 화면 전체가 한 단 커져야 한다. 판마다 크기를
-    따로 키우면 빠뜨린 자리가 생기고 판끼리 비율이 어긋나므로, 뿌리 하나로 올린다.
-    시안 A 는 이 클래스를 붙이지 않아 종전 크기 그대로다.
-  */
-  useRootClass('control-draft');
+  // 빈 문자열은 클래스를 붙이지 않는다 — 시안마다 글자 기준이 갈린다.
+  useRootClass(isEnlarged ? 'control-draft' : '');
 
   const data = useControlRoomData();
   const [isSearchOpen, setIsSearchOpen] = useState(false);
@@ -65,6 +71,8 @@ export function ControlRoomDraft({ draft }: { draft: DraftKey }) {
     <ControlRoomLayout
       scopeLabel={SCOPE_LABEL}
       variantLabel={label}
+      theme={theme}
+      density={isEnlarged ? undefined : 'compact'}
       alertTone={data.alertTone}
       onSearch={() => setIsSearchOpen(true)}
       searchSummary={data.searchSummary}
