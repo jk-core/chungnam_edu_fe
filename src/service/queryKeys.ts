@@ -9,6 +9,7 @@ const user = ['user'] as const;
 const powerPlant = ['powerPlant'] as const;
 const calendar = ['calendar'] as const;
 const area = ['area'] as const;
+const operationHistory = ['operationHistory'] as const;
 
 export const queryKeys = {
   user: {
@@ -28,6 +29,13 @@ export const queryKeys = {
     all: area,
     /** 지역 드롭다운 — 이름으로 좁힐 수 있으나 화면은 전체를 받아 둔다 */
     dropdown: () => [...area, 'dropdown'] as const,
+  },
+  operationHistory: {
+    all: operationHistory,
+    /** 엑셀은 명령형 호출이라 키를 두지 않는다 */
+    page: (cid: number | null, targetDate: string, page: number, size: number) =>
+      [...operationHistory, 'page', cid, targetDate, page, size] as const,
+    chart: (cid: number | null, targetDate: string) => [...operationHistory, 'chart', cid, targetDate] as const,
   },
   calendar: {
     all: calendar,

@@ -68,6 +68,7 @@ function buildNodes(plants: PowerPlantListItem[], hierarchy: PowerPlantHierarchy
       childIds: inverter.stringList.map((unit) => stringNodeId(unit.stringId)),
       plantId: plantNode.id,
       inverterId,
+      phaseTypeCode: inverter.phaseTypeCode,
     });
 
     inverter.stringList.forEach((unit) => {

@@ -3,6 +3,7 @@ import type { Inverter, PerformancePoint, StringUnit } from '@/interface/equipme
 import type { OperationStatus, RtuStatus } from '@/interface/status';
 import { getChildNodes, getNode } from '@/stores/scopeTreeStore';
 import { ROOT_ID } from '@/configs/scope';
+import { PHASE_TYPE } from '@/configs/codes';
 import type { ScopeNode } from '@/interface/tree';
 import { FAULT_BY_STATUS } from './faultCodes';
 import { REGION_TOTAL } from './regions';
@@ -121,11 +122,8 @@ export const INVERTERS: Inverter[] = buildInverters();
 /**
  * 계층 응답의 인버터 노드를 화면이 쓰는 설비로 옮긴다.
  *
- * 이름·용량·운전상태와 딸린 스트링 구성은 서버 값이다. 고장코드·건전도·이용률·발전량·온도는
+ * 이름·용량·운전상태·위상과 딸린 스트링 구성은 서버 값이다. 고장코드·건전도·이용률·발전량·온도는
  * 아직 내려주는 API 가 없어 여기서 짓는다 — 그 칸이 실리기 시작하면 이 함수를 지운다.
- *
- * 위상은 용량으로 가른다. 응답의 `phaseTypeCode` 가 정답이지만 `ScopeNode` 가 그 칸을 들고
- * 다니지 않아, 계층이 그 값을 싣게 되면 여기도 함께 바꾼다.
  */
 export function inverterFromNode(node: ScopeNode, strings: ScopeNode[]): Inverter {
   const next = createRandom(hashSeed(node.id));
@@ -142,7 +140,7 @@ export function inverterFromNode(node: ScopeNode, strings: ScopeNode[]): Inverte
     id: node.id,
     schoolId: node.plantId ?? '',
     name: node.name,
-    phase: node.capacityKw < 20 ? 'single' : 'three',
+    phase: node.phaseTypeCode === PHASE_TYPE.CODE.삼상 ? 'three' : 'single',
     capacityKw: node.capacityKw,
     status: node.status,
     ownStatus: node.status === 'commLost' ? 'running' : node.status,

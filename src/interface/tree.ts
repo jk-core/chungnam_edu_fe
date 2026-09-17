@@ -1,3 +1,4 @@
+import type { PhaseTypeCode } from '@/configs/codes';
 import type { OperationStatus } from './status';
 
 export type NodeKind = 'root' | 'plant' | 'inverter' | 'string';
@@ -23,4 +24,6 @@ export interface ScopeNode {
   plantId: string | null;
   /** 소속 인버터 id. 발전소 이상 계층은 null */
   inverterId: string | null;
+  /** 계통 연계 위상. 인버터 노드만 갖는다 — 운전이력 표의 출력 열이 이 값으로 갈린다 */
+  phaseTypeCode?: PhaseTypeCode;
 }
