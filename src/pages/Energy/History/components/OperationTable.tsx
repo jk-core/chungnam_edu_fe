@@ -1,18 +1,13 @@
 import { Badge } from '@/components/common/Badge';
-import { RAW_STATE_LABEL } from '@/mocks/operationRaw';
+import { DATA_STATE } from '@/configs/codes';
 import { formatNumber } from '@/utils/format';
-import type { BadgeTone } from '@/components/common/Badge';
-import type { OperationRaw, RawDataState } from '@/interface/operation';
+import type { DataStateCode } from '@/configs/codes';
+import type { OperationHistoryPage } from '@/service/operationHistory/type';
 import styles from './OperationTable.module.scss';
 
-const STATE_TONE: Record<RawDataState, BadgeTone> = {
-  normal: 'ok',
-  missing: 'offline',
-  abnormal: 'critical',
-};
-
+/** 계측값 열 — 숫자만 온다. 데이터 상태는 뱃지라 따로 세운다 */
 interface Column {
-  key: keyof OperationRaw;
+  key: keyof OperationHistoryPage;
   header: string;
   /** 소수 자리. 정수로 보여 줄 값은 0 */
   fraction: number;
@@ -25,9 +20,25 @@ interface Group {
 }
 
 interface OperationTableProps {
-  rows: OperationRaw[];
-  /** 삼상이면 선간전압·상전류가 셋으로 나뉜다 */
+  rows: OperationHistoryPage[];
+  /** 삼상이면 출력전압·출력전류가 상별로 셋이다 */
   threePhase: boolean;
+}
+
+/**
+ * 수집 데이터 상태. 문구는 서버가 준 이름을 그대로 쓰고 색만 셋으로 접는다 —
+ * 값이 안 온 것(미수신)과 값이 이상한 것을 가른다.
+ */
+function DataStateBadge({ code, name }: { code: DataStateCode; name: string }) {
+  if (code === DATA_STATE.CODE.정상) return <Badge tone="ok">{name}</Badge>;
+
+  if (code === DATA_STATE.CODE['TIME-OUT']
+    || code === DATA_STATE.CODE.프로토콜에러
+    || code === DATA_STATE.CODE['누적값 없음(NULL)']) {
+    return <Badge tone="offline">{name}</Badge>;
+  }
+
+  return <Badge tone="caution">{name}</Badge>;
 }
 
 /**
@@ -49,6 +60,9 @@ export function OperationTable({ rows, threePhase }: OperationTableProps) {
           <tr>
             <th scope="col" rowSpan={2} className={`${styles.head} ${styles['head--time']}`}>
               수집일시
+            </th>
+            <th scope="col" rowSpan={2} className={styles.head}>
+              데이터 상태
             </th>
             {groups.map((group) => (
               group.header ? (
@@ -74,17 +88,16 @@ export function OperationTable({ rows, threePhase }: OperationTableProps) {
         </thead>
         <tbody>
           {rows.map((row) => (
-            <tr key={row.at} className={row.state === 'normal' ? undefined : styles['row--flag']}>
+            <tr key={row.gathDtm} className={row.dataStateCode === DATA_STATE.CODE.정상 ? undefined : styles['row--flag']}>
               <th scope="row" className={styles.time}>
-                {row.at}
+                {row.gathDtm}
               </th>
+              <td className={styles.cell}>
+                <DataStateBadge code={row.dataStateCode} name={row.dataStateName} />
+              </td>
               {flat.map((column) => (
                 <td key={column.key} className={styles.cell}>
-                  {column.key === 'state' ? (
-                    <Badge tone={STATE_TONE[row.state]}>{RAW_STATE_LABEL[row.state]}</Badge>
-                  ) : (
-                    format(row[column.key], column.fraction)
-                  )}
+                  {format(row[column.key], column.fraction)}
                 </td>
               ))}
             </tr>
@@ -100,22 +113,13 @@ function buildGroups(threePhase: boolean): Group[] {
   return [
     {
       columns: [
-        { key: 'state', header: '데이터 상태', fraction: 0 },
-        { key: 'accumWh', header: '누적발전량 (Wh)', fraction: 0 },
-      ],
-    },
-    {
-      columns: [
-        { key: 'irradiance', header: '일사량 (W/㎡)', fraction: 2 },
+        { key: 'accumPower', header: '누적발전량 (Wh)', fraction: 0 },
+        { key: 'irrad', header: '일사량 (W/㎡)', fraction: 2 },
         { key: 'moduleTemp', header: '모듈온도 (℃)', fraction: 1 },
         { key: 'inverterTemp', header: '인버터온도 (℃)', fraction: 1 },
-      ],
-    },
-    {
-      columns: [
-        { key: 'dcVolt', header: '입력전압 (V)', fraction: 2 },
-        { key: 'dcAmp', header: '입력전류 (A)', fraction: 2 },
-        { key: 'dcWatt', header: '입력전력 (W)', fraction: 0 },
+        { key: 'inputVoltageFigure', header: '입력전압 (V)', fraction: 2 },
+        { key: 'inputCurrentFigure', header: '입력전류 (A)', fraction: 2 },
+        { key: 'inputPowerFigure', header: '입력전력 (W)', fraction: 0 },
       ],
     },
     ...(threePhase
@@ -123,40 +127,40 @@ function buildGroups(threePhase: boolean): Group[] {
         {
           header: '출력전압 (V)',
           columns: [
-            { key: 'acVoltR' as const, header: 'R', fraction: 2 },
-            { key: 'acVoltS' as const, header: 'S', fraction: 2 },
-            { key: 'acVoltT' as const, header: 'T', fraction: 2 },
+            { key: 'sysRPhaseVoltage' as const, header: 'R', fraction: 2 },
+            { key: 'sysSPhaseVoltage' as const, header: 'S', fraction: 2 },
+            { key: 'sysTPhaseVoltage' as const, header: 'T', fraction: 2 },
           ],
         },
         {
           header: '출력전류 (A)',
           columns: [
-            { key: 'acAmpR' as const, header: 'R', fraction: 2 },
-            { key: 'acAmpS' as const, header: 'S', fraction: 2 },
-            { key: 'acAmpT' as const, header: 'T', fraction: 2 },
+            { key: 'sysRPhaseCurrent' as const, header: 'R', fraction: 2 },
+            { key: 'sysSPhaseCurrent' as const, header: 'S', fraction: 2 },
+            { key: 'sysTPhaseCurrent' as const, header: 'T', fraction: 2 },
           ],
         },
       ]
       : [
         {
           columns: [
-            { key: 'acVolt' as const, header: '출력전압 (V)', fraction: 2 },
-            { key: 'acAmp' as const, header: '출력전류 (A)', fraction: 2 },
+            { key: 'outputVoltageFigure' as const, header: '출력전압 (V)', fraction: 2 },
+            { key: 'outputCurrentFigure' as const, header: '출력전류 (A)', fraction: 2 },
           ],
         },
       ]),
     {
       columns: [
-        { key: 'acWatt', header: '출력전력 (W)', fraction: 0 },
+        { key: 'outputPowerFigure', header: '출력전력 (W)', fraction: 0 },
         { key: 'frequency', header: '주파수 (Hz)', fraction: 2 },
-        { key: 'powerFactor', header: '역률 (%)', fraction: 1 },
+        { key: 'powerFactorRate', header: '역률 (%)', fraction: 1 },
       ],
     },
   ];
 }
 
 /** 결측은 0 이 아니라 빈 값이다 — 줄표로 갈라 둔다. */
-function format(value: OperationRaw[keyof OperationRaw], fraction: number): string {
+function format(value: OperationHistoryPage[keyof OperationHistoryPage], fraction: number): string {
   if (value === null || value === undefined) return '—';
   if (typeof value === 'number') return formatNumber(value, fraction);
 

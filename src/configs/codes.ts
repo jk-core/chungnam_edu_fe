@@ -163,7 +163,7 @@ export const WEATHER_TYPE = {
  *
  * 설비 고장이 아니라 RTU 가 실어 온 값의 상태다 — 운전이력 표의 결측 표시가 이 축이다.
  * 화면은 세 단계(`RawDataState`)로 묶어 보는데, 열 코드를 셋으로 접는 규칙은 아직 BE 와
- * 맞추지 않았다 (`interface/operation.ts` 참조).
+ * 운전이력 표는 이 축을 접지 않고 `dataStateName` 을 그대로 적는다 — 색만 셋으로 묶는다.
  */
 export const ZodDataStateCode = {
   CODE: z.union([

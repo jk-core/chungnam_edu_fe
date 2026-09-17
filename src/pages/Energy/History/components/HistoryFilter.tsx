@@ -17,7 +17,6 @@ export function HistoryFilter({ children, trailing }: HistoryFilterProps) {
     <div className={styles.toolbar}>
       <div className={styles.toolbar__left}>
         <DatePicker value={date} onChange={setDate} granularity="day" label="조회일" />
-        <p className={styles.toolbar__note}>15분 주기 · 하루 96건</p>
         {children}
       </div>
       {trailing}
