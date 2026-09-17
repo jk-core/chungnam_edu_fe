@@ -21,7 +21,8 @@ export const managePowerPlantPageSchema = z.object({
  * 상세는 저장 계약에 없는 짝 이름(`irradName`·`userName`)과 읽기 전용 용량을 함께 준다.
  *
  * 담당업체 이름·연락처는 **상세에만 있고 저장은 받지 않는다.** 반대로 저장이 받는
- * `rtuEntId` 는 여기에 없다. 등록 화면이 쥐는 기관구분·위경도·시공업체·대표이미지는 양쪽 다 없다.
+ * `rtuEnterpriseId` 는 여기에 없다 — 수정 폼이 업체 선택을 초기값으로 채울 수 없다.
+ * 등록 화면이 쥐는 기관구분·위경도·시공업체·대표이미지는 양쪽 다 없다.
  */
 export type ManagePowerPlantDetail = z.infer<typeof managePowerPlantDetailSchema>;
 export const managePowerPlantDetailSchema = z.object({
@@ -47,7 +48,10 @@ export const managePowerPlantDetailSchema = z.object({
  * 그대로 실어 보내면 형이 어긋난다. 고른 값을 문자열로 바꿔 넣는다.
  *
  * **저장과 조회가 어긋나 있다** — 상세는 담당업체 이름·연락처를 주는데 저장은 받지 않고,
- * 반대로 여기 있는 `rtuEntId` 는 상세에 없다. 의도인지 BE 에 확인 중이다.
+ * 반대로 여기 있는 `rtuEnterpriseId` 는 상세에 없다. 의도인지 BE 에 확인 중이다.
+ *
+ * 스웨거는 이 칸을 `rtuEntId` 로 적고 있다 — RTU업체 관리가 `rtuEnterpriseId` 를 PK 로 쓰므로
+ * 이름을 그쪽으로 맞췄다. BE 가 아직 옛 이름이면 저장이 이 칸을 못 읽는다.
  */
 export type ManagePowerPlantAddParams = z.infer<typeof managePowerPlantAddParamsSchema>;
 export const managePowerPlantAddParamsSchema = z.object({
@@ -59,7 +63,7 @@ export const managePowerPlantAddParamsSchema = z.object({
   etc: z.string(),
   irradId: z.number().int().optional(),
   /** RTU 업체 */
-  rtuEntId: z.number().int(),
+  rtuEnterpriseId: z.number().int(),
 });
 
 export type ManagePowerPlantModifyParams = z.infer<typeof managePowerPlantModifyParamsSchema>;
