@@ -3,12 +3,12 @@ import { EChart } from '@/components/common/EChart';
 import { AXIS_NAME_GAP, LEGEND_GRID_TOP, topLegend } from '@/utils/chart';
 import { formatNumber } from '@/utils/format';
 import { useChartPalette } from '@/hooks/useChartPalette';
-import { DATA_STATE } from '@/configs/codes';
 import type { OperationHistoryChart } from '@/service/operationHistory/type';
+import { isUnreceived } from '../dataState';
 import type { EChartsOption } from 'echarts';
 
 interface OperationChartProps {
-  /** 시간 오름차순 계측 — 표와 같은 자료를 쓴다 */
+  /** 하루치 계측. 표와 다른 조회라 쪽을 나누지 않고 전량이 온다 */
   rows: OperationHistoryChart[];
   inverterName: string;
 }
@@ -24,9 +24,12 @@ export function OperationChart({ rows, inverterName }: OperationChartProps) {
   const palette = useChartPalette();
   const labels = rows.map((row) => dayjs(row.dateTime).format('HH:mm'));
 
-  // 결측 줄은 0 이 아니라 선을 끊는다 — 0 으로 이으면 발전이 멈춘 것처럼 읽힌다.
+  /*
+    값이 오지 않은 줄만 선을 끊는다 — 0 으로 이으면 발전이 멈춘 것처럼 읽힌다.
+    값이 이상한 줄(누적값 감소 등)은 그대로 그린다. 끊어 버리면 무엇이 이상했는지 볼 수 없다.
+  */
   const pick = (read: (row: OperationHistoryChart) => number | null) =>
-    rows.map((row) => (row.dataStateCode === DATA_STATE.CODE.정상 ? read(row) : null));
+    rows.map((row) => (isUnreceived(row.dataStateCode) ? null : read(row)));
 
   const option: EChartsOption = {
     grid: { top: LEGEND_GRID_TOP, right: 56, bottom: 30, left: 58 },
@@ -44,7 +47,7 @@ export function OperationChart({ rows, inverterName }: OperationChartProps) {
 
         if (!row) return '';
 
-        if (row.dataStateCode !== DATA_STATE.CODE.정상) {
+        if (isUnreceived(row.dataStateCode)) {
           return `<strong>${dayjs(row.dateTime).format('HH:mm')}</strong><br/>${row.dataStateName}`;
         }
 

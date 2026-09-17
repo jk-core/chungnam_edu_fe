@@ -3,6 +3,7 @@ import { DATA_STATE } from '@/configs/codes';
 import { formatNumber } from '@/utils/format';
 import type { DataStateCode } from '@/configs/codes';
 import type { OperationHistoryPage } from '@/service/operationHistory/type';
+import { isUnreceived } from '../dataState';
 import styles from './OperationTable.module.scss';
 
 /** 계측값 열 — 숫자만 온다. 데이터 상태는 뱃지라 따로 세운다 */
@@ -31,12 +32,7 @@ interface OperationTableProps {
  */
 function DataStateBadge({ code, name }: { code: DataStateCode; name: string }) {
   if (code === DATA_STATE.CODE.정상) return <Badge tone="ok">{name}</Badge>;
-
-  if (code === DATA_STATE.CODE['TIME-OUT']
-    || code === DATA_STATE.CODE.프로토콜에러
-    || code === DATA_STATE.CODE['누적값 없음(NULL)']) {
-    return <Badge tone="offline">{name}</Badge>;
-  }
+  if (isUnreceived(code)) return <Badge tone="offline">{name}</Badge>;
 
   return <Badge tone="caution">{name}</Badge>;
 }
