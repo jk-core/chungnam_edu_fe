@@ -20,8 +20,8 @@ export const managePowerPlantPageSchema = z.object({
 /**
  * 상세는 저장 계약에 없는 짝 이름(`irradName`·`userName`)과 읽기 전용 용량을 함께 준다.
  *
- * 등록 화면이 쥐는 기관구분·위경도·RTU업체·시공업체·대표이미지는 여기에도 없다 —
- * v2.0 이 아직 그 칸들을 다루지 않는다.
+ * 담당업체 이름·연락처는 **상세에만 있고 저장은 받지 않는다.** 반대로 저장이 받는
+ * `rtuEntId` 는 여기에 없다. 등록 화면이 쥐는 기관구분·위경도·시공업체·대표이미지는 양쪽 다 없다.
  */
 export type ManagePowerPlantDetail = z.infer<typeof managePowerPlantDetailSchema>;
 export const managePowerPlantDetailSchema = z.object({
@@ -45,6 +45,9 @@ export const managePowerPlantDetailSchema = z.object({
  *
  * `regionCode` 는 문자열이다 — 지역 드롭다운(`/area/list/dropdown`)이 숫자 `id` 를 주므로
  * 그대로 실어 보내면 형이 어긋난다. 고른 값을 문자열로 바꿔 넣는다.
+ *
+ * **저장과 조회가 어긋나 있다** — 상세는 담당업체 이름·연락처를 주는데 저장은 받지 않고,
+ * 반대로 여기 있는 `rtuEntId` 는 상세에 없다. 의도인지 BE 에 확인 중이다.
  */
 export type ManagePowerPlantAddParams = z.infer<typeof managePowerPlantAddParamsSchema>;
 export const managePowerPlantAddParamsSchema = z.object({
@@ -53,10 +56,10 @@ export const managePowerPlantAddParamsSchema = z.object({
   regionCode: z.string(),
   address: z.string(),
   addressDetail: z.string().optional(),
-  manageEnterpriseName: z.string(),
-  manageEnterprisePhone: z.string().optional(),
-  etc: z.string().optional(),
+  etc: z.string(),
   irradId: z.number().int().optional(),
+  /** RTU 업체 */
+  rtuEntId: z.number().int(),
 });
 
 export type ManagePowerPlantModifyParams = z.infer<typeof managePowerPlantModifyParamsSchema>;
