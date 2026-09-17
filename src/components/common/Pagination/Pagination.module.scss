@@ -53,20 +53,6 @@
     }
   }
 
-  &__page {
-    &--current {
-      background-color: var(--brand);
-      border-color: var(--brand);
-      color: var(--text-on-brand);
-      font-weight: 700;
-
-      &:hover {
-        background-color: var(--brand-hover);
-        color: var(--text-on-brand);
-      }
-    }
-  }
-
   &__gap {
     padding-inline: s.$space-1;
     color: var(--text-faint);
@@ -102,6 +88,22 @@
     &:disabled {
       opacity: 0.35;
       cursor: not-allowed;
+    }
+  }
+
+  /*
+    보고 있는 쪽. 위 공용 블록과 명시도가 같아 반드시 그 뒤에 와야 한다 —
+    앞에 두면 `background: none` · `border: transparent` 가 덮어써 글자 굵기만 남는다.
+  */
+  &__page--current {
+    background-color: var(--brand);
+    border-color: var(--brand);
+    color: var(--text-on-brand);
+    font-weight: 700;
+
+    &:hover:not(:disabled) {
+      background-color: var(--brand-hover);
+      color: var(--text-on-brand);
     }
   }
 }

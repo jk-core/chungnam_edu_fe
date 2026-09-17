@@ -32,7 +32,7 @@ const VIEW_OPTIONS: { value: ViewMode; label: string }[] = [
  */
 export function HistoryBoard() {
   const {
-    rows, totalCount, pageCount, page, setPage, isLoading,
+    rows, totalCount, pageCount, page, setPage,
     selected, inverterCount, plantLabel, scopeLabel, date, targetDate, cid,
   } = useOperationHistory();
   const [view, setView] = useState<ViewMode>('table');
@@ -79,15 +79,17 @@ export function HistoryBoard() {
 
             {/* 표는 한 줄씩 확인하는 자리, 그래프는 하루의 모양을 보는 자리다 (SFR-010-03/04) */}
             {view === 'table' ? (
-              <TableView
-                rows={rows}
-                threePhase={selected.phase === 'three'}
-                isLoading={isLoading}
-                page={page}
-                pageCount={pageCount}
-                totalCount={totalCount}
-                onPageChange={setPage}
-              />
+              <>
+                <OperationTable rows={rows} threePhase={selected.phase === 'three'} />
+                {/* 서버는 쪽을 0 부터 세고 이 컴포넌트는 1 부터 센다 — 그 경계가 여기다. */}
+                <Pagination
+                  page={page + 1}
+                  pageCount={pageCount}
+                  totalCount={totalCount}
+                  onChange={(next) => setPage(next - 1)}
+                  label="운전이력"
+                />
+              </>
             ) : (
               <div className={styles.chartWrap}>
                 {chart.isLoading || chart.rows.length > 0 ? (
@@ -101,35 +103,5 @@ export function HistoryBoard() {
         </Reveal>
       )}
     </div>
-  );
-}
-
-interface TableViewProps {
-  rows: ReturnType<typeof useOperationHistory>['rows'];
-  threePhase: boolean;
-  isLoading: boolean;
-  page: number;
-  pageCount: number;
-  totalCount: number;
-  onPageChange: (page: number) => void;
-}
-
-function TableView({ rows, threePhase, isLoading, page, pageCount, totalCount, onPageChange }: TableViewProps) {
-  if (!isLoading && rows.length === 0) {
-    return <EmptyState title="그날 수집된 값이 없습니다" description="다른 날짜를 골라 보세요." />;
-  }
-
-  return (
-    <>
-      <OperationTable rows={rows} threePhase={threePhase} />
-      {/* 서버는 쪽을 0 부터 세고 이 컴포넌트는 1 부터 센다 — 그 경계가 여기다. */}
-      <Pagination
-        page={page + 1}
-        pageCount={pageCount}
-        totalCount={totalCount}
-        onChange={(next) => onPageChange(next - 1)}
-        label="운전이력"
-      />
-    </>
   );
 }

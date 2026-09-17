@@ -9,7 +9,7 @@ import { useCollectionDate } from '@/stores/filterStore';
 import { usePlantScope } from '@/hooks/usePlantScope';
 
 /** 한 화면에 펼 계측 줄 수 — 하루치는 수백 건이라 나눠 본다 */
-const PAGE_SIZE = 30;
+const PAGE_SIZE = 20;
 
 /**
  * 인버터별 수집주기 운전이력 (SFR-009, SFR-010).
