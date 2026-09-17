@@ -10,17 +10,17 @@ import { formatPhone } from '@/utils/format';
 import { FormPage } from '@/pages/Admin/_shared/FormPage';
 import { listPath } from '@/pages/Admin/_shared/adminPath';
 import { MSG } from '@/configs/messages';
-import { manageRtuEnterpriseAddSchema, NAME_MAX } from '@/service/rtuEnterprise/type';
 import { EMAIL_MAX } from '@/schemas/email';
 import { toast } from '@/stores/toastStore';
 import { useAuthUser } from '@/stores/authStore';
 import useEquipmentStore from '@/stores/equipmentStore';
-import type { ManageRtuEnterpriseAddParams } from '@/service/rtuEnterprise/type';
 import type { RtuEnterprise } from '@/interface/deviceMaster';
 import { useRtuEnterpriseRows } from '../hooks/useRtuEnterpriseRows';
+import { NAME_MAX, rtuEnterpriseFormSchema } from './form';
 import { EMPTY_VALUES, toFormValues } from './values';
+import type { RtuEnterpriseFormValues } from './form';
 
-const Form = createForm<ManageRtuEnterpriseAddParams>();
+const Form = createForm<RtuEnterpriseFormValues>();
 
 interface RtuEnterpriseEditorProps {
   /** 고칠 업체의 서버 식별자. 없으면 새로 세우는 자리다 */
@@ -41,16 +41,16 @@ export function RtuEnterpriseEditor({ rtuEnterpriseId }: RtuEnterpriseEditorProp
   const backTo = listPath('plants', 'rtu-enterprise');
   const isNew = target === null;
 
-  const methods = useForm<ManageRtuEnterpriseAddParams>({
+  const methods = useForm<RtuEnterpriseFormValues>({
     defaultValues: target ? toFormValues(target) : EMPTY_VALUES,
-    resolver: zodResolver(manageRtuEnterpriseAddSchema),
+    resolver: zodResolver(rtuEnterpriseFormSchema),
     mode: 'onChange',
   });
 
-  const [pending, setPending] = useState<ManageRtuEnterpriseAddParams | null>(null);
+  const [pending, setPending] = useState<RtuEnterpriseFormValues | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
 
-  const commit = (values: ManageRtuEnterpriseAddParams) => {
+  const commit = (values: RtuEnterpriseFormValues) => {
     const saved: RtuEnterprise = {
       id: target?.id ?? nextId('RTUENT'),
       rtuEnterpriseId: target?.rtuEnterpriseId ?? nextSeq(),
