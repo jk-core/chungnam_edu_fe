@@ -14,7 +14,7 @@ interface ChangeHistoryProps {
 
 /**
  * 등록 정보 변경 이력 (SFR-016-06 · SFR-018-04).
- * 발전소·설비·스트링·일사량계·인버터·모듈·사용자가 같은 카드를 쓴다.
+ * 발전소·설비·스트링·일사량계·RTU업체·인버터·모듈·사용자가 같은 카드를 쓴다.
  */
 export function ChangeHistory({ title, rows }: ChangeHistoryProps) {
   return (
