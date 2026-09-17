@@ -5,6 +5,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { Button } from '@/components/common/Button';
 import { ConfirmDialog } from '@/components/common/ConfirmDialog';
 import { createForm, FormRow, FormSection } from '@/components/common/Form';
+import { EMAIL_MAX } from '@/schemas/email';
 import { formatPhone } from '@/utils/format';
 import { FormPage } from '@/pages/Admin/_shared/FormPage';
 import { listPath } from '@/pages/Admin/_shared/adminPath';
@@ -20,7 +21,6 @@ import type { ManagedUser } from '@/interface/account';
 import styles from '@/pages/Admin/Admin.module.scss';
 import { useUserChangeLog } from '../hooks/useUserChangeLog';
 import {
-  EMAIL_MAX,
   NAME_MAX,
   ORG_NAME_MAX,
   SELECTABLE_USER_TYPE_CODES,

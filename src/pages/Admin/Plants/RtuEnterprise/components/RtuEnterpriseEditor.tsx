@@ -11,7 +11,7 @@ import { FormPage } from '@/pages/Admin/_shared/FormPage';
 import { listPath } from '@/pages/Admin/_shared/adminPath';
 import { MSG } from '@/configs/messages';
 import { manageRtuEnterpriseAddSchema, NAME_MAX } from '@/service/rtuEnterprise/type';
-import { EMAIL_MAX } from '@/service/user/type';
+import { EMAIL_MAX } from '@/schemas/email';
 import { toast } from '@/stores/toastStore';
 import { useAuthUser } from '@/stores/authStore';
 import useEquipmentStore from '@/stores/equipmentStore';

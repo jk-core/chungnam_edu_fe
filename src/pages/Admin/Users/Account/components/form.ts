@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { EMAIL, EMAIL_MAX } from '@/schemas/email';
 import { MSG } from '@/configs/messages';
 import { PASSWORD_HINT, PASSWORD_RULE } from '@/schemas/password';
 import { USER_TYPE } from '@/configs/codes';
@@ -6,11 +7,7 @@ import { USER_TYPE } from '@/configs/codes';
 /** 로그인 계정에 쓸 수 있는 글자 */
 export const LOGIN_ID = /^[A-Za-z0-9_]{4,20}$/;
 
-/** 이메일 형식 — 서버가 보는 것과 같은 최소 규칙이다 */
-export const EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-
 export const NAME_MAX = 14;
-export const EMAIL_MAX = 50;
 export const ORG_NAME_MAX = 60;
 
 /** 이 화면이 세울 수 있는 등급 — 교육지원청 위로는 여기서 다루지 않는다 */

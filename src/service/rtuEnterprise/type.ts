@@ -1,6 +1,6 @@
 import { z } from 'zod';
 import { MSG } from '@/configs/messages';
-import { EMAIL, EMAIL_MAX } from '@/service/user/type';
+import { EMAIL, EMAIL_MAX } from '@/schemas/email';
 import { pagingParamsSchema } from '@/service/common';
 
 /** RTU 업체 이름 길이 제한 */
