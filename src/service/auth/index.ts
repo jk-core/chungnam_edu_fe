@@ -26,7 +26,7 @@ export const postReissuance = async (data: ReissuanceParams) => {
 /** 비밀번호 초기화 (관리자용) */
 export const postInitializePassword = (data: InitializePasswordParams) => apiClient.post('/user/password/initialize', data);
 
-export const postChangePassword = (data: ChangePasswordParams) => apiClient.post('/user/password/change', data);
+export const postChangePassword = (data: ChangePasswordParams) => apiClient.post('/user/password', data);
 
 /** 지금 쓰는 기기만 */
 export const postLogout = () => apiClient.post('/user/logout');
