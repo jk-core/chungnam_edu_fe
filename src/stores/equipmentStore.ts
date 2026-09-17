@@ -6,12 +6,14 @@ import type {
   InverterProduct,
   ModuleProduct,
   Pyranometer,
+  RtuEnterprise,
   StringMaster,
 } from '@/interface/deviceMaster';
 import type { ChangeLog, ChangeTarget } from '@/interface/changeLog';
 import { SEED_DEVICE_CHANGES, SEED_EQUIPMENT, SEED_INVERTER_PRODUCTS, SEED_STRINGS } from '@/mocks/deviceMaster';
 import { SEED_MODULES } from '@/mocks/moduleProducts';
 import { SEED_PYRANOMETERS } from '@/mocks/pyranometers';
+import { SEED_RTU_ENTERPRISES } from '@/mocks/rtuEnterprises';
 
 /**
  * 시스템장비 관리의 쓰기 상태 (SFR-016-01/05, SFR-017).
@@ -43,6 +45,11 @@ interface EquipmentState {
   pyranometerPatched: Record<string, Partial<Pyranometer>>;
   pyranometerDeleted: string[];
 
+  /** RTU 업체 — 발전소가 이 중 하나를 가리킨다 */
+  rtuEnterpriseCreated: RtuEnterprise[];
+  rtuEnterprisePatched: Record<string, Partial<RtuEnterprise>>;
+  rtuEnterpriseDeleted: string[];
+
   /** 갈래가 함께 쓰는 변경 이력 (SFR-016-06) */
   deviceChanges: ChangeLog[];
 
@@ -61,6 +68,9 @@ interface EquipmentState {
 
   savePyranometer: (item: Pyranometer, entries: ChangeLog[], isNew: boolean) => void;
   removePyranometer: (id: string, entry: ChangeLog) => void;
+
+  saveRtuEnterprise: (item: RtuEnterprise, entries: ChangeLog[], isNew: boolean) => void;
+  removeRtuEnterprise: (id: string, entry: ChangeLog) => void;
 
   nextId: (prefix: string) => string;
   /** 서버가 새로 매길 숫자 번호를 흉내 낸다 (cid·moduleId·inverterId·stringId·irradId) */
@@ -103,6 +113,9 @@ const useEquipmentStore = create<EquipmentState>()(
       pyranometerCreated: [],
       pyranometerPatched: {},
       pyranometerDeleted: [],
+      rtuEnterpriseCreated: [],
+      rtuEnterprisePatched: {},
+      rtuEnterpriseDeleted: [],
       deviceChanges: [],
 
       saveEquipment: (item, entries, isNew) =>
@@ -199,6 +212,22 @@ const useEquipmentStore = create<EquipmentState>()(
           deviceChanges: [entry, ...state.deviceChanges],
         })),
 
+      saveRtuEnterprise: (item, entries, isNew) =>
+        set((state) => {
+          const next = upsert(state.rtuEnterpriseCreated, state.rtuEnterprisePatched, item, (row) => row.id, isNew);
+
+          return {
+            rtuEnterpriseCreated: next.created,
+            rtuEnterprisePatched: next.patched,
+            deviceChanges: [...entries, ...state.deviceChanges],
+          };
+        }),
+      removeRtuEnterprise: (id, entry) =>
+        set((state) => ({
+          rtuEnterpriseDeleted: [...state.rtuEnterpriseDeleted, id],
+          deviceChanges: [entry, ...state.deviceChanges],
+        })),
+
       // 시드 id 와 겹치지 않게 접두어를 달아 준다.
       nextId: (prefix) => `${prefix}-${String(get().deviceChanges.length + 1).padStart(3, '0')}-${Date.now() % 10000}`,
       // 시드가 쓰는 번호대(1~수백)를 피해 9000 위에서 센다.
@@ -224,7 +253,7 @@ const useEquipmentStore = create<EquipmentState>()(
   ),
 );
 
-/** 시드 + 변경분을 합친 목록. 다섯 엔티티가 같은 규칙을 쓴다. */
+/** 시드 + 변경분을 합친 목록. 여섯 엔티티가 같은 규칙을 쓴다. */
 function merge<T>(
   seed: T[],
   created: T[],
@@ -285,6 +314,14 @@ export function mergePyranometers(
   deleted: string[],
 ): Pyranometer[] {
   return merge(SEED_PYRANOMETERS, created, patched, deleted, (item) => item.id);
+}
+
+export function mergeRtuEnterprises(
+  created: RtuEnterprise[],
+  patched: Record<string, Partial<RtuEnterprise>>,
+  deleted: string[],
+): RtuEnterprise[] {
+  return merge(SEED_RTU_ENTERPRISES, created, patched, deleted, (item) => item.id);
 }
 
 /** 시드 + 저장분이 합쳐진 장비 변경 이력. 갈래마다 자기 줄만 걸러 본다 (SFR-016-06) */
