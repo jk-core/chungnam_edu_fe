@@ -51,6 +51,11 @@
     stroke: var(--solar);
     stroke-width: 1.4;
   }
+
+  // 값이 없는 도는 윤곽만 두고 색 단계에 끼지 않는다.
+  &--empty {
+    cursor: default;
+  }
 }
 
 // 어느 색 칸 위에서도 읽히도록 라벨 뒤에 밝은 판을 깐다.

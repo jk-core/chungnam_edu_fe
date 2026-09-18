@@ -10,6 +10,7 @@ const powerPlant = ['powerPlant'] as const;
 const calendar = ['calendar'] as const;
 const area = ['area'] as const;
 const operationHistory = ['operationHistory'] as const;
+const home = ['home'] as const;
 
 export const queryKeys = {
   user: {
@@ -41,5 +42,14 @@ export const queryKeys = {
     all: calendar,
     month: (powerPlantId: number | null) => [...calendar, 'month', powerPlantId] as const,
     day: (powerPlantId: number | null) => [...calendar, 'day', powerPlantId] as const,
+  },
+  home: {
+    all: home,
+    /** `/home/hero` — 상단 발전량·출력률·차트·일출·일몰 */
+    hero: () => [...home, 'hero'] as const,
+    /** `/home/overview` — 설비용량·금일/전일 발전량·발전시간 */
+    overview: () => [...home, 'overview'] as const,
+    /** `/home/region` — 전국 시도별 평균 발전시간 */
+    region: () => [...home, 'region'] as const,
   },
 };
