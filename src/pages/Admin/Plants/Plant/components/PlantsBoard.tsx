@@ -3,11 +3,11 @@ import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/common/Button';
 import { ChangeHistory } from '@/pages/Admin/_shared/ChangeHistory';
 import { createPath } from '@/pages/Admin/_shared/adminPath';
+import { useChangeHistory } from '@/pages/Admin/_shared/hooks/useChangeHistory';
 import { formatNumber } from '@/utils/format';
 import { PlusIcon } from '@/components/common/Icon';
 import { SearchInput } from '@/components/common/SearchInput';
 import { useManagedUsers } from '@/hooks/usePlantAssets';
-import { usePlantChanges } from '@/stores/assetStore';
 import styles from '@/pages/Admin/Admin.module.scss';
 import { useAssetOf, usePlantRows } from '../hooks/usePlantData';
 import { PlantTable } from './PlantTable';
@@ -20,7 +20,7 @@ export function PlantsBoard() {
   const assetOf = useAssetOf();
   const users = useManagedUsers();
   const allRows = usePlantRows();
-  const changes = usePlantChanges();
+  const { rows: changes } = useChangeHistory('POWER_PLANT');
   const navigate = useNavigate();
 
   const [keyword, setKeyword] = useState('');

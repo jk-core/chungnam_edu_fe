@@ -11,6 +11,7 @@ const calendar = ['calendar'] as const;
 const area = ['area'] as const;
 const operationHistory = ['operationHistory'] as const;
 const home = ['home'] as const;
+const changeHistory = ['changeHistory'] as const;
 
 export const queryKeys = {
   user: {
@@ -51,5 +52,10 @@ export const queryKeys = {
     overview: () => [...home, 'overview'] as const,
     /** `/home/region` — 전국 시도별 평균 발전시간 */
     region: () => [...home, 'region'] as const,
+  },
+  changeHistory: {
+    all: changeHistory,
+    /** `/manage/changeHistory` — 대상 타입별 최근 10건 */
+    byTarget: (targetType: 'USER' | 'POWER_PLANT') => [...changeHistory, targetType] as const,
   },
 };

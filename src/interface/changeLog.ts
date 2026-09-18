@@ -1,4 +1,4 @@
-/** 변경 이력의 대상. 계약(`/manage/history`)의 targetType 과 같은 값이다 */
+/** 변경 이력의 대상. `/manage/changeHistory` 의 targetType 과 맞춘다 (미연동 도메인은 목업용) */
 export type ChangeTarget =
   | 'powerPlant'
   | 'equipment'
