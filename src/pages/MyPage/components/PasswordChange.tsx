@@ -3,13 +3,10 @@ import { Button } from '@/components/common/Button';
 import { Card } from '@/components/common/Card';
 import { ConfirmDialog } from '@/components/common/ConfirmDialog';
 import { FormSection, PasswordField } from '@/components/common/Form';
+import { PASSWORD_HINT, PASSWORD_RULE } from '@/schemas/password';
 import { Reveal } from '@/components/common/Reveal';
-import { toast } from '@/stores/toastStore';
-import useAssetStore from '@/stores/assetStore';
 import styles from '../MyPage.module.scss';
-
-/** 새 비밀번호가 지켜야 할 것 — 안내 문구도 이 값을 그대로 쓴다 */
-const MIN_LENGTH = 8;
+import { useChangePassword } from '../hooks/useChangePassword';
 
 interface Draft {
   current: string;
@@ -25,8 +22,8 @@ function validate({ current, next, confirm }: Draft): FieldErrors {
 
   if (!current) errors.current = '현재 비밀번호를 입력해 주세요.';
 
-  if (next.length < MIN_LENGTH) errors.next = `새 비밀번호는 ${MIN_LENGTH}자 이상이어야 합니다.`;
-  else if (!/[a-zA-Z]/.test(next) || !/\d/.test(next)) errors.next = '영문과 숫자를 함께 사용해 주세요.';
+  // 서버가 보는 규칙과 같은 정규식을 쓴다 — 화면이 느슨하면 통과시킨 뒤 서버에서 되돌아온다.
+  if (!PASSWORD_RULE.test(next)) errors.next = `${PASSWORD_HINT}로 넣어 주세요.`;
   else if (current && next === current) errors.next = '현재 비밀번호와 다른 비밀번호를 정해 주세요.';
 
   if (confirm !== next) errors.confirm = '새 비밀번호가 서로 다릅니다.';
@@ -36,13 +33,13 @@ function validate({ current, next, confirm }: Draft): FieldErrors {
 
 const EMPTY: Draft = { current: '', next: '', confirm: '' };
 
-/** 비밀번호 변경 (SFR-024). 재설정 주기는 로그인 설정이 정한 값을 그대로 안내한다 (SFR-026). */
+/** 비밀번호 변경 (SFR-024) */
 export function PasswordChange() {
-  const resetDays = useAssetStore((state) => state.policy.passwordResetDays);
-
   const [draft, setDraft] = useState<Draft>(EMPTY);
   const [errors, setErrors] = useState<FieldErrors>({});
   const [isConfirming, setIsConfirming] = useState(false);
+
+  const { changePassword, isPending } = useChangePassword(() => setDraft(EMPTY));
 
   const set = (key: keyof Draft) => (value: string) => setDraft({ ...draft, [key]: value });
 
@@ -55,14 +52,14 @@ export function PasswordChange() {
   };
 
   const commit = () => {
-    toast.success('비밀번호를 변경했습니다. 다음 로그인부터 새 비밀번호를 사용하세요.');
-    setDraft(EMPTY);
+    setIsConfirming(false);
+    changePassword({ password: draft.current, newPassword: draft.next });
   };
 
   return (
     <>
       <Reveal delay={0.06}>
-        <Card title="비밀번호 변경" description={`비밀번호는 ${resetDays}일마다 변경해야 합니다.`}>
+        <Card title="비밀번호 변경" description="주기적으로 바꿔 주세요.">
           <form
             className={styles.form}
             onSubmit={(event) => {
@@ -74,13 +71,15 @@ export function PasswordChange() {
               <PasswordField label="현재 비밀번호" value={draft.current} onChange={set('current')} required error={errors.current} />
             </FormSection>
 
-            <FormSection legend="새 비밀번호" hint={`${MIN_LENGTH}자 이상, 영문과 숫자를 섞어 주세요.`}>
+            <FormSection legend="새 비밀번호" hint={PASSWORD_HINT}>
               <PasswordField label="새 비밀번호" value={draft.next} onChange={set('next')} required error={errors.next} />
               <PasswordField label="새 비밀번호 확인" value={draft.confirm} onChange={set('confirm')} required error={errors.confirm} />
             </FormSection>
 
             <div className={styles.form__actions}>
-              <Button type="submit">비밀번호 변경</Button>
+              <Button type="submit" disabled={isPending}>
+                {isPending ? '변경 중…' : '비밀번호 변경'}
+              </Button>
             </div>
           </form>
         </Card>
@@ -89,7 +88,7 @@ export function PasswordChange() {
       <ConfirmDialog
         isOpen={isConfirming}
         title="비밀번호를 변경하시겠습니까?"
-        description="변경 후 다른 기기에서는 다시 로그인해야 합니다."
+        description="변경 후 다른 기기를 끊으려면 계정 메뉴의 «모든 기기에서 로그아웃» 을 쓰세요."
         confirmLabel="변경"
         onConfirm={commit}
         onClose={() => setIsConfirming(false)}

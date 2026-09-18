@@ -1,6 +1,6 @@
 import type { AddressResult } from '@/interface/address';
 import type { GeoPoint } from '@/interface/energy';
-import { CHUNGNAM_REGIONS, regionCodeOf } from '@/configs/regions';
+import { CHUNGNAM_REGIONS } from '@/configs/regions';
 import { createRandom, hashSeed, pickNumber } from './random';
 import { SCHOOLS } from './schools';
 
@@ -14,18 +14,18 @@ import { SCHOOLS } from './schools';
 
 /** 학교가 아닌 곳도 발전소가 된다 — 기관 주소와 경계값(건물명 없음·아주 긴 이름)을 섞어 둔다 */
 const EXTRA: { roadAddress: string; buildingName: string; regionKey: string }[] = [
-  { roadAddress: '충청남도 홍성군 홍북읍 선화로 22', buildingName: '충청남도교육청', regionKey: 'hongseong' },
-  { roadAddress: '충청남도 홍성군 홍북읍 상하천로 58', buildingName: '충청남도교육청연구정보원', regionKey: 'hongseong' },
-  { roadAddress: '충청남도 천안시 서북구 번영로 156', buildingName: '천안교육지원청', regionKey: 'cheonan' },
-  { roadAddress: '충청남도 아산시 시민로 456', buildingName: '', regionKey: 'asan' },
-  { roadAddress: '충청남도 공주시 봉황로 1', buildingName: '공주시청', regionKey: 'gongju' },
-  { roadAddress: '충청남도 서산시 관아문길 1', buildingName: '서산시청', regionKey: 'seosan' },
+  { roadAddress: '충청남도 홍성군 홍북읍 선화로 22', buildingName: '충청남도교육청', regionKey: '44800' },
+  { roadAddress: '충청남도 홍성군 홍북읍 상하천로 58', buildingName: '충청남도교육청연구정보원', regionKey: '44800' },
+  { roadAddress: '충청남도 천안시 서북구 번영로 156', buildingName: '천안교육지원청', regionKey: '44133' },
+  { roadAddress: '충청남도 아산시 시민로 456', buildingName: '', regionKey: '44200' },
+  { roadAddress: '충청남도 공주시 봉황로 1', buildingName: '공주시청', regionKey: '44150' },
+  { roadAddress: '충청남도 서산시 관아문길 1', buildingName: '서산시청', regionKey: '44210' },
   {
     roadAddress: '충청남도 당진시 송악읍 상록수길 105-3',
     buildingName: '당진시립상록도서관 별관 평생학습지원센터',
-    regionKey: 'dangjin',
+    regionKey: '44270',
   },
-  { roadAddress: '충청남도 보령시 대해로 123', buildingName: '보령시 농업기술센터', regionKey: 'boryeong' },
+  { roadAddress: '충청남도 보령시 대해로 123', buildingName: '보령시 농업기술센터', regionKey: '44180' },
 ];
 
 function buildAddresses(): AddressResult[] {
@@ -37,7 +37,7 @@ function buildAddresses(): AddressResult[] {
       zonecode: String(31000 + (index * 7) % 2800),
       roadAddress: school.address,
       jibunAddress: `${tokens[0]} ${tokens[1]} ${tokens[2]} ${100 + index}-${1 + (index % 9)}`,
-      sigunguCode: regionCodeOf(school.regionCode),
+      sigunguCode: school.regionCode,
       buildingName: school.name,
     };
   });
@@ -49,7 +49,7 @@ function buildAddresses(): AddressResult[] {
       zonecode: String(31900 + index * 13),
       roadAddress: item.roadAddress,
       jibunAddress: `${tokens[0]} ${tokens[1]} ${tokens[2]} ${200 + index}`,
-      sigunguCode: regionCodeOf(item.regionKey),
+      sigunguCode: item.regionKey,
       buildingName: item.buildingName,
     };
   });

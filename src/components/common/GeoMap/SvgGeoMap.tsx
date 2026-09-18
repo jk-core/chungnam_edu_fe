@@ -2,7 +2,7 @@ import { useCallback, useMemo, useRef, useState } from 'react';
 import Chungcheongnamdo from '@/assets/geo/provinces/Chungcheongnamdo';
 import { CloseIcon, ExpandIcon, MinusIcon, PlusIcon } from '@/components/common/Icon';
 import { isAbnormal, OPERATION_LABEL, OPERATION_TONE } from '@/mocks/status';
-import { CHUNGNAM_REGIONS } from '@/configs/regions';
+import { SIGUNGU_REGIONS } from '@/configs/regions';
 import { cn } from '@/utils/cn';
 import { useDismissable } from '@/hooks/useDismissable';
 import type { OperationStatus } from '@/interface/status';
@@ -71,7 +71,7 @@ export function SvgGeoMap({ plants, renderPopup, selectedId, onSelect, height = 
     [markers, zoom],
   );
   const regionPoints = useMemo(
-    () => CHUNGNAM_REGIONS.map((region) => ({ code: region.code, name: region.name, ...projectPoint(region.center) })),
+    () => SIGUNGU_REGIONS.map((region) => ({ code: region.regionCode, name: region.name, ...projectPoint(region.center) })),
     [],
   );
 

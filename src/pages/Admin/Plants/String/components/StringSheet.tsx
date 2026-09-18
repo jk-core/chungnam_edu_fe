@@ -13,16 +13,16 @@ import { listPath } from '@/pages/Admin/_shared/adminPath';
 import { Modal } from '@/components/common/Modal';
 import { MSG } from '@/configs/messages';
 import { RecordPicker } from '@/components/common/RecordPicker';
-import { stringSheetFormSchema } from '@/service/string/type';
 import { toast } from '@/stores/toastStore';
 import { useAuthUser } from '@/stores/authStore';
 import { useSelectableEquipment } from '@/pages/Admin/_shared/device/useSelectableEquipment';
 import useEquipmentStore from '@/stores/equipmentStore';
-import type { StringSheetFormValues } from '@/service/string/type';
 import type { StringMaster } from '@/interface/deviceMaster';
 import styles from '@/pages/Admin/Admin.module.scss';
 import { summarizeString, useStringOwners, useStringsOf } from '../hooks/useStringData';
+import { stringSheetFormSchema } from './form';
 import { StringRows } from './StringRows';
+import type { StringSheetFormValues } from './form';
 
 const Form = createForm<StringSheetFormValues>();
 

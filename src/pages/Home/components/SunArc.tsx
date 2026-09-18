@@ -1,6 +1,5 @@
 import { useEffect, useId, useRef, useState } from 'react';
 import { motion, useReducedMotion } from 'motion/react';
-import { HOURLY_OUTPUT, PEAK_OUTPUT, SUNRISE_HOUR, SUNSET_HOUR } from '@/mocks/generation';
 import styles from './SunArc.module.scss';
 
 const VIEW_W = 660;
@@ -29,15 +28,19 @@ function pointAt(progress: number) {
   return { x: CX + RX * Math.cos(angle), y: HORIZON_Y - RY * Math.sin(angle) };
 }
 
-function progressOfHour(hour: number) {
-  return (hour - SUNRISE_HOUR) / (SUNSET_HOUR - SUNRISE_HOUR);
-}
-
 const easeOutCubic = (t: number) => 1 - (1 - t) ** 3;
+
+export interface SunArcBar {
+  hour: number;
+  kw: number;
+}
 
 interface SunArcProps {
   /** 현재 시각(소수 시간). 일출 전·일몰 후에는 해를 지평선에 붙인다. */
   nowHour: number;
+  sunriseHour: number;
+  sunsetHour: number;
+  bars: SunArcBar[];
 }
 
 /**
@@ -45,14 +48,31 @@ interface SunArcProps {
  * 호(弧)는 오늘 해가 지나는 길, 막대는 그 시각의 실제 발전 출력이다.
  * 막대가 호에 닿으면 일사를 온전히 걷어들인 것이고, 벌어진 만큼이 손실이다.
  */
-export function SunArc({ nowHour }: SunArcProps) {
+export function SunArc({ nowHour, sunriseHour, sunsetHour, bars }: SunArcProps) {
   const gradientId = useId();
   const glowId = useId();
   const reduceMotion = useReducedMotion();
+  const span = sunsetHour - sunriseHour || 1;
+  const progressOfHour = (hour: number) => (hour - sunriseHour) / span;
   const targetProgress = Math.min(Math.max(progressOfHour(nowHour), 0), 1);
   const [sunProgress, setSunProgress] = useState(reduceMotion ? targetProgress : 0);
   const frameRef = useRef<number | undefined>(undefined);
   const hasIntroRunRef = useRef(false);
+
+  const visibleBars = bars.filter(
+    (point) => point.hour >= Math.floor(sunriseHour) && point.hour <= Math.ceil(sunsetHour),
+  );
+
+  let peakKw = 0;
+  let peakBar: SunArcBar = { hour: 0, kw: 0 };
+
+  for (const point of visibleBars) {
+    if (point.kw <= peakKw) continue;
+    peakKw = point.kw;
+    peakBar = point;
+  }
+
+  peakKw ||= 1;
 
   useEffect(() => {
     // 진입 연출은 한 번만. 이후 시계가 흐르면 해는 새 위치로 바로 옮긴다.
@@ -92,17 +112,13 @@ export function SunArc({ nowHour }: SunArcProps) {
   }, [targetProgress, reduceMotion]);
 
   const sun = pointAt(sunProgress);
-  // 해가 떠 있는 동안은 모두 그린다 — 잘라 내면 하루가 실제보다 짧아 보인다.
-  const bars = HOURLY_OUTPUT.filter(
-    (point) => point.hour >= Math.floor(SUNRISE_HOUR) && point.hour <= Math.ceil(SUNSET_HOUR),
-  );
 
   return (
     <svg
       className={styles.arc}
       viewBox={`0 0 ${VIEW_W} 300`}
       role="img"
-      aria-label={`오늘의 태양 궤적과 시간대별 발전 출력. 최고 출력은 ${PEAK_OUTPUT.hour}시 ${PEAK_OUTPUT.kw.toLocaleString('ko-KR')}킬로와트입니다.`}
+      aria-label={`오늘의 태양 궤적과 시간대별 발전 출력. 최고 출력은 ${Math.round(peakBar.hour)}시 ${peakBar.kw.toLocaleString('ko-KR')}킬로와트입니다.`}
     >
       <defs>
         <linearGradient id={gradientId} x1="0" y1="1" x2="0" y2="0">
@@ -127,15 +143,15 @@ export function SunArc({ nowHour }: SunArcProps) {
 
       {/* 시간대별 발전 출력 — 호에 닿을수록 일사를 온전히 받은 시간이다 */}
       <g>
-        {bars.map((point, index) => {
+        {visibleBars.map((point, index) => {
           const progress = progressOfHour(point.hour);
           const { x, y } = pointAt(progress);
-          const ratio = point.kw / PEAK_OUTPUT.kw;
+          const ratio = point.kw / peakKw;
           const height = (HORIZON_Y - y) * ratio;
 
           return (
             <motion.rect
-              key={point.hour}
+              key={`${point.hour}-${index}`}
               x={x - 5}
               y={HORIZON_Y - height}
               width={10}
@@ -171,10 +187,10 @@ export function SunArc({ nowHour }: SunArcProps) {
         적어 두어야 그 사이가 오늘 해가 떠 있던 동안이라는 것이 읽힌다.
       */}
       <text x={pointAt(0).x} y={HORIZON_Y + 24} className={styles.arc__edge} textAnchor="start">
-        일출 {clockOf(SUNRISE_HOUR)}
+        일출 {clockOf(sunriseHour)}
       </text>
       <text x={pointAt(1).x} y={HORIZON_Y + 24} className={styles.arc__edge} textAnchor="end">
-        일몰 {clockOf(SUNSET_HOUR)}
+        일몰 {clockOf(sunsetHour)}
       </text>
 
       {/* 현재 시각 */}

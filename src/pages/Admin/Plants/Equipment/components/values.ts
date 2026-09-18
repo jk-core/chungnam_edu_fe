@@ -1,10 +1,10 @@
 import { describeInverterProduct } from '@/mocks/deviceMaster';
 import { NOW } from '@/mocks/today';
-import type { EquipmentFormValues } from '@/service/equipment/type';
-import type { StringRow } from '@/service/string/type';
+import type { StringRow } from '@/schemas/stringRow';
 import type { InverterProduct, ModuleProduct, StringMaster } from '@/interface/deviceMaster';
 import type { ManagedUser } from '@/interface/account';
 import type { PlantAsset } from '@/interface/asset';
+import type { EquipmentFormValues } from './form';
 import type { EquipmentRow } from '../hooks/useEquipmentRows';
 
 /** AS 만료일 기본값 — 오늘로부터 다섯 해 */

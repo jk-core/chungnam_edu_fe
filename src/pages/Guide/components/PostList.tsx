@@ -7,7 +7,7 @@ import { PlusIcon } from '@/components/common/Icon';
 import { Reveal } from '@/components/common/Reveal';
 import { buildPath } from '@/routes/buildPath';
 import { formatNumber } from '@/utils/format';
-import { isReviewRole } from '@/mocks/accounts';
+import { isReviewRole } from '@/configs/roles';
 import { useAuthUser } from '@/stores/authStore';
 import type { BoardKind } from '@/interface/board';
 import styles from '../Guide.module.scss';

@@ -12,7 +12,7 @@ import { cn } from '@/utils/cn';
 import { formatCapacity } from '@/utils/format';
 import { useIsScopeOpen, useToggleScope } from '@/stores/plantStore';
 import { usePlantScope } from '@/hooks/usePlantScope';
-import type { NodeKind } from '@/mocks/tree';
+import type { NodeKind } from '@/interface/tree';
 import styles from './PlantScopePanel.module.scss';
 
 /**

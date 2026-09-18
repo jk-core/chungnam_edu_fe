@@ -5,29 +5,29 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { Button } from '@/components/common/Button';
 import { ConfirmDialog } from '@/components/common/ConfirmDialog';
 import { createForm, FormRow, FormSection } from '@/components/common/Form';
+import { EMAIL_MAX } from '@/schemas/email';
 import { formatPhone } from '@/utils/format';
 import { FormPage } from '@/pages/Admin/_shared/FormPage';
 import { listPath } from '@/pages/Admin/_shared/adminPath';
 import { MSG } from '@/configs/messages';
-import {
-  EMAIL_MAX,
-  NAME_MAX,
-  ORG_NAME_MAX,
-  PASSWORD_HINT,
-  SELECTABLE_USER_TYPE_CODES,
-  userFormSchema,
-} from '@/service/user/type';
-import { ROLE_LABEL, ROLE_SCOPE_NOTE, roleFromCode } from '@/mocks/accounts';
+import { PASSWORD_HINT } from '@/schemas/password';
+import { ROLE_LABEL, ROLE_SCOPE_NOTE, roleFromCode } from '@/configs/roles';
 import { toast } from '@/stores/toastStore';
 import { useManagedUsers } from '@/hooks/usePlantAssets';
 import { USER_TYPE } from '@/configs/codes';
 import useAssetStore from '@/stores/assetStore';
-import type { UserFormValues } from '@/service/user/type';
 import type { ChangeLog } from '@/interface/changeLog';
 import type { ManagedUser } from '@/interface/account';
 import styles from '@/pages/Admin/Admin.module.scss';
 import { useUserChangeLog } from '../hooks/useUserChangeLog';
+import {
+  NAME_MAX,
+  ORG_NAME_MAX,
+  SELECTABLE_USER_TYPE_CODES,
+  userFormSchema,
+} from './form';
 import { EMPTY_VALUES, toFormValues } from './values';
+import type { UserFormValues } from './form';
 
 /** 이력에 남길 항목 — 계정이 들고 있는 이름으로 견준다 (SFR-018-04). */
 const TRACKED: { key: keyof ManagedUser; label: string }[] = [

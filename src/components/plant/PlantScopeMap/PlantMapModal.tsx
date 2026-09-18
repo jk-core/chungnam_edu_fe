@@ -1,7 +1,8 @@
 import { useCallback, useMemo, useState } from 'react';
 import { Button } from '@/components/common/Button';
 import { Modal } from '@/components/common/Modal';
-import { CHUNGNAM_REGIONS } from '@/configs/regions';
+import { isInRegion } from '@/configs/regions';
+import { useAreaOptions } from '@/hooks/useAreaOptions';
 import { MapStatusFilter, useStatusFilter } from '@/components/plant/MapStatusFilter';
 import { KakaoMiniMap } from '@/components/common/GeoMap/KakaoMiniMap';
 import { PlantDetailPanel } from '@/components/plant/PlantDetailPanel';
@@ -43,6 +44,7 @@ interface PlantMapModalProps {
  */
 export function PlantMapModal({ isOpen, onClose, plants, selectedId, onSelect }: PlantMapModalProps) {
   const [regionCode, setRegionCode] = useState(ALL);
+  const areaOptions = useAreaOptions();
   /** 눌러서 펼쳐 본 발전소. 아직 고른 것은 아니다 */
   const [previewId, setPreviewId] = useState<string | null>(null);
   const mapStatus = useKakaoMaps();
@@ -50,7 +52,7 @@ export function PlantMapModal({ isOpen, onClose, plants, selectedId, onSelect }:
   const assets = usePlantAssets();
 
   const inRegion = useMemo(
-    () => (regionCode === ALL ? plants : plants.filter((plant) => plant.regionCode === regionCode)),
+    () => (regionCode === ALL ? plants : plants.filter((plant) => isInRegion(plant.regionCode, regionCode))),
     [plants, regionCode],
   );
 
@@ -95,7 +97,7 @@ export function PlantMapModal({ isOpen, onClose, plants, selectedId, onSelect }:
             value={regionCode}
             options={[
               { value: ALL, label: `전체 (${formatNumber(plants.length)}개소)` },
-              ...CHUNGNAM_REGIONS.map((region) => ({ value: region.code, label: region.name })),
+              ...areaOptions,
             ]}
             onChange={setRegionCode}
           />

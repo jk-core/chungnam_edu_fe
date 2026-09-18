@@ -7,19 +7,6 @@ import { ConfirmDialog } from '@/components/common/ConfirmDialog';
 import { createdEntry, deletedEntry, diffEntries } from '@/pages/Admin/_shared/changeLog';
 import { createForm, FormRow, FormSection } from '@/components/common/Form';
 import { describeInverterProduct, INVERTER_KIND_LABEL } from '@/mocks/deviceMaster';
-import {
-  ARRAY_MAX,
-  ARRAY_MIN,
-  AZIMUTH_MAX,
-  AZIMUTH_MIN,
-  COMMUNICATION_ID_MAX,
-  equipmentFormSchema,
-  INCLINE_MAX,
-  INCLINE_MIN,
-  NAME_MAX,
-  PORT_MAX,
-  PORT_MIN,
-} from '@/service/equipment/type';
 import { formatNumber } from '@/utils/format';
 import { FormPage } from '@/pages/Admin/_shared/FormPage';
 import { listPath } from '@/pages/Admin/_shared/adminPath';
@@ -34,12 +21,25 @@ import { useAuthUser } from '@/stores/authStore';
 import { useInverterProducts } from '@/pages/Admin/_shared/device/useSelectableEquipment';
 import { useManagedUsers, usePlantAssets } from '@/hooks/usePlantAssets';
 import useEquipmentStore from '@/stores/equipmentStore';
-import type { EquipmentFormValues } from '@/service/equipment/type';
 import type { EquipmentMaster, StringMaster } from '@/interface/deviceMaster';
 import styles from '@/pages/Admin/Admin.module.scss';
 import { useDerivedCapacity } from '../hooks/useDerivedCapacity';
 import { useEquipmentRows, useModuleProducts } from '../hooks/useEquipmentRows';
+import {
+  ARRAY_MAX,
+  ARRAY_MIN,
+  AZIMUTH_MAX,
+  AZIMUTH_MIN,
+  COMMUNICATION_ID_MAX,
+  equipmentFormSchema,
+  INCLINE_MAX,
+  INCLINE_MIN,
+  NAME_MAX,
+  PORT_MAX,
+  PORT_MIN,
+} from './form';
 import { EMPTY_VALUES, moduleLabelOf, toFormValues, userLabelOf } from './values';
+import type { EquipmentFormValues } from './form';
 
 /** CID 는 기존 체계를 따라 이 값에 일련번호를 더해 만든다 */
 const CID_BASE = 10192000000;

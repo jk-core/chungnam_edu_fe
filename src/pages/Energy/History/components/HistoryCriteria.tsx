@@ -1,5 +1,4 @@
 import dayjs from 'dayjs';
-import { COLLECT_INTERVAL_MINUTE } from '@/configs/collect';
 import type { Inverter } from '@/interface/equipment';
 import styles from '../History.module.scss';
 
@@ -24,7 +23,6 @@ export function HistoryCriteria({ date, plantLabel, inverter }: HistoryCriteriaP
       <Item name="기간" value={dayjs(date).format('YYYY-MM-DD')} />
       <Item name="발전소" value={plantLabel} />
       <Item name="인버터" value={inverter.name} />
-      <Item name="수집주기" value={`${COLLECT_INTERVAL_MINUTE}분`} />
     </div>
   );
 }

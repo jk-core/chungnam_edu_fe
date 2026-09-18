@@ -1,93 +1,95 @@
 import { create } from 'zustand';
 import { createJSONStorage, persist } from 'zustand/middleware';
-import { getAccountById, isAdminRole } from '@/mocks/accounts';
-import useAssetStore from '@/stores/assetStore';
+import { isAdminRole, roleFromCode } from '@/configs/roles';
+import type { UserDetail } from '@/service/auth/type';
 import type { AuthUser, Role } from '@/interface/account';
 
-interface AuthState {
-  user: AuthUser | null;
-  /** 세션 만료 시각(epoch ms). SFR-026 역할별 유지시간을 반영한다. */
-  expiresAt: number | null;
-  /** 아이디로 데모 계정을 찾아 로그인한다. 없으면 false. */
-  login: (accountId: string) => boolean;
-  logout: () => void;
-  /** 사용자가 화면을 만지면 세션을 늘린다. */
-  touchSession: () => void;
+/** 응답의 계정을 화면이 쓰는 모양으로 옮긴다 — 로그인·세션 확인·마이페이지가 같은 길을 탄다 */
+export const toAuthUser = (detail: UserDetail): AuthUser => ({
+  userId: detail.userId,
+  loginId: detail.loginId,
+  name: detail.userName,
+  role: roleFromCode(detail.userTypeCode),
+  powerPlantIds: detail.powerPlantIds,
+});
+
+/** 로그인이 돌려준 토큰 한 벌 (`SignInResForm`) */
+export interface Session {
+  userId: number;
+  accessToken: string;
+  refreshToken: string;
+  refreshTokenId: string;
 }
 
-const minutesToMs = (minutes: number) => minutes * 60 * 1000;
-
-/** 역할별 유지시간 — 관리자 콘솔에서 저장한 정책을 그대로 읽는다 (SFR-026). */
-function sessionMinutesOf(role: Role): number {
-  const { policy } = useAssetStore.getState();
-
-  return isAdminRole(role) ? policy.adminSessionMinutes : policy.userSessionMinutes;
+interface AuthState {
+  session: Session | null;
+  /**
+   * `/user/userInfo` 가 준 계정. 세션과 따로 두는 것은 새로고침 때문이다 —
+   * 조회가 돌아오기 전에도 가드가 판정할 수 있어야 로그인 화면으로 튕기지 않는다.
+   */
+  user: AuthUser | null;
+  setSession: (session: Session) => void;
+  setAccessToken: (accessToken: string) => void;
+  setUser: (user: AuthUser) => void;
+  clear: () => void;
 }
 
 const useAuthStore = create<AuthState>()(
   persist(
     (set, get) => ({
+      session: null,
       user: null,
-      expiresAt: null,
-      login: (accountId) => {
-        const account = getAccountById(accountId);
+      setSession: (session) => set({ session }),
+      setAccessToken: (accessToken) => {
+        const { session } = get();
 
-        if (!account) return false;
+        if (!session) return;
 
-        set({ user: account, expiresAt: Date.now() + minutesToMs(sessionMinutesOf(account.role)) });
-
-        return true;
+        set({ session: { ...session, accessToken } });
       },
-      logout: () => set({ user: null, expiresAt: null }),
-      touchSession: () => {
-        const { user, expiresAt } = get();
-
-        if (!user || expiresAt === null) return;
-
-        const span = minutesToMs(sessionMinutesOf(user.role));
-
-        // 남은 시간이 절반 이상이면 그대로 둔다. 클릭마다 저장하면 낭비다.
-        if (expiresAt - Date.now() > span / 2) return;
-
-        set({ expiresAt: Date.now() + span });
-      },
+      setUser: (user) => set({ user }),
+      clear: () => set({ session: null, user: null }),
     }),
     {
       name: 'cne-auth',
       storage: createJSONStorage(() => localStorage),
-      // 계정 정보는 목업에서 다시 찾아오므로 세션만 남긴다.
-      partialize: (state) => ({ user: state.user, expiresAt: state.expiresAt }),
+      partialize: (state) => ({ session: state.session, user: state.user }),
       /*
-        1 판 세션에는 없어진 등급(게스트·수용가)이 들어 있다. 그대로 살려 두면 사라진 등급으로
-        권한을 판정하게 되므로 판이 다르면 로그인부터 다시 받는다.
+        2 판까지는 목 계정을 통째로 담아 두었고, 3 판에는 담당 발전소(`powerPlantIds`)가 없다.
+        빠진 칸을 그대로 되살리면 권한을 판정하는 자리가 `undefined` 를 읽으므로,
+        판이 다르면 로그인부터 다시 받는다.
       */
-      version: 2,
-      migrate: () => ({ user: null, expiresAt: null }),
+      version: 4,
+      migrate: () => ({ session: null, user: null }),
     },
   ),
 );
 
-/**
- * 만료된 세션을 지운다.
- * 앱 부트스트랩에서 한 번 호출한다 — themeStore 의 applyTheme 과 같은 자리다.
- */
-export function pruneExpiredSession() {
-  const { expiresAt, logout } = useAuthStore.getState();
+/* 인터셉터가 렌더 밖에서 부르는 자리 — 훅을 쓸 수 없어 getState 로 연다. */
+export const getSession = () => useAuthStore.getState().session;
 
-  if (expiresAt !== null && expiresAt <= Date.now()) logout();
-}
+export const setAccessToken = (accessToken: string) => useAuthStore.getState().setAccessToken(accessToken);
+
+export const clearSession = () => useAuthStore.getState().clear();
 
 export const getAuthUser = () => useAuthStore.getState().user;
 
 export const useAuthUser = () => useAuthStore((state) => state.user);
 
-export const useLogin = () => useAuthStore((state) => state.login);
+export const useSetSession = () => useAuthStore((state) => state.setSession);
 
-export const useLogout = () => useAuthStore((state) => state.logout);
+export const useSetAuthUser = () => useAuthStore((state) => state.setUser);
 
-/** 권한이 전체 조회인지 (SFR-023-02) */
+export const useClearSession = () => useAuthStore((state) => state.clear);
+
+/**
+ * 권한이 전체 조회인지 (SFR-023-02).
+ *
+ * 담당 발전소가 비어 있으면 제한 없음이다 — 계약이 그렇게 정의돼 있다.
+ * 로그인하지 않은 채 열리는 화면(교육용 대시보드)도 제한 없이 본다.
+ */
 export function useCanSeeAllPlants(): boolean {
-  return useAuthStore((state) => state.user === null || state.user.plantIds.length === 0);
+  return useAuthStore((state) => state.user === null || state.user.powerPlantIds.length === 0);
 }
 
 /** 관리자 콘솔 진입 가능 여부 (SFR-018-05, SER-001-18) */

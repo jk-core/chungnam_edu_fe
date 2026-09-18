@@ -53,8 +53,8 @@ export const operationHistoryChartSchema = z.object({
 });
 
 /**
- * 표와 같은 열이다. 다만 단상·삼상 열을 모두 고정으로 깔아, 위상이 다른 설비끼리도 파일을
- * 겹쳐 볼 수 있게 한다.
+ * 파일은 서버가 만든다 — 열 구성도 서버 몫이다.
+ * 표는 쪽을 나눠 받지만 파일은 그날 전량이라, 화면이 쥔 줄로 짜맞추면 보이는 쪽만 담긴다.
  */
 export type OperationHistoryExcelParams = z.infer<typeof operationHistoryExcelParamsSchema>;
 export const operationHistoryExcelParamsSchema = z.object({

@@ -3,7 +3,7 @@ import { useMemo, useState } from 'react';
 import { Card } from '@/components/common/Card';
 import { EChart } from '@/components/common/EChart';
 import { EmptyState } from '@/components/common/EmptyState';
-import { getChildNodes } from '@/mocks/tree';
+import { getChildNodes } from '@/stores/scopeTreeStore';
 import { getDiagEfficiencyPoints } from '@/mocks/prediction';
 import { NORMAL_BAND } from '@/configs/diagnosis';
 import { Button } from '@/components/common/Button';

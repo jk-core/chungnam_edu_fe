@@ -121,12 +121,49 @@ export const CELL_TYPE = {
   NAME: { 0: '단면', 1: '양면' },
 } as const satisfies { CODE: Record<CellTypeName, CellTypeCode>; NAME: Record<CellTypeCode, CellTypeName> };
 
+/** 날씨 (weatherCode / weatherName) */
+export const ZodWeatherCode = {
+  CODE: z.union([
+    z.literal(14001),
+    z.literal(14002),
+    z.literal(14003),
+    z.literal(14004),
+    z.literal(14005),
+    z.literal(14006),
+    z.literal(14007),
+  ]),
+  NAME: z.enum(['맑음', '구름많음', '흐림', '비', '비/눈', '눈', '소나기']),
+};
+export type WeatherCode = z.infer<typeof ZodWeatherCode.CODE>;
+export type WeatherCodeName = z.infer<typeof ZodWeatherCode.NAME>;
+
+export const WEATHER_TYPE = {
+  CODE: {
+    맑음: 14001,
+    구름많음: 14002,
+    흐림: 14003,
+    비: 14004,
+    '비/눈': 14005,
+    눈: 14006,
+    소나기: 14007,
+  },
+  NAME: {
+    14001: '맑음',
+    14002: '구름많음',
+    14003: '흐림',
+    14004: '비',
+    14005: '비/눈',
+    14006: '눈',
+    14007: '소나기',
+  },
+} as const satisfies { CODE: Record<WeatherCodeName, WeatherCode>; NAME: Record<WeatherCode, WeatherCodeName> };
+
 /**
  * 수집 데이터 자체의 상태 (dataStateCode / dataStateName).
  *
  * 설비 고장이 아니라 RTU 가 실어 온 값의 상태다 — 운전이력 표의 결측 표시가 이 축이다.
  * 화면은 세 단계(`RawDataState`)로 묶어 보는데, 열 코드를 셋으로 접는 규칙은 아직 BE 와
- * 맞추지 않았다 (`interface/operation.ts` 참조).
+ * 운전이력 표는 이 축을 접지 않고 `dataStateName` 을 그대로 적는다 — 색만 셋으로 묶는다.
  */
 export const ZodDataStateCode = {
   CODE: z.union([
@@ -214,10 +251,8 @@ export type FaultCodeValue = z.infer<typeof ZodFaultCode>;
     checkResultCode      점검결과 — 양호 · 미흡 · 해당없음
     sourceCode           알림 검출출처 — AI진단 · 시스템감지
     rtuStatusCode        RTU 통신상태
-    irradStatusCode      일사량계 상태
     resultCode           교육부 연계 전송결과
     responseCode         교육부 연계 응답
     serverRoleCode       서버 역할
     levelCode            서버 점검 등급
-    weatherCode          날씨
 */

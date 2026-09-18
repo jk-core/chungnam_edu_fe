@@ -1,8 +1,8 @@
 import { CELL_TYPE } from '@/configs/codes';
-import { NUMERIC } from '@/service/module/type';
 import type { CellTypeCode } from '@/configs/codes';
-import type { ModuleFormValues, NumericKey } from '@/service/module/type';
 import type { ModuleProduct } from '@/interface/deviceMaster';
+import { NUMERIC } from './form';
+import type { ModuleFormValues, NumericKey } from './form';
 
 /** 목업의 셀 종류 어휘와 서버 코드를 맞바꾼다 */
 const CODE_BY_CELL_TYPE: Record<ModuleProduct['cellType'], CellTypeCode> = {

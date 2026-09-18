@@ -16,7 +16,7 @@ function toSchoolRow(asset: PlantAsset): School {
   return {
     id: asset.plantId,
     name: asset.plantName,
-    regionCode: region.code,
+    regionCode: region.regionCode,
     regionName: region.name,
     level: asset.plantType,
     address: asset.address,

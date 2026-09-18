@@ -1,7 +1,8 @@
 import dayjs from 'dayjs';
 import { CO2_PER_KWH, CUMULATIVE, pickEnergyUnit } from '@/mocks/generation';
 import { formatCarbon, formatKoCount, formatNumber, formatPercent } from '@/utils/format';
-import { getNode, ROOT_ID } from '@/mocks/tree';
+import { ROOT_ID } from '@/configs/scope';
+import { getNode } from '@/stores/scopeTreeStore';
 import { getNodeStat } from '@/mocks/nodeStats';
 import { LeafIcon } from '@/components/common/Icon';
 import { TODAY } from '@/mocks/today';

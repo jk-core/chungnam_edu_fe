@@ -1,10 +1,10 @@
+import { getChildNodes } from '@/stores/scopeTreeStore';
+import type { ScopeNode } from '@/interface/tree';
 import { OPERATION_PENALTY, OPERATION_RANK } from './status';
 import { REGION_TOTAL } from './regions';
-import { getChildNodes } from './tree';
 import { getDetailTrend, getHourlyTrend } from './generation';
 import { getInverterById, getInvertersOf } from './equipment';
 import type { PeriodKey } from './generation';
-import type { ScopeNode } from './tree';
 
 /** 기준 건전도 — 각 계층의 건전도를 이 값과 견주어 발전량을 깎거나 올린다. */
 const REFERENCE_HEALTH = 0.87;

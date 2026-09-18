@@ -47,8 +47,14 @@ export function Pagination({
   pageSize,
   onPageSizeChange,
 }: PaginationProps) {
-  // 쪽당 개수를 고를 수 있으면 한 쪽짜리 목록에서도 남겨 둔다 — 개수를 줄이러 다시 와야 하기 때문이다.
-  if (pageCount <= 1 && !onPageSizeChange) return null;
+  /*
+    한 쪽짜리여도 숨지 않는다.
+
+    옆에 붙은 「전체 N건」이 함께 사라져, 조건을 좁혀 한 쪽이 된 순간 몇 건인지 알 길이 없어진다.
+    목록이 있는 자리에 목록의 크기가 늘 적혀 있어야 좁힌 결과를 읽을 수 있다.
+    아예 보이지 않아야 하는 자리(조회 대상을 아직 고르지 않았을 때)는 부르는 쪽이 가린다.
+  */
+  const count = Math.max(1, pageCount);
 
   return (
     <nav className={styles.pagination} aria-label={`${label} 페이지 이동`}>
@@ -78,7 +84,7 @@ export function Pagination({
           <ChevronRightIcon />
         </button>
 
-        {pageNumbers(page, pageCount).map((item, index) =>
+        {pageNumbers(page, count).map((item, index) =>
           item === 'gap' ? (
             <span key={`gap-${index}`} className={styles.pagination__gap} aria-hidden="true">
               …
@@ -100,7 +106,7 @@ export function Pagination({
           type="button"
           className={styles.pagination__arrow}
           onClick={() => onChange(page + 1)}
-          disabled={page >= pageCount}
+          disabled={page >= count}
           aria-label="다음 페이지"
         >
           <ChevronRightIcon />

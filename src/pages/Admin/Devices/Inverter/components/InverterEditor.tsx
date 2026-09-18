@@ -10,16 +10,16 @@ import { formatNumber } from '@/utils/format';
 import { FormPage } from '@/pages/Admin/_shared/FormPage';
 import { INVERTER_KIND_LABEL, kindFromInverterTypeCode } from '@/mocks/deviceMaster';
 import { INVERTER_TYPE, PHASE_TYPE } from '@/configs/codes';
-import { CAPACITY_MAX, CAPACITY_MIN, inverterFormSchema, NAME_MAX } from '@/service/inverter/type';
 import { listPath } from '@/pages/Admin/_shared/adminPath';
 import { MSG } from '@/configs/messages';
 import { toast } from '@/stores/toastStore';
 import { useAuthUser } from '@/stores/authStore';
 import { useInverterProducts } from '@/pages/Admin/_shared/device/useSelectableEquipment';
 import useEquipmentStore, { mergeEquipment } from '@/stores/equipmentStore';
-import type { InverterFormValues } from '@/service/inverter/type';
 import type { InverterProduct } from '@/interface/deviceMaster';
+import { CAPACITY_MAX, CAPACITY_MIN, inverterFormSchema, NAME_MAX } from './form';
 import { EMPTY_VALUES, phaseFromCode, toFormValues } from './values';
+import type { InverterFormValues } from './form';
 
 const Form = createForm<InverterFormValues>();
 

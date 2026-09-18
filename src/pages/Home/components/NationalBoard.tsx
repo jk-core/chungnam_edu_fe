@@ -1,7 +1,7 @@
 import { Card } from '@/components/common/Card';
-import { getNationalRank, NATIONAL_AVERAGE } from '@/mocks/national';
 import { Reveal } from '@/components/common/Reveal';
 import { KoreaMap } from '@/components/common/KoreaMap';
+import { useHomeRegion } from '../hooks/useHome';
 import styles from './NationalBoard.module.scss';
 
 const CHUNGNAM = 'chungnam';
@@ -12,16 +12,18 @@ const CHUNGNAM = 'chungnam';
  * 값은 한국에너지공단 REMS API 로 지역별 설비 데이터를 받아 평균을 낸 것으로 본다.
  */
 export function NationalBoard() {
-  const rank = getNationalRank(CHUNGNAM);
+  const { regions, average, chungnamRank } = useHomeRegion();
+  const rankLabel = chungnamRank > 0 ? `전국 ${chungnamRank}위` : '순위 집계 중';
+  const averageLabel = regions.length > 0 ? `${average.toFixed(2)}시간` : '-';
 
   return (
     <section className={styles.national} aria-labelledby="national-title">
       <Reveal>
         <Card
           title={<span id="national-title">전국 평균 발전시간</span>}
-          description={`한국에너지공단 REMS 연계 값입니다. 충남은 전국 ${rank}위이고, 전국 평균은 ${NATIONAL_AVERAGE.toFixed(2)}시간입니다.`}
+          description={`한국에너지공단 REMS 연계 값입니다. 충남은 ${rankLabel}이고, 전국 평균은 ${averageLabel}입니다.`}
         >
-          <KoreaMap highlight={CHUNGNAM} />
+          <KoreaMap highlight={CHUNGNAM} regions={regions} />
         </Card>
       </Reveal>
     </section>

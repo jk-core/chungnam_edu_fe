@@ -1,9 +1,9 @@
 import { ClockIcon, LeafIcon, SchoolIcon, SunIcon } from '@/components/common/Icon';
-import { CO2_PER_KWH } from '@/mocks/generation';
-import { REGION_TOTAL } from '@/mocks/regions';
 import { Reveal } from '@/components/common/Reveal';
 import { StatCard } from '@/components/common/StatCard';
+import { CO2_PER_KWH } from '@/utils/eco';
 import { formatCapacity, formatCarbon, formatEnergy } from '@/utils/format';
+import { useHomeOverview } from '../hooks/useHome';
 import styles from './KpiStrip.module.scss';
 
 const toNumber = (value: string) => Number(value.replace(/,/g, ''));
@@ -15,11 +15,15 @@ const toNumber = (value: string) => Number(value.replace(/,/g, ''));
  * 읽는데 기준 기간이 셋이 되어, 어느 수가 무엇을 말하는지 매번 라벨을 다시 봐야 했다.
  */
 export function KpiStrip() {
-  const capacity = formatCapacity(REGION_TOTAL.capacityKw);
-  const today = formatEnergy(REGION_TOTAL.todayKwh);
-  // 발전시간 = 발전량 ÷ 설비용량. 용량이 다른 설비를 같은 눈금에 세우는 값이다.
-  const hours = REGION_TOTAL.capacityKw > 0 ? REGION_TOTAL.todayKwh / REGION_TOTAL.capacityKw : 0;
-  const carbon = formatCarbon(REGION_TOTAL.todayKwh * CO2_PER_KWH);
+  const { data } = useHomeOverview();
+  const currentPower = data?.currentPower ?? 0;
+  const capacity = formatCapacity(data?.totalCapacity ?? 0);
+  const today = formatEnergy(currentPower);
+  const hours = data?.currentPowerTime ?? 0;
+  const carbon = formatCarbon(currentPower * CO2_PER_KWH);
+  /** 전일 동시간대 대비 증감률. 전일이 0이면 표시하지 않는다. */
+  const dayDelta =
+    data && data.previousPower > 0 ? (currentPower - data.previousPower) / data.previousPower : undefined;
 
   return (
     <section className={styles.kpi} aria-label="전체 요약 지표">
@@ -39,8 +43,8 @@ export function KpiStrip() {
             value={toNumber(today.value)}
             unit={today.unit}
             fractionDigits={1}
-            delta={0.084}
-            deltaLabel="전일 대비"
+            delta={dayDelta}
+            deltaLabel="전일 동시간대 대비"
             icon={<SunIcon />}
             accent
           />

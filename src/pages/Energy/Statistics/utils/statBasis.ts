@@ -60,7 +60,7 @@ export function aggregateByBasis(basis: StatBasis, period: PeriodKey, date: Date
   SCHOOLS.forEach((school) => {
     const name = basis === 'region'
       ? school.regionName
-      : educationOfficeOf(CHUNGNAM_REGIONS.find((region) => region.name === school.regionName)?.code ?? '');
+      : educationOfficeOf(CHUNGNAM_REGIONS.find((region) => region.name === school.regionName)?.regionCode ?? '');
     const row = buckets.get(name)
       ?? { key: name, name, count: 0, capacityKw: 0, generationKwh: 0, utilization: 0 };
 

@@ -3,10 +3,11 @@ import { Badge } from '@/components/common/Badge';
 import { OPERATION_LABEL, OPERATION_TONE, RTU_LABEL, RTU_TONE } from '@/mocks/status';
 import { CheckIcon, SchoolIcon, SearchIcon } from '@/components/common/Icon';
 import { EmptyState } from '@/components/common/EmptyState';
-import { KIND_LABEL } from '@/mocks/tree';
+import { KIND_LABEL } from '@/configs/scope';
 import { Modal } from '@/components/common/Modal';
-import { CHUNGNAM_REGIONS } from '@/configs/regions';
-import { SCHOOLS } from '@/mocks/schools';
+import { isInRegion } from '@/configs/regions';
+import { useAreaOptions } from '@/hooks/useAreaOptions';
+import { usePowerPlantList } from '@/hooks/usePowerPlantList';
 import { Select } from '@/components/common/Select';
 import { cn } from '@/utils/cn';
 import { formatCapacity, formatNumber } from '@/utils/format';
@@ -14,11 +15,6 @@ import { useAllowedPlantIds } from '@/hooks/useScopeClamp';
 import { usePlantScope } from '@/hooks/usePlantScope';
 import { useSelectNode } from '@/stores/plantStore';
 import styles from './PlantPicker.module.scss';
-
-const REGION_OPTIONS = [
-  { value: 'all', label: '전체 지역' },
-  ...CHUNGNAM_REGIONS.map((region) => ({ value: region.code, label: region.name })),
-];
 
 interface PlantPickerProps {
   /**
@@ -42,18 +38,20 @@ export function PlantPicker({ variant = 'inline' }: PlantPickerProps) {
   // 교육기관 계정은 담당 발전소만 목록에 나온다 (SFR-023-03).
   const allowedIds = useAllowedPlantIds();
   const isScoped = allowedIds.length > 0;
+  const { plants } = usePowerPlantList();
+  const areaOptions = useAreaOptions();
 
   const results = useMemo(() => {
     const keyword = query.trim();
 
-    return SCHOOLS.filter((school) => {
-      if (isScoped && !allowedIds.includes(school.id)) return false;
-      if (regionCode !== 'all' && school.regionCode !== regionCode) return false;
+    return plants.filter((item) => {
+      if (isScoped && !allowedIds.includes(item.id)) return false;
+      if (regionCode !== 'all' && !isInRegion(item.regionCode, regionCode)) return false;
       if (!keyword) return true;
 
-      return school.name.includes(keyword) || school.address.includes(keyword);
+      return item.name.includes(keyword) || item.address.includes(keyword);
     });
-  }, [query, regionCode, isScoped, allowedIds]);
+  }, [plants, query, regionCode, isScoped, allowedIds]);
 
   const currentPlantId = node.plantId;
   // 용량은 지금 보고 있는 계층 기준이다. 인버터까지 좁히면 그 인버터 용량이 나온다.
@@ -117,7 +115,7 @@ export function PlantPicker({ variant = 'inline' }: PlantPickerProps) {
           <span className={styles.trigger__text}>
             <span className={styles.trigger__eyebrow}>발전소</span>
             <span className={styles.trigger__name}>
-              {SCHOOLS.find((school) => school.id === currentPlantId)?.name ?? ''}
+              {plant?.name ?? ''}
             </span>
           </span>
           <span className={styles.trigger__action}>변경</span>
@@ -142,7 +140,13 @@ export function PlantPicker({ variant = 'inline' }: PlantPickerProps) {
               onChange={(event) => setQuery(event.target.value)}
             />
           </label>
-          <Select label="지역" value={regionCode} options={REGION_OPTIONS} onChange={setRegionCode} hideLabel />
+          <Select
+            label="지역"
+            value={regionCode}
+            options={[{ value: 'all', label: '전체 지역' }, ...areaOptions]}
+            onChange={setRegionCode}
+            hideLabel
+          />
         </div>
 
         {/*

@@ -1,5 +1,5 @@
 import { Card } from '@/components/common/Card';
-import { KIND_LABEL } from '@/mocks/tree';
+import { KIND_LABEL } from '@/configs/scope';
 import { Reveal } from '@/components/common/Reveal';
 import { formatShort } from '@/utils/date';
 import type { NodeKind } from '@/interface/tree';

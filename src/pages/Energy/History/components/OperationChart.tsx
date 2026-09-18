@@ -3,12 +3,13 @@ import { EChart } from '@/components/common/EChart';
 import { AXIS_NAME_GAP, LEGEND_GRID_TOP, topLegend } from '@/utils/chart';
 import { formatNumber } from '@/utils/format';
 import { useChartPalette } from '@/hooks/useChartPalette';
-import type { OperationRaw } from '@/interface/operation';
+import type { OperationHistoryChart } from '@/service/operationHistory/type';
+import { isUnreceived } from '../dataState';
 import type { EChartsOption } from 'echarts';
 
 interface OperationChartProps {
-  /** 시간 오름차순 계측 — 표와 같은 자료를 쓴다 */
-  rows: OperationRaw[];
+  /** 하루치 계측. 표와 다른 조회라 쪽을 나누지 않고 전량이 온다 */
+  rows: OperationHistoryChart[];
   inverterName: string;
 }
 
@@ -21,11 +22,14 @@ interface OperationChartProps {
  */
 export function OperationChart({ rows, inverterName }: OperationChartProps) {
   const palette = useChartPalette();
-  const labels = rows.map((row) => dayjs(row.at).format('HH:mm'));
+  const labels = rows.map((row) => dayjs(row.dateTime).format('HH:mm'));
 
-  // 결측 줄은 0 이 아니라 선을 끊는다 — 0 으로 이으면 발전이 멈춘 것처럼 읽힌다.
-  const pick = (read: (row: OperationRaw) => number | null) =>
-    rows.map((row) => (row.state === 'missing' ? null : read(row)));
+  /*
+    값이 오지 않은 줄만 선을 끊는다 — 0 으로 이으면 발전이 멈춘 것처럼 읽힌다.
+    값이 이상한 줄(누적값 감소 등)은 그대로 그린다. 끊어 버리면 무엇이 이상했는지 볼 수 없다.
+  */
+  const pick = (read: (row: OperationHistoryChart) => number | null) =>
+    rows.map((row) => (isUnreceived(row.dataStateCode) ? null : read(row)));
 
   const option: EChartsOption = {
     grid: { top: LEGEND_GRID_TOP, right: 56, bottom: 30, left: 58 },
@@ -43,14 +47,16 @@ export function OperationChart({ rows, inverterName }: OperationChartProps) {
 
         if (!row) return '';
 
-        if (row.state === 'missing') return `<strong>${dayjs(row.at).format('HH:mm')}</strong><br/>결측`;
+        if (isUnreceived(row.dataStateCode)) {
+          return `<strong>${dayjs(row.dateTime).format('HH:mm')}</strong><br/>${row.dataStateName}`;
+        }
 
         return [
-          `<strong>${dayjs(row.at).format('HH:mm:ss')}</strong>`,
-          `전력 ${formatNumber(row.acWatt ?? 0)}W`,
-          `전압 ${formatNumber(row.acVolt ?? 0, 1)}V`,
-          `전류 ${formatNumber(row.acAmp ?? 0, 1)}A`,
-          `누적 ${formatNumber(row.accumWh)}Wh`,
+          `<strong>${dayjs(row.dateTime).format('HH:mm:ss')}</strong>`,
+          `전력 ${formatNumber(row.outputPowerFigure ?? 0)}W`,
+          `전압 ${formatNumber(row.outputVoltageFigure ?? 0, 1)}V`,
+          `전류 ${formatNumber(row.outputCurrentFigure ?? 0, 1)}A`,
+          `누적 ${formatNumber(row.accumPower ?? 0)}Wh`,
         ].join('<br/>');
       },
     },
@@ -93,7 +99,7 @@ export function OperationChart({ rows, inverterName }: OperationChartProps) {
         areaStyle: { color: palette.generationSoft, opacity: 0.5 },
         lineStyle: { color: palette.generation, width: 2 },
         itemStyle: { color: palette.generation },
-        data: pick((row) => row.acWatt),
+        data: pick((row) => row.outputPowerFigure),
       },
       {
         name: '출력 전압',
@@ -103,7 +109,7 @@ export function OperationChart({ rows, inverterName }: OperationChartProps) {
         showSymbol: false,
         lineStyle: { color: palette.irradiance, width: 1.6 },
         itemStyle: { color: palette.irradiance },
-        data: pick((row) => row.acVolt),
+        data: pick((row) => row.outputVoltageFigure),
       },
       {
         name: '출력 전류',
@@ -113,7 +119,7 @@ export function OperationChart({ rows, inverterName }: OperationChartProps) {
         showSymbol: false,
         lineStyle: { color: palette.compare, width: 1.6, type: 'dashed' },
         itemStyle: { color: palette.compare },
-        data: pick((row) => row.acAmp),
+        data: pick((row) => row.outputCurrentFigure),
       },
     ],
   };

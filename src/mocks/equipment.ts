@@ -1,6 +1,10 @@
 import dayjs from 'dayjs';
 import type { Inverter, PerformancePoint, StringUnit } from '@/interface/equipment';
 import type { OperationStatus, RtuStatus } from '@/interface/status';
+import { getChildNodes, getNode } from '@/stores/scopeTreeStore';
+import { ROOT_ID } from '@/configs/scope';
+import { PHASE_TYPE } from '@/configs/codes';
+import type { ScopeNode } from '@/interface/tree';
 import { FAULT_BY_STATUS } from './faultCodes';
 import { REGION_TOTAL } from './regions';
 import { SCHOOLS } from './schools';
@@ -115,28 +119,84 @@ function buildInverters(): Inverter[] {
 
 export const INVERTERS: Inverter[] = buildInverters();
 
-const INVERTERS_BY_SCHOOL = INVERTERS.reduce<Record<string, Inverter[]>>((acc, inverter) => {
-  (acc[inverter.schoolId] ??= []).push(inverter);
+/**
+ * 계층 응답의 인버터 노드를 화면이 쓰는 설비로 옮긴다.
+ *
+ * 이름·용량·운전상태·위상과 딸린 스트링 구성은 서버 값이다. 고장코드·건전도·이용률·발전량·온도는
+ * 아직 내려주는 API 가 없어 여기서 짓는다 — 그 칸이 실리기 시작하면 이 함수를 지운다.
+ */
+export function inverterFromNode(node: ScopeNode, strings: ScopeNode[]): Inverter {
+  const next = createRandom(hashSeed(node.id));
+  const candidates = FAULT_BY_STATUS[node.status];
+  const faultCode = candidates.length > 0 ? candidates[Math.floor(next() * candidates.length) % candidates.length] : null;
+  const healthFactor = !isProducing(node.status)
+    ? 0
+    : node.status === 'running'
+      ? pickNumber(next, 0.82, 0.94, 3)
+      : pickNumber(next, 0.58, 0.79, 3);
+  const todayHours = Math.round(healthFactor * 4.6 * 10) / 10;
 
-  return acc;
-}, {});
+  return {
+    id: node.id,
+    schoolId: node.plantId ?? '',
+    name: node.name,
+    phase: node.phaseTypeCode === PHASE_TYPE.CODE.삼상 ? 'three' : 'single',
+    capacityKw: node.capacityKw,
+    status: node.status,
+    ownStatus: node.status === 'commLost' ? 'running' : node.status,
+    rtuStatus: node.status === 'commLost' ? 'disconnected' : 'normal',
+    faultCode,
+    healthFactor,
+    cf: !isProducing(node.status) ? 0 : pickNumber(next, 0.108, 0.176, 4),
+    todayKwh: !isProducing(node.status) ? 0 : Math.round(node.capacityKw * todayHours * 10) / 10,
+    temperature: faultCode === 7 ? pickNumber(next, 64, 72, 1) : pickNumber(next, 38, 56, 1),
+    hoursTrend: Array.from({ length: 7 }, (_, day) => (todayHours === 0
+      ? 0
+      : Math.max(0, Math.round((todayHours + (day - 6) * 0.04 + pickNumber(next, -0.1, 0.1, 2)) * 10) / 10))),
+    strings: strings.map((unit) => ({
+      id: unit.id,
+      name: unit.name,
+      status: unit.status,
+      capacityKw: unit.capacityKw,
+      relativeOutput: !isProducing(unit.status)
+        ? 0
+        : unit.status === 'running'
+          ? pickNumber(next, 0.94, 1.02, 3)
+          : pickNumber(next, 0.62, 0.88, 3),
+    })),
+  };
+}
 
-const INVERTER_BY_ID = new Map(INVERTERS.map((inverter) => [inverter.id, inverter]));
-
+/*
+  설비는 계층 응답(`/powerPlant/hierarchy`)이 준 트리에서 편다 — 받아 둔 것은 **고른 발전소 한
+  곳**뿐이라, 그 밖의 발전소를 물으면 빈 배열이다.
+*/
 export function getInverterById(id: string | null): Inverter | null {
-  return id ? (INVERTER_BY_ID.get(id) ?? null) : null;
+  if (!id) return null;
+
+  const node = getNode(id);
+
+  return node.kind === 'inverter' ? inverterFromNode(node, getChildNodes(node.id)) : null;
 }
 
-/** 발전소에 달린 인버터 전부 */
-export function getInvertersOf(schoolId: string): Inverter[] {
-  return INVERTERS_BY_SCHOOL[schoolId] ?? [];
+/** 발전소에 달린 인버터 전부. 계층을 아직 안 받은 발전소는 빈 배열이다 */
+export function getInvertersOf(plantNodeId: string): Inverter[] {
+  return getChildNodes(plantNodeId)
+    .filter((child) => child.kind === 'inverter')
+    .map((child) => inverterFromNode(child, getChildNodes(child.id)));
 }
 
-/** 발전소를 지정하면 그 발전소 인버터만, 지정하지 않으면 이상이 있는 인버터를 앞세워 돌려준다. */
-export function getInverters(schoolId: string | null, limit = 12): Inverter[] {
-  if (schoolId) return INVERTERS_BY_SCHOOL[schoolId] ?? [];
+/**
+ * 발전소를 지정하면 그 발전소 인버터만, 지정하지 않으면 이상이 있는 인버터를 앞세워 돌려준다.
+ * 대상을 안 주면 지금 펼쳐 둔 발전소의 것만 나온다 — 도 전체 설비를 한 번에 받는 API 가 없다.
+ */
+export function getInverters(plantNodeId: string | null, limit = 12): Inverter[] {
+  if (plantNodeId) return getInvertersOf(plantNodeId);
 
-  return [...INVERTERS].sort((a, b) => OPERATION_RANK[a.status] - OPERATION_RANK[b.status] || b.capacityKw - a.capacityKw).slice(0, limit);
+  return getChildNodes(ROOT_ID)
+    .flatMap((plant) => getInvertersOf(plant.id))
+    .sort((a, b) => OPERATION_RANK[a.status] - OPERATION_RANK[b.status] || b.capacityKw - a.capacityKw)
+    .slice(0, limit);
 }
 
 export function countInverterStatus(inverters: Inverter[]): Record<OperationStatus, number> {

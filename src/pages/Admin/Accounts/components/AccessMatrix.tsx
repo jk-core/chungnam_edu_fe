@@ -2,7 +2,7 @@ import { useMemo } from 'react';
 import { Card } from '@/components/common/Card';
 import { NAVIGATION, visibleNavigation } from '@/configs/navigation';
 import { Reveal } from '@/components/common/Reveal';
-import { ADMIN_ROLES, ROLE_LABEL, ROLE_SCOPE_NOTE, VISIBLE_ROLES } from '@/mocks/accounts';
+import { ADMIN_ROLES, ROLE_LABEL, ROLE_SCOPE_NOTE, VISIBLE_ROLES } from '@/configs/roles';
 import { Table } from '@/components/common/Table';
 import type { Column } from '@/components/common/Table';
 import type { Role } from '@/interface/account';

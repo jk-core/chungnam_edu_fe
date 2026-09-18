@@ -9,17 +9,17 @@ import { createForm, FormField, FormRow, FormSection, NumberControl } from '@/co
 import { FormPage } from '@/pages/Admin/_shared/FormPage';
 import { listPath } from '@/pages/Admin/_shared/adminPath';
 import { MSG } from '@/configs/messages';
-import { FACTOR_MAX, FACTOR_MIN, irradFormSchema, NAME_MAX } from '@/service/irrad/type';
 import { PYRANOMETER_PORT } from '@/mocks/pyranometers';
 import { toast } from '@/stores/toastStore';
 import { useAuthUser } from '@/stores/authStore';
 import { usePlantAssets } from '@/hooks/usePlantAssets';
 import useEquipmentStore from '@/stores/equipmentStore';
-import type { IrradFormValues } from '@/service/irrad/type';
 import type { Pyranometer } from '@/interface/deviceMaster';
 import styles from '@/pages/Admin/Admin.module.scss';
 import { usePyranometerRows } from '../hooks/usePyranometerRows';
+import { FACTOR_MAX, FACTOR_MIN, irradFormSchema, NAME_MAX } from './form';
 import { EMPTY_VALUES, toFormValues } from './values';
+import type { IrradFormValues } from './form';
 
 const YES_NO = [
   { value: true, label: '있음' },

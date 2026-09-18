@@ -1,7 +1,7 @@
 import { describeDetail, pickEnergyUnit } from '@/mocks/generation';
 import { BoltIcon, ClockIcon, LeafIcon } from '@/components/common/Icon';
 import { Card } from '@/components/common/Card';
-import { KIND_LABEL } from '@/mocks/tree';
+import { KIND_LABEL } from '@/configs/scope';
 import { Reveal } from '@/components/common/Reveal';
 import { formatCapacity, formatCarbon, formatNumber, formatPercent } from '@/utils/format';
 import type { PeriodKey } from '@/mocks/generation';

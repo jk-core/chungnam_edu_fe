@@ -11,7 +11,8 @@ function escapeCell(value: string | number): string {
   return /[",\n\r]/.test(text) ? `"${text.replace(/"/g, '""')}"` : text;
 }
 
-function triggerDownload(filename: string, blob: Blob) {
+/** 만들어 둔 Blob 을 내려받는다. 서버가 만들어 준 파일도 같은 길을 탄다 */
+export function triggerDownload(filename: string, blob: Blob) {
   const url = URL.createObjectURL(blob);
   const anchor = document.createElement('a');
 

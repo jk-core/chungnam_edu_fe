@@ -4,7 +4,6 @@ import { OPERATION_LABEL, OPERATION_TONE } from '@/mocks/status';
 import { Button } from '@/components/common/Button';
 import { Card } from '@/components/common/Card';
 import { DownloadIcon } from '@/components/common/Icon';
-import { EmptyState } from '@/components/common/EmptyState';
 import { Pagination } from '@/components/common/Pagination';
 import { Reveal } from '@/components/common/Reveal';
 import { SegmentedControl } from '@/components/common/SegmentedControl';
@@ -161,12 +160,10 @@ export function AlertHistoryCard({ rows, stats }: AlertHistoryCardProps) {
         >
           {/*
             타임라인은 알림 한 줄이 아니라 고장 한 건이 언제부터 언제까지였는지를 본다.
-            보는 것이 다르니 걸린 조건에 맞는 알림이 없어도 제 내용을 그린다 — 표일 때만 빈 화면을 낸다.
+            보는 것이 다르니 걸린 조건에 맞는 알림이 없어도 제 내용을 그린다.
           */}
           {view === 'timeline' ? (
             <FaultTimeline />
-          ) : rows.length === 0 ? (
-            <EmptyState title="조건에 맞는 알림이 없습니다" description="기간이나 조건을 넓혀 보세요." />
           ) : (
             <>
               <Table
