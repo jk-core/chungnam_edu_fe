@@ -111,6 +111,14 @@ export function KoreaMap({ highlight = 'chungnam', regions }: KoreaMapProps) {
   const stepOf = (value: number) => Math.min(STEPS, Math.max(1, Math.ceil(((value - (min ?? 0)) / span) * STEPS)));
   const barWidth = (value: number) => 12 + ((value - (min ?? 0)) / span) * 88;
   const active = focus ?? highlight;
+  /*
+    SVG 는 문서 순서대로 위에 쌓인다.
+    활성 도의 주황 테두리가 이웃 fill 에 가려지지 않도록 맨 나중에 그린다.
+  */
+  const stackedProvinces = useMemo(
+    () => [...PROVINCES].sort((a, b) => Number(a.code === active) - Number(b.code === active)),
+    [active],
+  );
 
   return (
     <div className={styles.koreaMap}>
@@ -121,7 +129,7 @@ export function KoreaMap({ highlight = 'chungnam', regions }: KoreaMapProps) {
           role="img"
           aria-label={`전국 지역별 평균 발전시간 지도. 전국 평균 ${formatHours(average)}시간. 아래 순위 목록에서 같은 값을 확인할 수 있습니다.`}
         >
-          {PROVINCES.map(({ code, name, Component }) => {
+          {stackedProvinces.map(({ code, name, Component }) => {
             const region = byCode.get(code);
             const hours = region?.avgGenerationHours ?? null;
 
