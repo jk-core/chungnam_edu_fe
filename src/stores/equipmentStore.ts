@@ -6,14 +6,12 @@ import type {
   InverterProduct,
   ModuleProduct,
   Pyranometer,
-  RtuEnterprise,
   StringMaster,
 } from '@/interface/deviceMaster';
 import type { ChangeLog, ChangeTarget } from '@/interface/changeLog';
 import { SEED_DEVICE_CHANGES, SEED_EQUIPMENT, SEED_INVERTER_PRODUCTS, SEED_STRINGS } from '@/mocks/deviceMaster';
 import { SEED_MODULES } from '@/mocks/moduleProducts';
 import { SEED_PYRANOMETERS } from '@/mocks/pyranometers';
-import { SEED_RTU_ENTERPRISES } from '@/mocks/rtuEnterprises';
 
 /**
  * 시스템장비 관리의 쓰기 상태 (SFR-016-01/05, SFR-017).
@@ -21,6 +19,9 @@ import { SEED_RTU_ENTERPRISES } from '@/mocks/rtuEnterprises';
  * 발전소·사용자를 다루는 `assetStore` 와 같은 방식이다 — 시드는 mocks 가 갖고 여기는 변경분만
  * 얹는다. 갈래마다 등록·수정·삭제 셋을 갖는데, 한 스토어에 몰아 두면 `assetStore` 처럼
  * 넓어지므로 장비 몫만 따로 세운다.
+ *
+ * **여기 남은 것은 아직 API 가 없는 화면 몫이다** — 설비(meain)와 그 폼이 함께 읽는 것들.
+ * 인버터 제품·모듈 제품·스트링·일사량계 관리 화면 자체는 서버를 본다.
  */
 interface EquipmentState {
   /** 발전소에 실제로 선 설비 (meain) */
@@ -45,11 +46,6 @@ interface EquipmentState {
   pyranometerPatched: Record<string, Partial<Pyranometer>>;
   pyranometerDeleted: string[];
 
-  /** RTU 업체 — 발전소가 이 중 하나를 가리킨다 */
-  rtuEnterpriseCreated: RtuEnterprise[];
-  rtuEnterprisePatched: Record<string, Partial<RtuEnterprise>>;
-  rtuEnterpriseDeleted: string[];
-
   /** 갈래가 함께 쓰는 변경 이력 (SFR-016-06) */
   deviceChanges: ChangeLog[];
 
@@ -68,9 +64,6 @@ interface EquipmentState {
 
   savePyranometer: (item: Pyranometer, entries: ChangeLog[], isNew: boolean) => void;
   removePyranometer: (id: string, entry: ChangeLog) => void;
-
-  saveRtuEnterprise: (item: RtuEnterprise, entries: ChangeLog[], isNew: boolean) => void;
-  removeRtuEnterprise: (id: string, entry: ChangeLog) => void;
 
   nextId: (prefix: string) => string;
   /** 서버가 새로 매길 숫자 번호를 흉내 낸다 (cid·moduleId·inverterId·stringId·irradId) */
@@ -113,9 +106,6 @@ const useEquipmentStore = create<EquipmentState>()(
       pyranometerCreated: [],
       pyranometerPatched: {},
       pyranometerDeleted: [],
-      rtuEnterpriseCreated: [],
-      rtuEnterprisePatched: {},
-      rtuEnterpriseDeleted: [],
       deviceChanges: [],
 
       saveEquipment: (item, entries, isNew) =>
@@ -212,22 +202,6 @@ const useEquipmentStore = create<EquipmentState>()(
           deviceChanges: [entry, ...state.deviceChanges],
         })),
 
-      saveRtuEnterprise: (item, entries, isNew) =>
-        set((state) => {
-          const next = upsert(state.rtuEnterpriseCreated, state.rtuEnterprisePatched, item, (row) => row.id, isNew);
-
-          return {
-            rtuEnterpriseCreated: next.created,
-            rtuEnterprisePatched: next.patched,
-            deviceChanges: [...entries, ...state.deviceChanges],
-          };
-        }),
-      removeRtuEnterprise: (id, entry) =>
-        set((state) => ({
-          rtuEnterpriseDeleted: [...state.rtuEnterpriseDeleted, id],
-          deviceChanges: [entry, ...state.deviceChanges],
-        })),
-
       // 시드 id 와 겹치지 않게 접두어를 달아 준다.
       nextId: (prefix) => `${prefix}-${String(get().deviceChanges.length + 1).padStart(3, '0')}-${Date.now() % 10000}`,
       // 시드가 쓰는 번호대(1~수백)를 피해 9000 위에서 센다.
@@ -240,8 +214,9 @@ const useEquipmentStore = create<EquipmentState>()(
         1 판에서 `inverter*` 는 설비를 담았고 2 판에서는 인버터 제품을 담는다.
         같은 이름에 다른 것이 들어 있으므로 옛 값을 그대로 읽으면 제품 목록에 설비가 섞인다.
         3 판에서 이력이 `kind` 대신 `targetType` 을 갖는다 — 옛 줄은 대상 구분이 없어 안 걸린다.
+        4 판에서 RTU 업체가 서버로 옮겨 갔다 — 옛 값에 남은 `rtuEnterprise*` 는 읽지 않는다.
       */
-      version: 3,
+      version: 4,
       migrate: (persisted) => ({
         ...(persisted as EquipmentState),
         inverterCreated: [],
@@ -314,14 +289,6 @@ export function mergePyranometers(
   deleted: string[],
 ): Pyranometer[] {
   return merge(SEED_PYRANOMETERS, created, patched, deleted, (item) => item.id);
-}
-
-export function mergeRtuEnterprises(
-  created: RtuEnterprise[],
-  patched: Record<string, Partial<RtuEnterprise>>,
-  deleted: string[],
-): RtuEnterprise[] {
-  return merge(SEED_RTU_ENTERPRISES, created, patched, deleted, (item) => item.id);
 }
 
 /** 시드 + 저장분이 합쳐진 장비 변경 이력. 갈래마다 자기 줄만 걸러 본다 (SFR-016-06) */

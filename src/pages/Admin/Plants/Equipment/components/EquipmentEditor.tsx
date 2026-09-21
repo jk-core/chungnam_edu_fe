@@ -12,7 +12,7 @@ import { FormPage } from '@/pages/Admin/_shared/FormPage';
 import { listPath } from '@/pages/Admin/_shared/adminPath';
 import { Modal } from '@/components/common/Modal';
 import { MSG } from '@/configs/messages';
-import { PYRANOMETER_PORT } from '@/mocks/pyranometers';
+import { IRRAD_RTU_PORT } from '@/configs/rtu';
 import { RecordPicker } from '@/components/common/RecordPicker';
 import { StringRows } from '@/pages/Admin/Plants/String/components/StringRows';
 import { summarizeString, useStringsOf } from '@/pages/Admin/Plants/String/hooks/useStringData';
@@ -330,7 +330,7 @@ export function EquipmentEditor({ cid }: EquipmentEditorProps) {
             </FormRow>
           </FormSection>
 
-          <FormSection legend="통신" hint={`${PYRANOMETER_PORT}번 포트는 일사량계가 씁니다.`}>
+          <FormSection legend="통신" hint={`${IRRAD_RTU_PORT}번 포트는 일사량계가 씁니다.`}>
             <FormRow cols={2}>
               <Form.Text
                 label="RTU 통신 ID"

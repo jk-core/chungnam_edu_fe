@@ -55,19 +55,6 @@ export interface Pyranometer {
   status: RtuStatus;
 }
 
-/**
- * RTU 업체 — 발전소에 RTU 를 대고 손보는 곳 (SFR-016-01). 서버 규격은 `RtuEnterprise` 다.
- * 발전소마다 업체명을 손으로 적으면 같은 업체가 표기만 달리한 채 흩어져, 어디로 연락할지가 흐려진다.
- */
-export interface RtuEnterprise {
-  id: string;
-  /** 서버가 매기는 업체 번호 (rtuEnterpriseId) */
-  rtuEnterpriseId: number;
-  name: string;
-  email: string;
-  phone: string;
-}
-
 /** 스트링 등록 정보 — 인버터 하나에 여러 개 (SFR-016-01). 서버 규격은 `SolaString` 이다. */
 export interface StringMaster {
   id: string;

@@ -1,6 +1,6 @@
 import { z } from 'zod';
 import { MSG } from '@/configs/messages';
-import { PYRANOMETER_PORT } from '@/mocks/pyranometers';
+import { IRRAD_RTU_PORT } from '@/configs/rtu';
 import { refineStringRows, stringRowSchema } from '@/schemas/stringRow';
 
 /** RTU 포트 범위. 3번은 일사량계 몫이라 설비가 못 쓴다. */
@@ -46,7 +46,7 @@ export const equipmentFormSchema = z.object({
     .int()
     .min(PORT_MIN, MSG.numberRange('RTU 포트', PORT_MIN, PORT_MAX))
     .max(PORT_MAX, MSG.numberRange('RTU 포트', PORT_MIN, PORT_MAX))
-    .refine((value) => value !== PYRANOMETER_PORT, `${PYRANOMETER_PORT}번 포트는 일사량계 몫이라 쓸 수 없습니다.`)
+    .refine((value) => value !== IRRAD_RTU_PORT, `${IRRAD_RTU_PORT}번 포트는 일사량계 몫이라 쓸 수 없습니다.`)
     .nullable(),
   inverterId: z.number(MSG.selectRequired('인버터 모델')).int(),
   moduleId: z.number(MSG.selectRequired('모듈 모델')).int(),
