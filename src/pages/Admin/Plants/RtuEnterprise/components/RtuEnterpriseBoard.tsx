@@ -6,19 +6,17 @@ import { formatNumber } from '@/utils/format';
 import { PlusIcon } from '@/components/common/Icon';
 import { SearchInput } from '@/components/common/SearchInput';
 import styles from '@/pages/Admin/Admin.module.scss';
+import { useChangeHistory } from '@/pages/Admin/_shared/hooks/useChangeHistory';
 import { useDebounce } from '@/hooks/useDebounce';
-import { useDeviceChanges } from '@/stores/equipmentStore';
 import { useRtuEnterpriseList } from '../hooks/useRtuEnterpriseList';
 import { RtuEnterpriseTable } from './RtuEnterpriseTable';
 
 /**
  * RTU 업체 관리 (SFR-016-01).
- *
  * 검색은 서버가 한다 — 입력 DOM 이 즉시값을 쥐고, 조회 조건만 늦춰 갱신한다.
- * 변경 이력은 아직 BE 가 RTU 업체를 쌓지 않아 화면이 들고 있는 것을 본다.
  */
 export function RtuEnterpriseBoard() {
-  const changes = useDeviceChanges('rtuEnterprise');
+  const changes = useChangeHistory('RTU_ENTERPRISE');
   const list = useRtuEnterpriseList();
   const navigate = useNavigate();
 
@@ -50,7 +48,7 @@ export function RtuEnterpriseBoard() {
 
       <RtuEnterpriseTable list={list} />
 
-      <ChangeHistory title="RTU업체 변경 이력" rows={changes} />
+      <ChangeHistory title="RTU업체 변경 이력" rows={changes.rows} />
     </>
   );
 }

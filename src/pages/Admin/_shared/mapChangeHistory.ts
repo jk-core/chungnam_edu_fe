@@ -5,6 +5,7 @@ import type { ChangeHistory, ChangeHistoryTargetType } from '@/service/changeHis
 const TARGET_UI: Record<ChangeHistoryTargetType, ChangeTarget> = {
   USER: 'user',
   POWER_PLANT: 'powerPlant',
+  RTU_ENTERPRISE: 'rtuEnterprise',
   INVERTER: 'inverter',
   MODULE: 'module',
   STRING: 'string',

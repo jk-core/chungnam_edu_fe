@@ -32,6 +32,7 @@ export function useRtuEnterpriseEditor(rtuEnterpriseId: number | null) {
 
   const done = (message: string) => {
     queryClient.invalidateQueries({ queryKey: queryKeys.manage.rtuEnterprise.all });
+    queryClient.invalidateQueries({ queryKey: queryKeys.changeHistory.byTarget('RTU_ENTERPRISE') });
     toast.success(message);
     navigate(backTo);
   };

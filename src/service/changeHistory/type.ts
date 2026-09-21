@@ -1,9 +1,10 @@
 import { z } from 'zod';
 
-/** 변경 이력 대상 타입 — `/manage/changeHistory` 의 targetType. RTU 업체는 아직 BE 가 쌓지 않는다 */
+/** 변경 이력 대상 타입 — `/manage/changeHistory` 의 targetType */
 export const changeHistoryTargetTypeSchema = z.enum([
   'USER',
   'POWER_PLANT',
+  'RTU_ENTERPRISE',
   'INVERTER',
   'MODULE',
   'STRING',
