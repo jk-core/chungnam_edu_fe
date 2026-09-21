@@ -1,21 +1,12 @@
 import { useMemo } from 'react';
-import { getSchoolById } from '@/mocks/schools';
-import { useSelectableEquipment } from '@/pages/Admin/_shared/device/useSelectableEquipment';
 import useEquipmentStore, { mergeStrings } from '@/stores/equipmentStore';
 import type { StringMaster } from '@/interface/deviceMaster';
 
-/**
- * 표 한 줄 — 스트링을 가진 설비 한 대다 (`SolaStringManagePageInfo`).
- * 스트링은 설비 단위로 한 판씩 다루므로, 목록도 설비마다 한 줄에 갯수만 보여 준다.
- */
-export interface StringOwner {
-  inverterId: string;
-  cid: number;
-  plantName: string;
-  equipmentName: string;
-  stringCount: number;
-  panelCount: number;
-}
+/*
+  스트링 관리 화면은 서버를 본다 (`useStringList`·`useStringSheet`).
+  여기 남은 것은 **설비 폼 안의 「스트링 구조」** 몫이다 — 설비 관리 API 가 아직 없어
+  그 화면만 목업 스토어 위에서 돈다.
+*/
 
 /** 이력에 적는 스트링 한 조의 생김새 */
 export function summarizeString(row: Pick<StringMaster, 'name' | 'seriesCount' | 'parallelCount'>): string {
@@ -42,26 +33,4 @@ export function useStringsOf() {
       .filter((row) => row.inverterId === inverterId)
       .sort((a, b) => a.seq - b.seq),
   };
-}
-
-/**
- * 스트링 인버터 설비마다 스트링이 몇 조 달렸는지로 목록을 세운다.
- * 스트링 기종이 아닌 인버터는 스트링을 갖지 않으므로 여기 서지 않는다.
- */
-export function useStringOwners(): StringOwner[] {
-  const equipment = useSelectableEquipment('string');
-  const { all } = useStringsOf();
-
-  return useMemo(() => equipment.map((item) => {
-    const owned = all.filter((row) => row.inverterId === item.inverterId);
-
-    return {
-      inverterId: item.inverterId,
-      cid: item.cid,
-      plantName: getSchoolById(item.plantId)?.name ?? '소속 미지정',
-      equipmentName: item.name,
-      stringCount: owned.length,
-      panelCount: owned.reduce((sum, row) => sum + row.seriesCount * row.parallelCount, 0),
-    };
-  }), [all, equipment]);
 }

@@ -3,6 +3,7 @@ import type { ManageInverterPageParams } from '@/service/inverter/type';
 import type { ManageIrradPageParams } from '@/service/irrad/type';
 import type { ManageRtuEnterprisePageParams } from '@/service/rtuEnterprise/type';
 import type { ManageSolaModulePageParams } from '@/service/module/type';
+import type { ManageStringPageParams } from '@/service/string/type';
 
 /*
   쿼리 키를 한 곳에 모은다.
@@ -91,6 +92,12 @@ export const queryKeys = {
       all: [...manage, 'irrad'] as const,
       page: (param: ManageIrradPageParams) => [...manage, 'irrad', 'page', param] as const,
       detail: (irradId: number) => [...manage, 'irrad', 'detail', irradId] as const,
+    },
+    /** 스트링은 설비(cid) 단위로 한 판씩 다룬다 — 상세 키도 스트링이 아니라 설비를 가리킨다 */
+    string: {
+      all: [...manage, 'string'] as const,
+      page: (param: ManageStringPageParams) => [...manage, 'string', 'page', param] as const,
+      detail: (cid: number) => [...manage, 'string', 'detail', cid] as const,
     },
   },
 };
