@@ -1,6 +1,4 @@
-import { ROLE_LABEL } from '@/configs/roles';
 import type { LoginPolicy, ManagedUser, Role } from '@/interface/account';
-import type { ChangeLog } from '@/interface/changeLog';
 import { getSchoolById, SCHOOLS } from './schools';
 import { createRandom, hashSeed, pickNumber, pickOne } from './random';
 import { stampAgo } from './today';
@@ -125,38 +123,6 @@ function buildManagedUsers(): ManagedUser[] {
 }
 
 export const SEED_USERS: ManagedUser[] = buildManagedUsers();
-
-/**
- * 담당자 변경 이력 시드 (SFR-018-04).
- * 학교는 인사이동으로 담당자가 자주 바뀌므로, 최근 몇 건을 미리 깔아 둔다.
- */
-export const SEED_USER_CHANGES: ChangeLog[] = (() => {
-  const targets = SEED_USERS.filter((user) => user.role === 'institution').slice(1, 5);
-
-  const rows: (Omit<ChangeLog, 'id' | 'targetType' | 'targetId' | 'targetName'> & { index: number })[] = [
-    { index: 0, at: stampAgo(4, '14:20'), actor: '김도현', field: '연락처', before: '041-000-0000', after: targets[0]?.phone ?? '-' },
-    { index: 1, at: stampAgo(9, '11:05'), actor: '김도현', field: '담당자', before: '전임 담당자', after: targets[1]?.name ?? '-' },
-    {
-      index: 2,
-      at: stampAgo(17, '16:42'),
-      actor: '박세연',
-      field: '연락처',
-      before: '010-0000-0000',
-      after: targets[2]?.phone ?? '-',
-    },
-    { index: 3, at: stampAgo(23, '09:31'), actor: '김도현', field: '등급', before: ROLE_LABEL.group, after: ROLE_LABEL.institution },
-  ];
-
-  return rows
-    .filter((row) => targets[row.index])
-    .map(({ index, ...rest }) => ({
-      ...rest,
-      id: `UC-26${String(10 + index)}`,
-      targetType: 'user' as const,
-      targetId: targets[index].id,
-      targetName: targets[index].name,
-    }));
-})();
 
 /** SFR-026 로그인 설정. 관리자는 권한이 큰 만큼 유지시간을 짧게 둔다. */
 export const LOGIN_POLICY: LoginPolicy = {

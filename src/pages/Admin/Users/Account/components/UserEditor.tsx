@@ -11,15 +11,13 @@ import { FormPage } from '@/pages/Admin/_shared/FormPage';
 import { listPath } from '@/pages/Admin/_shared/adminPath';
 import { MSG } from '@/configs/messages';
 import { PASSWORD_HINT } from '@/schemas/password';
-import { ROLE_LABEL, ROLE_SCOPE_NOTE, roleFromCode } from '@/configs/roles';
+import { ROLE_SCOPE_NOTE, roleFromCode } from '@/configs/roles';
 import { toast } from '@/stores/toastStore';
 import { useManagedUsers } from '@/hooks/usePlantAssets';
 import { USER_TYPE } from '@/configs/codes';
 import useAssetStore from '@/stores/assetStore';
-import type { ChangeLog } from '@/interface/changeLog';
 import type { ManagedUser } from '@/interface/account';
 import styles from '@/pages/Admin/Admin.module.scss';
-import { useUserChangeLog } from '../hooks/useUserChangeLog';
 import {
   NAME_MAX,
   ORG_NAME_MAX,
@@ -28,15 +26,6 @@ import {
 } from './form';
 import { EMPTY_VALUES, toFormValues } from './values';
 import type { UserFormValues } from './form';
-
-/** 이력에 남길 항목 — 계정이 들고 있는 이름으로 견준다 (SFR-018-04). */
-const TRACKED: { key: keyof ManagedUser; label: string }[] = [
-  { key: 'loginId', label: '로그인 ID' },
-  { key: 'name', label: '이름' },
-  { key: 'orgName', label: '소속' },
-  { key: 'email', label: '이메일' },
-  { key: 'phone', label: '연락처' },
-];
 
 const Form = createForm<UserFormValues>();
 
@@ -52,7 +41,6 @@ export function UserEditor({ userId }: UserEditorProps) {
   const nextUserId = useAssetStore((state) => state.nextUserId);
   const nextUserSeq = useAssetStore((state) => state.nextUserSeq);
   const removeUser = useAssetStore((state) => state.removeUser);
-  const entryOf = useUserChangeLog();
   const users = useManagedUsers();
   const navigate = useNavigate();
 
@@ -88,22 +76,7 @@ export function UserEditor({ userId }: UserEditorProps) {
       locked: target?.locked ?? false,
     };
 
-    // 신규는 한 줄로, 수정은 실제로 달라진 항목만 남긴다 (SFR-018-04).
-    const entries: ChangeLog[] = isNew
-      ? [entryOf(saved, '신규 등록', '—', `${ROLE_LABEL[saved.role]} · ${saved.loginId}`)]
-      : [
-        ...TRACKED.flatMap(({ key, label }) => {
-          const before = String(target?.[key] ?? '');
-          const after = String(saved[key] ?? '');
-
-          return before === after ? [] : [entryOf(saved, label, before || '—', after || '—')];
-        }),
-        ...(target && target.role !== saved.role
-          ? [entryOf(saved, '등급', ROLE_LABEL[target.role], ROLE_LABEL[saved.role])]
-          : []),
-      ];
-
-    saveUser(saved, entries);
+    saveUser(saved);
     toast.success(isNew ? MSG.createSuccess('사용자') : MSG.updateSuccess(saved.name));
     navigate(backTo);
   };
@@ -111,14 +84,14 @@ export function UserEditor({ userId }: UserEditorProps) {
   const unlock = () => {
     if (!target) return;
 
-    patchUser(target.id, { locked: false }, [entryOf(target, '계정 잠금', '잠김', '해제')]);
+    patchUser(target.id, { locked: false });
     toast.success(`${target.name} 계정 잠금을 풀었습니다.`);
   };
 
   const remove = () => {
     if (!target) return;
 
-    removeUser(target.id, entryOf(target, '삭제', `${ROLE_LABEL[target.role]} · ${target.loginId}`, '—'));
+    removeUser(target.id);
     toast.success(MSG.deleteSuccess(target.name));
     navigate(backTo);
   };

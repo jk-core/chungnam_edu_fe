@@ -100,7 +100,7 @@ export function computeEquipmentCapacity(
   return (panels * wattPerPanel) / 1000;
 }
 
-/** 관리 화면을 처음 열었을 때도 이력 칸이 비어 있지 않도록 몇 줄 깔아 둔다. */
+/** 관리 화면을 처음 열었을 때도 이력 칸이 비어 있지 않도록 몇 건 깔아 둔다. */
 export const SEED_DEVICE_CHANGES: ChangeLog[] = [
   {
     id: 'DC-3104',
@@ -109,9 +109,11 @@ export const SEED_DEVICE_CHANGES: ChangeLog[] = [
     targetName: SEED_EQUIPMENT[2]?.name ?? '',
     at: stampAgo(9, '11:05'),
     actor: '김도현',
-    field: '수집 주기',
-    before: '10분',
-    after: '5분',
+    operation: 'update',
+    fields: [
+      { label: '수집 주기', before: '10분', after: '5분' },
+      { label: 'RTU 포트', before: '2', after: `${SEED_EQUIPMENT[2]?.rtuPort ?? 0}` },
+    ],
   },
   {
     id: 'DC-3103',
@@ -120,8 +122,7 @@ export const SEED_DEVICE_CHANGES: ChangeLog[] = [
     targetName: SEED_EQUIPMENT[5]?.name ?? '',
     at: stampAgo(17, '14:30'),
     actor: '김도현',
-    field: '경사각',
-    before: '25도',
-    after: `${SEED_EQUIPMENT[5]?.inclineAngle ?? 0}도`,
+    operation: 'update',
+    fields: [{ label: '경사각', before: '25도', after: `${SEED_EQUIPMENT[5]?.inclineAngle ?? 0}도` }],
   },
 ];
