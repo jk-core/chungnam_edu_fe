@@ -1,3 +1,8 @@
+import type { ChangeHistoryTargetType } from '@/service/changeHistory/type';
+import type { ManageIrradPageParams } from '@/service/irrad/type';
+import type { ManageRtuEnterprisePageParams } from '@/service/rtuEnterprise/type';
+import type { ManageSolaModulePageParams } from '@/service/module/type';
+
 /*
   쿼리 키를 한 곳에 모은다.
 
@@ -6,6 +11,7 @@
 */
 
 const user = ['user'] as const;
+const manage = ['manage'] as const;
 const powerPlant = ['powerPlant'] as const;
 const calendar = ['calendar'] as const;
 const area = ['area'] as const;
@@ -56,6 +62,29 @@ export const queryKeys = {
   changeHistory: {
     all: changeHistory,
     /** `/manage/changeHistory` — 대상 타입별 최근 10건 */
-    byTarget: (targetType: 'USER' | 'POWER_PLANT') => [...changeHistory, targetType] as const,
+    byTarget: (targetType: ChangeHistoryTargetType) => [...changeHistory, targetType] as const,
+  },
+  /*
+    관리 화면의 등록 정보. 공용 조회(`powerPlant`)와 키 공간을 나눠 둔다 — 같은 발전소라도
+    한쪽은 계측이 실린 조회값이고 한쪽은 손으로 고치는 등록값이라, 한 키에 섞이면
+    등록을 고친 뒤 조회 화면까지 통째로 다시 받게 된다.
+  */
+  manage: {
+    all: manage,
+    rtuEnterprise: {
+      all: [...manage, 'rtuEnterprise'] as const,
+      page: (param: ManageRtuEnterprisePageParams) => [...manage, 'rtuEnterprise', 'page', param] as const,
+      detail: (rtuEnterpriseId: number) => [...manage, 'rtuEnterprise', 'detail', rtuEnterpriseId] as const,
+    },
+    module: {
+      all: [...manage, 'module'] as const,
+      page: (param: ManageSolaModulePageParams) => [...manage, 'module', 'page', param] as const,
+      detail: (moduleId: number) => [...manage, 'module', 'detail', moduleId] as const,
+    },
+    irrad: {
+      all: [...manage, 'irrad'] as const,
+      page: (param: ManageIrradPageParams) => [...manage, 'irrad', 'page', param] as const,
+      detail: (irradId: number) => [...manage, 'irrad', 'detail', irradId] as const,
+    },
   },
 };

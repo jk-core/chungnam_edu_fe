@@ -5,6 +5,10 @@ import type { ChangeHistory, ChangeHistoryTargetType } from '@/service/changeHis
 const TARGET_UI: Record<ChangeHistoryTargetType, ChangeTarget> = {
   USER: 'user',
   POWER_PLANT: 'powerPlant',
+  INVERTER: 'inverter',
+  MODULE: 'module',
+  STRING: 'string',
+  IRRAD: 'irrad',
 };
 
 const OPERATION_FIELD: Record<ChangeHistory['operation'], string> = {
