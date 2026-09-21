@@ -2,6 +2,7 @@ import apiClient from '@/service';
 import type { PagingResponse } from '@/service/common';
 import type {
   ManageSolaModuleAddParams,
+  ManageSolaModuleDetail,
   ManageSolaModuleModifyParams,
   ManageSolaModulePage,
   ManageSolaModulePageParams,
@@ -12,16 +13,22 @@ import type {
 
 /** 태양광 모듈 모델 관리 API — PK 는 moduleId */
 export const getManageSolaModulePage = async (params: ManageSolaModulePageParams) => {
-  const { data } = await apiClient.get<PagingResponse<ManageSolaModulePage>>('/manage/equipment/sola/module/page', { params });
+  const { data } = await apiClient.get<PagingResponse<ManageSolaModulePage>>('/manage/module/page', { params });
 
   return data;
 };
 
-export const postManageSolaModule = (data: ManageSolaModuleAddParams) => apiClient.post('/manage/equipment/sola/module', data);
+export const getManageSolaModuleDetail = async (moduleId: number) => {
+  const { data } = await apiClient.get<ManageSolaModuleDetail>('/manage/module/detail', { params: { moduleId } });
 
-export const putManageSolaModule = (data: ManageSolaModuleModifyParams) => apiClient.put('/manage/equipment/sola/module', data);
+  return data;
+};
 
-export const deleteManageSolaModule = (moduleId: number) => apiClient.delete('/manage/equipment/sola/module', { params: { moduleId } });
+export const postManageSolaModule = (data: ManageSolaModuleAddParams) => apiClient.post('/manage/module', data);
+
+export const putManageSolaModule = (data: ManageSolaModuleModifyParams) => apiClient.put('/manage/module', data);
+
+export const deleteManageSolaModule = (moduleId: number) => apiClient.delete('/manage/module', { params: { moduleId } });
 
 /*
   아래는 관리 화면 밖에서 모델 제원을 읽는 자리다 — 설비 폼의 모델 검색기와 용량 계산이 쓴다.
