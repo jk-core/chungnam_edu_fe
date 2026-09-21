@@ -27,6 +27,8 @@ export function useModuleEditor(moduleId: number | null) {
 
   const done = (message: string) => {
     queryClient.invalidateQueries({ queryKey: queryKeys.manage.module.all });
+    // 설비 폼의 모델 검색기는 관리 목록이 아니라 제원 목록을 본다 — 그쪽도 함께 지운다.
+    queryClient.invalidateQueries({ queryKey: queryKeys.equipment.all });
     queryClient.invalidateQueries({ queryKey: queryKeys.changeHistory.byTarget('MODULE') });
     toast.success(message);
     navigate(backTo);

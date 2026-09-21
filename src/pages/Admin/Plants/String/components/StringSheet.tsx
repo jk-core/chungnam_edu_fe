@@ -9,7 +9,6 @@ import { formatNumber } from '@/utils/format';
 import { FormPage } from '@/pages/Admin/_shared/FormPage';
 import { MSG } from '@/configs/messages';
 import { PageSkeleton } from '@/components/common/Skeleton';
-import type { StringRow } from '@/schemas/stringRow';
 import { useStringSheet } from '../hooks/useStringSheet';
 import { stringSheetFormSchema } from './form';
 import { StringRows } from './StringRows';
@@ -84,7 +83,7 @@ function StringForm({ sheet }: { sheet: ReturnType<typeof useStringSheet> }) {
         >
           <StringRows
             legend="스트링 구성"
-            onRemove={(row: StringRow, drop) => {
+            onRemove={(row, drop) => {
               // 아직 저장되지 않은 줄은 판에서만 빼면 된다.
               if (row.stringId === null) {
                 drop();
