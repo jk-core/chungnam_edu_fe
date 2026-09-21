@@ -1,16 +1,9 @@
 import { create } from 'zustand';
 import { createJSONStorage, persist } from 'zustand/middleware';
 import { useMemo } from 'react';
-import type {
-  EquipmentMaster,
-  InverterProduct,
-  ModuleProduct,
-  Pyranometer,
-  StringMaster,
-} from '@/interface/deviceMaster';
+import type { EquipmentMaster, Pyranometer, StringMaster } from '@/interface/deviceMaster';
 import type { ChangeLog, ChangeTarget } from '@/interface/changeLog';
-import { SEED_DEVICE_CHANGES, SEED_EQUIPMENT, SEED_INVERTER_PRODUCTS, SEED_STRINGS } from '@/mocks/deviceMaster';
-import { SEED_MODULES } from '@/mocks/moduleProducts';
+import { SEED_DEVICE_CHANGES, SEED_EQUIPMENT, SEED_STRINGS } from '@/mocks/deviceMaster';
 import { SEED_PYRANOMETERS } from '@/mocks/pyranometers';
 
 /**
@@ -29,15 +22,6 @@ interface EquipmentState {
   equipmentPatched: Record<string, Partial<EquipmentMaster>>;
   equipmentDeleted: string[];
 
-  /** 인버터 제품 카탈로그 — 설비가 이 중 하나를 가리킨다 */
-  inverterCreated: InverterProduct[];
-  inverterPatched: Record<string, Partial<InverterProduct>>;
-  inverterDeleted: string[];
-
-  moduleCreated: ModuleProduct[];
-  modulePatched: Record<string, Partial<ModuleProduct>>;
-  moduleDeleted: string[];
-
   stringCreated: StringMaster[];
   stringPatched: Record<string, Partial<StringMaster>>;
   stringDeleted: string[];
@@ -51,12 +35,6 @@ interface EquipmentState {
 
   saveEquipment: (item: EquipmentMaster, entries: ChangeLog[], isNew: boolean) => void;
   removeEquipment: (id: string, entry: ChangeLog) => void;
-
-  saveInverter: (item: InverterProduct, entries: ChangeLog[], isNew: boolean) => void;
-  removeInverter: (id: string, entry: ChangeLog) => void;
-
-  saveModule: (item: ModuleProduct, entries: ChangeLog[], isNew: boolean) => void;
-  removeModule: (id: string, entry: ChangeLog) => void;
 
   /** 스트링은 인버터 단위로 한꺼번에 저장한다 */
   saveStrings: (inverterId: string, list: StringMaster[], entries: ChangeLog[]) => void;
@@ -94,12 +72,6 @@ const useEquipmentStore = create<EquipmentState>()(
       equipmentCreated: [],
       equipmentPatched: {},
       equipmentDeleted: [],
-      inverterCreated: [],
-      inverterPatched: {},
-      inverterDeleted: [],
-      moduleCreated: [],
-      modulePatched: {},
-      moduleDeleted: [],
       stringCreated: [],
       stringPatched: {},
       stringDeleted: [],
@@ -121,38 +93,6 @@ const useEquipmentStore = create<EquipmentState>()(
       removeEquipment: (id, entry) =>
         set((state) => ({
           equipmentDeleted: [...state.equipmentDeleted, id],
-          deviceChanges: [entry, ...state.deviceChanges],
-        })),
-
-      saveInverter: (item, entries, isNew) =>
-        set((state) => {
-          const next = upsert(state.inverterCreated, state.inverterPatched, item, (row) => row.id, isNew);
-
-          return {
-            inverterCreated: next.created,
-            inverterPatched: next.patched,
-            deviceChanges: [...entries, ...state.deviceChanges],
-          };
-        }),
-      removeInverter: (id, entry) =>
-        set((state) => ({
-          inverterDeleted: [...state.inverterDeleted, id],
-          deviceChanges: [entry, ...state.deviceChanges],
-        })),
-
-      saveModule: (item, entries, isNew) =>
-        set((state) => {
-          const next = upsert(state.moduleCreated, state.modulePatched, item, (row) => row.id, isNew);
-
-          return {
-            moduleCreated: next.created,
-            modulePatched: next.patched,
-            deviceChanges: [...entries, ...state.deviceChanges],
-          };
-        }),
-      removeModule: (id, entry) =>
-        set((state) => ({
-          moduleDeleted: [...state.moduleDeleted, id],
           deviceChanges: [entry, ...state.deviceChanges],
         })),
 
@@ -211,17 +151,15 @@ const useEquipmentStore = create<EquipmentState>()(
       name: 'cne-equipment',
       storage: createJSONStorage(() => localStorage),
       /*
-        1 판에서 `inverter*` 는 설비를 담았고 2 판에서는 인버터 제품을 담는다.
-        같은 이름에 다른 것이 들어 있으므로 옛 값을 그대로 읽으면 제품 목록에 설비가 섞인다.
         3 판에서 이력이 `kind` 대신 `targetType` 을 갖는다 — 옛 줄은 대상 구분이 없어 안 걸린다.
-        4 판에서 RTU 업체가 서버로 옮겨 갔다 — 옛 값에 남은 `rtuEnterprise*` 는 읽지 않는다.
+        4 판에서 RTU 업체·인버터 제품·모듈 제품이 서버로 옮겨 갔고, 설비가 가리키는 제품 번호가
+        문자열에서 숫자로 바뀐다 — 옛 설비 변경분은 그 번호를 못 풀어 통째로 버린다.
       */
       version: 4,
       migrate: (persisted) => ({
         ...(persisted as EquipmentState),
-        inverterCreated: [],
-        inverterPatched: {},
-        inverterDeleted: [],
+        equipmentCreated: [],
+        equipmentPatched: {},
         deviceChanges: [],
       }),
     },
@@ -247,22 +185,6 @@ export function mergeEquipment(
   deleted: string[],
 ): EquipmentMaster[] {
   return merge(SEED_EQUIPMENT, created, patched, deleted, (item) => item.inverterId);
-}
-
-export function mergeInverterProducts(
-  created: InverterProduct[],
-  patched: Record<string, Partial<InverterProduct>>,
-  deleted: string[],
-): InverterProduct[] {
-  return merge(SEED_INVERTER_PRODUCTS, created, patched, deleted, (item) => item.id);
-}
-
-export function mergeModules(
-  created: ModuleProduct[],
-  patched: Record<string, Partial<ModuleProduct>>,
-  deleted: string[],
-): ModuleProduct[] {
-  return merge(SEED_MODULES, created, patched, deleted, (item) => item.id);
 }
 
 export function mergeStrings(

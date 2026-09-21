@@ -20,6 +20,7 @@ const area = ['area'] as const;
 const operationHistory = ['operationHistory'] as const;
 const home = ['home'] as const;
 const changeHistory = ['changeHistory'] as const;
+const equipment = ['equipment'] as const;
 
 export const queryKeys = {
   user: {
@@ -65,6 +66,11 @@ export const queryKeys = {
     all: changeHistory,
     /** `/manage/changeHistory` — 대상 타입별 최근 10건 */
     byTarget: (targetType: ChangeHistoryTargetType) => [...changeHistory, targetType] as const,
+  },
+  equipment: {
+    all: equipment,
+    /** `/equipment/sola/module/list` — 설비가 가리키는 모듈 제원. 쪽을 나누지 않고 전부 준다 */
+    moduleList: () => [...equipment, 'module', 'list'] as const,
   },
   /*
     관리 화면의 등록 정보. 공용 조회(`powerPlant`)와 키 공간을 나눠 둔다 — 같은 발전소라도

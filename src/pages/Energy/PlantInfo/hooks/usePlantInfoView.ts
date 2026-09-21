@@ -1,13 +1,15 @@
 import { useMemo } from 'react';
 import { getInvertersOf } from '@/mocks/equipment';
 import { getRtuOf } from '@/mocks/rtu';
-import { SEED_EQUIPMENT, SEED_INVERTER_PRODUCTS } from '@/mocks/deviceMaster';
-import { SEED_MODULES } from '@/mocks/moduleProducts';
+import { SEED_EQUIPMENT } from '@/mocks/deviceMaster';
 import { SEED_PYRANOMETERS } from '@/mocks/pyranometers';
+import { useInverterCatalog, useModuleCatalog } from '@/hooks/useProductCatalog';
 import { useManagedUsers, usePlantAssets } from '@/hooks/usePlantAssets';
 import { usePlantScope } from '@/hooks/usePlantScope';
-import type { EquipmentMaster, InverterProduct, ModuleProduct } from '@/interface/deviceMaster';
+import type { EquipmentMaster } from '@/interface/deviceMaster';
 import type { Inverter } from '@/interface/equipment';
+import type { ManageInverterPage } from '@/service/inverter/type';
+import type { SolaModuleDetail } from '@/service/module/type';
 
 /**
  * 표 한 줄 — 운영 쪽 인버터와 등록 쪽 설비 마스터를 미리 붙여 둔다.
@@ -20,8 +22,8 @@ export interface InverterRow {
   inverter: Inverter;
   master: EquipmentMaster | null;
   /** 카탈로그에서 지워졌으면 null — 그때는 모델명 칸만 비운다 */
-  product: InverterProduct | null;
-  module: ModuleProduct | null;
+  product: ManageInverterPage | null;
+  module: SolaModuleDetail | null;
   /** 이 인버터가 물고 있는 모듈 장수. MPPT 1·2번을 합한다 */
   panelCount: number;
 }
@@ -37,6 +39,8 @@ export function usePlantInfoView() {
   const { plant } = usePlantScope();
   const assets = usePlantAssets();
   const users = useManagedUsers();
+  const inverters = useInverterCatalog();
+  const modules = useModuleCatalog();
 
   const asset = plant ? assets.find((item) => item.plantId === plant.id) ?? null : null;
   const manager = asset?.userId == null ? null : users.find((user) => user.userId === asset.userId) ?? null;
@@ -46,8 +50,8 @@ export function usePlantInfoView() {
 
     return getInvertersOf(plant.id).map((inverter) => {
       const master = SEED_EQUIPMENT.find((item) => item.inverterId === inverter.id) ?? null;
-      const product = SEED_INVERTER_PRODUCTS.find((item) => item.id === master?.inverterProductId);
-      const module = SEED_MODULES.find((item) => item.id === master?.moduleProductId);
+      const product = inverters.find((item) => item.inverterId === master?.inverterProductId);
+      const module = modules.find((item) => item.moduleId === master?.moduleProductId);
 
       return {
         inverter,
@@ -57,7 +61,7 @@ export function usePlantInfoView() {
         panelCount: master ? master.series1 * master.parallel1 + master.series2 * master.parallel2 : 0,
       };
     });
-  }, [plant]);
+  }, [plant, inverters, modules]);
 
   return {
     plant,

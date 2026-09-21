@@ -1,7 +1,7 @@
 import { useEffect, useRef } from 'react';
 import { useWatch } from 'react-hook-form';
 import { computeEquipmentCapacity } from '@/mocks/deviceMaster';
-import type { ModuleProduct } from '@/interface/deviceMaster';
+import type { SolaModuleDetail } from '@/service/module/type';
 import type { EquipmentFormValues } from '../components/form';
 import type { UseFormReturn } from 'react-hook-form';
 
@@ -12,7 +12,7 @@ import type { UseFormReturn } from 'react-hook-form';
  * 실측이 다르면 손으로 고칠 수 있게 둔다. 용량 칸 자체는 보지 않으므로 손으로 고친 값은
  * 직병렬·모듈을 다시 만질 때까지 그대로 남는다.
  */
-export function useDerivedCapacity(methods: UseFormReturn<EquipmentFormValues>, modules: ModuleProduct[]) {
+export function useDerivedCapacity(methods: UseFormReturn<EquipmentFormValues>, modules: SolaModuleDetail[]) {
   const { control, setValue, getValues } = methods;
   const [series1, parallel1, series2, parallel2, moduleId] = useWatch({
     control,
@@ -25,7 +25,7 @@ export function useDerivedCapacity(methods: UseFormReturn<EquipmentFormValues>, 
     ],
   });
 
-  const wattPerPanel = modules.find((item) => item.moduleId === moduleId)?.wattPerPanel;
+  const wattPerPanel = modules.find((item) => item.moduleId === moduleId)?.pwrMp;
   // 수정 화면을 열 때, 저장돼 있던 손댄 용량을 첫 렌더에서 계산값으로 덮지 않는다.
   const hasSynced = useRef(false);
 

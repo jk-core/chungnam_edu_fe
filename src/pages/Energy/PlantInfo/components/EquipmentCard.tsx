@@ -67,8 +67,8 @@ function InverterUnit({ row }: { row: InverterRow }) {
       </header>
 
       <dl className={styles.unit__specs}>
-        <Spec label="인버터 모델" value={product?.name ?? '-'} note={product?.maker} />
-        <Spec label="모듈 모델" value={module?.name ?? '-'} note={module?.maker} />
+        <Spec label="인버터 모델" value={product?.inverterName ?? '-'} note={product?.inverterEnterpriseName} />
+        <Spec label="모듈 모델" value={module?.moduleName ?? '-'} note={module?.moduleEnterpriseName} />
         <Spec
           label="직병렬 구조"
           value={master ? `${master.series1}직렬 × ${master.parallel1}병렬` : '-'}

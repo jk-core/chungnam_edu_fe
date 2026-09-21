@@ -4,7 +4,6 @@ import { editPath } from '@/pages/Admin/_shared/adminPath';
 import { Card } from '@/components/common/Card';
 import { DEFAULT_PAGE_SIZE, Pagination } from '@/components/common/Pagination';
 import { EmptyState } from '@/components/common/EmptyState';
-import { INVERTER_KIND_LABEL } from '@/mocks/deviceMaster';
 import { Reveal } from '@/components/common/Reveal';
 import { Table } from '@/components/common/Table';
 import { formatNumber } from '@/utils/format';
@@ -56,7 +55,7 @@ export function EquipmentTable({ rows }: { rows: EquipmentRow[] }) {
           <span>{row.inverterName}</span>
           <span className={styles.stackCell__sub}>
             {row.inverterMaker}
-            {row.inverterKind ? ` · ${INVERTER_KIND_LABEL[row.inverterKind]}` : ''}
+            {row.inverterTypeName ? ` · ${row.inverterTypeName}` : ''}
           </span>
         </span>
       ),

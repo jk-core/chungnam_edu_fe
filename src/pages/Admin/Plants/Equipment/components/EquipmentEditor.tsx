@@ -6,7 +6,7 @@ import { Button } from '@/components/common/Button';
 import { ConfirmDialog } from '@/components/common/ConfirmDialog';
 import { createdEntry, deletedEntry, diffEntries } from '@/pages/Admin/_shared/changeLog';
 import { createForm, FormRow, FormSection } from '@/components/common/Form';
-import { describeInverterProduct, INVERTER_KIND_LABEL } from '@/mocks/deviceMaster';
+import { INVERTER_TYPE } from '@/configs/codes';
 import { formatNumber } from '@/utils/format';
 import { FormPage } from '@/pages/Admin/_shared/FormPage';
 import { listPath } from '@/pages/Admin/_shared/adminPath';
@@ -18,13 +18,13 @@ import { StringRows } from '@/pages/Admin/Plants/String/components/StringRows';
 import { summarizeString, useStringsOf } from '@/pages/Admin/Plants/String/hooks/useStringData';
 import { toast } from '@/stores/toastStore';
 import { useAuthUser } from '@/stores/authStore';
-import { useInverterProducts } from '@/pages/Admin/_shared/device/useSelectableEquipment';
+import { useInverterCatalog, useModuleCatalog } from '@/hooks/useProductCatalog';
 import { useManagedUsers, usePlantAssets } from '@/hooks/usePlantAssets';
 import useEquipmentStore from '@/stores/equipmentStore';
 import type { EquipmentMaster, StringMaster } from '@/interface/deviceMaster';
 import styles from '@/pages/Admin/Admin.module.scss';
 import { useDerivedCapacity } from '../hooks/useDerivedCapacity';
-import { useEquipmentRows, useModuleProducts } from '../hooks/useEquipmentRows';
+import { useEquipmentRows } from '../hooks/useEquipmentRows';
 import {
   ARRAY_MAX,
   ARRAY_MIN,
@@ -38,7 +38,7 @@ import {
   PORT_MAX,
   PORT_MIN,
 } from './form';
-import { EMPTY_VALUES, moduleLabelOf, toFormValues, userLabelOf } from './values';
+import { EMPTY_VALUES, inverterLabelOf, moduleLabelOf, toFormValues, userLabelOf } from './values';
 import type { EquipmentFormValues } from './form';
 
 /** CID 는 기존 체계를 따라 이 값에 일련번호를 더해 만든다 */
@@ -61,8 +61,8 @@ export function EquipmentEditor({ cid }: EquipmentEditorProps) {
   const nextId = useEquipmentStore((state) => state.nextId);
   const nextSeq = useEquipmentStore((state) => state.nextSeq);
   const actor = useAuthUser();
-  const modules = useModuleProducts();
-  const inverters = useInverterProducts();
+  const modules = useModuleCatalog();
+  const inverters = useInverterCatalog();
   const users = useManagedUsers();
   const plants = usePlantAssets();
   const { listOf } = useStringsOf();
@@ -89,7 +89,7 @@ export function EquipmentEditor({ cid }: EquipmentEditorProps) {
   const powerPlantId = useWatch({ control: methods.control, name: 'powerPlantId' });
   const inverterId = useWatch({ control: methods.control, name: 'inverterId' });
   const moduleId = useWatch({ control: methods.control, name: 'moduleId' });
-  const inverterKind = useWatch({ control: methods.control, name: 'inverterKind' });
+  const inverterTypeCode = useWatch({ control: methods.control, name: 'inverterTypeCode' });
   const stringRows = useWatch({ control: methods.control, name: 'rows' });
   const etc = useWatch({ control: methods.control, name: 'etc' });
 
@@ -98,7 +98,7 @@ export function EquipmentEditor({ cid }: EquipmentEditorProps) {
   const inverter = inverters.find((item) => item.inverterId === inverterId);
   const plant = plants.find((item) => item.powerPlantId === powerPlantId);
   // 스트링 구조는 스트링 기종에만 있다.
-  const hasStrings = inverterKind === 'string';
+  const hasStrings = inverterTypeCode === INVERTER_TYPE.CODE['스트링 인버터'];
   const rowsError = methods.getFieldState('rows', methods.formState).error;
 
   const commit = (values: EquipmentFormValues) => {
@@ -111,8 +111,8 @@ export function EquipmentEditor({ cid }: EquipmentEditorProps) {
       name: values.equipmentName,
       rtuCommId: values.rtuCommunicationId,
       rtuPort: values.rtuPort,
-      inverterProductId: inverters.find((item) => item.inverterId === values.inverterId)?.id ?? '',
-      moduleProductId: modules.find((item) => item.moduleId === values.moduleId)?.id ?? '',
+      inverterProductId: values.inverterId,
+      moduleProductId: values.moduleId,
       azimuth: values.azimuth,
       inclineAngle: values.inclinedAngle,
       series1: values.moduleSerialCount,
@@ -139,14 +139,14 @@ export function EquipmentEditor({ cid }: EquipmentEditorProps) {
     const entries = isNew
       ? createdEntry(
         logTarget,
-        `${plant?.plantName ?? ''} · ${inverter?.name ?? ''} · ${formatNumber(saved.equipmentCapacity, 1)}kW`,
+        `${plant?.plantName ?? ''} · ${inverter?.inverterName ?? ''} · ${formatNumber(saved.equipmentCapacity, 1)}kW`,
       )
       : diffEntries(logTarget, [
         { label: '설비 이름', before: target?.name ?? '', after: saved.name },
         { label: '발전소', before: target?.plantName ?? '', after: plant?.plantName ?? '' },
         { label: '사용자', before: String(target?.userId ?? ''), after: String(saved.userId ?? '') },
-        { label: '인버터 모델', before: target?.inverterName ?? '', after: inverter?.name ?? '' },
-        { label: '모듈 모델', before: target?.moduleName ?? '', after: module?.name ?? '' },
+        { label: '인버터 모델', before: target?.inverterName ?? '', after: inverter?.inverterName ?? '' },
+        { label: '모듈 모델', before: target?.moduleName ?? '', after: module?.moduleName ?? '' },
         { label: 'RTU 통신 ID', before: target?.rtuCommId ?? '', after: saved.rtuCommId },
         { label: 'RTU 포트', before: String(target?.rtuPort ?? ''), after: String(saved.rtuPort ?? '') },
         { label: '방위각', before: `${target?.azimuth ?? ''}도`, after: `${saved.azimuth}도` },
@@ -381,7 +381,7 @@ export function EquipmentEditor({ cid }: EquipmentEditorProps) {
                 displayName="inverterLabel"
                 placeholder="인버터 모델을 고르세요"
                 required
-                hint={inverter ? `${INVERTER_KIND_LABEL[inverter.kind]} · ${inverter.phase}` : undefined}
+                hint={inverter ? `${inverter.inverterTypeCodeName} · ${inverter.phaseTypeName}` : undefined}
                 modal={({ onSelect, onClose }) => (
                   <Modal
                     isOpen
@@ -396,33 +396,38 @@ export function EquipmentEditor({ cid }: EquipmentEditorProps) {
                       selectedKey={String(inverterId)}
                       caption="인버터 제품 목록. ID, 업체, 모델, 용량, 타입 순입니다."
                       placeholder="모델명·업체명으로 검색"
-                      match={(row, word) => row.name.includes(word)
-                        || row.maker.includes(word)
+                      match={(row, word) => row.inverterName.includes(word)
+                        || row.inverterEnterpriseName.includes(word)
                         || String(row.inverterId).includes(word)}
                       columns={[
-                        { key: 'id', header: 'ID', width: '80px', render: (row) => row.inverterId },
-                        { key: 'maker', header: '업체', width: '130px', render: (row) => row.maker },
-                        { key: 'name', header: '모델', render: (row) => row.name },
+                        { key: 'inverterId', header: 'ID', width: '80px', render: (row) => row.inverterId },
                         {
-                          key: 'capacity',
+                          key: 'inverterEnterpriseName',
+                          header: '업체',
+                          width: '130px',
+                          render: (row) => row.inverterEnterpriseName,
+                        },
+                        { key: 'inverterName', header: '모델', render: (row) => row.inverterName },
+                        {
+                          key: 'inverterCapacity',
                           header: '용량',
                           width: '90px',
                           align: 'right',
-                          render: (row) => `${formatNumber(row.capacityKw, 1)}kW`,
+                          render: (row) => `${formatNumber(row.inverterCapacity, 1)}kW`,
                         },
                         {
-                          key: 'kind',
+                          key: 'inverterTypeCode',
                           header: '타입',
                           width: '110px',
                           hideOnTablet: true,
-                          render: (row) => `${INVERTER_KIND_LABEL[row.kind]} · ${row.phase}`,
+                          render: (row) => `${row.inverterTypeCodeName} · ${row.phaseTypeName}`,
                         },
                       ]}
                       // 타입이 스트링인지에 따라 스트링 줄을 요구할지가 갈린다 — 함께 담아 둔다.
                       onPick={(row) => onSelect({
                         inverterId: row.inverterId,
-                        inverterLabel: describeInverterProduct(row),
-                        inverterKind: row.kind,
+                        inverterLabel: inverterLabelOf(row),
+                        inverterTypeCode: row.inverterTypeCode,
                       })}
                     />
                   </Modal>
@@ -434,7 +439,7 @@ export function EquipmentEditor({ cid }: EquipmentEditorProps) {
                 displayName="moduleLabel"
                 placeholder="모듈 모델을 고르세요"
                 required
-                hint={module ? `모듈 1장 ${formatNumber(module.wattPerPanel)}W` : undefined}
+                hint={module ? `모듈 1장 ${formatNumber(module.pwrMp)}W` : undefined}
                 modal={({ onSelect, onClose }) => (
                   <Modal
                     isOpen
@@ -449,19 +454,24 @@ export function EquipmentEditor({ cid }: EquipmentEditorProps) {
                       selectedKey={String(moduleId)}
                       caption="모듈 제품 목록. ID, 업체, 모델, 용량 순입니다."
                       placeholder="모델명·업체명으로 검색"
-                      match={(row, word) => row.name.includes(word)
-                        || row.maker.includes(word)
+                      match={(row, word) => row.moduleName.includes(word)
+                        || row.moduleEnterpriseName.includes(word)
                         || String(row.moduleId).includes(word)}
                       columns={[
-                        { key: 'id', header: 'ID', width: '80px', render: (row) => row.moduleId },
-                        { key: 'maker', header: '업체', width: '130px', render: (row) => row.maker },
-                        { key: 'name', header: '모델', render: (row) => row.name },
+                        { key: 'moduleId', header: 'ID', width: '80px', render: (row) => row.moduleId },
                         {
-                          key: 'watt',
+                          key: 'moduleEnterpriseName',
+                          header: '업체',
+                          width: '130px',
+                          render: (row) => row.moduleEnterpriseName,
+                        },
+                        { key: 'moduleName', header: '모델', render: (row) => row.moduleName },
+                        {
+                          key: 'pwrMp',
                           header: '용량',
                           width: '90px',
                           align: 'right',
-                          render: (row) => `${formatNumber(row.wattPerPanel)}W`,
+                          render: (row) => `${formatNumber(row.pwrMp)}W`,
                         },
                       ]}
                       onPick={(row) => onSelect({ moduleId: row.moduleId, moduleLabel: moduleLabelOf(row) })}
@@ -563,11 +573,11 @@ export function EquipmentEditor({ cid }: EquipmentEditorProps) {
                 </div>
                 <div>
                   <dt>모듈당 용량</dt>
-                  <dd>{module ? `${formatNumber(module.wattPerPanel)} W` : '—'}</dd>
+                  <dd>{module ? `${formatNumber(module.pwrMp)} W` : '—'}</dd>
                 </div>
                 <div>
                   <dt>인버터 용량</dt>
-                  <dd>{inverter ? `${formatNumber(inverter.capacityKw, 1)} kW` : '—'}</dd>
+                  <dd>{inverter ? `${formatNumber(inverter.inverterCapacity, 1)} kW` : '—'}</dd>
                 </div>
                 <div>
                   <dt>시공 업체</dt>
