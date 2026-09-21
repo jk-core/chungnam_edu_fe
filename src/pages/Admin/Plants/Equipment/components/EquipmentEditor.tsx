@@ -137,10 +137,7 @@ export function EquipmentEditor({ cid }: EquipmentEditorProps) {
     };
 
     const entries = isNew
-      ? createdEntry(
-        logTarget,
-        `${plant?.plantName ?? ''} · ${inverter?.inverterName ?? ''} · ${formatNumber(saved.equipmentCapacity, 1)}kW`,
-      )
+      ? createdEntry(logTarget)
       : diffEntries(logTarget, [
         { label: '설비 이름', before: target?.name ?? '', after: saved.name },
         { label: '발전소', before: target?.plantName ?? '', after: plant?.plantName ?? '' },
@@ -212,7 +209,6 @@ export function EquipmentEditor({ cid }: EquipmentEditorProps) {
 
     removeEquipment(target.inverterId, deletedEntry(
       { targetType: 'equipment', id: target.inverterId, name: target.name, actor: actor?.name ?? '관리자' },
-      `${target.plantName} · ${formatNumber(target.equipmentCapacity, 1)}kW`,
     ));
     toast.success(MSG.deleteSuccess(target.name));
     navigate(backTo);

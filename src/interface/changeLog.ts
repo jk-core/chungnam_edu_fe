@@ -31,6 +31,6 @@ export interface ChangeLog {
   at: string;
   actor: string;
   operation: ChangeOperation;
-  /** 비어 있으면 펼칠 것이 없다 */
+  /** 달라진 항목. 화면이 펼쳐 보이는 것은 수정뿐이다 */
   fields: ChangeLogField[];
 }

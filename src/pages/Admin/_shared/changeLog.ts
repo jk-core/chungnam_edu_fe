@@ -7,7 +7,8 @@ import type { ChangeLog, ChangeLogField, ChangeOperation, ChangeTarget } from '@
   **설비 화면 몫이다** — 나머지 갈래는 BE 가 이력을 쌓는다(`_shared/mapChangeHistory.ts`).
   설비 관리 API 가 붙으면 이 파일도 사라진다.
 
-  한 번의 저장이 한 건이다. 신규·삭제는 요약 한 줄을, 수정은 실제로 달라진 항목만 담는다.
+  한 번의 저장이 한 건이다. 달라진 항목을 담는 것은 수정뿐이다 — 신규·삭제는 대상 자체가
+  생기거나 사라진 일이라 「무엇이 무엇으로 바뀌었나」가 없고, 화면도 그 줄을 펼치지 않는다.
 */
 
 /** 이력에 남길 항목 한 쌍 — 화면의 입력 라벨을 그대로 쓴다. */
@@ -46,13 +47,13 @@ export function entry(target: Target, operation: ChangeOperation, fields: Change
 }
 
 /** 신규 등록 한 건 */
-export function createdEntry(target: Target, summary: string): ChangeLog[] {
-  return [entry(target, 'create', [{ label: '신규 등록', before: '—', after: summary }])];
+export function createdEntry(target: Target): ChangeLog[] {
+  return [entry(target, 'create', [])];
 }
 
 /** 삭제 한 건 */
-export function deletedEntry(target: Target, summary: string): ChangeLog {
-  return entry(target, 'delete', [{ label: '삭제', before: summary, after: '—' }]);
+export function deletedEntry(target: Target): ChangeLog {
+  return entry(target, 'delete', []);
 }
 
 /** 달라진 항목만 모아 한 건으로. 달라진 게 없으면 남기지 않는다. */

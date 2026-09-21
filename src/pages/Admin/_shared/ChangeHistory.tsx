@@ -59,19 +59,24 @@ interface HistoryItemProps {
 
 function HistoryItem({ item, isOpen, onToggle }: HistoryItemProps) {
   const panelId = `change-${item.id}`;
+  /*
+    펼칠 것이 있는 줄은 수정뿐이다. 신규 등록·삭제는 대상 자체가 생기거나 사라진 일이라
+    「무엇이 무엇으로 바뀌었나」가 없고, 항목 수를 적어 봐야 읽을 것이 없다.
+  */
+  const isExpandable = item.operation === 'update' && item.fields.length > 0;
   const summary = (
     <>
       <span className={styles.historyItem__at}>{item.at}</span>
       <span className={styles.historyItem__body}>
         <strong>{item.targetName}</strong> · {OPERATION_LABEL[item.operation]}
-        {item.fields.length > 0 ? ` · ${item.fields.length}개 항목` : ''}
+        {isExpandable ? ` · ${item.fields.length}개 항목` : ''}
       </span>
       <span className={styles.historyItem__at}>{item.actor}</span>
     </>
   );
 
-  // 펼칠 것이 없는 줄은 누를 수 없다 — 눌리게 두면 눌러 보고 아무 일도 일어나지 않는다.
-  if (item.fields.length === 0) {
+  // 누를 수 있게 보이면 눌러 보는데, 펼칠 것이 없으면 아무 일도 일어나지 않는다.
+  if (!isExpandable) {
     return (
       <div className={styles.historyItem}>
         <div className={styles.historyItem__head}>{summary}</div>
