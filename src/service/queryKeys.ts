@@ -1,4 +1,5 @@
 import type { ChangeHistoryTargetType } from '@/service/changeHistory/type';
+import type { ManageInverterPageParams } from '@/service/inverter/type';
 import type { ManageIrradPageParams } from '@/service/irrad/type';
 import type { ManageRtuEnterprisePageParams } from '@/service/rtuEnterprise/type';
 import type { ManageSolaModulePageParams } from '@/service/module/type';
@@ -75,6 +76,11 @@ export const queryKeys = {
       all: [...manage, 'rtuEnterprise'] as const,
       page: (param: ManageRtuEnterprisePageParams) => [...manage, 'rtuEnterprise', 'page', param] as const,
       detail: (rtuEnterpriseId: number) => [...manage, 'rtuEnterprise', 'detail', rtuEnterpriseId] as const,
+    },
+    inverter: {
+      all: [...manage, 'inverter'] as const,
+      page: (param: ManageInverterPageParams) => [...manage, 'inverter', 'page', param] as const,
+      detail: (inverterId: number) => [...manage, 'inverter', 'detail', inverterId] as const,
     },
     module: {
       all: [...manage, 'module'] as const,
