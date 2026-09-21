@@ -4,19 +4,15 @@ import { useNavigate } from 'react-router-dom';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Button } from '@/components/common/Button';
 import { ConfirmDialog } from '@/components/common/ConfirmDialog';
-import { createdEntry, deletedEntry, diffEntries } from '@/pages/Admin/_shared/changeLog';
 import { createForm, FormField, FormRow, FormSection, NumberControl } from '@/components/common/Form';
 import { FormPage } from '@/pages/Admin/_shared/FormPage';
-import { listPath } from '@/pages/Admin/_shared/adminPath';
+import { IRRAD_RTU_PORT } from '@/configs/rtu';
 import { MSG } from '@/configs/messages';
-import { PYRANOMETER_PORT } from '@/mocks/pyranometers';
-import { toast } from '@/stores/toastStore';
-import { useAuthUser } from '@/stores/authStore';
-import { usePlantAssets } from '@/hooks/usePlantAssets';
-import useEquipmentStore from '@/stores/equipmentStore';
-import type { Pyranometer } from '@/interface/deviceMaster';
+import { PageSkeleton } from '@/components/common/Skeleton';
+import { usePowerPlantOptions } from '@/hooks/usePowerPlantList';
 import styles from '@/pages/Admin/Admin.module.scss';
-import { usePyranometerRows } from '../hooks/usePyranometerRows';
+import type { PowerPlantListItem } from '@/service/powerPlant/type';
+import { usePyranometerEditor } from '../hooks/usePyranometerEditor';
 import { FACTOR_MAX, FACTOR_MIN, irradFormSchema, NAME_MAX } from './form';
 import { EMPTY_VALUES, toFormValues } from './values';
 import type { IrradFormValues } from './form';
@@ -33,20 +29,28 @@ interface PyranometerEditorProps {
   irradId: number | null;
 }
 
-/** 일사량계 등록·수정 (SFR-016-01) */
+/**
+ * 일사량계 등록·수정 (SFR-016-01).
+ * 폼의 기본값은 한 번만 잡히므로 고칠 값과 고를 발전소가 모두 도착한 뒤에 세운다.
+ */
 export function PyranometerEditor({ irradId }: PyranometerEditorProps) {
-  const savePyranometer = useEquipmentStore((state) => state.savePyranometer);
-  const removePyranometer = useEquipmentStore((state) => state.removePyranometer);
-  const nextId = useEquipmentStore((state) => state.nextId);
-  const nextSeq = useEquipmentStore((state) => state.nextSeq);
-  const actor = useAuthUser();
-  const rows = usePyranometerRows();
-  const plants = usePlantAssets();
-  const navigate = useNavigate();
+  const editor = usePyranometerEditor(irradId);
+  const { plants, isLoading } = usePowerPlantOptions();
 
-  const target = rows.find((row) => row.irradId === irradId) ?? null;
-  const backTo = listPath('plants', 'pyranometer');
-  const isNew = target === null;
+  if (editor.isLoading || isLoading) return <PageSkeleton />;
+
+  return <PyranometerForm editor={editor} plants={plants} />;
+}
+
+interface PyranometerFormProps {
+  editor: ReturnType<typeof usePyranometerEditor>;
+  plants: PowerPlantListItem[];
+}
+
+function PyranometerForm({ editor, plants }: PyranometerFormProps) {
+  const { target, save, remove, backTo } = editor;
+  const navigate = useNavigate();
+  const isNew = target === undefined;
 
   const methods = useForm<IrradFormValues>({
     /*
@@ -54,79 +58,22 @@ export function PyranometerEditor({ irradId }: PyranometerEditorProps) {
       항목을 선택해 보여 주면서 폼은 그 값을 갖지 않아, 그 발전소를 눌러도 change 가 나지 않는다.
     */
     defaultValues: target
-      ? toFormValues(target, plants)
+      ? toFormValues(target)
       : { ...EMPTY_VALUES, powerPlantId: plants[0]?.powerPlantId ?? Number.NaN },
     resolver: zodResolver(irradFormSchema),
     mode: 'onChange',
   });
 
+  // 확인창을 거쳐 저장하므로 검증을 통과한 값을 잠시 들고 있는다.
   const [pending, setPending] = useState<IrradFormValues | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
-
-  const commit = (values: IrradFormValues) => {
-    const plant = plants.find((item) => item.powerPlantId === values.powerPlantId);
-    const saved: Pyranometer = {
-      id: target?.id ?? nextId('PYR'),
-      irradId: target?.irradId ?? nextSeq(),
-      plantId: plant?.plantId ?? target?.plantId ?? '',
-      plantName: plant?.plantName ?? target?.plantName ?? '',
-      name: values.irradName,
-      calibrationFactor: values.calibrationFactor,
-      rtuCommId: values.rtuCommunicationId,
-      // 포트는 화면에서 고를 수 없다 — 3번이 일사량계 몫이다.
-      rtuPort: PYRANOMETER_PORT,
-      hasModuleThermometer: values.isModTemp,
-      note: values.etc.trim(),
-      status: target?.status ?? 'normal',
-    };
-    const logTarget = {
-      targetType: 'irrad' as const,
-      id: saved.id,
-      name: saved.name,
-      actor: actor?.name ?? '관리자',
-    };
-
-    const entries = isNew
-      ? createdEntry(logTarget, `${saved.plantName} · ${saved.rtuCommId}`)
-      : diffEntries(logTarget, [
-        { label: '설비 이름', before: target?.name ?? '', after: saved.name },
-        { label: '발전소', before: target?.plantName ?? '', after: saved.plantName },
-        {
-          label: '캘리브레이션 인수',
-          before: String(target?.calibrationFactor ?? ''),
-          after: String(saved.calibrationFactor),
-        },
-        { label: 'RTU 통신 ID', before: target?.rtuCommId ?? '', after: saved.rtuCommId },
-        {
-          label: '모듈 온도계',
-          before: target ? (target.hasModuleThermometer ? '있음' : '없음') : '',
-          after: saved.hasModuleThermometer ? '있음' : '없음',
-        },
-        { label: '비고', before: target?.note ?? '', after: saved.note },
-      ]);
-
-    savePyranometer(saved, entries, isNew);
-    toast.success(isNew ? MSG.createSuccess('일사량계') : MSG.updateSuccess(saved.name));
-    navigate(backTo);
-  };
-
-  const remove = () => {
-    if (!target) return;
-
-    removePyranometer(target.id, deletedEntry(
-      { targetType: 'irrad', id: target.id, name: target.name, actor: actor?.name ?? '관리자' },
-      `${target.plantName} · ${target.rtuCommId}`,
-    ));
-    toast.success(MSG.deleteSuccess(target.name));
-    navigate(backTo);
-  };
 
   return (
     <>
       <Form methods={methods} onSubmit={setPending}>
         <FormPage
           title={isNew ? '일사량계 등록' : '일사량계 수정'}
-          description={`RTU ${PYRANOMETER_PORT}번 포트는 일사량계 몫이라 바꿀 수 없습니다.`}
+          description={`RTU ${IRRAD_RTU_PORT}번 포트는 일사량계 몫이라 바꿀 수 없습니다.`}
           backTo={backTo}
           danger={isNew ? null : <Button variant="solar" onClick={() => setIsDeleting(true)}>삭제</Button>}
           footer={(
@@ -147,7 +94,7 @@ export function PyranometerEditor({ irradId }: PyranometerEditorProps) {
               <Form.Select
                 label="발전소"
                 name="powerPlantId"
-                options={plants.map((plant) => ({ value: plant.powerPlantId, label: plant.plantName }))}
+                options={plants.map((plant) => ({ value: plant.powerPlantId, label: plant.powerPlantName }))}
               />
               <Form.Text label="설비 이름" name="irradName" required hint={`${NAME_MAX}자 이내`} />
             </FormRow>
@@ -168,7 +115,7 @@ export function PyranometerEditor({ irradId }: PyranometerEditorProps) {
             <FormRow cols={2}>
               {/* 고를 수 없는 값이라 폼 밖에 둔다 — 보여 주기만 한다. */}
               <FormField label="RTU 포트" hint="일사량계 고정">
-                <NumberControl value={PYRANOMETER_PORT} onChange={() => undefined} readOnly />
+                <NumberControl value={IRRAD_RTU_PORT} onChange={() => undefined} disabled />
               </FormField>
               <Form.Radio label="모듈 온도계" name="isModTemp" options={YES_NO} />
             </FormRow>
@@ -189,17 +136,17 @@ export function PyranometerEditor({ irradId }: PyranometerEditorProps) {
         isOpen={pending !== null}
         title={isNew ? MSG.createConfirm('일사량계') : MSG.updateConfirm(pending?.irradName ?? '일사량계')}
         confirmLabel="저장"
-        onConfirm={() => pending && commit(pending)}
+        onConfirm={() => pending && save.mutate(pending)}
         onClose={() => setPending(null)}
       />
 
       <ConfirmDialog
         isOpen={isDeleting}
-        title={MSG.deleteConfirm(target?.name ?? '일사량계')}
+        title={MSG.deleteConfirm(target?.irradName ?? '일사량계')}
         description="일사량 값이 없으면 그 발전소의 AI 진단은 기대 발전량을 계산하지 못합니다."
         confirmLabel="삭제"
         tone="danger"
-        onConfirm={remove}
+        onConfirm={() => remove.mutate()}
         onClose={() => setIsDeleting(false)}
       />
     </>

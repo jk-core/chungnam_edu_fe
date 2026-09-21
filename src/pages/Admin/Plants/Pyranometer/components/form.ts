@@ -13,11 +13,7 @@ export const COMMUNICATION_ID = /^[A-Za-z0-9]+$/;
 
 /**
  * 일사량계 등록·수정 폼 (SFR-016-01). 포트는 고를 수 없어 폼에서 뺀다 —
- * 3번 고정이라 저장할 때 상수로 얹는다.
- *
- * 저장 계약(`SaveEquipmentIrradInfo`)에 `powerPlantId` 가 없다. 화면은 어느 발전소의
- * 일사량계인지 고르게 하지만 BE 는 아직 그 연결을 받지 않는다 — 발전소 쪽에서
- * `irradId` 로 거는 방향만 있다.
+ * 3번 고정이라 저장할 때 상수로 얹는다 (`configs/rtu.ts`).
  */
 export type IrradFormValues = z.infer<typeof irradFormSchema>;
 export const irradFormSchema = z.object({
