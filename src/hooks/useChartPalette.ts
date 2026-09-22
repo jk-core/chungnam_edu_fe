@@ -4,6 +4,8 @@ import { useTheme } from '@/stores/themeStore';
 const VARIABLES = {
   grid: '--chart-grid',
   axis: '--chart-axis',
+  brand: '--brand',
+  solar: '--solar',
   generation: '--chart-generation',
   generationSoft: '--chart-generation-soft',
   generationFocus: '--chart-generation-focus',

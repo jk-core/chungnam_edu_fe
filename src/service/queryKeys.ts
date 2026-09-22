@@ -1,4 +1,9 @@
 import type { ChangeHistoryTargetType } from '@/service/changeHistory/type';
+import type {
+  DiagnosisInverterParams,
+  DiagnosisPowerPlantParams,
+  DiagnosisStringParams,
+} from '@/service/diagnosis/type';
 import type { ManageInverterPageParams } from '@/service/inverter/type';
 import type { ManageIrradPageParams } from '@/service/irrad/type';
 import type { ManageRtuEnterprisePageParams } from '@/service/rtuEnterprise/type';
@@ -21,6 +26,7 @@ const operationHistory = ['operationHistory'] as const;
 const home = ['home'] as const;
 const changeHistory = ['changeHistory'] as const;
 const equipment = ['equipment'] as const;
+const diagnosis = ['diagnosis'] as const;
 
 export const queryKeys = {
   user: {
@@ -66,6 +72,25 @@ export const queryKeys = {
     all: changeHistory,
     /** `/manage/changeHistory` — 대상 타입별 최근 10건 */
     byTarget: (targetType: ChangeHistoryTargetType) => [...changeHistory, targetType] as const,
+  },
+  /*
+    AI 진단. 조회 대상마다 경로가 갈리므로 키도 대상으로 먼저 가른다 —
+    한 키 공간에 두면 발전소 1번과 인버터 1번이 같은 자리를 쓴다.
+  */
+  diagnosis: {
+    all: diagnosis,
+    powerPlant: {
+      inverterList: (param: DiagnosisPowerPlantParams) => [...diagnosis, 'powerPlant', 'inverterList', param] as const,
+      efficiency: (param: DiagnosisPowerPlantParams) => [...diagnosis, 'powerPlant', 'efficiency', param] as const,
+    },
+    inverter: {
+      stringList: (param: DiagnosisInverterParams) => [...diagnosis, 'inverter', 'stringList', param] as const,
+      stringEfficiency: (param: DiagnosisInverterParams) => [...diagnosis, 'inverter', 'stringEfficiency', param] as const,
+      raw: (param: DiagnosisInverterParams) => [...diagnosis, 'inverter', 'raw', param] as const,
+    },
+    string: {
+      raw: (param: DiagnosisStringParams) => [...diagnosis, 'string', 'raw', param] as const,
+    },
   },
   equipment: {
     all: equipment,

@@ -564,6 +564,12 @@ p.unitAlert {
     color: var(--ok-text);
   }
 
+  // 진단이 아직 안 붙은 설비 — 정상도 이상도 아니라 색을 주지 않는다.
+  &--unknown {
+    background-color: var(--surface-sunken);
+    color: var(--text-muted);
+  }
+
   &__cause {
     @include mx.truncate;
 

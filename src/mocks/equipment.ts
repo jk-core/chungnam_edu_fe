@@ -227,11 +227,6 @@ export function getDiagEfficiencySeries(id: string, status: OperationStatus, day
   });
 }
 
-/** 진단 판정 대상 — 최말단은 스트링이다. */
-export function getDiagnosisUnits(inverter: Inverter): { id: string; name: string; status: OperationStatus; capacityKw: number }[] {
-  return inverter.strings.map(({ id, name, status, capacityKw }) => ({ id, name, status, capacityKw }));
-}
-
 export const INVERTER_PHASE_LABEL: Record<Inverter['phase'], string> = {
   single: '단상 220V',
   three: '삼상 380V',

@@ -1,0 +1,177 @@
+import { z } from 'zod';
+import { ZodFaultCode, ZodStatusCode } from '@/configs/codes';
+
+/*
+  AI 진단 (SFR-011 · SFR-013 · SFR-014).
+
+  조회 대상마다 경로가 갈리고, 파라미터는 어느 쪽이든 「식별자 + 조회 기간」 한 벌이다.
+  효율 시계열의 값 이름이 대상마다 갈린다 — 발전소는 `diagEfficiency`, 인버터·스트링은
+  `efficiency` 다. 같은 뜻이지만 계약이 그러하므로 읽는 자리에서 맞춘다.
+
+  **계측에서 나온 수치는 null 로 온다** — 그날·그 시점에 잰 값이 없으면 비워 보낸다.
+  명세에는 숫자로만 적혀 있으나 실제 응답이 그러하므로 여기서 정직하게 연다. 0 으로 바꾸지
+  않는 것은 「안 쟀다」와 「0 이었다」가 다른 말이기 때문이다.
+*/
+
+export type DiagnosisPowerPlantParams = z.infer<typeof diagnosisPowerPlantParamsSchema>;
+export const diagnosisPowerPlantParamsSchema = z.object({
+  powerPlantId: z.number().int(),
+  startDate: z.string(),
+  endDate: z.string(),
+});
+
+export type DiagnosisInverterParams = z.infer<typeof diagnosisInverterParamsSchema>;
+export const diagnosisInverterParamsSchema = z.object({
+  cid: z.number().int(),
+  startDate: z.string(),
+  endDate: z.string(),
+});
+
+export type DiagnosisStringParams = z.infer<typeof diagnosisStringParamsSchema>;
+export const diagnosisStringParamsSchema = z.object({
+  stringId: z.number().int(),
+  startDate: z.string(),
+  endDate: z.string(),
+});
+
+/** 카드의 스파크라인이 쓰는 한 점 */
+export type DailySimpleEfficiency = z.infer<typeof dailySimpleEfficiencySchema>;
+export const dailySimpleEfficiencySchema = z.object({
+  dateTime: z.string(),
+  efficiency: z.number().nullable(),
+});
+
+/** 일자별 효율 표의 한 칸. 칸 색은 `faultCode` 를 따른다 */
+export type DailyEfficiency = z.infer<typeof dailyEfficiencySchema>;
+export const dailyEfficiencySchema = z.object({
+  dateTime: z.string(),
+  efficiency: z.number().nullable(),
+  statusCode: ZodStatusCode.CODE,
+  statusName: ZodStatusCode.NAME,
+  faultCode: ZodFaultCode.nullable(),
+  faultCodeName: z.string().nullable(),
+});
+
+/** 발전소 조회일 때의 일자별 효율 — 상태 없이 효율 이름만 갈린다 */
+export type DailyDiagEfficiency = z.infer<typeof dailyDiagEfficiencySchema>;
+export const dailyDiagEfficiencySchema = z.object({
+  dateTime: z.string(),
+  diagEfficiency: z.number().nullable(),
+  faultCode: ZodFaultCode.nullable(),
+  faultCodeName: z.string().nullable(),
+});
+
+/* ── 설비별 진단 현황 (카드/표) ──────────────────────────── */
+
+/** `/diagnosis/powerPlant/inverter/list` — 발전소 아래 인버터 한 대 */
+export type DiagnosisInverterRow = z.infer<typeof diagnosisInverterRowSchema>;
+export const diagnosisInverterRowSchema = z.object({
+  cid: z.number().int(),
+  equipmentName: z.string(),
+  equipmentCapacity: z.number(),
+  statusCode: ZodStatusCode.CODE,
+  statusName: ZodStatusCode.NAME,
+  /** 최신일 효율 (%) */
+  diagEfficiency: z.number().nullable(),
+  /** 최신일 측정 발전량 (kWh) */
+  currentPower: z.number().nullable(),
+  /** 최신일 기대 발전량 (kWh) */
+  predictedPower: z.number().nullable(),
+  countBelow: z.number().int(),
+  faultCode: ZodFaultCode.nullable(),
+  faultCodeName: z.string().nullable(),
+  flowChartData: z.array(dailySimpleEfficiencySchema).nullable(),
+});
+
+/**
+ * `/diagnosis/inverter/string/list` — 인버터 아래 스트링 한 조.
+ * 측정·기대 발전량은 스트링에 없다 — 그 계층에서는 재지 않는 값이라 화면도 그 칸을 세우지 않는다.
+ */
+export type DiagnosisStringRow = z.infer<typeof diagnosisStringRowSchema>;
+export const diagnosisStringRowSchema = z.object({
+  stringId: z.number().int(),
+  stringName: z.string(),
+  stringCapacity: z.number(),
+  statusCode: ZodStatusCode.CODE,
+  statusName: ZodStatusCode.NAME,
+  countBelow: z.number().int(),
+  faultCode: ZodFaultCode.nullable(),
+  faultCodeName: z.string().nullable(),
+  flowChartData: z.array(dailySimpleEfficiencySchema).nullable(),
+});
+
+/* ── 일자별 발전효율 (표/차트) ───────────────────────────── */
+
+/** 발전소 조회의 스트링 한 줄 — 표에서 인버터 줄을 펼치면 나온다 */
+export type StringEfficiency = z.infer<typeof stringEfficiencySchema>;
+export const stringEfficiencySchema = z.object({
+  stringId: z.number().int(),
+  stringName: z.string(),
+  stringCapacity: z.number(),
+  statusCode: ZodStatusCode.CODE,
+  statusName: ZodStatusCode.NAME,
+  dailyList: z.array(dailyEfficiencySchema).nullable(),
+});
+
+/**
+ * `/diagnosis/powerPlant/efficiency` — 인버터 한 대와 그 아래 스트링까지 한 번에 온다.
+ * 표의 펼침이 이 구조를 그대로 쓴다.
+ */
+export type PowerPlantEfficiency = z.infer<typeof powerPlantEfficiencySchema>;
+export const powerPlantEfficiencySchema = z.object({
+  cid: z.number().int(),
+  equipmentName: z.string(),
+  equipmentCapacity: z.number(),
+  statusCode: ZodStatusCode.CODE,
+  statusName: ZodStatusCode.NAME,
+  dailyList: z.array(dailyDiagEfficiencySchema).nullable(),
+  /** 스트링을 갖지 않는 인버터는 비어서 온다 */
+  stringList: z.array(stringEfficiencySchema).nullable(),
+});
+
+/** `/diagnosis/inverter/string/efficiency` — 스트링 줄만 온다 */
+export type InverterEfficiency = StringEfficiency;
+
+/* ── 수집 raw data (전력·전압·전류 추이) ──────────────────── */
+
+/** 한 수집 시점 — 측정값과 정상범위 상·하한, 물리모델·머신러닝 예측값이 한 줄에 함께 온다 */
+export type DiagnosisRawPoint = z.infer<typeof diagnosisRawPointSchema>;
+export const diagnosisRawPointSchema = z.object({
+  gathDtm: z.string(),
+  /** 진단이 아직 안 붙은 시점은 null — 「정상」이 아니다 */
+  faultCode: ZodFaultCode.nullable(),
+  faultCodeName: z.string().nullable(),
+  slpIrrad: z.number().nullable(),
+  pvPwr: z.number().nullable(),
+  pvPwrNormalUpper: z.number().nullable(),
+  pvPwrNormalLower: z.number().nullable(),
+  pvPwrPhys: z.number().nullable(),
+  pvPwrMl: z.number().nullable(),
+  pvCur: z.number().nullable(),
+  pvCurNormalUpper: z.number().nullable(),
+  pvCurNormalLower: z.number().nullable(),
+  pvCurPhys: z.number().nullable(),
+  pvCurMl: z.number().nullable(),
+  pvVlt: z.number().nullable(),
+  pvVltNormalUpper: z.number().nullable(),
+  pvVltNormalLower: z.number().nullable(),
+  pvVltPhys: z.number().nullable(),
+  pvVltMl: z.number().nullable(),
+});
+
+export type DiagnosisInverterRaw = z.infer<typeof diagnosisInverterRawSchema>;
+export const diagnosisInverterRawSchema = z.object({
+  cid: z.number().int(),
+  equipmentName: z.string(),
+  /** 정상범위를 벗어난 일수 */
+  outOfRangeDays: z.number().int(),
+  list: z.array(diagnosisRawPointSchema).nullable(),
+});
+
+export type DiagnosisStringRaw = z.infer<typeof diagnosisStringRawSchema>;
+export const diagnosisStringRawSchema = z.object({
+  stringId: z.number().int(),
+  stringName: z.string(),
+  outOfRangeDays: z.number().int(),
+  list: z.array(diagnosisRawPointSchema).nullable(),
+});

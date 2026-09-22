@@ -5,10 +5,17 @@ import { FAULT_CODES, getFaultCode } from '@/mocks/faultCodes';
 import { OPERATION_LABEL } from '@/mocks/status';
 import { cn } from '@/utils/cn';
 import { formatNumber } from '@/utils/format';
-import type { DiagEfficiencyPoint } from '@/interface/diagnosisDetail';
-import type { FaultCode } from '@/interface/equipment';
+import type { DiagnosisFaultCode, FaultCode } from '@/interface/equipment';
 import type { OperationStatus } from '@/interface/status';
 import styles from './DailyEfficiencyTable.module.scss';
+
+/** 표의 한 칸 — 효율 0 은 계측이 없는 날이다 */
+export interface DailyEfficiencyCell {
+  date: string;
+  efficiency: number;
+  faultCode: DiagnosisFaultCode;
+  faultCodeName: string;
+}
 
 export interface DailyEfficiencyRow {
   id: string;
@@ -16,7 +23,7 @@ export interface DailyEfficiencyRow {
   status: OperationStatus;
   /** 이름 옆에 붙일 짧은 설명 — 용량·구성 */
   meta: string;
-  points: DiagEfficiencyPoint[];
+  points: DailyEfficiencyCell[];
   /** 펼쳤을 때 나올 하위 설비 */
   children?: DailyEfficiencyRow[];
 }
@@ -166,7 +173,7 @@ function Row({ row, expanded, onToggle, onFaultClick, child = false }: RowProps)
 }
 
 interface CellProps {
-  point: DiagEfficiencyPoint;
+  point: DailyEfficiencyCell;
   device: string;
   onFaultClick: (fault: FaultCode, device: string, date: string) => void;
 }
@@ -207,7 +214,7 @@ function Cell({ point, device, onFaultClick }: CellProps) {
 }
 
 /** 계측이 있는 날만 평균에 넣는다 */
-function formatAverage(points: DiagEfficiencyPoint[]): string {
+function formatAverage(points: DailyEfficiencyCell[]): string {
   const live = points.filter((point) => point.efficiency > 0);
 
   if (live.length === 0) return '—';
