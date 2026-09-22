@@ -22,7 +22,7 @@ export interface TrendReading {
   upper: number | null;
   /** 물리모델 예측값 */
   phys: number | null;
-  /** ML 예측값 */
+  /** 머신러닝 예측값 */
   ml: number | null;
 }
 

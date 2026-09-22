@@ -134,7 +134,7 @@ export type InverterEfficiency = StringEfficiency;
 
 /* ── 수집 raw data (전력·전압·전류 추이) ──────────────────── */
 
-/** 한 수집 시점 — 측정값과 정상범위 상·하한, 물리모델·ML 예측값이 한 줄에 함께 온다 */
+/** 한 수집 시점 — 측정값과 정상범위 상·하한, 물리모델·머신러닝 예측값이 한 줄에 함께 온다 */
 export type DiagnosisRawPoint = z.infer<typeof diagnosisRawPointSchema>;
 export const diagnosisRawPointSchema = z.object({
   gathDtm: z.string(),

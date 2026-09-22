@@ -24,7 +24,7 @@ interface DeepDiagnosisModalProps {
  * 심층 진단 (SFR-013-09/10).
  *
  * 일자별 판정이 "어느 날 처졌다"까지 알려 준다면, 여기서는 그 날 안에서 언제부터 어긋났는지를 본다.
- * 기간 추이와 같은 수집 raw 를 하루치만 받아, 측정값에 ML 예측값을 겹쳐 그리고
+ * 기간 추이와 같은 수집 raw 를 하루치만 받아, 측정값에 머신러닝 예측값을 겹쳐 그리고
  * 한 시점에 마우스를 올리면 예측·측정·편차·고장분류를 한 창에 모아 보여 준다.
  */
 export function DeepDiagnosisModal({ nodeId, date, onClose }: DeepDiagnosisModalProps) {
