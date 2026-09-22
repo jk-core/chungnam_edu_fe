@@ -80,7 +80,7 @@ export const diagnosisInverterRowSchema = z.object({
   countBelow: z.number().int(),
   faultCode: ZodFaultCode.nullable(),
   faultCodeName: z.string().nullable(),
-  flowChartData: z.array(dailySimpleEfficiencySchema),
+  flowChartData: z.array(dailySimpleEfficiencySchema).nullable(),
 });
 
 /**
@@ -97,7 +97,7 @@ export const diagnosisStringRowSchema = z.object({
   countBelow: z.number().int(),
   faultCode: ZodFaultCode.nullable(),
   faultCodeName: z.string().nullable(),
-  flowChartData: z.array(dailySimpleEfficiencySchema),
+  flowChartData: z.array(dailySimpleEfficiencySchema).nullable(),
 });
 
 /* ── 일자별 발전효율 (표/차트) ───────────────────────────── */
@@ -110,7 +110,7 @@ export const stringEfficiencySchema = z.object({
   stringCapacity: z.number(),
   statusCode: ZodStatusCode.CODE,
   statusName: ZodStatusCode.NAME,
-  dailyList: z.array(dailyEfficiencySchema),
+  dailyList: z.array(dailyEfficiencySchema).nullable(),
 });
 
 /**
@@ -124,8 +124,9 @@ export const powerPlantEfficiencySchema = z.object({
   equipmentCapacity: z.number(),
   statusCode: ZodStatusCode.CODE,
   statusName: ZodStatusCode.NAME,
-  dailyList: z.array(dailyDiagEfficiencySchema),
-  stringList: z.array(stringEfficiencySchema),
+  dailyList: z.array(dailyDiagEfficiencySchema).nullable(),
+  /** 스트링을 갖지 않는 인버터는 비어서 온다 */
+  stringList: z.array(stringEfficiencySchema).nullable(),
 });
 
 /** `/diagnosis/inverter/string/efficiency` — 스트링 줄만 온다 */
@@ -164,7 +165,7 @@ export const diagnosisInverterRawSchema = z.object({
   equipmentName: z.string(),
   /** 정상범위를 벗어난 일수 */
   outOfRangeDays: z.number().int(),
-  list: z.array(diagnosisRawPointSchema),
+  list: z.array(diagnosisRawPointSchema).nullable(),
 });
 
 export type DiagnosisStringRaw = z.infer<typeof diagnosisStringRawSchema>;
@@ -172,5 +173,5 @@ export const diagnosisStringRawSchema = z.object({
   stringId: z.number().int(),
   stringName: z.string(),
   outOfRangeDays: z.number().int(),
-  list: z.array(diagnosisRawPointSchema),
+  list: z.array(diagnosisRawPointSchema).nullable(),
 });

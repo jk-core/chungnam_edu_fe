@@ -56,22 +56,27 @@ export function useDiagnosisEfficiency() {
 
   const rows = useMemo<DailyEfficiencyRow[]>(() => {
     if (powerPlantId !== null) {
-      return plant.data?.map((row) => ({
-        id: inverterNodeId(row.cid),
-        name: row.equipmentName,
-        status: operationFromCode(row.statusCode),
-        meta: row.stringList.length > 0
-          ? `${formatNumber(row.equipmentCapacity, 1)} kW · 하위 ${row.stringList.length}`
-          : `${formatNumber(row.equipmentCapacity, 1)} kW`,
-        // 발전소 조회에서만 효율 칸 이름이 `diagEfficiency` 다.
-        points: alignToDates(dates, row.dailyList.map((day) => ({
-          date: day.dateTime,
-          efficiency: day.diagEfficiency ?? 0,
-          faultCode: day.faultCode ?? 0,
-          faultCodeName: day.faultCodeName ?? '',
-        }))),
-        children: row.stringList.map((item) => toStringRow(item, dates)),
-      })) ?? NONE;
+      return plant.data?.map((row) => {
+        // 스트링을 갖지 않는 인버터는 목록이 비어서 온다 — 펼칠 것이 없는 줄이다.
+        const stringList = row.stringList ?? [];
+
+        return {
+          id: inverterNodeId(row.cid),
+          name: row.equipmentName,
+          status: operationFromCode(row.statusCode),
+          meta: stringList.length > 0
+            ? `${formatNumber(row.equipmentCapacity, 1)} kW · 하위 ${stringList.length}`
+            : `${formatNumber(row.equipmentCapacity, 1)} kW`,
+          // 발전소 조회에서만 효율 칸 이름이 `diagEfficiency` 다.
+          points: alignToDates(dates, (row.dailyList ?? []).map((day) => ({
+            date: day.dateTime,
+            efficiency: day.diagEfficiency ?? 0,
+            faultCode: day.faultCode ?? 0,
+            faultCodeName: day.faultCodeName ?? '',
+          }))),
+          children: stringList.map((item) => toStringRow(item, dates)),
+        };
+      }) ?? NONE;
     }
 
     return inverter.data?.map((row) => toStringRow(row, dates)) ?? NONE;
@@ -93,7 +98,7 @@ function toStringRow(row: StringEfficiency, dates: string[]): DailyEfficiencyRow
     name: row.stringName,
     status: operationFromCode(row.statusCode),
     meta: `${formatNumber(row.stringCapacity, 1)} kW`,
-    points: alignToDates(dates, row.dailyList.map((day) => ({
+    points: alignToDates(dates, (row.dailyList ?? []).map((day) => ({
       date: day.dateTime,
       efficiency: day.efficiency ?? 0,
       faultCode: day.faultCode ?? 0,

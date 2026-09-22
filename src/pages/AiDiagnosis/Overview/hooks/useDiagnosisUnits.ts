@@ -79,25 +79,29 @@ export function useDiagnosisUnits() {
         countBelow: row.countBelow,
         faultCode: row.faultCode,
         faultCodeName: row.faultCodeName,
-        points: row.flowChartData,
+        points: row.flowChartData ?? [],
         power: { current: row.currentPower, predicted: row.predictedPower },
       })) ?? NONE;
     }
 
-    return strings.data?.map((row) => ({
-      nodeId: stringNodeId(row.stringId),
-      name: row.stringName,
-      capacityKw: row.stringCapacity,
-      status: operationFromCode(row.statusCode),
-      statusName: row.statusName,
-      // 스트링에는 최신일 효율이 따로 오지 않는다 — 시계열의 마지막 날이 그 값이다.
-      efficiency: row.flowChartData[row.flowChartData.length - 1]?.efficiency ?? null,
-      countBelow: row.countBelow,
-      faultCode: row.faultCode,
-      faultCodeName: row.faultCodeName,
-      points: row.flowChartData,
-      power: null,
-    })) ?? NONE;
+    return strings.data?.map((row) => {
+      const points = row.flowChartData ?? [];
+
+      return {
+        nodeId: stringNodeId(row.stringId),
+        name: row.stringName,
+        capacityKw: row.stringCapacity,
+        status: operationFromCode(row.statusCode),
+        statusName: row.statusName,
+        // 스트링에는 최신일 효율이 따로 오지 않는다 — 시계열의 마지막 날이 그 값이다.
+        efficiency: points[points.length - 1]?.efficiency ?? null,
+        countBelow: row.countBelow,
+        faultCode: row.faultCode,
+        faultCodeName: row.faultCodeName,
+        points,
+        power: null,
+      };
+    }) ?? NONE;
   }, [powerPlantId, inverters.data, strings.data]);
 
   return {

@@ -31,10 +31,16 @@ export function useDiagnosisRaw(nodeId: string | null, startDate: string, endDat
     enabled: stringId !== null,
   });
 
-  const data = cid !== null ? inverter.data : string.data;
+  /*
+    지금 보고 있는 대상의 것만 읽는다 — 두 응답을 나란히 두고 먼저 온 것을 집으면,
+    인버터에서 스트링으로 옮겼을 때 캐시에 남은 인버터 이름이 스트링 이름 자리에 선다.
+  */
+  const inverterData = cid !== null ? inverter.data : undefined;
+  const stringData = stringId !== null ? string.data : undefined;
+  const data = inverterData ?? stringData;
 
   return {
-    name: inverter.data?.equipmentName ?? string.data?.stringName ?? '',
+    name: inverterData?.equipmentName ?? stringData?.stringName ?? '',
     points: data?.list ?? NONE,
     /** 정상범위를 벗어난 일수 */
     outOfRangeDays: data?.outOfRangeDays ?? 0,
