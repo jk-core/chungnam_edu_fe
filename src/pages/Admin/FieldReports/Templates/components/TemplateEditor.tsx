@@ -74,10 +74,10 @@ export function TemplateEditor({ template }: TemplateEditorProps) {
     name: ['templateName', 'reportTypeName', 'targetTypeName', 'startDate', 'endDate', 'checkList'],
   });
 
-  // 고친 것이 없으면 낼 새 버전이 없다 — 버전 번호도 개정 사유도 그때만 걸린다.
+  // 고친 것이 없으면 낼 새 버전이 없다 — 저장 자체가 막히고 개정 사유도 그때만 받는다.
   const isRevising = template === null
     || hasChange({ templateName, reportTypeName, targetTypeName, startDate, endDate, checkList }, template);
-  const nextVersion = (template?.version ?? 0) + (isRevising ? 1 : 0);
+  const nextVersion = (template?.version ?? 0) + 1;
 
   const commit = (input: TemplateFormValues) => {
     const saved: ReportTemplate = {
@@ -86,14 +86,13 @@ export function TemplateEditor({ template }: TemplateEditorProps) {
       targetType: input.targetTypeName,
       label: input.templateName.trim(),
       version: nextVersion,
-      revisedAt: isRevising ? TODAY.format('YYYY-MM-DD') : template?.revisedAt ?? TODAY.format('YYYY-MM-DD'),
+      revisedAt: TODAY.format('YYYY-MM-DD'),
       startDate: input.startDate,
       dueDate: input.endDate,
       items: toCheckNameList(input.checkList),
     };
 
-    // 고친 것이 없으면 이력에 남길 개정이 없다.
-    saveTemplate(saved, isRevising ? {
+    saveTemplate(saved, {
       id: `TR-${NOW.format('MMDDHHmm')}-${saved.id}`,
       templateId: saved.id,
       templateLabel: saved.label,
@@ -101,11 +100,9 @@ export function TemplateEditor({ template }: TemplateEditorProps) {
       at: NOW.format('YYYY-MM-DD HH:mm'),
       actor: actor?.name ?? '관리자',
       note: isNew ? '새 양식을 등록했습니다.' : input.fixRemark.trim(),
-    } : null, isNew);
+    }, isNew);
 
-    toast.success(isRevising
-      ? `${saved.label} v${nextVersion} 버전을 냈습니다.`
-      : MSG.updateSuccess(saved.label));
+    toast.success(`${saved.label} v${nextVersion} 버전을 냈습니다.`);
     setPending(null);
     navigate(backTo);
   };
@@ -126,14 +123,14 @@ export function TemplateEditor({ template }: TemplateEditorProps) {
           description={isNew
             ? '저장하면 v1 버전으로 나갑니다. 이후 어느 칸이든 고칠 때마다 버전 번호가 오릅니다.'
             : isRevising
-              ? `현재 v${template.version} · 고친 내용이 있어 저장하면 v${nextVersion} 로 나갑니다.`
-              : `현재 v${template.version} · 고친 내용이 없어 버전은 그대로입니다.`}
+              ? `현재 v${template.version} · 저장하면 v${nextVersion} 로 나갑니다.`
+              : `현재 v${template.version} · 고친 내용이 없어 낼 버전이 없습니다.`}
           backTo={backTo}
           danger={isNew ? null : <Button variant="solar" onClick={() => setIsDeleting(true)}>삭제</Button>}
           footer={(
             <>
               <Button variant="secondary" onClick={() => navigate(backTo)}>취소</Button>
-              <Form.Submit>{isNew ? '등록' : isRevising ? '새 버전으로 저장' : '저장'}</Form.Submit>
+              <Form.Submit disabled={!isRevising}>{isNew ? '등록' : '새 버전으로 저장'}</Form.Submit>
             </>
           )}
         >
@@ -193,7 +190,7 @@ export function TemplateEditor({ template }: TemplateEditorProps) {
             </div>
           </FormSection>
 
-          {/* 새 양식에는 되돌아볼 앞 버전이 없고, 고친 것이 없으면 남길 개정도 없다. */}
+          {/* 새 양식에는 되돌아볼 앞 버전이 없고, 고친 것이 없으면 낼 버전 자체가 없다. */}
           {isNew || !isRevising ? null : (
             <FormSection legend="개정 사유" hint="이력에 그대로 남습니다. 무엇을 왜 고쳤는지 적어 주세요.">
               <Form.Area
@@ -212,13 +209,9 @@ export function TemplateEditor({ template }: TemplateEditorProps) {
         isOpen={pending !== null}
         title={isNew
           ? MSG.createConfirm('점검 양식')
-          : isRevising
-            ? `${template?.label ?? '양식'} v${nextVersion} 로 낼까요?`
-            : MSG.updateConfirm(template?.label ?? '양식')}
-        description={isRevising
-          ? '새 버전은 지금부터 작성하는 보고서에만 적용됩니다. 이미 쓴 보고서는 그대로입니다.'
-          : '고친 내용이 없어 버전 번호와 개정 이력은 움직이지 않습니다.'}
-        confirmLabel={isNew ? '등록' : isRevising ? '새 버전으로 저장' : '저장'}
+          : `${template?.label ?? '양식'} v${nextVersion} 로 낼까요?`}
+        description="새 버전은 지금부터 작성하는 보고서에만 적용됩니다. 이미 쓴 보고서는 그대로입니다."
+        confirmLabel={isNew ? '등록' : '새 버전으로 저장'}
         onConfirm={() => pending && commit(pending)}
         onClose={() => setPending(null)}
       />
