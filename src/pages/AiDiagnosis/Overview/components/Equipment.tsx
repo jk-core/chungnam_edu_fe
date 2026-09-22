@@ -7,7 +7,7 @@ import { DIAG_EFFICIENCY_CRITICAL, DIAG_EFFICIENCY_WARN } from '@/configs/diagno
 import { EmptyState } from '@/components/common/EmptyState';
 import { getFaultCode } from '@/mocks/faultCodes';
 import { getNodePath } from '@/stores/scopeTreeStore';
-import { isAbnormal, OPERATION_LABEL, OPERATION_ORDER, OPERATION_RANK, OPERATION_TONE } from '@/mocks/status';
+import { OPERATION_LABEL, OPERATION_ORDER, OPERATION_RANK, OPERATION_TONE } from '@/mocks/status';
 import { Reveal } from '@/components/common/Reveal';
 import { SegmentedControl } from '@/components/common/SegmentedControl';
 import { Sparkline } from '@/components/common/Sparkline';
@@ -266,7 +266,6 @@ interface UnitTileProps {
 }
 
 function UnitTile({ unit, index, parentName, onOpenFault, onOpen }: UnitTileProps) {
-  const abnormal = isAbnormal(unit.status);
   const deviceLabel = parentName ? `${parentName} · ${unit.name}` : unit.name;
   const fault = unit.faultCode !== null && unit.faultCode > 0 ? getFaultCode(unit.faultCode) : null;
 
@@ -303,9 +302,9 @@ function UnitTile({ unit, index, parentName, onOpenFault, onOpen }: UnitTileProp
       <div className={styles.unit__spark}>
         <Sparkline
           className={styles.unit__sparkLine}
-          // 스파크라인은 추세 그림이라 안 잰 날을 0 으로 눕힌다 — 값은 아래 칸이 하이픈으로 말한다.
-          values={unit.points.map((point) => point.efficiency ?? 0)}
-          tone={abnormal ? 'critical' : 'brand'}
+          // 선 색은 오로지 이 값이 기준을 넘는지로 갈린다 — 운전상태·고장코드는 위 줄이 이미 말한다.
+          values={unit.points.map((point) => point.efficiency)}
+          tone="ok"
           bands={{ warn: DIAG_EFFICIENCY_WARN, critical: DIAG_EFFICIENCY_CRITICAL }}
           height={44}
           animate={false}
