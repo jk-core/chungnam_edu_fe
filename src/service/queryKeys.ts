@@ -1,3 +1,10 @@
+import type { ChangeHistoryTargetType } from '@/service/changeHistory/type';
+import type { ManageInverterPageParams } from '@/service/inverter/type';
+import type { ManageIrradPageParams } from '@/service/irrad/type';
+import type { ManageRtuEnterprisePageParams } from '@/service/rtuEnterprise/type';
+import type { ManageSolaModulePageParams } from '@/service/module/type';
+import type { ManageStringPageParams } from '@/service/string/type';
+
 /*
   쿼리 키를 한 곳에 모은다.
 
@@ -6,12 +13,14 @@
 */
 
 const user = ['user'] as const;
+const manage = ['manage'] as const;
 const powerPlant = ['powerPlant'] as const;
 const calendar = ['calendar'] as const;
 const area = ['area'] as const;
 const operationHistory = ['operationHistory'] as const;
 const home = ['home'] as const;
 const changeHistory = ['changeHistory'] as const;
+const equipment = ['equipment'] as const;
 
 export const queryKeys = {
   user: {
@@ -56,6 +65,45 @@ export const queryKeys = {
   changeHistory: {
     all: changeHistory,
     /** `/manage/changeHistory` — 대상 타입별 최근 10건 */
-    byTarget: (targetType: 'USER' | 'POWER_PLANT') => [...changeHistory, targetType] as const,
+    byTarget: (targetType: ChangeHistoryTargetType) => [...changeHistory, targetType] as const,
+  },
+  equipment: {
+    all: equipment,
+    /** `/equipment/sola/module/list` — 설비가 가리키는 모듈 제원. 쪽을 나누지 않고 전부 준다 */
+    moduleList: () => [...equipment, 'module', 'list'] as const,
+  },
+  /*
+    관리 화면의 등록 정보. 공용 조회(`powerPlant`)와 키 공간을 나눠 둔다 — 같은 발전소라도
+    한쪽은 계측이 실린 조회값이고 한쪽은 손으로 고치는 등록값이라, 한 키에 섞이면
+    등록을 고친 뒤 조회 화면까지 통째로 다시 받게 된다.
+  */
+  manage: {
+    all: manage,
+    rtuEnterprise: {
+      all: [...manage, 'rtuEnterprise'] as const,
+      page: (param: ManageRtuEnterprisePageParams) => [...manage, 'rtuEnterprise', 'page', param] as const,
+      detail: (rtuEnterpriseId: number) => [...manage, 'rtuEnterprise', 'detail', rtuEnterpriseId] as const,
+    },
+    inverter: {
+      all: [...manage, 'inverter'] as const,
+      page: (param: ManageInverterPageParams) => [...manage, 'inverter', 'page', param] as const,
+      detail: (inverterId: number) => [...manage, 'inverter', 'detail', inverterId] as const,
+    },
+    module: {
+      all: [...manage, 'module'] as const,
+      page: (param: ManageSolaModulePageParams) => [...manage, 'module', 'page', param] as const,
+      detail: (moduleId: number) => [...manage, 'module', 'detail', moduleId] as const,
+    },
+    irrad: {
+      all: [...manage, 'irrad'] as const,
+      page: (param: ManageIrradPageParams) => [...manage, 'irrad', 'page', param] as const,
+      detail: (irradId: number) => [...manage, 'irrad', 'detail', irradId] as const,
+    },
+    /** 스트링은 설비(cid) 단위로 한 판씩 다룬다 — 상세 키도 스트링이 아니라 설비를 가리킨다 */
+    string: {
+      all: [...manage, 'string'] as const,
+      page: (param: ManageStringPageParams) => [...manage, 'string', 'page', param] as const,
+      detail: (cid: number) => [...manage, 'string', 'detail', cid] as const,
+    },
   },
 };

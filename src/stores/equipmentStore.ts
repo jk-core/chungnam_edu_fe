@@ -1,19 +1,10 @@
 import { create } from 'zustand';
 import { createJSONStorage, persist } from 'zustand/middleware';
 import { useMemo } from 'react';
-import type {
-  EquipmentMaster,
-  InverterProduct,
-  ModuleProduct,
-  Pyranometer,
-  RtuEnterprise,
-  StringMaster,
-} from '@/interface/deviceMaster';
+import type { EquipmentMaster, Pyranometer, StringMaster } from '@/interface/deviceMaster';
 import type { ChangeLog, ChangeTarget } from '@/interface/changeLog';
-import { SEED_DEVICE_CHANGES, SEED_EQUIPMENT, SEED_INVERTER_PRODUCTS, SEED_STRINGS } from '@/mocks/deviceMaster';
-import { SEED_MODULES } from '@/mocks/moduleProducts';
+import { SEED_DEVICE_CHANGES, SEED_EQUIPMENT, SEED_STRINGS } from '@/mocks/deviceMaster';
 import { SEED_PYRANOMETERS } from '@/mocks/pyranometers';
-import { SEED_RTU_ENTERPRISES } from '@/mocks/rtuEnterprises';
 
 /**
  * 시스템장비 관리의 쓰기 상태 (SFR-016-01/05, SFR-017).
@@ -21,21 +12,15 @@ import { SEED_RTU_ENTERPRISES } from '@/mocks/rtuEnterprises';
  * 발전소·사용자를 다루는 `assetStore` 와 같은 방식이다 — 시드는 mocks 가 갖고 여기는 변경분만
  * 얹는다. 갈래마다 등록·수정·삭제 셋을 갖는데, 한 스토어에 몰아 두면 `assetStore` 처럼
  * 넓어지므로 장비 몫만 따로 세운다.
+ *
+ * **여기 남은 것은 아직 API 가 없는 화면 몫이다** — 설비(meain)와 그 폼이 함께 읽는 것들.
+ * 인버터 제품·모듈 제품·스트링·일사량계 관리 화면 자체는 서버를 본다.
  */
 interface EquipmentState {
   /** 발전소에 실제로 선 설비 (meain) */
   equipmentCreated: EquipmentMaster[];
   equipmentPatched: Record<string, Partial<EquipmentMaster>>;
   equipmentDeleted: string[];
-
-  /** 인버터 제품 카탈로그 — 설비가 이 중 하나를 가리킨다 */
-  inverterCreated: InverterProduct[];
-  inverterPatched: Record<string, Partial<InverterProduct>>;
-  inverterDeleted: string[];
-
-  moduleCreated: ModuleProduct[];
-  modulePatched: Record<string, Partial<ModuleProduct>>;
-  moduleDeleted: string[];
 
   stringCreated: StringMaster[];
   stringPatched: Record<string, Partial<StringMaster>>;
@@ -45,22 +30,11 @@ interface EquipmentState {
   pyranometerPatched: Record<string, Partial<Pyranometer>>;
   pyranometerDeleted: string[];
 
-  /** RTU 업체 — 발전소가 이 중 하나를 가리킨다 */
-  rtuEnterpriseCreated: RtuEnterprise[];
-  rtuEnterprisePatched: Record<string, Partial<RtuEnterprise>>;
-  rtuEnterpriseDeleted: string[];
-
   /** 갈래가 함께 쓰는 변경 이력 (SFR-016-06) */
   deviceChanges: ChangeLog[];
 
   saveEquipment: (item: EquipmentMaster, entries: ChangeLog[], isNew: boolean) => void;
   removeEquipment: (id: string, entry: ChangeLog) => void;
-
-  saveInverter: (item: InverterProduct, entries: ChangeLog[], isNew: boolean) => void;
-  removeInverter: (id: string, entry: ChangeLog) => void;
-
-  saveModule: (item: ModuleProduct, entries: ChangeLog[], isNew: boolean) => void;
-  removeModule: (id: string, entry: ChangeLog) => void;
 
   /** 스트링은 인버터 단위로 한꺼번에 저장한다 */
   saveStrings: (inverterId: string, list: StringMaster[], entries: ChangeLog[]) => void;
@@ -68,9 +42,6 @@ interface EquipmentState {
 
   savePyranometer: (item: Pyranometer, entries: ChangeLog[], isNew: boolean) => void;
   removePyranometer: (id: string, entry: ChangeLog) => void;
-
-  saveRtuEnterprise: (item: RtuEnterprise, entries: ChangeLog[], isNew: boolean) => void;
-  removeRtuEnterprise: (id: string, entry: ChangeLog) => void;
 
   nextId: (prefix: string) => string;
   /** 서버가 새로 매길 숫자 번호를 흉내 낸다 (cid·moduleId·inverterId·stringId·irradId) */
@@ -101,21 +72,12 @@ const useEquipmentStore = create<EquipmentState>()(
       equipmentCreated: [],
       equipmentPatched: {},
       equipmentDeleted: [],
-      inverterCreated: [],
-      inverterPatched: {},
-      inverterDeleted: [],
-      moduleCreated: [],
-      modulePatched: {},
-      moduleDeleted: [],
       stringCreated: [],
       stringPatched: {},
       stringDeleted: [],
       pyranometerCreated: [],
       pyranometerPatched: {},
       pyranometerDeleted: [],
-      rtuEnterpriseCreated: [],
-      rtuEnterprisePatched: {},
-      rtuEnterpriseDeleted: [],
       deviceChanges: [],
 
       saveEquipment: (item, entries, isNew) =>
@@ -131,38 +93,6 @@ const useEquipmentStore = create<EquipmentState>()(
       removeEquipment: (id, entry) =>
         set((state) => ({
           equipmentDeleted: [...state.equipmentDeleted, id],
-          deviceChanges: [entry, ...state.deviceChanges],
-        })),
-
-      saveInverter: (item, entries, isNew) =>
-        set((state) => {
-          const next = upsert(state.inverterCreated, state.inverterPatched, item, (row) => row.id, isNew);
-
-          return {
-            inverterCreated: next.created,
-            inverterPatched: next.patched,
-            deviceChanges: [...entries, ...state.deviceChanges],
-          };
-        }),
-      removeInverter: (id, entry) =>
-        set((state) => ({
-          inverterDeleted: [...state.inverterDeleted, id],
-          deviceChanges: [entry, ...state.deviceChanges],
-        })),
-
-      saveModule: (item, entries, isNew) =>
-        set((state) => {
-          const next = upsert(state.moduleCreated, state.modulePatched, item, (row) => row.id, isNew);
-
-          return {
-            moduleCreated: next.created,
-            modulePatched: next.patched,
-            deviceChanges: [...entries, ...state.deviceChanges],
-          };
-        }),
-      removeModule: (id, entry) =>
-        set((state) => ({
-          moduleDeleted: [...state.moduleDeleted, id],
           deviceChanges: [entry, ...state.deviceChanges],
         })),
 
@@ -212,22 +142,6 @@ const useEquipmentStore = create<EquipmentState>()(
           deviceChanges: [entry, ...state.deviceChanges],
         })),
 
-      saveRtuEnterprise: (item, entries, isNew) =>
-        set((state) => {
-          const next = upsert(state.rtuEnterpriseCreated, state.rtuEnterprisePatched, item, (row) => row.id, isNew);
-
-          return {
-            rtuEnterpriseCreated: next.created,
-            rtuEnterprisePatched: next.patched,
-            deviceChanges: [...entries, ...state.deviceChanges],
-          };
-        }),
-      removeRtuEnterprise: (id, entry) =>
-        set((state) => ({
-          rtuEnterpriseDeleted: [...state.rtuEnterpriseDeleted, id],
-          deviceChanges: [entry, ...state.deviceChanges],
-        })),
-
       // 시드 id 와 겹치지 않게 접두어를 달아 준다.
       nextId: (prefix) => `${prefix}-${String(get().deviceChanges.length + 1).padStart(3, '0')}-${Date.now() % 10000}`,
       // 시드가 쓰는 번호대(1~수백)를 피해 9000 위에서 센다.
@@ -237,16 +151,15 @@ const useEquipmentStore = create<EquipmentState>()(
       name: 'cne-equipment',
       storage: createJSONStorage(() => localStorage),
       /*
-        1 판에서 `inverter*` 는 설비를 담았고 2 판에서는 인버터 제품을 담는다.
-        같은 이름에 다른 것이 들어 있으므로 옛 값을 그대로 읽으면 제품 목록에 설비가 섞인다.
         3 판에서 이력이 `kind` 대신 `targetType` 을 갖는다 — 옛 줄은 대상 구분이 없어 안 걸린다.
+        4 판에서 RTU 업체·인버터 제품·모듈 제품이 서버로 옮겨 갔고, 설비가 가리키는 제품 번호가
+        문자열에서 숫자로 바뀐다 — 옛 설비 변경분은 그 번호를 못 풀어 통째로 버린다.
       */
-      version: 3,
+      version: 4,
       migrate: (persisted) => ({
         ...(persisted as EquipmentState),
-        inverterCreated: [],
-        inverterPatched: {},
-        inverterDeleted: [],
+        equipmentCreated: [],
+        equipmentPatched: {},
         deviceChanges: [],
       }),
     },
@@ -274,22 +187,6 @@ export function mergeEquipment(
   return merge(SEED_EQUIPMENT, created, patched, deleted, (item) => item.inverterId);
 }
 
-export function mergeInverterProducts(
-  created: InverterProduct[],
-  patched: Record<string, Partial<InverterProduct>>,
-  deleted: string[],
-): InverterProduct[] {
-  return merge(SEED_INVERTER_PRODUCTS, created, patched, deleted, (item) => item.id);
-}
-
-export function mergeModules(
-  created: ModuleProduct[],
-  patched: Record<string, Partial<ModuleProduct>>,
-  deleted: string[],
-): ModuleProduct[] {
-  return merge(SEED_MODULES, created, patched, deleted, (item) => item.id);
-}
-
 export function mergeStrings(
   created: StringMaster[],
   patched: Record<string, Partial<StringMaster>>,
@@ -314,14 +211,6 @@ export function mergePyranometers(
   deleted: string[],
 ): Pyranometer[] {
   return merge(SEED_PYRANOMETERS, created, patched, deleted, (item) => item.id);
-}
-
-export function mergeRtuEnterprises(
-  created: RtuEnterprise[],
-  patched: Record<string, Partial<RtuEnterprise>>,
-  deleted: string[],
-): RtuEnterprise[] {
-  return merge(SEED_RTU_ENTERPRISES, created, patched, deleted, (item) => item.id);
 }
 
 /** 시드 + 저장분이 합쳐진 장비 변경 이력. 갈래마다 자기 줄만 걸러 본다 (SFR-016-06) */

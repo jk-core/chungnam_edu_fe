@@ -6,35 +6,10 @@ import type { RtuStatus } from './status';
   운영 화면이 쓰는 `Inverter`·`StringUnit`(interface/equipment.ts)와 일부러 갈라 둔다.
   그쪽은 발전량·건전도처럼 계산으로 채워지는 필드를 함께 들고 있어, 등록 폼이 건드릴 값과
   시스템이 만들어 내는 값이 한 타입에 섞이면 무엇을 고칠 수 있는지가 흐려진다.
-*/
 
-/**
- * 모듈 제품 마스터 — 인버터 등록에서 이 목록을 고른다 (SFR-017-05).
- * 필드는 서버 규격(`SolaModuleEquipment`)을 따른다 — 괄호 안이 API 이름이다.
- */
-export interface ModuleProduct {
-  id: string;
-  /** 서버가 매기는 모듈 번호 (moduleId) */
-  moduleId: number;
-  name: string;
-  maker: string;
-  /** 모듈 1장 출력(W) */
-  wattPerPanel: number;
-  /** 최대 출력 동작 전압(V) */
-  maxVoltage: number;
-  /** 최대 출력 동작 전류(A) */
-  maxCurrent: number;
-  /** 개방 전압(V) */
-  openVoltage: number;
-  /** 단락 전류(A) */
-  shortCurrent: number;
-  /** 전압 온도계수(%/℃) — 음수다 */
-  voltTempCoeff: number;
-  /** 전류 온도계수(%/℃) */
-  currentTempCoeff: number;
-  /** single = 단면, double = 양면 */
-  cellType: 'single' | 'double';
-}
+  **인버터·모듈 제품 카탈로그는 여기 없다** — 서버가 쥐고 있어 `service/inverter`·
+  `service/module` 의 타입을 그대로 쓴다 (`hooks/useProductCatalog.ts`).
+*/
 
 /** 일사량계(환경센서) — 발전소마다 한 대 (SFR-016-01). 서버 규격은 `EquipmentIrrad` 다. */
 export interface Pyranometer {
@@ -55,19 +30,6 @@ export interface Pyranometer {
   status: RtuStatus;
 }
 
-/**
- * RTU 업체 — 발전소에 RTU 를 대고 손보는 곳 (SFR-016-01). 서버 규격은 `RtuEnterprise` 다.
- * 발전소마다 업체명을 손으로 적으면 같은 업체가 표기만 달리한 채 흩어져, 어디로 연락할지가 흐려진다.
- */
-export interface RtuEnterprise {
-  id: string;
-  /** 서버가 매기는 업체 번호 (rtuEnterpriseId) */
-  rtuEnterpriseId: number;
-  name: string;
-  email: string;
-  phone: string;
-}
-
 /** 스트링 등록 정보 — 인버터 하나에 여러 개 (SFR-016-01). 서버 규격은 `SolaString` 이다. */
 export interface StringMaster {
   id: string;
@@ -79,29 +41,6 @@ export interface StringMaster {
   name: string;
   seriesCount: number;
   parallelCount: number;
-}
-
-/** 인버터 타입 (SFR-017-04). 서버 코드는 `configs/codes.ts` 의 `INVERTER_TYPE` 이 쥔다 */
-export type InverterKind = 'general' | 'string' | 'central' | 'micro';
-
-/**
- * 인버터 제품 마스터 — 설비 등록에서 이 목록을 고른다 (SFR-017-04).
- * 모듈 제품(`ModuleProduct`)과 짝을 이루는 카탈로그다. 설비마다 업체·모델을 손으로 적으면
- * 같은 제품이 표기만 달리한 채 흩어져, 어느 모델이 몇 대 깔렸는지 셀 수 없다.
- */
-export interface InverterProduct {
-  id: string;
-  /** 서버가 매기는 인버터 제품 번호 (inverterId) */
-  inverterId: number;
-  /** 인버터 업체명 (inverterEntName) */
-  maker: string;
-  /** 인버터 모델명 (inverterTerm) */
-  name: string;
-  /** 인버터 용량(kW) (inverterCapa) */
-  capacityKw: number;
-  kind: InverterKind;
-  /** 위상 종류 (phaseType) — 코드가 아니라 한글 문자열로 저장한다 */
-  phase: '단상' | '삼상';
 }
 
 /**
@@ -122,10 +61,10 @@ export interface EquipmentMaster {
   rtuCommId: string;
   /** RTU 포트. 3번은 일사량계 몫이라 설비가 쓸 수 없다 */
   rtuPort: number | null;
-  /** 고른 인버터 제품 (inverterId) */
-  inverterProductId: string;
-  /** 모듈 제품 (solaModuleId) */
-  moduleProductId: string;
+  /** 고른 인버터 제품의 서버 번호 (inverterId) */
+  inverterProductId: number;
+  /** 모듈 제품의 서버 번호 (solaModuleId) */
+  moduleProductId: number;
   /** 방위각(도). 정남이 180 이다 */
   azimuth: number;
   /** 경사각(도) */

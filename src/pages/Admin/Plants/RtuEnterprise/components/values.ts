@@ -1,4 +1,4 @@
-import type { RtuEnterprise } from '@/interface/deviceMaster';
+import type { ManageRtuEnterpriseDetail } from '@/service/rtuEnterprise/type';
 import type { RtuEnterpriseFormValues } from './form';
 
 export const EMPTY_VALUES: RtuEnterpriseFormValues = {
@@ -7,10 +7,10 @@ export const EMPTY_VALUES: RtuEnterpriseFormValues = {
   rtuEnterprisePhone: '',
 };
 
-export function toFormValues(target: RtuEnterprise): RtuEnterpriseFormValues {
+export function toFormValues(target: ManageRtuEnterpriseDetail): RtuEnterpriseFormValues {
   return {
-    rtuEnterpriseName: target.name,
-    rtuEnterpriseEmail: target.email,
-    rtuEnterprisePhone: target.phone,
+    rtuEnterpriseName: target.rtuEnterpriseName,
+    rtuEnterpriseEmail: target.rtuEnterpriseEmail,
+    rtuEnterprisePhone: target.rtuEnterprisePhone,
   };
 }

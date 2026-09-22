@@ -20,10 +20,8 @@ import { useManagedUsers, usePlantAssets } from '@/hooks/usePlantAssets';
 import { usePyranometerRows } from '@/pages/Admin/Plants/Pyranometer/hooks/usePyranometerRows';
 import useAssetStore from '@/stores/assetStore';
 import type { UploadFile } from '@/components/common/Form';
-import type { ChangeLog } from '@/interface/changeLog';
 import type { PlantAsset } from '@/interface/asset';
 import styles from '@/pages/Admin/Admin.module.scss';
-import { usePlantChangeLog } from '../hooks/usePlantChangeLog';
 import { usePlantCapacity } from '../hooks/usePlantData';
 import { NAME_MAX, PHOTO_MAX_COUNT, plantFormSchema } from './form';
 import {
@@ -53,7 +51,6 @@ export function PlantEditor({ powerPlantId }: { powerPlantId: number | null }) {
   const users = useManagedUsers();
   const pyranometers = usePyranometerRows();
   const capacityOf = usePlantCapacity();
-  const entryOf = usePlantChangeLog();
   const navigate = useNavigate();
 
   const asset = assets.find((item) => item.powerPlantId === powerPlantId) ?? null;
@@ -112,12 +109,7 @@ export function PlantEditor({ powerPlantId }: { powerPlantId: number | null }) {
       plantType: values.powerPlantType,
       etc: values.etc.trim(),
       photos: toPhotos(photos, created),
-    }, entryOf(
-      { id: created, name: values.powerPlantName },
-      '신규 등록',
-      '—',
-      `${values.powerPlantType} · ${regionNameOfCode(values.regionCode)}`,
-    ));
+    });
 
     toast.success(MSG.createSuccess(values.powerPlantName));
     navigate(backTo);
@@ -152,9 +144,8 @@ export function PlantEditor({ powerPlantId }: { powerPlantId: number | null }) {
       etc: values.etc.trim(),
     };
 
-    // 무엇이 바뀌었는지 필드 단위로 이력에 남긴다 (SFR-016-06).
-    const plant = { id: asset.plantId, name: asset.plantName };
-    const entries: ChangeLog[] = [
+    // 하나도 달라지지 않았으면 저장하러 가지 않는다 — 이력은 BE 가 쌓는다.
+    const changed = [
       ['발전소 이름', asset.plantName, next.plantName ?? ''],
       ['구분', asset.plantType, next.plantType ?? ''],
       ['주소', asset.address, next.address ?? ''],
@@ -169,18 +160,16 @@ export function PlantEditor({ powerPlantId }: { powerPlantId: number | null }) {
       ['비고', asset.etc || '—', next.etc || '—'],
       // 장수만 견주면 같은 장수로 갈아 끼운 것을 놓쳐 저장 자체가 거부된다.
       ['현장 사진', photoNames(asset.photos) || '—', photoNames(nextPhotos) || '—'],
-    ]
-      .filter(([, before, after]) => before !== after)
-      .map(([field, before, after]) => entryOf(plant, field, before, after));
+    ].filter(([, before, after]) => before !== after);
 
-    if (entries.length === 0) {
+    if (changed.length === 0) {
       toast.info('바뀐 내용이 없습니다.');
       navigate(backTo);
 
       return;
     }
 
-    saveAsset(asset.plantId, next, entries);
+    saveAsset(asset.plantId, next);
     toast.success(MSG.updateSuccess(asset.plantName));
     navigate(backTo);
   };
@@ -188,12 +177,7 @@ export function PlantEditor({ powerPlantId }: { powerPlantId: number | null }) {
   const remove = () => {
     if (!asset) return;
 
-    removePlant(asset.plantId, entryOf(
-      { id: asset.plantId, name: asset.plantName },
-      '삭제',
-      `${capacity.value}${capacity.unit} · ${regionNameOfCode(asset.regionCode)}`,
-      '—',
-    ));
+    removePlant(asset.plantId);
     toast.success(MSG.deleteSuccess(asset.plantName));
     navigate(backTo);
   };

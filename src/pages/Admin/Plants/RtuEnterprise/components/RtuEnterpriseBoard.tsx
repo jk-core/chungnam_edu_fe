@@ -1,4 +1,3 @@
-import { useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/common/Button';
 import { ChangeHistory } from '@/pages/Admin/_shared/ChangeHistory';
@@ -7,30 +6,25 @@ import { formatNumber } from '@/utils/format';
 import { PlusIcon } from '@/components/common/Icon';
 import { SearchInput } from '@/components/common/SearchInput';
 import styles from '@/pages/Admin/Admin.module.scss';
-import { useDeviceChanges } from '@/stores/equipmentStore';
-import { useRtuEnterpriseRows } from '../hooks/useRtuEnterpriseRows';
+import { useChangeHistory } from '@/pages/Admin/_shared/hooks/useChangeHistory';
+import { useDebounce } from '@/hooks/useDebounce';
+import { useRtuEnterpriseList } from '../hooks/useRtuEnterpriseList';
 import { RtuEnterpriseTable } from './RtuEnterpriseTable';
 
 /**
  * RTU 업체 관리 (SFR-016-01).
- * 검색 줄과 표가 같은 목록을 봐야 하므로 거르는 일만 여기서 한 번 한다.
+ * 검색은 서버가 한다 — 입력 DOM 이 즉시값을 쥐고, 조회 조건만 늦춰 갱신한다.
  */
 export function RtuEnterpriseBoard() {
-  const changes = useDeviceChanges('rtuEnterprise');
-  const allRows = useRtuEnterpriseRows();
+  const changes = useChangeHistory('RTU_ENTERPRISE');
+  const list = useRtuEnterpriseList();
   const navigate = useNavigate();
 
-  const [keyword, setKeyword] = useState('');
-
-  const rows = useMemo(() => {
-    const trimmed = keyword.trim();
-
-    return trimmed
-      ? allRows.filter((row) => row.name.includes(trimmed)
-        || row.email.includes(trimmed)
-        || row.phone.includes(trimmed))
-      : allRows;
-  }, [allRows, keyword]);
+  const search = useDebounce((keyword: string) => list.setParam((prev) => ({
+    ...prev,
+    keyword: keyword.trim() || undefined,
+    page: 0,
+  })));
 
   return (
     <>
@@ -38,12 +32,12 @@ export function RtuEnterpriseBoard() {
         <div className={styles.toolbar__left}>
           <SearchInput
             label="업체 검색"
-            value={keyword}
-            onChange={setKeyword}
+            defaultValue={list.param.keyword}
+            onChange={search}
             placeholder="업체명·이메일·전화번호로 검색"
             width="md"
           />
-          <p className={styles.toolbar__note}>총 {formatNumber(rows.length)}곳</p>
+          <p className={styles.toolbar__note}>총 {formatNumber(list.totalCount)}곳</p>
         </div>
         <div className={styles.toolbar__actions}>
           <Button iconLeft={<PlusIcon />} onClick={() => navigate(createPath('plants', 'rtu-enterprise'))}>
@@ -52,9 +46,9 @@ export function RtuEnterpriseBoard() {
         </div>
       </div>
 
-      <RtuEnterpriseTable rows={rows} />
+      <RtuEnterpriseTable list={list} />
 
-      <ChangeHistory title="RTU업체 변경 이력" rows={changes} />
+      <ChangeHistory title="RTU업체 변경 이력" rows={changes.rows} />
     </>
   );
 }

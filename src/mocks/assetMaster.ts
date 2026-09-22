@@ -1,11 +1,9 @@
-import type { ChangeLog } from '@/interface/changeLog';
 import type { FileMeta } from '@/service/common';
 import type { PlantAsset } from '@/interface/asset';
 
 import { SCHOOLS } from './schools';
 import { SEED_USERS } from './accounts';
 import { createRandom, hashSeed, pickOne } from './random';
-import { stampAgo } from './today';
 
 const BUILDERS = [
   { name: '한빛솔라건설', phone: '041-552-1100' },
@@ -81,41 +79,3 @@ const ASSET_BY_ID = new Map(SEED_ASSETS.map((asset) => [asset.plantId, asset]));
 export function getSeedAsset(plantId: string): PlantAsset | null {
   return ASSET_BY_ID.get(plantId) ?? null;
 }
-
-/** 시드 수정 이력 — 화면에서 새 수정이 이 위에 쌓인다 (SFR-016-06). */
-export const SEED_ASSET_CHANGES: ChangeLog[] = [
-  {
-    id: 'AC-2604',
-    targetType: 'powerPlant',
-    targetId: SEED_ASSETS[3].plantId,
-    targetName: SEED_ASSETS[3].plantName,
-    at: stampAgo(6, '15:12'),
-    actor: '김도현',
-    field: 'RTU 업체',
-    // 지금 값과 겹치지 않는 업체를 이전 값으로 둔다 — 같으면 이력이 바뀐 게 없어 보인다.
-    before: RTU_MAKERS.find((name) => name !== SEED_ASSETS[3].rtuEntName) ?? RTU_MAKERS[0],
-    after: SEED_ASSETS[3].rtuEntName,
-  },
-  {
-    id: 'AC-2603',
-    targetType: 'powerPlant',
-    targetId: SEED_ASSETS[11].plantId,
-    targetName: SEED_ASSETS[11].plantName,
-    at: stampAgo(13, '10:44'),
-    actor: '김도현',
-    field: '시공 업체 연락처',
-    before: '041-552-0000',
-    after: SEED_ASSETS[11].builder.phone,
-  },
-  {
-    id: 'AC-2602',
-    targetType: 'powerPlant',
-    targetId: SEED_ASSETS[27].plantId,
-    targetName: SEED_ASSETS[27].plantName,
-    at: stampAgo(21, '09:03'),
-    actor: '박세연',
-    field: '주소',
-    before: '구주소 표기',
-    after: SEED_ASSETS[27].address,
-  },
-];

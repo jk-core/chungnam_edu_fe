@@ -19,7 +19,6 @@ import { usePlantCapacity } from '@/pages/Admin/Plants/Plant/hooks/usePlantData'
 import useAssetStore from '@/stores/assetStore';
 import type { ManagedUser } from '@/interface/account';
 import styles from '@/pages/Admin/Admin.module.scss';
-import { useUserChangeLog } from '../../Account/hooks/useUserChangeLog';
 import { groupFormSchema } from './form';
 import type { GroupFormValues } from './form';
 
@@ -41,7 +40,6 @@ export function GroupEditor({ userId }: GroupEditorProps) {
   const users = useManagedUsers();
   const plants = usePlantAssets();
   const capacityOf = usePlantCapacity();
-  const entryOf = useUserChangeLog();
   const navigate = useNavigate();
 
   const target = users.find((row) => row.userId === userId) ?? null;
@@ -89,14 +87,8 @@ export function GroupEditor({ userId }: GroupEditorProps) {
       .map((powerPlantId) => plants.find((item) => item.powerPlantId === powerPlantId)?.plantId)
       .filter((plantId) => plantId !== undefined);
     const saved: ManagedUser = { ...user, role: 'group', plantIds };
-    const before = target ? `발전소 ${target.plantIds.length}곳` : ROLE_LABEL[user.role];
 
-    saveUser(saved, [entryOf(
-      saved,
-      isNew ? '그룹관리자 지정' : '맡은 발전소',
-      before,
-      `발전소 ${plantIds.length}곳`,
-    )]);
+    saveUser(saved);
     toast.success(isNew ? MSG.createSuccess(`${saved.name} 그룹관리자`) : MSG.updateSuccess(saved.name));
     navigate(backTo);
   };

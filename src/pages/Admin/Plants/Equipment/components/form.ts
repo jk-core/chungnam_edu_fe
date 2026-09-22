@@ -1,6 +1,7 @@
 import { z } from 'zod';
+import { INVERTER_TYPE, ZodInverterTypeCode } from '@/configs/codes';
 import { MSG } from '@/configs/messages';
-import { PYRANOMETER_PORT } from '@/mocks/pyranometers';
+import { IRRAD_RTU_PORT } from '@/configs/rtu';
 import { refineStringRows, stringRowSchema } from '@/schemas/stringRow';
 
 /** RTU 포트 범위. 3번은 일사량계 몫이라 설비가 못 쓴다. */
@@ -29,7 +30,7 @@ const array = (label: string) => z
 /**
  * 설비 등록·수정 폼 (SFR-016-01~04, SFR-017-04).
  *
- * `inverterKind`·`takenNumbers`·`*Label` 은 검증이 문맥을 알아야 해서 폼에 함께 싣는 값이다 —
+ * `inverterTypeCode`·`takenNumbers`·`*Label` 은 검증이 문맥을 알아야 해서 폼에 함께 싣는 값이다 —
  * 스키마를 갈아 끼우는 대신 값으로 들고 있어야, 검색기가 고른 순간 같은 틱에 다시 판정된다.
  * 보일 이름에는 규칙을 걸지 않는다 — 참조하던 제품·계정이 지워지면 이름만 비는데, 그 칸에는
  * 오류를 보여 줄 자리가 없어 「이유 없이 저장이 안 되는 폼」이 된다. 값이 있는지는 id 가 본다.
@@ -46,7 +47,7 @@ export const equipmentFormSchema = z.object({
     .int()
     .min(PORT_MIN, MSG.numberRange('RTU 포트', PORT_MIN, PORT_MAX))
     .max(PORT_MAX, MSG.numberRange('RTU 포트', PORT_MIN, PORT_MAX))
-    .refine((value) => value !== PYRANOMETER_PORT, `${PYRANOMETER_PORT}번 포트는 일사량계 몫이라 쓸 수 없습니다.`)
+    .refine((value) => value !== IRRAD_RTU_PORT, `${IRRAD_RTU_PORT}번 포트는 일사량계 몫이라 쓸 수 없습니다.`)
     .nullable(),
   inverterId: z.number(MSG.selectRequired('인버터 모델')).int(),
   moduleId: z.number(MSG.selectRequired('모듈 모델')).int(),
@@ -71,13 +72,13 @@ export const equipmentFormSchema = z.object({
   powerPlantLabel: z.string(),
   inverterLabel: z.string(),
   moduleLabel: z.string(),
-  /** 스트링 인버터인지 — 스트링 줄을 요구할지 여기서 갈린다 */
-  inverterKind: z.enum(['general', 'string', 'central', 'micro', '']),
+  /** 고른 제품의 기종 — 스트링 줄을 요구할지 여기서 갈린다. 아직 안 골랐으면 null */
+  inverterTypeCode: ZodInverterTypeCode.CODE.nullable(),
   rows: z.array(stringRowSchema),
   takenNumbers: z.array(z.number().int()),
 }).superRefine((values, ctx) => {
   // 스트링 구조는 스트링 기종에만 있다.
-  if (values.inverterKind !== 'string') return;
+  if (values.inverterTypeCode !== INVERTER_TYPE.CODE['스트링 인버터']) return;
 
   if (values.rows.length === 0) {
     ctx.addIssue({ code: 'custom', path: ['rows'], message: '스트링을 한 줄 이상 추가해 주세요.' });

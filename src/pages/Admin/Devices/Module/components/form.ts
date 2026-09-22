@@ -25,12 +25,7 @@ const numericShape = Object.fromEntries(NUMERIC.map(({ key, label, min, max }) =
     .max(max, MSG.numberRange(label, min, max)),
 ])) as Record<NumericKey, z.ZodNumber>;
 
-/**
- * 모듈 제품 등록·수정 폼 (SFR-017-05).
- *
- * 저장 계약(`SaveSolaModuleEquipmentInfo`)과 칸이 하나 어긋난다 — BE 는 셀 종류를
- * `cellType` 으로 받는데 화면은 `cellTypeCode` 로 든다. 보낼 때 이름을 갈아 끼운다.
- */
+/** 모듈 제품 등록·수정 폼 (SFR-017-05) */
 export type ModuleFormValues = z.infer<typeof moduleFormSchema>;
 export const moduleFormSchema = z.object({
   moduleName: z.string().trim().min(1, MSG.requiredField('모듈명')),

@@ -30,6 +30,11 @@ interface StringRowsProps {
   legend: string;
   hint?: string;
   emptyNote?: string;
+  /**
+   * 줄을 뺄 때 대신 처리한다. 주지 않으면 판에서만 뺀다 —
+   * 설비 폼 안의 「스트링 구조」는 아직 목업이라 서버를 불러서는 안 된다.
+   */
+  onRemove?: (row: StringRow, drop: () => void) => void;
 }
 
 /**
@@ -40,6 +45,7 @@ export function StringRows({
   legend,
   hint = '복사를 누르면 같은 구성으로 한 줄이 더 생깁니다.',
   emptyNote = '아래 버튼으로 줄을 추가해 주세요.',
+  onRemove,
 }: StringRowsProps) {
   const { control, getValues, getFieldState, formState } = useFormContext<Shape>();
   const { fields, append, remove } = useFieldArray<Shape, 'rows'>({ control, name: 'rows' });
@@ -106,7 +112,15 @@ export function StringRows({
               />
               <span className={styles.stringRow__actions}>
                 <Button size="sm" variant="secondary" onClick={() => addRow(getValues(`rows.${index}`))}>복사</Button>
-                <Button size="sm" variant="ghost" onClick={() => remove(index)}>빼기</Button>
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  onClick={() => (onRemove
+                    ? onRemove(getValues(`rows.${index}`), () => remove(index))
+                    : remove(index))}
+                >
+                  빼기
+                </Button>
               </span>
             </div>
           ))}

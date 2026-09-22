@@ -1,7 +1,15 @@
 import { z } from 'zod';
 
 /** 변경 이력 대상 타입 — `/manage/changeHistory` 의 targetType */
-export const changeHistoryTargetTypeSchema = z.enum(['USER', 'POWER_PLANT']);
+export const changeHistoryTargetTypeSchema = z.enum([
+  'USER',
+  'POWER_PLANT',
+  'RTU_ENTERPRISE',
+  'INVERTER',
+  'MODULE',
+  'STRING',
+  'IRRAD',
+]);
 export type ChangeHistoryTargetType = z.infer<typeof changeHistoryTargetTypeSchema>;
 
 /** 작업 종류 */

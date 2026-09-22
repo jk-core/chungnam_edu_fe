@@ -1,5 +1,4 @@
-import type { PlantAsset } from '@/interface/asset';
-import type { Pyranometer } from '@/interface/deviceMaster';
+import type { ManageIrradDetail } from '@/service/irrad/type';
 import type { IrradFormValues } from './form';
 
 export const EMPTY_VALUES: IrradFormValues = {
@@ -12,13 +11,13 @@ export const EMPTY_VALUES: IrradFormValues = {
   etc: '',
 };
 
-export function toFormValues(target: Pyranometer, plants: PlantAsset[]): IrradFormValues {
+export function toFormValues(target: ManageIrradDetail): IrradFormValues {
   return {
-    powerPlantId: plants.find((item) => item.plantId === target.plantId)?.powerPlantId ?? Number.NaN,
-    irradName: target.name,
+    powerPlantId: target.powerPlantId,
+    irradName: target.irradName,
     calibrationFactor: target.calibrationFactor,
-    rtuCommunicationId: target.rtuCommId,
-    isModTemp: target.hasModuleThermometer,
-    etc: target.note,
+    rtuCommunicationId: target.rtuCommunicationId,
+    isModTemp: target.isModTemp,
+    etc: target.etc,
   };
 }

@@ -4,18 +4,13 @@ import { useNavigate } from 'react-router-dom';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Button } from '@/components/common/Button';
 import { ConfirmDialog } from '@/components/common/ConfirmDialog';
-import { createdEntry, deletedEntry, diffEntries } from '@/pages/Admin/_shared/changeLog';
 import { createForm, FormRow, FormSection } from '@/components/common/Form';
 import { formatPhone } from '@/utils/format';
 import { FormPage } from '@/pages/Admin/_shared/FormPage';
-import { listPath } from '@/pages/Admin/_shared/adminPath';
 import { MSG } from '@/configs/messages';
 import { EMAIL_MAX } from '@/schemas/email';
-import { toast } from '@/stores/toastStore';
-import { useAuthUser } from '@/stores/authStore';
-import useEquipmentStore from '@/stores/equipmentStore';
-import type { RtuEnterprise } from '@/interface/deviceMaster';
-import { useRtuEnterpriseRows } from '../hooks/useRtuEnterpriseRows';
+import { PageSkeleton } from '@/components/common/Skeleton';
+import { useRtuEnterpriseEditor } from '../hooks/useRtuEnterpriseEditor';
 import { NAME_MAX, rtuEnterpriseFormSchema } from './form';
 import { EMPTY_VALUES, toFormValues } from './values';
 import type { RtuEnterpriseFormValues } from './form';
@@ -27,19 +22,22 @@ interface RtuEnterpriseEditorProps {
   rtuEnterpriseId: number | null;
 }
 
-/** RTU 업체 등록·수정 (SFR-016-01) */
+/**
+ * RTU 업체 등록·수정 (SFR-016-01).
+ * 폼의 기본값은 한 번만 잡히므로 고칠 값이 도착한 뒤에 세운다.
+ */
 export function RtuEnterpriseEditor({ rtuEnterpriseId }: RtuEnterpriseEditorProps) {
-  const saveRtuEnterprise = useEquipmentStore((state) => state.saveRtuEnterprise);
-  const removeRtuEnterprise = useEquipmentStore((state) => state.removeRtuEnterprise);
-  const nextId = useEquipmentStore((state) => state.nextId);
-  const nextSeq = useEquipmentStore((state) => state.nextSeq);
-  const actor = useAuthUser();
-  const rows = useRtuEnterpriseRows();
-  const navigate = useNavigate();
+  const editor = useRtuEnterpriseEditor(rtuEnterpriseId);
 
-  const target = rows.find((row) => row.rtuEnterpriseId === rtuEnterpriseId) ?? null;
-  const backTo = listPath('plants', 'rtu-enterprise');
-  const isNew = target === null;
+  if (editor.isLoading) return <PageSkeleton />;
+
+  return <RtuEnterpriseForm editor={editor} />;
+}
+
+function RtuEnterpriseForm({ editor }: { editor: ReturnType<typeof useRtuEnterpriseEditor> }) {
+  const { target, save, remove, backTo } = editor;
+  const navigate = useNavigate();
+  const isNew = target === undefined;
 
   const methods = useForm<RtuEnterpriseFormValues>({
     defaultValues: target ? toFormValues(target) : EMPTY_VALUES,
@@ -47,47 +45,9 @@ export function RtuEnterpriseEditor({ rtuEnterpriseId }: RtuEnterpriseEditorProp
     mode: 'onChange',
   });
 
+  // 확인창을 거쳐 저장하므로 검증을 통과한 값을 잠시 들고 있는다.
   const [pending, setPending] = useState<RtuEnterpriseFormValues | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
-
-  const commit = (values: RtuEnterpriseFormValues) => {
-    const saved: RtuEnterprise = {
-      id: target?.id ?? nextId('RTUENT'),
-      rtuEnterpriseId: target?.rtuEnterpriseId ?? nextSeq(),
-      name: values.rtuEnterpriseName,
-      email: values.rtuEnterpriseEmail,
-      phone: values.rtuEnterprisePhone.trim(),
-    };
-    const logTarget = {
-      targetType: 'rtuEnterprise' as const,
-      id: saved.id,
-      name: saved.name,
-      actor: actor?.name ?? '관리자',
-    };
-
-    const entries = isNew
-      ? createdEntry(logTarget, [saved.email, saved.phone].filter(Boolean).join(' · ') || saved.name)
-      : diffEntries(logTarget, [
-        { label: '업체 이름', before: target?.name ?? '', after: saved.name },
-        { label: '이메일', before: target?.email ?? '', after: saved.email },
-        { label: '전화번호', before: target?.phone ?? '', after: saved.phone },
-      ]);
-
-    saveRtuEnterprise(saved, entries, isNew);
-    toast.success(isNew ? MSG.createSuccess('RTU업체') : MSG.updateSuccess(saved.name));
-    navigate(backTo);
-  };
-
-  const remove = () => {
-    if (!target) return;
-
-    removeRtuEnterprise(target.id, deletedEntry(
-      { targetType: 'rtuEnterprise', id: target.id, name: target.name, actor: actor?.name ?? '관리자' },
-      [target.email, target.phone].filter(Boolean).join(' · ') || target.name,
-    ));
-    toast.success(MSG.deleteSuccess(target.name));
-    navigate(backTo);
-  };
 
   return (
     <>
@@ -127,17 +87,17 @@ export function RtuEnterpriseEditor({ rtuEnterpriseId }: RtuEnterpriseEditorProp
         isOpen={pending !== null}
         title={isNew ? MSG.createConfirm('RTU업체') : MSG.updateConfirm(pending?.rtuEnterpriseName ?? 'RTU업체')}
         confirmLabel="저장"
-        onConfirm={() => pending && commit(pending)}
+        onConfirm={() => pending && save.mutate(pending)}
         onClose={() => setPending(null)}
       />
 
       <ConfirmDialog
         isOpen={isDeleting}
-        title={MSG.deleteConfirm(target?.name ?? 'RTU업체')}
+        title={MSG.deleteConfirm(target?.rtuEnterpriseName ?? 'RTU업체')}
         description="이미 이 업체로 등록된 발전소의 표기는 그대로 남습니다."
         confirmLabel="삭제"
         tone="danger"
-        onConfirm={remove}
+        onConfirm={() => remove.mutate()}
         onClose={() => setIsDeleting(false)}
       />
     </>
