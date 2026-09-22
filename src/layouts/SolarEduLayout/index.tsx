@@ -1,4 +1,5 @@
 import { Link } from 'react-router-dom';
+import { ErrorBoundary } from '@/components/common/ErrorBoundary';
 import { CloseIcon, ExpandIcon } from '@/components/common/Icon';
 import { cn } from '@/utils/cn';
 import { WeatherIcon } from '@/components/common/DataCalendar/WeatherIcon';
@@ -195,7 +196,10 @@ export function SolarEduLayout({
         </p>
       ) : null}
 
-      <div className={styles.body}>{children}</div>
+      {/* 화면 하나가 죽어도 머리줄·시계·고르개는 살아 있게 한다 */}
+      <div className={styles.body}>
+        <ErrorBoundary label="본문">{children}</ErrorBoundary>
+      </div>
     </div>
   );
 }

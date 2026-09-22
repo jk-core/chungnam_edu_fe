@@ -1,4 +1,5 @@
 import { Link } from 'react-router-dom';
+import { ErrorBoundary } from '@/components/common/ErrorBoundary';
 import { Logo } from '@/components/layout/Logo';
 import { CloseIcon, ExpandIcon, MoonIcon, SearchIcon, SunIcon } from '@/components/common/Icon';
 import { PATH } from '@/routes/routes';
@@ -117,7 +118,10 @@ export function ControlRoomLayout({
         </div>
       </header>
 
-      <div className={styles.room__body}>{children}</div>
+      {/* 판 단위 방어는 `Panel` 이 맡고, 여기는 그 바깥이 죽는 경우를 받는다 */}
+      <div className={styles.room__body}>
+        <ErrorBoundary label="상황판">{children}</ErrorBoundary>
+      </div>
     </div>
   );
 }

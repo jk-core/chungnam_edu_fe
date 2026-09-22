@@ -1,0 +1,34 @@
+@use "@/styles/tokens/spacing" as s;
+@use "@/styles/tokens/typography" as t;
+
+/*
+  대신 서는 자리.
+
+  경고색으로 칠하지 않는다 — 벽에 걸어 두는 화면에서 붉은 칸은 「설비에 이상이 있다」 로 읽히고,
+  이것은 설비가 아니라 화면의 사정이다. 조용한 회색으로 두어 옆 판의 실제 경고와 다투지 않게 한다.
+*/
+.broken {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: s.$space-1;
+  flex: 1;
+  min-height: 0;
+  padding: s.$space-4;
+  text-align: center;
+
+  &__title {
+    @include t.body-sm;
+
+    margin: 0;
+    color: var(--text-muted);
+  }
+
+  &__note {
+    @include t.caption;
+
+    margin: 0;
+    color: var(--text-faint);
+  }
+}

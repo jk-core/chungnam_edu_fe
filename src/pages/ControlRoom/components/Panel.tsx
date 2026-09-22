@@ -1,3 +1,4 @@
+import { ErrorBoundary } from '@/components/common/ErrorBoundary';
 import styles from '../ControlRoom.module.scss';
 import type { ReactNode } from 'react';
 
@@ -34,7 +35,14 @@ export function Panel({ title, note, grow, accent, children }: PanelProps) {
         <h2 className={styles.panel__title}>{title}</h2>
         {note ? <span className={styles.panel__note}>{note}</span> : null}
       </div>
-      {children}
+      {/*
+        판 하나가 죽어도 나머지가 살아 있게 한다.
+
+        여기 한 곳에서 감싸는 까닭은 이 컴포넌트가 **모든 판의 공통 관문**이기 때문이다 —
+        시안마다 배치는 달라도 판은 전부 이것을 통과하므로, 판마다 따로 감싸면 새 판을 세울
+        때 빠뜨리는 자리가 생긴다. 이름표(`title`)를 그대로 물려 어느 판이 죽었는지 적는다.
+      */}
+      <ErrorBoundary label={title}>{children}</ErrorBoundary>
     </section>
   );
 }

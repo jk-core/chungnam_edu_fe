@@ -4,7 +4,7 @@ import { AiOrbit } from '@/components/common/AiOrbit';
 import { ChevronLeftIcon, ChevronRightIcon, PauseIcon, PlayIcon } from '@/components/common/Icon';
 import { countOperation, isAbnormal, OPERATION_LABEL, OPERATION_TONE } from '@/mocks/status';
 import { formatNumber, formatPercent } from '@/utils/format';
-import { withParticle } from '@/utils/korean';
+import { particleFor } from '@/utils/korean';
 import { currentOutputOf } from '@/mocks/schoolOutput';
 import type { BadgeTone } from '@/components/common/Badge';
 import type { School } from '@/interface/energy';
@@ -128,7 +128,7 @@ function briefingOf(region: RegionSummary, averageHours: number): BriefLine[] {
       },
     ]);
   // 이름이 데이터에서 오므로 받침을 보고 조사를 고른다 — 「보령시은」 이 되지 않게.
-  const subject = withParticle(region.name, '은').slice(region.name.length);
+  const subject = particleFor(region.name, '은');
 
   return [
     {

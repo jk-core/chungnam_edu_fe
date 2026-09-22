@@ -1,4 +1,7 @@
+import { z } from 'zod';
 import apiClient from '@/service';
+import { checked } from '@/service/validate';
+import { userDetailSchema, userDropdownSchema } from './type';
 import type {
   ChangePasswordParams,
   InitializePasswordParams,
@@ -6,7 +9,6 @@ import type {
   SignIn,
   SignInParams,
   UserDetail,
-  UserDropdown,
 } from './type';
 
 /** 인증 API — 변경 계열은 본문 없이 HTTP 상태만 돌려준다 */
@@ -42,21 +44,27 @@ export const postLogoutAll = () => apiClient.post('/user/logout/all');
 type UserDetailWire = Omit<UserDetail, 'powerPlantIds'>;
 const withPowerPlantIds = (data: UserDetailWire): UserDetail => ({ ...data, powerPlantIds: [] });
 
-export const getUserInfo = async () => {
-  const { data } = await apiClient.get<UserDetailWire>('/user/userInfo');
+/*
+  계약과 견줄 때 그 칸은 빼고 본다 — 스키마에는 있지만 서버가 보내지 않는 것이 **알려진 사실**이라,
+  그대로 견주면 매번 「불일치」 로 잡혀 정작 모르고 있던 어긋남이 그 소리에 묻힌다.
+*/
+const userDetailWireSchema = userDetailSchema.omit({ powerPlantIds: true });
 
-  return withPowerPlantIds(data);
+export const getUserInfo = async () => {
+  const { data } = await apiClient.get<unknown>('/user/userInfo');
+
+  return withPowerPlantIds(checked(userDetailWireSchema, data, 'GET /user/userInfo'));
 };
 
 /** 토큰이 담고 있는 값으로 답한다 — DB 를 다시 보지 않아 갱신이 늦을 수 있다 */
 export const getUserInfoByToken = async () => {
-  const { data } = await apiClient.get<UserDetailWire>('/user/token/Info');
+  const { data } = await apiClient.get<unknown>('/user/token/Info');
 
-  return withPowerPlantIds(data);
+  return withPowerPlantIds(checked(userDetailWireSchema, data, 'GET /user/token/Info'));
 };
 
 export const getUserDropdownList = async (name?: string) => {
-  const { data } = await apiClient.get<UserDropdown[]>('/user/list/dropdown', { params: { name } });
+  const { data } = await apiClient.get<unknown>('/user/list/dropdown', { params: { name } });
 
-  return data;
+  return checked(z.array(userDropdownSchema), data, 'GET /user/list/dropdown');
 };

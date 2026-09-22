@@ -18,6 +18,14 @@
   flex: 1;
   min-height: 0;
 
+  /* 조회 결과가 없을 때 — 시안 A 의 같은 판과 같은 결로 둔다 */
+  &__empty {
+    @include t.body-sm;
+
+    margin: auto;
+    color: var(--text-faint);
+  }
+
   /* 도형과 범례가 한 단으로 선다 — 범례가 도형 위에 얹히면 서로 글자를 갉는다 */
   &__side {
     display: flex;

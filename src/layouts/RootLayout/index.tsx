@@ -1,6 +1,7 @@
 import { useEffect } from 'react';
 import { Outlet, useLocation } from 'react-router-dom';
 import { motion } from 'motion/react';
+import { ErrorBoundary } from '@/components/common/ErrorBoundary';
 import { Footer } from '@/components/layout/Footer';
 import { Header } from '@/components/layout/Header';
 import { Masthead } from '@/components/layout/Masthead';
@@ -60,7 +61,10 @@ export default function RootLayout() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.24 }}
         >
-          <Outlet />
+          {/* 한 화면이 죽어도 헤더·LNB 가 남아 다른 메뉴로 갈 수 있다 */}
+          <ErrorBoundary label="화면">
+            <Outlet />
+          </ErrorBoundary>
         </motion.div>
       </main>
 

@@ -171,6 +171,20 @@ export function RegionStatMap({ plants, showShare = true, showFaults = true, asi
 
   // 자리는 벽시계에서 셈한다 — 옆 판(AI 진단)도 같은 식을 써서 늘 같은 시·군을 본다
   const tour = useRegionTour(rows.length);
+
+  /*
+    목록이 비면 여기서 끊는다 — 새로고침 직후(조회가 오기 전)와 조회 조건이 0건인 두 경우다.
+    아래 `active` 의 `?? rows[0]` 은 자리가 범위를 벗어난 경우의 대비책이라, 목록 자체가
+    비면 그것도 `undefined` 다. 시안 A 의 같은 판과 같은 자리에서 같은 문구로 답한다.
+  */
+  if (rows.length === 0) {
+    return (
+      <div className={styles.map}>
+        <p className={styles.map__empty}>조회 조건에 맞는 발전소가 없습니다.</p>
+      </div>
+    );
+  }
+
   const active = rows[tour.index] ?? rows[0];
 
   const capacity = formatCapacity(active.capacityKw);

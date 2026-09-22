@@ -1,4 +1,5 @@
 import { plantNodeId } from '@/configs/scope';
+import { regionNameOfCode, sigunguCodeOf } from '@/configs/regions';
 import { STATUS_TYPE } from '@/configs/codes';
 import type { OperationStatus, RtuStatus } from '@/interface/status';
 import type { School, SchoolLevel } from '@/interface/energy';
@@ -147,7 +148,20 @@ export function schoolFromPowerPlant(row: PowerPlantListItem): School {
     id,
     name: row.powerPlantName,
     regionCode: row.regionCode,
-    regionName: row.regionName,
+    /*
+      지역 이름은 서버 값을 그대로 쓰지 않고 **코드에서 시·군으로 접어** 낸다 (2026-09-22).
+
+      화면이 세우는 시·군은 열다섯이고 도형(`REGION_SHAPES`)도 그 열다섯만 안다. 그런데 서버는
+      자치구 단위(`천안시 동남구`·`천안시 서북구`)로 내려주므로, 그 이름을 그대로 담으면
+      지도에서 짝을 찾지 못해 도형과 툴팁이 어긋난다 — 천안 하나가 셋으로 갈린다.
+
+      `null` 이 섞여 오는 것도 여기서 함께 막힌다. 앞말이 비면 조사를 고르는 자리(`withParticle`)
+      까지 흘러가 엉뚱한 곳에서 터졌다.
+
+      코드는 접지 않고 그대로 둔다 — 지역 거르개는 `isInRegion` 이 시를 고르면 그 아래 구까지
+      걸어 주므로, 코드가 자치구여야 그 셈이 성립한다.
+    */
+    regionName: regionNameOfCode(sigunguCodeOf(row.regionCode)) || row.regionName || '지역 미지정',
     level: SCHOOL_LEVELS.find((item) => item === row.powerPlantType) ?? '교육기관',
     address: row.address,
     capacityKw: row.powerPlantCapacity,

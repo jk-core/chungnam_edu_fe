@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { ErrorBoundary } from '@/components/common/ErrorBoundary';
 import { formatNumber, formatPercent } from '@/utils/format';
 import { SegmentedControl } from '@/components/common/SegmentedControl';
 import type { CollectionStatus } from '@/interface/collection';
@@ -40,7 +41,10 @@ interface Totals {
 export function OutputPanel({ totals }: { totals: Totals }) {
   return (
     <section className={styles.panel} aria-label="현재 총출력">
-      <OutputGauge outputKw={totals.outputKw} capacityKw={totals.capacityKw} />
+      {/* 제목 줄이 없어 `Panel` 을 쓰지 않는 판이라, 여기서 직접 감싼다 */}
+      <ErrorBoundary label="현재 총출력">
+        <OutputGauge outputKw={totals.outputKw} capacityKw={totals.capacityKw} />
+      </ErrorBoundary>
     </section>
   );
 }
