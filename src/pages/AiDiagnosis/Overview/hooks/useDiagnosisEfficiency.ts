@@ -67,8 +67,8 @@ export function useDiagnosisEfficiency() {
         points: alignToDates(dates, row.dailyList.map((day) => ({
           date: day.dateTime,
           efficiency: day.diagEfficiency ?? 0,
-          faultCode: day.faultCode,
-          faultCodeName: day.faultCodeName,
+          faultCode: day.faultCode ?? 0,
+          faultCodeName: day.faultCodeName ?? '',
         }))),
         children: row.stringList.map((item) => toStringRow(item, dates)),
       })) ?? NONE;
@@ -96,8 +96,8 @@ function toStringRow(row: StringEfficiency, dates: string[]): DailyEfficiencyRow
     points: alignToDates(dates, row.dailyList.map((day) => ({
       date: day.dateTime,
       efficiency: day.efficiency ?? 0,
-      faultCode: day.faultCode,
-      faultCodeName: day.faultCodeName,
+      faultCode: day.faultCode ?? 0,
+      faultCodeName: day.faultCodeName ?? '',
     }))),
   };
 }

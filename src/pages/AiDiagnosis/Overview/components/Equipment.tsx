@@ -119,19 +119,22 @@ export function DiagnosisEquipment() {
       key: 'fault',
       header: '고장분류',
       hideOnTablet: true,
-      render: (row) => (row.faultCode > 0 ? row.faultCodeName : '정상'),
+      render: (row) => (row.faultCode === null ? '—' : row.faultCodeName || (row.faultCode > 0 ? '이상' : '정상')),
     },
   ];
 
-  /* 도 전체와 스트링에는 아래로 내려갈 계층이 없다 — 조회할 것이 없다고 적는다. */
+  /*
+    스트링은 진단의 최말단이라 아래가 없는 것이 정상이다 — 판 자체를 내지 않는다.
+    도 전체는 발전소를 고르면 볼 수 있으므로 그 자리에서 고르라고 적는다.
+  */
+  if (target.kind === 'string') return null;
+
   if (!hasChildren) {
     return (
       <Card padding="none">
         <EmptyState
-          title={target.kind === 'string' ? '더 내려갈 설비가 없습니다' : '발전소를 골라 주세요'}
-          description={target.kind === 'string'
-            ? '스트링이 진단의 최말단입니다. 아래 계측 추이로 이 스트링을 살펴보세요.'
-            : '진단은 발전소 한 곳에서 시작합니다. 좌측 조회 대상에서 발전소를 골라 주세요.'}
+          title="발전소를 골라 주세요"
+          description="진단은 발전소 한 곳에서 시작합니다. 좌측 조회 대상에서 발전소를 골라 주세요."
         />
       </Card>
     );
@@ -265,8 +268,7 @@ interface UnitTileProps {
 function UnitTile({ unit, index, parentName, onOpenFault, onOpen }: UnitTileProps) {
   const abnormal = isAbnormal(unit.status);
   const deviceLabel = parentName ? `${parentName} · ${unit.name}` : unit.name;
-  /* 원인·조치와 참고 사진은 코드 사전이 쥐고 있다 — 사전에 없는 코드는 펼칠 것이 없어 누르지 않는다. */
-  const fault = unit.faultCode > 0 ? getFaultCode(unit.faultCode) : null;
+  const fault = unit.faultCode !== null && unit.faultCode > 0 ? getFaultCode(unit.faultCode) : null;
 
   return (
     <motion.li
@@ -296,17 +298,7 @@ function UnitTile({ unit, index, parentName, onOpenFault, onOpen }: UnitTileProp
         차트 위 한 줄은 늘 있어야 지금 이 설비가 어떤 상태인지 카드마다 같은 자리에서 읽힌다.
         이상이면 눌러서 원인·조치로, 정상이면 눌 곳 없는 안내로 둔다.
       */}
-      {unit.faultCode > 0 ? (
-        <FaultLine unit={unit} fault={fault} deviceLabel={deviceLabel} onOpenFault={onOpenFault} />
-      ) : (
-        <p className={cn(styles.unitAlert, styles['unitAlert--running'])}>
-          <CheckIcon width={13} height={13} aria-hidden />
-          <span className={styles.unitAlert__cause}>
-            정상 · 진단 효율이 기준 안에 있습니다
-            {unit.countBelow > 0 ? ` (최근 미달 ${unit.countBelow}일)` : ''}
-          </span>
-        </p>
-      )}
+      <StatusLine unit={unit} fault={fault} deviceLabel={deviceLabel} onOpenFault={onOpenFault} />
 
       <div className={styles.unit__spark}>
         <Sparkline
@@ -358,21 +350,43 @@ function UnitTile({ unit, index, parentName, onOpenFault, onOpen }: UnitTileProp
   );
 }
 
-interface FaultLineProps {
+interface StatusLineProps {
   unit: DiagnosisUnit;
   fault: FaultCode | null;
   deviceLabel: string;
   onOpenFault: (fault: FaultCode, device: string) => void;
 }
 
-function FaultLine({ unit, fault, deviceLabel, onOpenFault }: FaultLineProps) {
+function StatusLine({ unit, fault, deviceLabel, onOpenFault }: StatusLineProps) {
+  // 진단이 아직 안 붙은 설비를 「정상」이라 적으면 멀쩡한 설비와 구분이 안 된다.
+  if (unit.faultCode === null) {
+    return (
+      <p className={cn(styles.unitAlert, styles['unitAlert--unknown'])}>
+        <span className={styles.unitAlert__cause}>진단 결과가 아직 없습니다</span>
+      </p>
+    );
+  }
+
+  if (unit.faultCode === 0) {
+    return (
+      <p className={cn(styles.unitAlert, styles['unitAlert--running'])}>
+        <CheckIcon width={13} height={13} aria-hidden />
+        <span className={styles.unitAlert__cause}>
+          {unit.faultCodeName || '정상'} · 진단 효율이 기준 안에 있습니다
+          {unit.countBelow > 0 ? ` (최근 미달 ${unit.countBelow}일)` : ''}
+        </span>
+      </p>
+    );
+  }
+
   const className = cn(styles.unitAlert, styles[`unitAlert--${unit.status}`]);
 
+  // 원인·조치와 참고 사진은 코드 사전이 쥔다 — 사전에 없는 코드는 펼칠 것이 없어 누르지 않는다.
   if (!fault) {
     return (
       <p className={className}>
         <AlertIcon width={13} height={13} aria-hidden />
-        <span className={styles.unitAlert__cause}>{unit.faultCodeName}</span>
+        <span className={styles.unitAlert__cause}>{unit.faultCodeName || '이상'}</span>
       </p>
     );
   }

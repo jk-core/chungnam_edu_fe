@@ -6,6 +6,7 @@ import { Modal } from '@/components/common/Modal';
 import { AXIS_NAME_GAP, LEGEND_GRID_TOP, topLegend } from '@/utils/chart';
 import { formatNumber } from '@/utils/format';
 import { useChartPalette } from '@/hooks/useChartPalette';
+import type { DiagnosisRawPoint } from '@/service/diagnosis/type';
 import styles from '../../AiDiagnosis.module.scss';
 import { useDiagnosisRaw } from '../hooks/useDiagnosisRaw';
 import { metricText } from './trendMetric';
@@ -182,15 +183,7 @@ export function DeepDiagnosisModal({ nodeId, date, onClose }: DeepDiagnosisModal
             </div>
             <div>
               <dt>AI 진단</dt>
-              <dd>
-                {hasLive ? (
-                  <Badge tone={worst && worst.faultCode > 0 ? 'critical' : 'ok'} withDot>
-                    {worst && worst.faultCode > 0 ? worst.faultCodeName : '정상'}
-                  </Badge>
-                ) : (
-                  <Badge tone="offline" withDot>계측 없음</Badge>
-                )}
-              </dd>
+              <dd><DiagnosisBadge hasLive={hasLive} point={worst} /></dd>
             </div>
           </dl>
 
@@ -203,4 +196,13 @@ export function DeepDiagnosisModal({ nodeId, date, onClose }: DeepDiagnosisModal
       )}
     </Modal>
   );
+}
+
+/** 진단이 아직 안 붙은 시점은 「정상」이 아니다 — 모른다고 적는다 */
+function DiagnosisBadge({ hasLive, point }: { hasLive: boolean; point: DiagnosisRawPoint | null }) {
+  if (!hasLive) return <Badge tone="offline" withDot>계측 없음</Badge>;
+  if (!point || point.faultCode === null) return <Badge tone="offline" withDot>—</Badge>;
+  if (point.faultCode > 0) return <Badge tone="critical" withDot>{point.faultCodeName ?? '이상'}</Badge>;
+
+  return <Badge tone="ok" withDot>{point.faultCodeName ?? '정상'}</Badge>;
 }

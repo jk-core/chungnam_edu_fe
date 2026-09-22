@@ -1,8 +1,7 @@
 import { DETAIL_UNIT } from '@/mocks/generation';
 import { EChart } from '@/components/common/EChart';
 import { KIND_LABEL } from '@/configs/scope';
-import { AXIS_NAME_GAP, LEGEND_GRID_TOP, seriesPalette, topLegend } from '@/utils/chart';
-import { formatNumber } from '@/utils/format';
+import { AXIS_NAME_GAP, LEGEND_GRID_TOP, seriesPalette, tooltipValue, topLegend } from '@/utils/chart';
 import { useChartPalette } from '@/hooks/useChartPalette';
 import type { NodeKind } from '@/interface/tree';
 import type { PeriodKey } from '@/mocks/generation';
@@ -48,7 +47,7 @@ export function ChildCompareChart({ view, childKind }: ChildCompareChartProps) {
       borderColor: palette.border,
       borderWidth: 1,
       textStyle: { color: palette.text, fontSize: 12, fontFamily: 'Pretendard Variable, sans-serif' },
-      valueFormatter: (value) => `${formatNumber(Number(value), 2)} h`,
+      valueFormatter: (value) => tooltipValue(value, 2, ' h'),
     },
     legend: topLegend(palette, childStats.map((child) => child.node.name)),
     xAxis: {

@@ -48,8 +48,8 @@ export const dailyEfficiencySchema = z.object({
   efficiency: z.number().nullable(),
   statusCode: ZodStatusCode.CODE,
   statusName: ZodStatusCode.NAME,
-  faultCode: ZodFaultCode,
-  faultCodeName: z.string(),
+  faultCode: ZodFaultCode.nullable(),
+  faultCodeName: z.string().nullable(),
 });
 
 /** 발전소 조회일 때의 일자별 효율 — 상태 없이 효율 이름만 갈린다 */
@@ -57,8 +57,8 @@ export type DailyDiagEfficiency = z.infer<typeof dailyDiagEfficiencySchema>;
 export const dailyDiagEfficiencySchema = z.object({
   dateTime: z.string(),
   diagEfficiency: z.number().nullable(),
-  faultCode: ZodFaultCode,
-  faultCodeName: z.string(),
+  faultCode: ZodFaultCode.nullable(),
+  faultCodeName: z.string().nullable(),
 });
 
 /* ── 설비별 진단 현황 (카드/표) ──────────────────────────── */
@@ -78,8 +78,8 @@ export const diagnosisInverterRowSchema = z.object({
   /** 최신일 기대 발전량 (kWh) */
   predictedPower: z.number().nullable(),
   countBelow: z.number().int(),
-  faultCode: ZodFaultCode,
-  faultCodeName: z.string(),
+  faultCode: ZodFaultCode.nullable(),
+  faultCodeName: z.string().nullable(),
   flowChartData: z.array(dailySimpleEfficiencySchema),
 });
 
@@ -95,8 +95,8 @@ export const diagnosisStringRowSchema = z.object({
   statusCode: ZodStatusCode.CODE,
   statusName: ZodStatusCode.NAME,
   countBelow: z.number().int(),
-  faultCode: ZodFaultCode,
-  faultCodeName: z.string(),
+  faultCode: ZodFaultCode.nullable(),
+  faultCodeName: z.string().nullable(),
   flowChartData: z.array(dailySimpleEfficiencySchema),
 });
 
@@ -137,8 +137,9 @@ export type InverterEfficiency = StringEfficiency;
 export type DiagnosisRawPoint = z.infer<typeof diagnosisRawPointSchema>;
 export const diagnosisRawPointSchema = z.object({
   gathDtm: z.string(),
-  faultCode: ZodFaultCode,
-  faultCodeName: z.string(),
+  /** 진단이 아직 안 붙은 시점은 null — 「정상」이 아니다 */
+  faultCode: ZodFaultCode.nullable(),
+  faultCodeName: z.string().nullable(),
   slpIrrad: z.number().nullable(),
   pvPwr: z.number().nullable(),
   pvPwrNormalUpper: z.number().nullable(),

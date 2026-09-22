@@ -1,8 +1,23 @@
+import { formatNumber } from '@/utils/format';
 import type { ChartPalette } from '@/hooks/useChartPalette';
 import type { EChartsOption, LineSeriesOption } from 'echarts';
 
 type MarkArea = NonNullable<LineSeriesOption['markArea']>;
 type MarkLine = NonNullable<LineSeriesOption['markLine']>;
+
+/**
+ * 툴팁에 적는 값 한 칸.
+ *
+ * 값이 없는 점은 하이픈이다 — echarts 는 끊긴 점을 `null` 이나 `'-'` 로 넘기는데,
+ * 그대로 `Number()` 에 넣으면 각각 `0` 과 `NaN` 이 되어 둘 다 거짓말이 된다.
+ */
+export function tooltipValue(value: unknown, fractionDigits = 0, unit = ''): string {
+  if (value === null || value === undefined) return '—';
+
+  const parsed = Number(value);
+
+  return Number.isNaN(parsed) ? '—' : `${formatNumber(parsed, fractionDigits)}${unit}`;
+}
 
 /**
  * 범례가 있는 차트의 상단 여백.

@@ -28,8 +28,9 @@ export interface DiagnosisUnit {
   efficiency: number | null;
   /** 기준에 못 미친 날 수 */
   countBelow: number;
-  faultCode: DiagnosisFaultCode;
-  faultCodeName: string;
+  /** 진단이 아직 안 붙었으면 null — 「정상(0)」과 다른 말이다 */
+  faultCode: DiagnosisFaultCode | null;
+  faultCodeName: string | null;
   points: DailySimpleEfficiency[];
   power: { current: number | null; predicted: number | null } | null;
 }

@@ -14,6 +14,7 @@ import type { DiagnosisRawPoint } from '@/service/diagnosis/type';
 import styles from '../../AiDiagnosis.module.scss';
 import { useDiagnosisRaw } from '../hooks/useDiagnosisRaw';
 import { metricText, readTrend, TREND_META } from './trendMetric';
+import { trendTooltip } from './trendTooltip';
 import type { TrendMetric } from './trendMetric';
 import type { EChartsOption } from 'echarts';
 
@@ -74,9 +75,8 @@ export function InverterTrendChart() {
   }, [points, density]);
 
   const meta = TREND_META[metric];
-  const labels = visible.map((point) => (density === 'detail'
-    ? dayjs(point.gathDtm).format('M/D HH시')
-    : dayjs(point.gathDtm).format('M/D')));
+  // 분·초까지 적는다 — 수집 주기가 분 단위라 시각까지만 적으면 같은 시의 점들이 구분되지 않는다.
+  const labels = visible.map((point) => dayjs(point.gathDtm).format('MM월 DD일 HH:mm:ss'));
 
   const readings = visible.map((point) => readTrend(point, metric));
   /*
@@ -89,7 +89,9 @@ export function InverterTrendChart() {
     hasBand[index] ? Math.max(0, (reading.upper ?? 0) - (reading.lower ?? 0)) : null
   ));
   // 고장으로 분류된 구간만 남긴 선 — 나머지는 끊어 둔다.
-  const faulty = visible.map((point, index) => (point.faultCode > 0 ? readings[index].measured : null));
+  const faulty = visible.map((point, index) => (
+    point.faultCode !== null && point.faultCode > 0 ? readings[index].measured : null
+  ));
 
   const option: EChartsOption = {
     grid: { top: LEGEND_GRID_TOP, right: 56, bottom: 64, left: 58 },
@@ -112,17 +114,23 @@ export function InverterTrendChart() {
           ? ((reading.measured - reading.ml) / reading.ml) * 100
           : null;
 
-        return [
-          `<strong>${dayjs(point.gathDtm).format('M월 D일 HH시')}</strong>`,
-          `측정 ${metricText(reading.measured, meta.digits, meta.unit)}`,
-          `물리모델 ${metricText(reading.phys, meta.digits, meta.unit)} · ML ${metricText(reading.ml, meta.digits, meta.unit)}`,
-          `정상범위 ${metricText(reading.lower, meta.digits)} ~ ${metricText(reading.upper, meta.digits, meta.unit)}`,
-          gap === null
-            ? 'ML 대비 —'
-            : `<span style="color:${gap < -10 ? palette.critical : palette.text}">ML 대비 ${gap > 0 ? '+' : ''}${formatNumber(gap, 1)}%</span>`,
-          `일사량 ${metricText(point.slpIrrad, 0, 'W/m²')}`,
-          `진단 ${point.faultCodeName || '정상'}`,
-        ].join('<br/>');
+        return trendTooltip({
+          title: dayjs(point.gathDtm).format('MM월 DD일 HH:mm:ss'),
+          rows: [
+            { label: meta.label, value: metricText(reading.measured, meta.digits, meta.unit), strong: true },
+            { label: '정상범위', value: `${metricText(reading.lower, meta.digits)} ~ ${metricText(reading.upper, meta.digits, meta.unit)}` },
+            { label: '물리모델', value: metricText(reading.phys, meta.digits, meta.unit) },
+            { label: 'ML 예측', value: metricText(reading.ml, meta.digits, meta.unit) },
+            {
+              label: 'ML 대비',
+              value: gap === null ? '—' : `${gap > 0 ? '+' : ''}${formatNumber(gap, 1)}%`,
+              color: gap !== null && gap < -10 ? palette.critical : undefined,
+            },
+            { label: '일사량', value: metricText(point.slpIrrad, 0, ' W/m²') },
+          ],
+          fault: { code: point.faultCode, name: point.faultCodeName },
+          palette,
+        });
       },
     },
     xAxis: {
@@ -165,6 +173,10 @@ export function InverterTrendChart() {
       },
     ],
     series: [
+      /*
+        띠는 배경이므로 모든 선 아래에 깐다 — line 계열의 기본 z 가 2 라, 그대로 두면
+        일사량(z:1)처럼 낮게 깐 선이 반투명한 띠에 덮여 흐릿하게 보인다.
+      */
       {
         name: '정상 범위 하단',
         type: 'line',
@@ -176,6 +188,7 @@ export function InverterTrendChart() {
         data: bandLow,
         tooltip: { show: false },
         legendHoverLink: false,
+        z: 0,
       },
       {
         name: '정상 범위',
@@ -187,6 +200,7 @@ export function InverterTrendChart() {
         areaStyle: { color: palette.okSoft, opacity: 0.9 },
         data: bandWidth,
         tooltip: { show: false },
+        z: 0,
       },
       {
         name: meta.label,
@@ -238,7 +252,7 @@ export function InverterTrendChart() {
         lineStyle: { color: palette.irradiance, width: 1.6, type: 'dashed' },
         itemStyle: { color: palette.irradiance },
         data: visible.map((point) => point.slpIrrad),
-        z: 1,
+        z: 2,
       },
     ],
   };

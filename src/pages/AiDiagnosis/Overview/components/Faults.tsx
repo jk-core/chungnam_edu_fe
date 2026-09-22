@@ -11,8 +11,7 @@ import { Modal } from '@/components/common/Modal';
 import { SegmentedControl } from '@/components/common/SegmentedControl';
 import { cn } from '@/utils/cn';
 import { Reveal } from '@/components/common/Reveal';
-import { normalBand, seriesPalette } from '@/utils/chart';
-import { formatNumber } from '@/utils/format';
+import { normalBand, seriesPalette, tooltipValue } from '@/utils/chart';
 import { useChartPalette } from '@/hooks/useChartPalette';
 import { useDiagnosisScope } from '@/hooks/useDiagnosisScope';
 import type { FaultCode } from '@/interface/equipment';
@@ -57,7 +56,7 @@ export function DiagnosisFaults() {
       borderColor: palette.border,
       borderWidth: 1,
       textStyle: { color: palette.text, fontSize: 12 },
-      valueFormatter: (value) => `${formatNumber(Number(value), 1)}%`,
+      valueFormatter: (value) => tooltipValue(value, 1, '%'),
     },
     xAxis: {
       type: 'category',
