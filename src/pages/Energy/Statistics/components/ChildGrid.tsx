@@ -91,7 +91,6 @@ export function ChildGrid({ stats, selectedId, dateLabel, emptyLabel, interactiv
               <Sparkline
                 values={stat.hourly}
                 tone={isAbnormal(node.status) ? 'critical' : 'solar'}
-                width={240}
                 height={44}
                 animate={false}
                 filled

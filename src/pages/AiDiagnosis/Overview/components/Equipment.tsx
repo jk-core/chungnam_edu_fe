@@ -306,46 +306,37 @@ function UnitTile({ unit, index, parentName, onOpenFault, onOpen }: UnitTileProp
           // 스파크라인은 추세 그림이라 안 잰 날을 0 으로 눕힌다 — 값은 아래 칸이 하이픈으로 말한다.
           values={unit.points.map((point) => point.efficiency ?? 0)}
           tone={abnormal ? 'critical' : 'brand'}
-          width={300}
+          bands={{ warn: DIAG_EFFICIENCY_WARN, critical: DIAG_EFFICIENCY_CRITICAL }}
           height={44}
           animate={false}
           filled
         />
         <span className={styles.unit__sparkCaption}>
-          진단 효율 추이 · {DIAG_EFFICIENCY_WARN}% 미만 주황 · {DIAG_EFFICIENCY_CRITICAL}% 미만 빨강
-          {unit.countBelow > 0 ? ` · 미달 ${unit.countBelow}일` : ''}
+          {DIAG_EFFICIENCY_WARN}% 미만 주의 · {DIAG_EFFICIENCY_CRITICAL}% 미만 경고
+          {' · '}미달 {formatNumber(unit.countBelow)}일
         </span>
       </div>
 
-      <dl className={styles.unit__metrics}>
-        {unit.power ? (
-          <>
-            <div>
-              <dt>기대값</dt>
-              <dd><EnergyValue kwh={unit.power.predicted} /></dd>
-            </div>
-            <div>
-              <dt>측정값</dt>
-              <dd><EnergyValue kwh={unit.power.current} /></dd>
-            </div>
-          </>
-        ) : (
+      {/* 측정·기대 발전량은 인버터까지만 잰다 — 스트링 카드는 이 칸을 통째로 세우지 않는다. */}
+      {unit.power ? (
+        <dl className={styles.unit__metrics}>
           <div>
-            <dt>미달일수</dt>
-            <dd>
-              {formatNumber(unit.countBelow)}
-              <small>일</small>
+            <dt>기대값</dt>
+            <dd><EnergyValue kwh={unit.power.predicted} /></dd>
+          </div>
+          <div>
+            <dt>측정값</dt>
+            <dd><EnergyValue kwh={unit.power.current} /></dd>
+          </div>
+          <div>
+            <dt>발전 효율</dt>
+            <dd className={isBelowWarn(unit.efficiency) ? styles.deltaDown : undefined}>
+              {unit.efficiency === null ? '—' : formatNumber(unit.efficiency, 1)}
+              {unit.efficiency === null ? null : <small>%</small>}
             </dd>
           </div>
-        )}
-        <div>
-          <dt>발전 효율</dt>
-          <dd className={isBelowWarn(unit.efficiency) ? styles.deltaDown : undefined}>
-            {unit.efficiency === null ? '—' : formatNumber(unit.efficiency, 1)}
-            {unit.efficiency === null ? null : <small>%</small>}
-          </dd>
-        </div>
-      </dl>
+        </dl>
+      ) : null}
     </motion.li>
   );
 }
@@ -371,9 +362,9 @@ function StatusLine({ unit, fault, deviceLabel, onOpenFault }: StatusLineProps) 
     return (
       <p className={cn(styles.unitAlert, styles['unitAlert--running'])}>
         <CheckIcon width={13} height={13} aria-hidden />
+        {/* 미달일수는 추이 캡션이 적는다 — 한 카드에서 같은 값을 두 번 읽게 두지 않는다. */}
         <span className={styles.unitAlert__cause}>
           {unit.faultCodeName || '정상'} · 진단 효율이 기준 안에 있습니다
-          {unit.countBelow > 0 ? ` (최근 미달 ${unit.countBelow}일)` : ''}
         </span>
       </p>
     );
