@@ -31,13 +31,6 @@ interface ControlRoomLayoutProps {
   searchSummary?: string;
   /** 화면에 깔린 값이 언제 수집된 것인지 (`YYYY-MM-DD HH:mm`) */
   collectedAt?: string;
-  /**
-   * 화면의 결. 주지 않으면 서비스 기본 색을 쓴다.
-   *
-   * 시안을 견주는 동안에만 쓴다 — 판과 값은 그대로 두고 색·글꼴만 갈아 끼워,
-   * 무엇 때문에 다르게 읽히는지가 그 하나로 좁혀지게 한다.
-   */
-  skin?: 'cyber';
   children: ReactNode;
 }
 
@@ -52,15 +45,13 @@ export function ControlRoomLayout({
   onSearch,
   searchSummary,
   collectedAt,
-  skin,
   children,
 }: ControlRoomLayoutProps) {
   const { isFullscreen, toggle: toggleFullscreen } = useFullscreen();
   const { theme, toggle: toggleTheme } = useRoomTheme();
 
   return (
-    /* 결을 화면 전체가 물려받는다 — 바탕과 가장자리가 같은 색으로 함께 점등한다 */
-    <div className={styles.room} data-alert={alertTone ?? undefined} data-skin={skin}>
+    <div className={styles.room} data-alert={alertTone ?? undefined}>
       {/* 멀리서도 "지금 뭔가 잘못됐다" 가 읽히도록 화면 가장자리가 맥동한다 */}
       {/*
         가장자리 경보 등 — 상시 점멸이 되어 걷어냈다(2026-08-21 회의). 되살릴 때는 이 줄만 풀면 된다.

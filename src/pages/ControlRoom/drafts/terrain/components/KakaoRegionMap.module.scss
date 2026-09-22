@@ -1,0 +1,548 @@
+@use "@/styles/tokens/spacing" as s;
+@use "@/styles/tokens/typography" as t;
+@use "@/styles/utils/media" as media;
+
+/* 지도는 칸을 꽉 채운다 */
+.canvas {
+  position: relative; /* 손잡이·이름표 안내·발전소 상세를 지도 위에 얹기 위한 기준 */
+  width: 100%;
+  height: 100%;
+
+  /*
+    카카오가 경계선을 그리는 판을 되살린다.
+
+    전역 리셋이 `img, svg { max-width: 100% }` 를 두는데, 카카오는 시·군 경계를 담는 `<svg>`
+    를 폭 0 인 절대 배치 칸 안에 넣고 인라인으로 `width: 6470px` 를 준다. 그러면 `100%` 가
+    0 이 되어 리셋이 인라인 폭을 이기고, **경로 열다섯이 그려진 채로 폭 0 에 눌려** 화면에는
+    아무것도 안 나온다. 경계가 통째로 사라져 보이던 원인이 이것이다.
+
+    이 칸 안에는 우리가 그리는 `svg` 가 없다 — 배지도 이름표도 HTML 이다. 그래서 지도 안에서만
+    리셋을 되돌려도 다른 그림에 닿지 않는다.
+  */
+  :global(svg) {
+    max-width: none;
+  }
+}
+
+/*
+  시·군 배지 — 두 단으로 쌓은 상자 (고객 요청 2026-09-15, "박스형구조로 변경").
+
+  알약 하나에 〈색점·이름·개소〉를 가로로 늘어놓던 것을 층이 있는 상자로 바꾼다. 위층이 이름,
+  아래층이 개소 수다 — 무엇을 가리키는지가 먼저 읽히고 수치가 뒤따른다. 가로로 늘어놓으면
+  셋이 같은 무게로 나란해 이름이 수치에 묻혔다.
+
+  개소 수 단계색은 왼쪽 가장자리 띠가 쥔다. 안쪽 색점이 쥐던 때는 점이 이름 앞자리를 먹어
+  이름이 그만큼 밀렸는데, 띠로 옮기면 상자 테두리의 일부가 되어 글자 자리를 빼앗지 않는다.
+  도형 지도의 단계색과 같은 값을 실지도 위에서도 읽게 한다는 구실은 그대로다.
+
+  모서리는 이 화면의 판이 쓰는 `--room-radius`(12px)보다 한 단 조인 10px 이다 — 배지는 판보다
+  훨씬 작아 같은 곡률을 주면 상자가 아니라 알약 쪽으로 기운다. 알약(999px)은 버렸다.
+
+  면과 빛은 시안 A 의 판(`ControlRoom.module.scss` 의 `.panel`)이 쓰는 말을 따른다 —
+  `--surface` 면에 오른쪽 위에서 옅게 번지는 브랜드 광. 지도 위의 배지와 둘레의 판이 한 벌로
+  읽히게 하려는 것이다. 다만 테두리는 A 의 `--border-subtle` 을 쓰지 못한다 (아래 이중 윤곽선).
+*/
+.badge {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+  padding: s.$space-2 s.$space-3;
+
+  /*
+    테두리가 그 시·군의 색을 띤다 (고객 요청 2026-09-15).
+
+    배지 열다섯이 모두 같은 회색 테를 두르면 어느 것이 어느 시·군인지 이름을 읽어야만 갈린다.
+    지도 면을 칠하는 것과 **같은 CI 색**을 테에 옅게 얹으면, 배지와 그 아래 물든 면이 한 곳을
+    가리키는 것으로 눈이 먼저 잇는다. 색을 면에 칠하지 않고 테와 작은 점에만 두는 것은 상자
+    안의 글자가 그 색에 물들지 않게 하려는 것이다 — 시·군 색은 열다섯 가지라 어떤 것은 옅고
+    어떤 것은 짙어, 면에 깔면 글자 대비가 시·군마다 달라진다.
+  */
+  border: 1.5px solid rgb(from var(--region-tone, var(--border-strong)) r g b / 70%);
+  border-radius: 12px;
+  background-color: var(--surface);
+
+  /*
+    상자는 발전소 이름표(`.plant`)와 같은 문법을 쓴다 — 지도 앱의 장소 정보창에서 빌린 결로,
+    선을 거의 지우고 **면과 그림자로 띄운다** (고객 요청 2026-09-15). 같은 지도 위에 서는 두
+    조각이 다른 말을 쓰면 시·군과 발전소가 다른 시스템의 것처럼 보인다.
+
+    한때 짙은 키라인에 밝은 면색 한 겹을 덧대 두 겹으로 둘렀다 — 어두운 타일에서 묻히지 않게
+    하려던 것이다. 그런데 그 겹이 둘레에 **흰 띠**로 보여 테두리가 두 줄로 갈라진 것처럼
+    읽혔고, 굵기를 반으로 줄여도 마찬가지였다. 걷어냈다 — 면과 그림자만으로도 밝은 타일·짙은
+    타일 양쪽에서 윤곽이 선다.
+  */
+  box-shadow: 0 2px 10px rgb(0 0 0 / 16%), 0 1px 2px rgb(0 0 0 / 10%);
+  cursor: pointer;
+  white-space: nowrap;
+
+  /* 왼쪽 단계 띠가 모서리 곡률을 따라 잘리게 — 띠가 네모로 삐져나오면 상자 결이 깨진다 */
+  overflow: hidden;
+
+  /*
+    고른 시·군이 들리는 동작 (고객 요청 2026-09-14).
+
+    배지는 무게중심에 못 박혀 있어, 개소가 몰린 북부(천안·아산·당진)에서는 이웃과 겹쳐 어느
+    것이 어느 시·군인지 가려지지 않는다. 고른 것을 살짝 키워 다른 것들 위로 올리면 그 한
+    장만 온전히 드러나므로, 겹침을 자리로 풀지 않고 층으로 푼다.
+
+    커지는 기준점을 아래 끝에 둔다 — 배지가 가리키는 자리는 그 아래 한 점이므로, 가운데를
+    기준으로 키우면 배지가 가리키던 자리에서 떠오른다.
+
+    고르지 않은 배지는 한 단 줄인다(0.92). 더 줄이고 싶어도 이 화면은 보는 사람의 연령이
+    높아 실제로 그려지는 글자가 14px 아래로 내려가면 안 된다. 이름이 label-md(뿌리 18px 기준
+    15.75px)라 0.92 배에서도 14.49px 로 하한을 지킨다 — 그래서 0.88 같은 더 낮은 값을 버렸다.
+    아래 끝을 기준으로 줄어들어 가리키던 자리에서 뜨지 않는다.
+
+    도 전체 뷰에서 이웃과 겹치는 배지는 화면에서 조금 밀어 둔다(③) — 미는 값은 컴포넌트가
+    `--badge-shift-x/y` 로 내려 준다. translate 를 scale 앞에 두어(`translate(...) scale(...)`),
+    scale 이 좌표에 먼저 걸려도 민 거리는 배율의 영향을 받지 않는다 — 고른 배지가 1.16 배로
+    커져도 민 거리가 그대로 유지된다. 값이 없는 배지는 0px 이라 제자리다.
+  */
+  $shift: translate(var(--badge-shift-x, 0px), var(--badge-shift-y, 0px));
+
+  transform: $shift scale(0.92);
+  transform-origin: 50% 100%;
+  transition: transform 0.22s cubic-bezier(0.22, 0.68, 0.32, 1.4), border-color 0.18s ease,
+    box-shadow 0.18s ease;
+
+  &:hover {
+    transform: $shift scale(0.98);
+  }
+
+  @include media.reduced-motion {
+    transition: none;
+  }
+
+  /*
+    개소 수 단계 띠 — 왼쪽 가장자리를 세로로 채운다.
+    안쪽 면과 맞닿는 쪽에 옅은 키라인을 한 줄 둬, 옅은 단계(1)가 흰 면에 번지지 않게 한다.
+  */
+
+  /* 윗단 — 색 점과 이름이 한 줄에 선다 */
+  &__head {
+    display: flex;
+    align-items: center;
+    gap: s.$space-2;
+  }
+
+  /* 그 시·군의 색 — 테두리와 같은 색을 점으로 한 번 더 짚어 준다 */
+  &__tone {
+    width: 8px;
+    height: 8px;
+    flex-shrink: 0;
+    border-radius: s.$radius-full;
+    background-color: var(--region-tone, var(--text-muted));
+  }
+
+  /*
+    윗단은 이름, 아랫단은 개소 수와 이상 수 (고객 요청 2026-09-15).
+
+    지도 앱의 장소 정보창이 제목 한 줄을 세우고 그 아래 딸린 값을 붙이는 짜임이다. 둘 다
+    **왼쪽 끝에 맞춰** 선다 — 가운데로 모으면 줄마다 시작점이 달라져 이름을 훑는 눈이 걸린다.
+  */
+  &__foot {
+    display: flex;
+    align-items: baseline;
+    gap: s.$space-2;
+  }
+
+  /* 제목 자리 — 상자에서 가장 먼저 읽혀야 한다 */
+  &__name {
+    @include t.label-md;
+
+    color: var(--text-strong);
+    font-weight: 700;
+    line-height: 1.2;
+  }
+
+  &__count {
+    @include t.data-sm;
+
+    color: var(--text-muted);
+    line-height: 1.2;
+  }
+
+  &__unit {
+    @include t.label-md;
+
+    margin-left: 1px;
+    color: var(--text-muted);
+  }
+
+  &__alert {
+    @include t.label-md;
+
+    padding: 0 s.$space-2;
+
+    /* 상자 안의 작은 칸이라 상자보다 더 조인다 — 알약으로 두면 이 한 조각만 결이 달라진다 */
+    border-radius: s.$radius-xs;
+    background-color: var(--critical-soft);
+    color: var(--critical-text);
+  }
+
+  /*
+    고르지 않은 배지의 이상 표식.
+    「이상 N」 텍스트 칸을 지운 자리에 남기는 작은 점 하나 — 폭을 아껴 겹침을 줄이는 것이
+    목적이므로 글자가 아니라 점이다(글자였다면 14px 하한에 걸린다). 발전소 이름표와 같은 이중
+    윤곽(밝은 테 + 짙은 링)으로 밝은 도심 타일에도, 짙은 산지 타일에도 묻히지 않게 세운다.
+  */
+  &__flag {
+    width: 10px;
+    height: 10px;
+    flex-shrink: 0;
+    border: 1.5px solid var(--surface);
+    border-radius: s.$radius-full;
+    background-color: var(--critical);
+    box-shadow: 0 0 0 1px var(--text-strong);
+  }
+
+  /*
+    고른 시·군.
+
+    테가 제 색으로 또렷해지고 이름·개소가 한 단 커진다. 색만 바꾸지 않는 것은, 시·군 색이
+    열다섯 가지라 어떤 색은 옅어 「골라졌다」 가 색 하나로는 잡히지 않기 때문이다 — 크기와
+    그림자가 함께 말한다.
+  */
+  &[data-on] {
+    border-color: var(--region-tone, var(--brand));
+    background:
+      radial-gradient(130% 100% at 100% 0%, rgb(from var(--brand) r g b / 12%), transparent 60%),
+      var(--surface-raised);
+
+    /* 들린 만큼 그림자도 깊어져 이웃 위에 떠 있는 것으로 읽힌다 */
+    box-shadow: 0 10px 28px rgb(0 0 0 / 34%);
+    transform: $shift scale(1.16);
+
+    &:hover {
+      transform: $shift scale(1.16);
+    }
+
+    .badge__name {
+      @include t.title-sm;
+
+      color: var(--brand-contrast);
+    }
+
+    .badge__count {
+      @include t.data-md;
+    }
+  }
+}
+
+/*
+  발전소 이름표 (고객 요청 2026-09-15 — "발전소들의 툴팁을 전부 보여주고").
+
+  시·군 배지보다 한참 작고 단순하다 — 상태 점 하나와 이름뿐이고, 모서리도 배지(10px)보다 조인
+  6px 이다. 한 시·군에 55개까지 서므로 담는 것이 하나라도 늘면 곧바로 겹침이 된다.
+
+  글자는 줄이지 않는다. 이 화면의 14px 하한에 걸리기 때문이다 — 대신 **한 번에 이름이 서는
+  개수** 를 줄인다(컴포넌트의 자리다툼). 자리를 얻지 못한 것은 아래 `[data-mini]` 로 접혀
+  상태 점만 남고, 확대하면 다시 펴진다.
+
+  생김새는 지도 앱의 장소 정보창에서 빌렸다 (고객 요청 2026-09-15) — 흰 면을 넉넉히 두른
+  둥근 상자에 그림자를 깔고, 이름을 굵게 세운 뒤 그 옆에 한 단 작은 글씨를 붙이는 결이다.
+  테두리는 거의 지운다. 선으로 상자를 긋는 대신 **면과 그림자로 띄우면** 지도 위에 얹힌
+  조각이 가벼워지고, 이름이 상자보다 먼저 읽힌다.
+*/
+.plant {
+  display: inline-flex;
+  align-items: center;
+  gap: s.$space-2;
+  padding: s.$space-1 s.$space-3;
+  border: 1px solid var(--border-subtle);
+  border-radius: 12px;
+  background-color: var(--surface);
+
+  /* 면이 배경에서 떠 보여야 테두리 없이도 상자가 선다 */
+  box-shadow: 0 2px 10px rgb(0 0 0 / 16%), 0 1px 2px rgb(0 0 0 / 10%);
+  cursor: pointer;
+  white-space: nowrap;
+  transition: border-color 0.16s ease, box-shadow 0.16s ease;
+
+  &:hover {
+    border-color: var(--brand);
+    box-shadow: 0 4px 14px rgb(0 0 0 / 22%), 0 1px 2px rgb(0 0 0 / 10%);
+  }
+
+  @include media.reduced-motion {
+    transition: none;
+  }
+
+  /*
+    이름 옆에 붙는 상태.
+
+    한때 시안 A 의 뾰족핀을 그대로 가져다 썼다. 자리를 짚는 데는 그만이지만, 색 하나로 다섯
+    가지 상태(정상·준비중·주의·경고·통신단절)를 말해야 해서 **어느 색이 무엇인지 범례를 찾아야**
+    읽혔다. 벽에 걸어 두고 지나가며 보는 화면에서 범례를 되짚게 하면 그 값은 없는 것과 같다.
+    아이콘을 걷고 상태를 글로 적는다 (고객 요청 2026-09-15).
+
+    장소 정보창이 제목 옆에 분류를 한 단 작고 옅게 붙이는 자리다. 거기서는 회색 한 색이면
+    되지만 우리가 붙이는 것은 **상태**라 색이 뜻을 나른다 — 글자를 상태색의 짙은 쪽으로 두고
+    앞에 같은 색 점을 하나 세운다. 색을 못 가리는 사람에게도 글자가 그대로 남는다.
+
+    면을 칠하지 않는 것은 이름과 다투지 않게 하려는 것이다. 알약으로 두었더니 상자 안에
+    작은 상자가 하나 더 생겨 지도 위 조각이 부산해 보였다.
+  */
+  &__state {
+    @include t.label-md;
+
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    flex-shrink: 0;
+    color: var(--state-text, var(--offline-text));
+
+    &::before {
+      content: "";
+      width: 7px;
+      height: 7px;
+      border-radius: s.$radius-full;
+      background-color: var(--state-tone, var(--offline));
+    }
+  }
+
+  /*
+    접혔을 때 남는 상태 점.
+
+    이름과 상태 글이 함께 숨으면 자리를 짚는 것이 아무것도 남지 않는다. 겹쳐 접힌 자리에서는
+    「여기 무엇인가 있다」 와 그 상태색만 남기고, 눌러서 펴 보게 한다.
+  */
+  &__pip {
+    display: none;
+    width: 15px;
+    height: 15px;
+    flex-shrink: 0;
+    border: 2px solid var(--surface);
+    border-radius: s.$radius-full;
+    background-color: var(--state-tone, var(--offline));
+    box-shadow: var(--shadow-md);
+  }
+
+  /* 제목 자리 — 상자에서 가장 먼저 읽혀야 한다 */
+  &__name {
+    @include t.label-md;
+
+    color: var(--text-strong);
+    font-weight: 700;
+  }
+
+  &--ok {
+    --state-tone: var(--ok);
+    --state-soft: var(--ok-soft);
+    --state-text: var(--ok-text);
+  }
+
+  &--brand {
+    --state-tone: var(--brand);
+    --state-soft: var(--brand-soft);
+    --state-text: var(--brand-text);
+  }
+
+  &--caution {
+    --state-tone: var(--caution);
+    --state-soft: var(--caution-soft);
+    --state-text: var(--caution-text);
+  }
+
+  &--critical {
+    --state-tone: var(--critical);
+    --state-soft: var(--critical-soft);
+    --state-text: var(--critical-text);
+  }
+
+  &--offline {
+    --state-tone: var(--offline);
+    --state-soft: var(--offline-soft);
+    --state-text: var(--offline-text);
+  }
+
+  /*
+    접힌 이름표 — 상자를 걷고 핀만 남긴다.
+    핀은 펴진 때보다 한 단 키워 홀로 서도 눌릴 만한 크기를 지킨다. 접혀도 같은 단추라 눌러
+    상세를 볼 수 있다 — 「전부 보여준다」 에서 사라지는 발전소가 없어야 한다.
+  */
+  &[data-mini] {
+    gap: 0;
+    padding: 0;
+    border: 0;
+    background: none;
+    box-shadow: none;
+
+    .plant__name,
+    .plant__state {
+      display: none;
+    }
+
+    .plant__pip {
+      display: block;
+    }
+  }
+
+  /*
+    점 아래에 서는 이름표.
+
+    제 칸 안에서만 내려간다(`position: relative`) — 칸을 옮기면 카카오가 잡아 준 자리가
+    흔들려 어느 점을 가리키는지 흐려지고, 겹침을 재는 쪽도 기준점을 잃는다. 백분율은 칸의
+    키를 기준으로 풀리므로 120% 가 곧 「제 키의 1.2 배 아래」 다(컴포넌트의 PLANT_DOWN_SHIFT).
+  */
+  &[data-place="down"] {
+    position: relative;
+    top: 120%;
+  }
+
+  /*
+    자리다툼을 아직 끝내지 않은 한 박자.
+    폭을 재려면 이름표가 모두 펴져 있어야 하는데, 그 한 컷이 눈에 걸리면 이름이 와르르 쏟아졌다
+    걷히는 것으로 보인다. 자리를 차지한 채(레이아웃은 그대로) 보이지만 않게 둔다.
+  */
+  &[data-measuring] {
+    visibility: hidden;
+  }
+
+  /* 상세를 펼쳐 둔 발전소 — 어느 점을 보고 있는지 지도에서도 짚인다 */
+  &[data-open] {
+    border-color: var(--brand);
+    box-shadow: 0 0 0 3.5px rgb(from var(--brand) r g b / 45%), var(--shadow-md);
+  }
+}
+
+/*
+  지도 왼쪽 위에 겹쳐 세우는 손잡이 묶음.
+  「전체 보기」 와 이름표 안내가 세로로 쌓인다 — 둘 다 지도 왼쪽 위 여백에 놓이므로 각자
+  절대 배치하면 서로 자리를 다툰다.
+*/
+.deck {
+  position: absolute;
+  top: s.$space-3;
+  left: s.$space-3;
+  z-index: 30; /* 배지(최대 20)·발전소 이름표 위에 뜬다 */
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: s.$space-2;
+
+  /* 지도를 끌거나 확대하는 손짓이 이 칸의 빈자리에 막히지 않게 — 자식만 손짓을 받는다 */
+  pointer-events: none;
+
+  > * {
+    pointer-events: auto;
+  }
+}
+
+/*
+  「전체 보기」 손잡이.
+
+  한 시·군에 확대해 들어갔을 때만 뜬다. 배지와 같은 이중 윤곽(밝은 겹 + 짙은 키라인)으로 어느
+  타일 위에서도 선다 — 확대해 들어가면 그 밑이 산지든 도심이든 제각각이라, 배경에 묻히면
+  되돌아갈 길을 잃는다. 글자는 배지 이름과 같은 label-md 로 둬(뿌리 18px 기준 15.75px) 이
+  화면의 14px 하한을 지킨다. 모서리는 배지와 같은 10px — 지도 위에 얹히는 것끼리 결을 맞춘다.
+*/
+.overview {
+  padding: s.$space-2 s.$space-4;
+
+  /*
+    테두리는 주색을 옅게 탄 선이다.
+
+    글자색(`--text-strong`)으로 두면 밝은 화면에서 거의 검은 테가 되어 지도 위에 얹힌 조각
+    치고 무겁고, 어두운 화면에서는 흰 테가 되어 겉돈다 (고객 지적 2026-09-15). 주색을 섞어
+    두면 두 화면 모두에서 면과 이어지는 선이 되고, 짚었을 때 그 선이 진해지는 것으로 눌리는
+    자리임도 말한다.
+  */
+  border: 1.5px solid rgb(from var(--brand) r g b / 42%);
+  border-radius: 10px;
+  background-color: var(--surface);
+  box-shadow: var(--shadow-lg);
+  color: var(--brand-contrast);
+  cursor: pointer;
+
+  @include t.label-md;
+
+  transition: background-color 0.16s ease, border-color 0.16s ease;
+
+  &:hover {
+    border-color: var(--brand);
+    background-color: var(--brand-soft);
+  }
+
+  @include media.reduced-motion {
+    transition: none;
+  }
+}
+
+
+/*
+  고른 발전소 상세 (고객 요청 2026-09-15 — "A시안과 동일하게").
+
+  속은 시안 A 와 같은 `PlantDetailPanel` 이고, 껍데기만 이 화면의 말로 두른다 — 지도 위에
+  겹치므로 배지·손잡이와 같은 이중 윤곽을 두르고, 모서리는 판과 같은 `--room-radius` 를 쓴다
+  (배지와 달리 이것은 「판」 이라 판의 곡률을 따른다).
+
+  높이는 내용만큼만 차지하되 판을 넘기지 않는다. 뿌리 글자가 18px 인 화면이라 A 에서 딱 맞던
+  상세가 여기서는 길어져, 넘치는 만큼은 안쪽이 굴려 받는다.
+*/
+.detail {
+  position: absolute;
+  top: s.$space-3;
+  right: s.$space-3;
+  z-index: 32;
+  display: flex;
+  flex-direction: column;
+  width: 300px;
+  max-width: calc(100% - #{s.$space-6});
+  max-height: calc(100% - #{s.$space-6});
+  padding: s.$space-3;
+  border: 1.5px solid rgb(from var(--brand) r g b / 45%);
+  border-radius: var(--room-radius);
+  background:
+    radial-gradient(120% 90% at 100% 0%, rgb(from var(--brand) r g b / 6%), transparent 58%),
+    var(--surface-raised);
+  box-shadow: var(--shadow-lg);
+  overflow: hidden;
+  animation: plant-detail-in 0.2s ease-out;
+
+  /* 상자는 바깥이 갖고 스크롤은 안쪽이 맡는다 — 스크롤바가 테두리를 건드리지 않는다 */
+  &__scroll {
+    flex: 1;
+    min-height: 0;
+    overflow: hidden auto;
+    scrollbar-gutter: stable;
+  }
+
+  &__close {
+    position: absolute;
+    top: s.$space-1;
+    right: s.$space-1;
+    z-index: 1;
+    display: grid;
+    place-items: center;
+    width: 30px;
+    height: 30px;
+    border-radius: s.$radius-full;
+    background-color: var(--surface-raised);
+    color: var(--text-muted);
+    cursor: pointer;
+
+    &:hover {
+      background-color: var(--surface-sunken);
+      color: var(--text-strong);
+    }
+  }
+
+  @include media.reduced-motion {
+    animation: none;
+  }
+}
+
+@keyframes plant-detail-in {
+  from {
+    opacity: 0;
+    transform: translateX(14px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}

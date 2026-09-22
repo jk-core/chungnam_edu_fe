@@ -1,0 +1,104 @@
+@use "@/styles/tokens/spacing" as s;
+
+/*
+  판 속 네 켜.
+
+  위에서 아래로 좁혀 읽힌다 — 충남 전체 도형(+시·군 상세) · 그 시·군만 당긴 지도와 잡힌 것들 ·
+  도 전체 요약. 첫 켜가 남는 높이를 받고 나머지는 제 키만큼만 쓴다: 도형은 높이를 받은 만큼
+  커지지만 아래 셋은 줄 수와 글자가 키를 정해 자리를 줘도 그만큼 빈다.
+*/
+.board {
+  display: flex;
+  flex-direction: column;
+  gap: s.$space-3;
+  flex: 1;
+  min-height: 0;
+
+  &__row {
+    display: grid;
+
+    /* 당긴 지도는 제 비율(600:516)만큼만 쓰고, 남는 폭은 목록이 받는다 */
+    grid-template-columns: 300px minmax(0, 1fr);
+    gap: s.$space-3;
+    flex-shrink: 0;
+
+    /*
+      아래 줄의 키.
+
+      320px 까지 키워 목록을 더 세워 보았으나, 그만큼 위 도형이 낮아져 시·군 이름이 다시 잘 안
+      읽혔다. 도형이 이 판의 주인이므로 아래가 양보한다 — 목록은 줄 높이를 30px 로 조여 같은
+      자리에서 한 줄이라도 더 세우고, 모자라는 만큼은 「더보기」 가 모달로 받는다.
+
+      도형은 **높이**에 막혀 있다. 칸이 584×453 일 때 600:516 비율을 지키면 폭 525 만 쓰고 좌우로
+      59px 를 남긴다 — 옆 칸을 좁혀도 도형은 그만큼 크지 않고, 높이를 줘야 커진다. 그래서 이 줄에서
+      덜어 낸 만큼이 그대로 도형의 크기가 된다.
+    */
+    height: 250px;
+
+    /*
+      칸 둘이 제 키보다 작아질 수 있어야 한다.
+
+      격자 칸은 기본이 `min-height: auto` 라 **내용보다 작아지지 않는다** — 안쪽 지도와 목록이
+      제 키를 고집해 둘 다 판 바닥을 45px 씩 넘겼다. 0 으로 풀어 줄 높이에 맞추고, 그래도 남는
+      것은 상자가 잘라 낸다(목록은 본디 들어가는 만큼만 보여 주는 자리다).
+    */
+    > * {
+      min-height: 0;
+      overflow: hidden;
+    }
+  }
+}
+
+/* 지금 보고 있는 시·군만 당겨 보여 주는 지도 */
+.spot {
+  display: flex;
+  flex-direction: column;
+  gap: s.$space-2;
+  min-width: 0;
+  padding: s.$space-3;
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--room-radius);
+  background-color: var(--surface);
+
+  /*
+    당긴 지도가 면을 칠하는 색.
+
+    `RegionMap` 은 이 값을 `--tone` 에서 받는데, 그 변수는 AI 진단 판이 제 판에 매어 두던 것이라
+    판 밖으로 꺼내 쓰면 값이 없어 면이 칠해지지 않는다. 여기서 다시 맨다.
+
+    경보색(빨강)을 쓰지 않는다. 열여덟 곳 가운데 둘이 이상인 시·군이 통째로 붉게 칠해지면
+    「이 지역 전부가 고장」 으로 읽힌다 — 상태는 면이 아니라 **점**이 말한다. 면은 「지금 여기를
+    보고 있다」 만 가리키면 되므로 강조색으로 둔다.
+  */
+  --tone: var(--brand);
+
+  &__head {
+    display: flex;
+    align-items: baseline;
+    gap: s.$space-2;
+    flex-shrink: 0;
+  }
+
+  &__name {
+    color: var(--text-strong);
+    font-size: 1rem;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+  }
+
+  &__count {
+    color: var(--text-faint);
+    font-size: 0.82rem;
+    font-variant-numeric: tabular-nums;
+  }
+
+  /*
+    `RegionMap` 은 190px 에 못 박혀 있다 — 좁은 열에서 글 곁에 놓일 때의 값이다.
+    여기서는 이 칸이 지도 하나만을 위한 자리이므로 묶임을 풀어 칸을 채우게 한다.
+  */
+  svg {
+    flex: 1;
+    height: auto;
+    min-height: 0;
+  }
+}

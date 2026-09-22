@@ -1,0 +1,253 @@
+@use "@/styles/tokens/spacing" as s;
+@use "@/styles/utils/mixins" as mx;
+
+/* 줄 하나의 높이 — `ScanStrip.tsx` 의 `ROW_H` 와 같은 값이라야 셈이 맞는다 */
+$row-h: 30px;
+
+/*
+  네 열이 늘 같은 자리에 선다.
+
+  학교 이름만 남는 폭을 받고 나머지 셋은 제 폭을 못 박는다 — 줄마다 열이 밀리면 아래로 훑을 때
+  눈이 자리를 다시 찾아야 한다. 머리 줄과 본문이 같은 자를 써야 이름이 값 위에 정확히 선다.
+*/
+@mixin scan-cols {
+  display: grid;
+
+  /*
+    상태 칸은 글자에 맞춘다.
+    5.4em 으로 두었더니 「주의」 두 글자짜리 배지가 「통신단절」 과 같은 폭으로 늘어나 줄마다
+    커다란 색면이 섰다 — 배지는 상태를 말하는 표지이지 칸을 채우는 면이 아니다.
+  */
+  grid-template-columns: minmax(0, 1fr) 5.2em 5.4em 4.4em;
+  align-items: center;
+  gap: s.$space-3;
+}
+
+/*
+  실시간 이상 감지.
+
+  꾸밈을 두지 않는다 — 점 격자·가로지르는 빛·초록 광을 깔아 보았으나 자리만 먹고 아무것도 말하지
+  않았다. 테두리 한 줄로 「여기서부터 다른 이야기」 만 알리고 나머지는 잡힌 것을 세는 데 쓴다.
+*/
+.scan {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+  padding: s.$space-3 s.$space-4;
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--room-radius);
+  background-color: var(--surface);
+
+  /*
+    위아래 여백을 한 자로 맞춘다.
+
+    머리 아래(space-3) · 열 이름 아래(space-2) · 더보기 위(space-2) 가 제각각이라 같은 칸 안에서
+    켜마다 숨 쉬는 폭이 달랐다. 셋 다 space-2 로 두면 머리 → 열 이름 → 줄 → 더보기가 같은 간격으로
+    내려간다.
+  */
+  &__head {
+    display: flex;
+    align-items: center;
+    gap: s.$space-2;
+    flex-shrink: 0;
+    padding-bottom: s.$space-2;
+  }
+
+  &__name {
+    flex: 1;
+    min-width: 0;
+    color: var(--text-strong);
+    font-size: 1.15rem;
+    font-weight: 700;
+    letter-spacing: -0.015em;
+  }
+
+  /*
+    어디를 세고 있는지.
+    붉은 알약으로 두었더니 이상이 없는 시·군에서도 경고처럼 읽혔다 — 이 배지는 범위를 말하는
+    자리이지 경보가 아니다. 테두리만 두르고 이상이 있을 때만 물든다.
+  */
+  &__count {
+    flex-shrink: 0;
+    padding: 4px s.$space-3;
+    border: 1px solid var(--border);
+    border-radius: s.$radius-full;
+    background: none;
+    color: var(--text-muted);
+    font-size: 0.95rem;
+    font-weight: 600;
+
+    &[data-on] {
+      border-color: color-mix(in srgb, var(--critical) 40%, transparent);
+      color: var(--critical-text);
+    }
+  }
+
+  /* 줄이 몇 개 들어가는지 재는 자리 — 여기 높이가 곧 보여 줄 줄 수다 */
+  &__list {
+    flex: 1;
+    min-height: 0;
+    overflow: hidden;
+  }
+
+  /* 이상이 없는 시·군 — 비어 있다는 사실 자체가 답이라 가운데 한 줄로 조용히 적는다 */
+  &__none {
+    display: grid;
+    place-items: center;
+    flex: 1;
+    color: var(--text-faint);
+    font-size: 1rem;
+
+    strong {
+      color: var(--text-muted);
+      font-weight: 700;
+    }
+  }
+
+  /*
+    들어가지 못한 나머지 — 누르면 상황판이 쓰던 목록 모달이 열린다.
+
+    테두리를 두른 알약으로 두었더니 목록 아래에 단추 하나가 덩그러니 붙어 겉돌았다. 이 줄은
+    목록의 마지막 줄이지 따로 놓인 장치가 아니므로, 줄과 같은 결로 눕히고 가른 선만 남긴다 —
+    오른쪽 꺾쇠가 「여기 더 있다」 를 가리킨다.
+  */
+  &__more {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-shrink: 0;
+    padding: s.$space-2 s.$space-2 0;
+    border: none;
+    border-top: 1px solid var(--border);
+    background: none;
+    color: var(--text-muted);
+    font-size: 0.92rem;
+    font-weight: 600;
+    cursor: pointer;
+
+    &::after {
+      content: "›";
+      color: var(--text-faint);
+      font-size: 1.15rem;
+      line-height: 1;
+    }
+
+    &:hover {
+      color: var(--text-strong);
+
+      &::after {
+        color: var(--brand);
+      }
+    }
+  }
+}
+
+/* 열 이름 — 「24kW」 가 설비 크기인지 지금 내는 힘인지 여기서 못 박는다 */
+.head {
+  @include scan-cols;
+
+  flex-shrink: 0;
+  padding: 0 s.$space-2 s.$space-2;
+  border-bottom: 1px solid var(--border);
+  color: var(--text-faint);
+  font-size: 0.82rem;
+  font-weight: 600;
+
+  &__capacity,
+  &__seen {
+    text-align: right;
+  }
+
+  &__state {
+    text-align: center;
+  }
+}
+
+.rows {
+  list-style: none;
+}
+
+.row {
+  @include scan-cols;
+
+  height: $row-h;
+  padding: 0 s.$space-2;
+  border-bottom: 1px solid var(--border-subtle);
+
+  &[data-tone="critical"] {
+    --tone: var(--critical);
+    --tone-soft: var(--critical-soft);
+    --tone-text: var(--critical-text);
+  }
+
+  &[data-tone="caution"] {
+    --tone: var(--caution);
+    --tone-soft: var(--caution-soft);
+    --tone-text: var(--caution-text);
+  }
+
+  &[data-tone="offline"] {
+    --tone: var(--offline);
+    --tone-soft: var(--offline-soft);
+    --tone-text: var(--offline-text);
+  }
+
+  &[data-tone="brand"] {
+    --tone: var(--brand);
+    --tone-soft: var(--brand-soft);
+    --tone-text: var(--brand-contrast);
+  }
+
+  &__name {
+    @include mx.truncate;
+
+    color: var(--text-strong);
+    font-size: 1.05rem;
+    font-weight: 600;
+  }
+
+  &__capacity {
+    color: var(--text-muted);
+    font-family: var(--font-data);
+    font-size: 1rem;
+    font-variant-numeric: tabular-nums;
+    text-align: right;
+
+    i {
+      margin-left: 2px;
+      color: var(--text-faint);
+      font-family: var(--font-sans);
+      font-size: 0.72rem;
+      font-style: normal;
+    }
+  }
+
+  /* 값이 끊긴 곳은 이 시각이 곧 단서다 — 지금과 벌어져 있을수록 오래 끊긴 것이다 */
+  &__seen {
+    color: var(--text-faint);
+    font-family: var(--font-data);
+    font-size: 0.95rem;
+    font-variant-numeric: tabular-nums;
+    text-align: right;
+  }
+
+  /*
+    상태 배지.
+
+    세로 여백을 줄 높이(30px)에 맞춰 잡는다 — 3px 로 두었더니 배지가 줄의 절반을 넘겨 줄 사이
+    간격보다 커졌고, 아래로 훑을 때 색면이 글자보다 먼저 읽혔다. 칸 안에서 오른쪽 끝에 붙여
+    머리 줄의 「상태」 와 세로선을 맞춘다.
+  */
+  &__state {
+    justify-self: stretch;
+    padding: 2px 0;
+    border-radius: 4px;
+    background-color: var(--tone-soft);
+    color: var(--tone-text);
+    font-size: 0.85rem;
+    font-weight: 700;
+    line-height: 1.5;
+    text-align: center;
+  }
+}

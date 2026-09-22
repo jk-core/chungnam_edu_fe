@@ -25,14 +25,12 @@ export const PATH = {
   /** 통합관제 전체화면 상황판 (SFR-004) */
   CONTROL: '/control',
   /*
-    배치 시안. `/control` 이 최종안이고 이쪽은 견줌용이다 —
-    보여 주는 값과 판은 그대로 두고 어디에 세우는지·무슨 색인지만 다르다.
-    고르고 나면 이긴 하나만 `/control` 에 옮기고 나머지는 지운다.
+    견줌용 시안 둘. `/control` 이 요구사항을 모두 담은 최종안이고, 이쪽은 **덜 담는 대신
+    한눈에 들어오는** 쪽을 시험한다 — B 는 지도를 크게 세우고, C 는 증권 앱처럼 고른 대상
+    하나를 차트로 편다. 고르고 나면 이긴 하나만 `/control` 에 옮기고 나머지는 지운다.
   */
   CONTROL_B: '/control/b',
   CONTROL_C: '/control/c',
-  CONTROL_D: '/control/d',
-  CONTROL_E: '/control/e',
   /** 마이페이지 (SFR-024) */
   MY: '/my',
 
