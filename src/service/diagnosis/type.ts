@@ -7,6 +7,10 @@ import { ZodFaultCode, ZodStatusCode } from '@/configs/codes';
   조회 대상마다 경로가 갈리고, 파라미터는 어느 쪽이든 「식별자 + 조회 기간」 한 벌이다.
   효율 시계열의 값 이름이 대상마다 갈린다 — 발전소는 `diagEfficiency`, 인버터·스트링은
   `efficiency` 다. 같은 뜻이지만 계약이 그러하므로 읽는 자리에서 맞춘다.
+
+  **계측에서 나온 수치는 null 로 온다** — 그날·그 시점에 잰 값이 없으면 비워 보낸다.
+  명세에는 숫자로만 적혀 있으나 실제 응답이 그러하므로 여기서 정직하게 연다. 0 으로 바꾸지
+  않는 것은 「안 쟀다」와 「0 이었다」가 다른 말이기 때문이다.
 */
 
 export type DiagnosisPowerPlantParams = z.infer<typeof diagnosisPowerPlantParamsSchema>;
@@ -34,14 +38,14 @@ export const diagnosisStringParamsSchema = z.object({
 export type DailySimpleEfficiency = z.infer<typeof dailySimpleEfficiencySchema>;
 export const dailySimpleEfficiencySchema = z.object({
   dateTime: z.string(),
-  efficiency: z.number(),
+  efficiency: z.number().nullable(),
 });
 
 /** 일자별 효율 표의 한 칸. 칸 색은 `faultCode` 를 따른다 */
 export type DailyEfficiency = z.infer<typeof dailyEfficiencySchema>;
 export const dailyEfficiencySchema = z.object({
   dateTime: z.string(),
-  efficiency: z.number(),
+  efficiency: z.number().nullable(),
   statusCode: ZodStatusCode.CODE,
   statusName: ZodStatusCode.NAME,
   faultCode: ZodFaultCode,
@@ -52,7 +56,7 @@ export const dailyEfficiencySchema = z.object({
 export type DailyDiagEfficiency = z.infer<typeof dailyDiagEfficiencySchema>;
 export const dailyDiagEfficiencySchema = z.object({
   dateTime: z.string(),
-  diagEfficiency: z.number(),
+  diagEfficiency: z.number().nullable(),
   faultCode: ZodFaultCode,
   faultCodeName: z.string(),
 });
@@ -68,11 +72,11 @@ export const diagnosisInverterRowSchema = z.object({
   statusCode: ZodStatusCode.CODE,
   statusName: ZodStatusCode.NAME,
   /** 최신일 효율 (%) */
-  diagEfficiency: z.number(),
+  diagEfficiency: z.number().nullable(),
   /** 최신일 측정 발전량 (kWh) */
-  currentPower: z.number(),
+  currentPower: z.number().nullable(),
   /** 최신일 기대 발전량 (kWh) */
-  predictedPower: z.number(),
+  predictedPower: z.number().nullable(),
   countBelow: z.number().int(),
   faultCode: ZodFaultCode,
   faultCodeName: z.string(),
@@ -135,22 +139,22 @@ export const diagnosisRawPointSchema = z.object({
   gathDtm: z.string(),
   faultCode: ZodFaultCode,
   faultCodeName: z.string(),
-  slpIrrad: z.number(),
-  pvPwr: z.number(),
-  pvPwrNormalUpper: z.number(),
-  pvPwrNormalLower: z.number(),
-  pvPwrPhys: z.number(),
-  pvPwrMl: z.number(),
-  pvCur: z.number(),
-  pvCurNormalUpper: z.number(),
-  pvCurNormalLower: z.number(),
-  pvCurPhys: z.number(),
-  pvCurMl: z.number(),
-  pvVlt: z.number(),
-  pvVltNormalUpper: z.number(),
-  pvVltNormalLower: z.number(),
-  pvVltPhys: z.number(),
-  pvVltMl: z.number(),
+  slpIrrad: z.number().nullable(),
+  pvPwr: z.number().nullable(),
+  pvPwrNormalUpper: z.number().nullable(),
+  pvPwrNormalLower: z.number().nullable(),
+  pvPwrPhys: z.number().nullable(),
+  pvPwrMl: z.number().nullable(),
+  pvCur: z.number().nullable(),
+  pvCurNormalUpper: z.number().nullable(),
+  pvCurNormalLower: z.number().nullable(),
+  pvCurPhys: z.number().nullable(),
+  pvCurMl: z.number().nullable(),
+  pvVlt: z.number().nullable(),
+  pvVltNormalUpper: z.number().nullable(),
+  pvVltNormalLower: z.number().nullable(),
+  pvVltPhys: z.number().nullable(),
+  pvVltMl: z.number().nullable(),
 });
 
 export type DiagnosisInverterRaw = z.infer<typeof diagnosisInverterRawSchema>;

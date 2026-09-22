@@ -13,7 +13,7 @@ import { useDiagnosisScope } from '@/hooks/useDiagnosisScope';
 import type { DiagnosisRawPoint } from '@/service/diagnosis/type';
 import styles from '../../AiDiagnosis.module.scss';
 import { useDiagnosisRaw } from '../hooks/useDiagnosisRaw';
-import { readTrend, TREND_META } from './trendMetric';
+import { metricText, readTrend, TREND_META } from './trendMetric';
 import type { TrendMetric } from './trendMetric';
 import type { EChartsOption } from 'echarts';
 
@@ -67,7 +67,7 @@ export function InverterTrendChart() {
       const date = dayjs(point.gathDtm).format('YYYY-MM-DD');
       const best = byDate.get(date);
 
-      if (!best || point.pvPwr > best.pvPwr) byDate.set(date, point);
+      if (!best || (point.pvPwr ?? 0) > (best.pvPwr ?? 0)) byDate.set(date, point);
     });
 
     return [...byDate.values()];
@@ -79,9 +79,15 @@ export function InverterTrendChart() {
     : dayjs(point.gathDtm).format('M/D')));
 
   const readings = visible.map((point) => readTrend(point, metric));
-  // 정상 범위는 상·하한 사이의 띠다. 아래 선을 투명하게 깔고 그 위에 폭만큼 쌓아 색을 준다.
-  const bandLow = readings.map((reading) => reading.lower);
-  const bandWidth = readings.map((reading) => Math.max(0, reading.upper - reading.lower));
+  /*
+    정상 범위는 상·하한 사이의 띠다. 아래 선을 투명하게 깔고 그 위에 폭만큼 쌓아 색을 준다.
+    한쪽이라도 안 왔으면 띠를 그리지 않는다 — 한 짝만으로는 범위가 되지 않는다.
+  */
+  const hasBand = readings.map((reading) => reading.lower !== null && reading.upper !== null);
+  const bandLow = readings.map((reading, index) => (hasBand[index] ? reading.lower : null));
+  const bandWidth = readings.map((reading, index) => (
+    hasBand[index] ? Math.max(0, (reading.upper ?? 0) - (reading.lower ?? 0)) : null
+  ));
   // 고장으로 분류된 구간만 남긴 선 — 나머지는 끊어 둔다.
   const faulty = visible.map((point, index) => (point.faultCode > 0 ? readings[index].measured : null));
 
@@ -102,15 +108,19 @@ export function InverterTrendChart() {
 
         if (!point || !reading) return '';
 
-        const gap = reading.ml > 0 ? ((reading.measured - reading.ml) / reading.ml) * 100 : 0;
+        const gap = reading.measured !== null && reading.ml !== null && reading.ml > 0
+          ? ((reading.measured - reading.ml) / reading.ml) * 100
+          : null;
 
         return [
           `<strong>${dayjs(point.gathDtm).format('M월 D일 HH시')}</strong>`,
-          `측정 ${formatNumber(reading.measured, meta.digits)}${meta.unit}`,
-          `물리모델 ${formatNumber(reading.phys, meta.digits)}${meta.unit} · ML ${formatNumber(reading.ml, meta.digits)}${meta.unit}`,
-          `정상범위 ${formatNumber(reading.lower, meta.digits)} ~ ${formatNumber(reading.upper, meta.digits)}${meta.unit}`,
-          `<span style="color:${gap < -10 ? palette.critical : palette.text}">ML 대비 ${gap > 0 ? '+' : ''}${formatNumber(gap, 1)}%</span>`,
-          `일사량 ${formatNumber(point.slpIrrad)}W/m²`,
+          `측정 ${metricText(reading.measured, meta.digits, meta.unit)}`,
+          `물리모델 ${metricText(reading.phys, meta.digits, meta.unit)} · ML ${metricText(reading.ml, meta.digits, meta.unit)}`,
+          `정상범위 ${metricText(reading.lower, meta.digits)} ~ ${metricText(reading.upper, meta.digits, meta.unit)}`,
+          gap === null
+            ? 'ML 대비 —'
+            : `<span style="color:${gap < -10 ? palette.critical : palette.text}">ML 대비 ${gap > 0 ? '+' : ''}${formatNumber(gap, 1)}%</span>`,
+          `일사량 ${metricText(point.slpIrrad, 0, 'W/m²')}`,
           `진단 ${point.faultCodeName || '정상'}`,
         ].join('<br/>');
       },

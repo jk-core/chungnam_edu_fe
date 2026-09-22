@@ -66,7 +66,7 @@ export function useDiagnosisEfficiency() {
         // 발전소 조회에서만 효율 칸 이름이 `diagEfficiency` 다.
         points: alignToDates(dates, row.dailyList.map((day) => ({
           date: day.dateTime,
-          efficiency: day.diagEfficiency,
+          efficiency: day.diagEfficiency ?? 0,
           faultCode: day.faultCode,
           faultCodeName: day.faultCodeName,
         }))),
@@ -95,7 +95,7 @@ function toStringRow(row: StringEfficiency, dates: string[]): DailyEfficiencyRow
     meta: `${formatNumber(row.stringCapacity, 1)} kW`,
     points: alignToDates(dates, row.dailyList.map((day) => ({
       date: day.dateTime,
-      efficiency: day.efficiency,
+      efficiency: day.efficiency ?? 0,
       faultCode: day.faultCode,
       faultCodeName: day.faultCodeName,
     }))),

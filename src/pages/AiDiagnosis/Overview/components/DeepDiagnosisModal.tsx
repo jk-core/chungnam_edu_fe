@@ -8,6 +8,7 @@ import { formatNumber } from '@/utils/format';
 import { useChartPalette } from '@/hooks/useChartPalette';
 import styles from '../../AiDiagnosis.module.scss';
 import { useDiagnosisRaw } from '../hooks/useDiagnosisRaw';
+import { metricText } from './trendMetric';
 import type { EChartsOption } from 'echarts';
 
 interface DeepDiagnosisModalProps {
@@ -34,9 +35,11 @@ export function DeepDiagnosisModal({ nodeId, date, onClose }: DeepDiagnosisModal
    * 통신이 끊긴 설비는 실측이 통째로 0 이라 편차도 0 으로 떨어진다.
    * 그대로 두면 "편차 0% · 정상"으로 읽혀 멀쩡한 설비와 구분이 안 된다 — 잰 값이 없다고 적는다.
    */
-  const live = points.filter((point) => point.pvCur > 0);
+  const live = points.filter((point) => point.pvCur !== null && point.pvCur > 0);
   const hasLive = live.length > 0;
-  const deviations = live.map((point) => (point.pvCurMl > 0 ? ((point.pvCur - point.pvCurMl) / point.pvCurMl) * 100 : 0));
+  const deviations = live.map((point) => (
+    point.pvCurMl !== null && point.pvCurMl > 0 ? (((point.pvCur ?? 0) - point.pvCurMl) / point.pvCurMl) * 100 : 0
+  ));
   const averageDeviation = hasLive ? deviations.reduce((sum, value) => sum + value, 0) / deviations.length : 0;
   const worstIndex = deviations.reduce(
     (acc, value, index) => (acc === -1 || value < deviations[acc] ? index : acc),
@@ -66,13 +69,17 @@ export function DeepDiagnosisModal({ nodeId, date, onClose }: DeepDiagnosisModal
 
         if (!point) return '';
 
-        const gap = point.pvCurMl > 0 ? ((point.pvCur - point.pvCurMl) / point.pvCurMl) * 100 : 0;
+        const gap = point.pvCur !== null && point.pvCurMl !== null && point.pvCurMl > 0
+          ? ((point.pvCur - point.pvCurMl) / point.pvCurMl) * 100
+          : null;
 
         return [
           `<strong>${times[index]}</strong>`,
-          `전류 측정 ${formatNumber(point.pvCur, 2)}A · ML ${formatNumber(point.pvCurMl, 2)}A`,
-          `전압 측정 ${formatNumber(point.pvVlt, 1)}V · ML ${formatNumber(point.pvVltMl, 1)}V`,
-          `<span style="color:${gap < -10 ? palette.critical : palette.text}">편차 ${gap > 0 ? '+' : ''}${formatNumber(gap, 1)}%</span>`,
+          `전류 측정 ${metricText(point.pvCur, 2, 'A')} · ML ${metricText(point.pvCurMl, 2, 'A')}`,
+          `전압 측정 ${metricText(point.pvVlt, 1, 'V')} · ML ${metricText(point.pvVltMl, 1, 'V')}`,
+          gap === null
+            ? '편차 —'
+            : `<span style="color:${gap < -10 ? palette.critical : palette.text}">편차 ${gap > 0 ? '+' : ''}${formatNumber(gap, 1)}%</span>`,
           `진단 ${point.faultCodeName || '정상'}`,
         ].join('<br/>');
       },

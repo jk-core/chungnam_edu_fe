@@ -86,8 +86,8 @@ export function DiagnosisEquipment() {
       align: 'right',
       width: '96px',
       render: (row) => (
-        <span className={row.efficiency > 0 && row.efficiency < DIAG_EFFICIENCY_WARN ? styles.deltaDown : undefined}>
-          {row.efficiency <= 0 ? '—' : `${formatNumber(row.efficiency, 1)} %`}
+        <span className={isBelowWarn(row.efficiency) ? styles.deltaDown : undefined}>
+          {row.efficiency === null ? '—' : `${formatNumber(row.efficiency, 1)} %`}
         </span>
       ),
     },
@@ -227,12 +227,31 @@ export function DiagnosisEquipment() {
 }
 
 /** 값이 없는 칸은 0 이 아니라 하이픈이다 — 0 kWh 로 읽히면 안 잰 것과 구분되지 않는다 */
-function energyText(kwh: number | undefined): string {
-  if (kwh === undefined) return '—';
+function energyText(kwh: number | null | undefined): string {
+  if (kwh === null || kwh === undefined) return '—';
 
   const energy = formatEnergy(kwh);
 
   return `${energy.value} ${energy.unit}`;
+}
+
+/** 잰 값이 있으면서 기준에 못 미치는가 — 안 잰 것을 「낮다」고 읽지 않는다 */
+function isBelowWarn(efficiency: number | null): boolean {
+  return efficiency !== null && efficiency > 0 && efficiency < DIAG_EFFICIENCY_WARN;
+}
+
+/** 카드 칸은 숫자와 단위를 다른 크기로 그린다 */
+function EnergyValue({ kwh }: { kwh: number | null }) {
+  if (kwh === null) return <>—</>;
+
+  const energy = formatEnergy(kwh);
+
+  return (
+    <>
+      {energy.value}
+      <small>{energy.unit}</small>
+    </>
+  );
 }
 
 interface UnitTileProps {
@@ -292,7 +311,8 @@ function UnitTile({ unit, index, parentName, onOpenFault, onOpen }: UnitTileProp
       <div className={styles.unit__spark}>
         <Sparkline
           className={styles.unit__sparkLine}
-          values={unit.points.map((point) => point.efficiency)}
+          // 스파크라인은 추세 그림이라 안 잰 날을 0 으로 눕힌다 — 값은 아래 칸이 하이픈으로 말한다.
+          values={unit.points.map((point) => point.efficiency ?? 0)}
           tone={abnormal ? 'critical' : 'brand'}
           width={300}
           height={44}
@@ -310,17 +330,11 @@ function UnitTile({ unit, index, parentName, onOpenFault, onOpen }: UnitTileProp
           <>
             <div>
               <dt>기대값</dt>
-              <dd>
-                {formatEnergy(unit.power.predicted).value}
-                <small>{formatEnergy(unit.power.predicted).unit}</small>
-              </dd>
+              <dd><EnergyValue kwh={unit.power.predicted} /></dd>
             </div>
             <div>
               <dt>측정값</dt>
-              <dd>
-                {formatEnergy(unit.power.current).value}
-                <small>{formatEnergy(unit.power.current).unit}</small>
-              </dd>
+              <dd><EnergyValue kwh={unit.power.current} /></dd>
             </div>
           </>
         ) : (
@@ -334,9 +348,9 @@ function UnitTile({ unit, index, parentName, onOpenFault, onOpen }: UnitTileProp
         )}
         <div>
           <dt>발전 효율</dt>
-          <dd className={unit.efficiency > 0 && unit.efficiency < DIAG_EFFICIENCY_WARN ? styles.deltaDown : undefined}>
-            {unit.efficiency <= 0 ? '—' : formatNumber(unit.efficiency, 1)}
-            <small>%</small>
+          <dd className={isBelowWarn(unit.efficiency) ? styles.deltaDown : undefined}>
+            {unit.efficiency === null ? '—' : formatNumber(unit.efficiency, 1)}
+            {unit.efficiency === null ? null : <small>%</small>}
           </dd>
         </div>
       </dl>

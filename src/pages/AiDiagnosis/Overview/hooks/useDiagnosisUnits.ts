@@ -24,14 +24,14 @@ export interface DiagnosisUnit {
   capacityKw: number;
   status: OperationStatus;
   statusName: string;
-  /** 최신일 효율 (%) */
-  efficiency: number;
+  /** 최신일 효율 (%). 그날 잰 값이 없으면 null */
+  efficiency: number | null;
   /** 기준에 못 미친 날 수 */
   countBelow: number;
   faultCode: DiagnosisFaultCode;
   faultCodeName: string;
   points: DailySimpleEfficiency[];
-  power: { current: number; predicted: number } | null;
+  power: { current: number | null; predicted: number | null } | null;
 }
 
 const NONE: DiagnosisUnit[] = [];
@@ -90,7 +90,7 @@ export function useDiagnosisUnits() {
       status: operationFromCode(row.statusCode),
       statusName: row.statusName,
       // 스트링에는 최신일 효율이 따로 오지 않는다 — 시계열의 마지막 날이 그 값이다.
-      efficiency: row.flowChartData[row.flowChartData.length - 1]?.efficiency ?? 0,
+      efficiency: row.flowChartData[row.flowChartData.length - 1]?.efficiency ?? null,
       countBelow: row.countBelow,
       faultCode: row.faultCode,
       faultCodeName: row.faultCodeName,
