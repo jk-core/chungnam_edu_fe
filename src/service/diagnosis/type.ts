@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { ZodStatusCode } from '@/configs/codes';
+import { ZodFaultCode, ZodStatusCode } from '@/configs/codes';
 
 /*
   AI 진단 (SFR-011 · SFR-013 · SFR-014).
@@ -44,7 +44,7 @@ export const dailyEfficiencySchema = z.object({
   efficiency: z.number(),
   statusCode: ZodStatusCode.CODE,
   statusName: ZodStatusCode.NAME,
-  faultCode: z.number().int(),
+  faultCode: ZodFaultCode,
   faultCodeName: z.string(),
 });
 
@@ -53,7 +53,7 @@ export type DailyDiagEfficiency = z.infer<typeof dailyDiagEfficiencySchema>;
 export const dailyDiagEfficiencySchema = z.object({
   dateTime: z.string(),
   diagEfficiency: z.number(),
-  faultCode: z.number().int(),
+  faultCode: ZodFaultCode,
   faultCodeName: z.string(),
 });
 
@@ -74,7 +74,7 @@ export const diagnosisInverterRowSchema = z.object({
   /** 최신일 기대 발전량 (kWh) */
   predictedPower: z.number(),
   countBelow: z.number().int(),
-  faultCode: z.number().int(),
+  faultCode: ZodFaultCode,
   faultCodeName: z.string(),
   flowChartData: z.array(dailySimpleEfficiencySchema),
 });
@@ -91,7 +91,7 @@ export const diagnosisStringRowSchema = z.object({
   statusCode: ZodStatusCode.CODE,
   statusName: ZodStatusCode.NAME,
   countBelow: z.number().int(),
-  faultCode: z.number().int(),
+  faultCode: ZodFaultCode,
   faultCodeName: z.string(),
   flowChartData: z.array(dailySimpleEfficiencySchema),
 });
@@ -133,7 +133,7 @@ export type InverterEfficiency = StringEfficiency;
 export type DiagnosisRawPoint = z.infer<typeof diagnosisRawPointSchema>;
 export const diagnosisRawPointSchema = z.object({
   gathDtm: z.string(),
-  faultCode: z.number().int(),
+  faultCode: ZodFaultCode,
   faultCodeName: z.string(),
   slpIrrad: z.number(),
   pvPwr: z.number(),

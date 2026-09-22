@@ -7,17 +7,17 @@ import { faultCodeLabel, getFaultCode } from '@/mocks/faultCodes';
 import { getInvertersOf } from '@/mocks/equipment';
 import { getPredictionSeries } from '@/mocks/prediction';
 import { Modal } from '@/components/common/Modal';
+import { useScopeTreeNodes } from '@/stores/scopeTreeStore';
 import { AXIS_NAME_GAP, LEGEND_GRID_TOP, topLegend } from '@/utils/chart';
 import { formatNumber } from '@/utils/format';
 import { useChartPalette } from '@/hooks/useChartPalette';
 import type { PredictionPoint } from '@/interface/diagnosisDetail';
-import type { ScopeNode } from '@/interface/tree';
 import styles from '../../AiDiagnosis.module.scss';
 import type { EChartsOption } from 'echarts';
 
 interface DeepDiagnosisModalProps {
-  /** 열려 있으면 그 설비, 닫혀 있으면 null */
-  node: ScopeNode | null;
+  /** 열려 있으면 그 설비의 트리 노드 id, 닫혀 있으면 null */
+  nodeId: string | null;
   /** 심층 진단 기준일 */
   date: Date;
   onClose: () => void;
@@ -30,8 +30,10 @@ interface DeepDiagnosisModalProps {
  * raw 수집값(정시 전압·전류)에 AI 추정값을 겹쳐 그리고, 한 시점에 마우스를 올리면
  * 추정값·측정값·편차·고장분류를 한 창에 모아 보여 준다.
  */
-export function DeepDiagnosisModal({ node, date, onClose }: DeepDiagnosisModalProps) {
+export function DeepDiagnosisModal({ nodeId, date, onClose }: DeepDiagnosisModalProps) {
   const palette = useChartPalette();
+  const nodes = useScopeTreeNodes();
+  const node = nodeId ? nodes.get(nodeId) ?? null : null;
 
   /*
    * 예측 모델은 인버터 단위로 돌아간다 (SFR-014-01).
