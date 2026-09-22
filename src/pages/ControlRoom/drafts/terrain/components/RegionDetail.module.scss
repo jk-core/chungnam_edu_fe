@@ -1,0 +1,275 @@
+@use "@/styles/tokens/spacing" as s;
+@use "@/styles/tokens/typography" as t;
+@use "@/styles/utils/mixins" as mx;
+
+/*
+  고른 시·군의 상세.
+
+  판 껍데기(테두리·제목 줄)는 시안 A 의 `Panel` 이 쥔다 — 여기서는 그 안에 담기는 층만 짠다.
+  460px 폭에 열 항목을 층으로 쌓는다. 같은 크기로 늘어놓으면 전부 작아지므로, 오늘의 값을
+  크게 세우고 규모·누적을 한 단 낮춘 뒤 상태·목록을 바닥에 접는다. 이 층이 이 시안의 설계다.
+*/
+.detail {
+  display: flex;
+  flex-direction: column;
+  gap: s.$space-1;
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+
+  &__head {
+    display: flex;
+    align-items: center;
+    gap: s.$space-2;
+    flex-shrink: 0;
+  }
+
+  /* 지도에서 물든 면과 같은 단계색 — 이 판이 위 어느 면의 이야기인지 색 하나로 이어진다 */
+  &__color {
+    width: 18px;
+    height: 18px;
+    flex-shrink: 0;
+    border: 1px solid var(--map-border);
+    border-radius: s.$radius-xs;
+  }
+
+  /* 시·군 이름 — 판 제목(선택 시·군 상세) 아래에서 이 판의 으뜸 이름으로 크게 선다 */
+  &__name {
+    @include t.title-lg;
+
+    margin: 0;
+    margin-right: auto;
+    color: var(--text-strong);
+  }
+
+  /* 아래 접힌 조각들의 작은 이름표 — 「설비 상태」·「문제 설비」 가 같은 크기로 선다 */
+  &__label {
+    @include t.label-md;
+
+    margin: 0;
+    color: var(--text-muted);
+  }
+}
+
+/*
+  설비 상태 — 이름표 아래에 A 의 상태 분포 막대(StatusMix)를 얹는다.
+  위아래를 실선으로 끊어 수치 묶음과 목록 사이에서 제 몫이 갈린다 (A 의 `.now__mix` 를 본떴다).
+*/
+.status {
+  display: flex;
+  flex-direction: column;
+  gap: s.$space-2;
+  padding: s.$space-2 0;
+  border-top: 1px solid var(--border-subtle);
+  border-bottom: 1px solid var(--border-subtle);
+  flex-shrink: 0;
+}
+
+/*
+  도 전체에서 차지하는 몫.
+  A 의 `.share` 를 본떴다 — 막대를 낮게 깔아 「많은 편인가 적은 편인가」 만 답한다. 다만
+  글자는 이 화면의 연령 배려에 맞춰 caption·label-sm 대신 label-md·data-sm 로 한 단 키운다.
+*/
+.share {
+  display: flex;
+  flex-direction: column;
+  gap: s.$space-2;
+  flex-shrink: 0;
+
+  &__row {
+    display: grid;
+    grid-template-columns: 84px minmax(0, 1fr) 56px;
+    align-items: center;
+    gap: s.$space-3;
+    margin: 0;
+  }
+
+  &__label {
+    @include t.label-md;
+
+    color: var(--text-muted);
+  }
+
+  &__track {
+    height: 6px;
+    border-radius: s.$radius-full;
+    background-color: var(--surface-sunken);
+    overflow: hidden;
+  }
+
+  &__bar {
+    display: block;
+    height: 100%;
+    border-radius: s.$radius-full;
+    transition: width 0.5s cubic-bezier(0.22, 0.68, 0.32, 1);
+  }
+
+  &__value {
+    @include t.data-sm;
+
+    color: var(--text-strong);
+    font-family: var(--font-data);
+    text-align: right;
+  }
+}
+
+/* 오늘의 값 중 으뜸 — 이 판에서 가장 큰 하나다. 브랜드색으로 세워 눈이 먼저 닿게 한다 */
+.hero {
+  flex-shrink: 0;
+
+  &__label {
+    @include t.label-md;
+
+    margin: 0;
+    color: var(--text-muted);
+  }
+
+  &__value {
+    @include t.data-lg;
+
+    margin: s.$space-1 0 0;
+    color: var(--brand-contrast);
+  }
+
+  &__unit {
+    @include t.data-sm;
+
+    margin-left: s.$space-2;
+    color: var(--text-muted);
+  }
+}
+
+/* 오늘의 나머지 셋 — 히어로 다음 크기로 나란히 */
+.today {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: s.$space-2;
+  margin: 0;
+  flex-shrink: 0;
+
+  &__item {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    min-width: 0;
+
+    dt {
+      @include t.label-md;
+
+      color: var(--text-muted);
+    }
+
+    dd {
+      @include t.data-md;
+
+      margin: 0;
+      color: var(--text-strong);
+
+      span {
+        @include t.label-md;
+
+        margin-left: 2px;
+        color: var(--text-muted);
+      }
+    }
+  }
+}
+
+/* 규모와 누적 — 실선으로 위를 끊어 오늘 값과 가른다 */
+.base {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: s.$space-2 s.$space-4;
+  margin: 0;
+  padding: s.$space-2 0 s.$space-1;
+  border-top: 1px solid var(--border-subtle);
+  flex-shrink: 0;
+
+  &__item {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    min-width: 0;
+
+    dt {
+      @include t.label-md;
+
+      color: var(--text-muted);
+    }
+
+    dd {
+      @include t.data-sm;
+
+      margin: 0;
+      color: var(--text-strong);
+
+      span {
+        @include t.label-md;
+
+        margin-left: 2px;
+        color: var(--text-muted);
+      }
+    }
+  }
+}
+
+/*
+  문제 설비 목록.
+  이름을 몇 곳만 세우고 나머지는 제목 줄에 「외 N곳」 으로 접는다 — 다 적으면 위 수치를 밀어낸다.
+  이름이 길어도 줄을 접지 않고 잘라 내 한 줄에 한 곳을 둔다.
+*/
+.faults {
+  display: flex;
+  flex-direction: column;
+  gap: s.$space-1;
+  flex: 1;
+  min-height: 0;
+
+  &__title {
+    @include t.label-md;
+
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: s.$space-2;
+    margin: 0;
+    color: var(--text-muted);
+  }
+
+  &__more {
+    @include t.label-md;
+
+    color: var(--text-muted);
+  }
+
+  &__none {
+    @include t.body-md;
+
+    margin: 0;
+    color: var(--text-muted);
+  }
+
+  &__list {
+    display: flex;
+    flex-direction: column;
+    gap: s.$space-1;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    overflow: hidden;
+  }
+
+  &__item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: s.$space-3;
+  }
+
+  &__name {
+    @include t.body-md;
+    @include mx.truncate;
+
+    color: var(--text);
+  }
+}

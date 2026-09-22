@@ -1,0 +1,184 @@
+@use "@/styles/tokens/spacing" as s;
+@use "@/styles/tokens/typography" as t;
+@use "@/styles/utils/media" as media;
+
+/*
+  지도 판의 속.
+
+  판 껍데기(테두리·제목 줄)는 시안 A 의 `Panel` 이 쥔다. 손잡이는 그 **제목 줄 오른쪽**
+  (`note`)에 서고(고객 요청 2026-09-15 — 아래 손잡이 줄을 없애 지도를 키운다), 판 안쪽은
+  지도가 통째로 받는다. 큰 자리든 작은 자리든 같은 골격이라 자리를 맞바꿔도 말이 된다.
+*/
+
+/*
+  제목 줄 오른쪽에 함께 서는 손잡이들 — 보기 고르개·범례·순회, 작은 자리에선 「크게 보기」.
+  A 의 `panel__tools` 와 같은 구실이되, 이 화면은 벽에서 눌러야 하므로 손잡이가 한 단 크다.
+  줄이 접히면 오히려 높이가 늘어 지도가 줄어드므로 `nowrap` 으로 못 박는다 — 지도 판 폭이
+  큰 자리 1296px·작은 자리 1836px 이라 담기는 것(최대 네 덩이)이 한 줄에 넉넉히 선다.
+*/
+.tools {
+  display: inline-flex;
+  align-items: center;
+  gap: s.$space-4;
+  flex-wrap: nowrap;
+
+  /* 어느 하나도 눌려 찌그러지지 않는다 — 눌리면 글자가 접혀 줄 높이가 늘어난다 */
+  > * {
+    flex-shrink: 0;
+  }
+}
+
+/* 지도가 앉는 자리 — 판 안에서 남는 높이를 전부 받는다 */
+.figure {
+  flex: 1;
+  min-height: 0;
+  border: 1px solid var(--map-border);
+  border-radius: s.$radius-sm;
+  overflow: hidden;
+  background-color: var(--map-surface);
+}
+
+/*
+  지도 보기 고르개.
+  공용 SegmentedControl 은 md(높이 36 · 라벨 14px)까지다. 이 화면은 벽에서 읽혀야 해 한 단
+  키운다 — 자식 클래스는 다른 모듈 소유라 DOM 의 요소·속성으로 짚는다(집계표 축 고르개와 같은 수법).
+*/
+.view {
+  button[aria-pressed] {
+    height: 46px;
+    padding-inline: s.$space-5;
+
+    /* label-md 대신 title-sm — 연령 배려 제약 */
+    @include t.title-sm;
+  }
+}
+
+/* 단계 범례 — 색이 개소 수를 뜻한다는 것을 이 줄이 말한다 */
+.legend {
+  display: flex;
+  align-items: center;
+  gap: s.$space-2;
+  white-space: nowrap;
+
+  &__title {
+    @include t.label-md;
+
+    color: var(--text-muted);
+  }
+
+  &__scale {
+    display: inline-flex;
+    gap: 2px;
+  }
+
+  &__step {
+    width: 24px;
+    height: 14px;
+    border: 1px solid var(--map-border);
+    border-radius: 3px;
+  }
+
+  &__ends {
+    @include t.label-md;
+
+    color: var(--text-muted);
+    font-family: var(--font-data);
+  }
+}
+
+/*
+  순회 손잡이와 그 상태.
+
+  전에는 아이콘 하나만 두고 뜻을 aria-label 에 맡겼는데, 규칙이 셋으로 늘면서(자동 20초 /
+  직접 고름 / 사람이 멈춤) 그것으로는 모자라게 되었다 (고객 요청 2026-09-15) — 눈으로 보아
+  「지금 돌고 있는가」 가 답해져야 한다. 한 마디를 손잡이 왼쪽에 붙인다.
+*/
+.tour {
+  display: inline-flex;
+  align-items: center;
+  gap: s.$space-2;
+  white-space: nowrap;
+
+  &__state {
+    @include t.label-md;
+
+    color: var(--text-muted);
+
+    /* 돌고 있을 때만 브랜드색 — 서 있는 두 상태는 같은 무게로 조용히 둔다 */
+    &[data-state="running"] {
+      color: var(--brand-contrast);
+    }
+
+    &[data-state="stopped"] {
+      color: var(--text-strong);
+    }
+  }
+
+  &__button {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 44px;
+    height: 44px;
+    padding: 0;
+    border: 1px solid var(--border);
+    border-radius: s.$radius-full;
+    background: none;
+    color: var(--text-strong);
+
+    &:hover {
+      border-color: var(--border-strong);
+      background-color: var(--surface-hover);
+    }
+  }
+
+  /*
+    붙잡힌 동안 손잡이 테두리를 도는 게이지 (고객 요청 2026-09-15).
+
+    남은 시간을 「60초 뒤 자동」 이라 적던 자리다. 차오르는 길이는 글자보다 빨리 읽히고,
+    매초 바뀌는 숫자와 달리 벽 화면에서 눈을 끌지 않는다.
+
+    셈은 CSS 가 한 번에 한다 — 자바스크립트로 매초 남은 시간을 내려 주면 그때마다 지도까지
+    다시 그려진다. 대신 손길이 닿을 때마다 조각이 새로 만들어져(`key`) 게이지가 처음부터 돈다.
+
+    12시에서 시작해 시계 방향으로 감기도록 판을 90도 되돌린다. `pathLength` 를 100 으로 못
+    박아 두면 원의 실제 둘레와 무관하게 길이를 100 분율로 셀 수 있어, 반지름을 손봐도 값이
+    그대로다.
+  */
+  &__gauge {
+    position: absolute;
+    inset: -1px;
+    transform: rotate(-90deg);
+    pointer-events: none;
+
+    circle {
+      fill: none;
+      stroke: var(--brand);
+      stroke-width: 2.5;
+      stroke-linecap: round;
+      stroke-dasharray: 100;
+      stroke-dashoffset: 100;
+      animation: tour-gauge 60s linear forwards;
+    }
+
+    /*
+      동작을 줄이기로 한 화면에서는 게이지를 돌리지 않는다. 다만 붙잡혀 있다는 사실은 남겨야
+      하므로 테두리를 한 바퀴 채운 채로 세워 둔다 — 시간이 남았다는 것은 옆의 「직접 선택」이
+      말한다.
+    */
+    @include media.reduced-motion {
+      circle {
+        stroke-dashoffset: 0;
+        animation: none;
+        opacity: 0.45;
+      }
+    }
+  }
+}
+
+@keyframes tour-gauge {
+  to {
+    stroke-dashoffset: 0;
+  }
+}

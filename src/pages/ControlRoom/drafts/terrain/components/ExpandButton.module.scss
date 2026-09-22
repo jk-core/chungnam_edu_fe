@@ -1,0 +1,21 @@
+@use "@/styles/tokens/spacing" as s;
+@use "@/styles/tokens/typography" as t;
+
+.expand {
+  display: inline-flex;
+  align-items: center;
+  gap: s.$space-2;
+  height: 44px;
+  padding: 0 s.$space-5;
+  border: 2px solid var(--brand);
+  border-radius: s.$radius-full;
+  background-color: var(--brand-soft);
+  color: var(--brand-contrast);
+
+  @include t.title-sm;
+
+  &:hover {
+    background-color: var(--brand);
+    color: var(--text-on-brand);
+  }
+}

@@ -1,0 +1,73 @@
+/* 도형 지도(대체). 실지도를 못 쓸 때 이 도형이 그 자리를 받는다. */
+.canvas {
+  width: 100%;
+  height: 100%;
+}
+
+/*
+  시·군 한 면.
+  개소 수 단계색을 그대로 받는다. 머무는 곳은 테두리가 굵어져 색만으로 못 가리는 한 곳을 세운다.
+*/
+.cell {
+  fill: var(--cell);
+  stroke: var(--map-border);
+  stroke-width: 1;
+  transition: fill 0.5s ease;
+
+  &[data-on] {
+    stroke: var(--text-strong);
+    stroke-width: 3;
+  }
+
+  &[data-pick] {
+    cursor: pointer;
+
+    &:hover {
+      stroke: var(--text-strong);
+      stroke-width: 2;
+    }
+
+    &:focus-visible {
+      outline: none;
+      stroke: var(--text-strong);
+      stroke-width: 3.5;
+    }
+  }
+}
+
+/*
+  면 위의 이름표.
+  글자에 바탕색 획을 둘러 어느 면 색 위에서도 읽히게 한다. 지도가 크므로 이름·개소를 크게 세운다.
+*/
+.tag {
+  paint-order: stroke fill;
+  pointer-events: none;
+  stroke: var(--surface);
+  stroke-width: 4.5;
+  stroke-linejoin: round;
+
+  /* SVG 텍스트는 viewBox 단위라 믹스인 대신 단위를 직접 준다 — 렌더 크기는 도형 배율을 탄다 */
+  &__name {
+    fill: var(--text-strong);
+    font-family: var(--font-sans);
+    font-size: 22px;
+    font-weight: 700;
+  }
+
+  &__count {
+    fill: var(--text);
+    font-family: var(--font-data);
+    font-size: 18px;
+    font-weight: 600;
+  }
+
+  &[data-on] {
+    .tag__name {
+      font-size: 28px;
+    }
+
+    .tag__count {
+      font-size: 22px;
+    }
+  }
+}

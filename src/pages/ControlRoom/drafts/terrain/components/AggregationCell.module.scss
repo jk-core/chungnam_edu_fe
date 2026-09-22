@@ -1,0 +1,13 @@
+@use "@/styles/tokens/spacing" as s;
+
+/*
+  제목 줄 오른쪽에 집계 축 고르개와 「크게 보기」 손잡이가 함께 선다.
+  시안 A 의 판 제목 줄(`.panel__head`)이 baseline 정렬이라, 상자를 가진 고르개는 제 세로
+  가운데로 맞춰 나란히 둔다.
+*/
+.tools {
+  display: inline-flex;
+  align-items: center;
+  gap: s.$space-3;
+  flex-wrap: wrap;
+}

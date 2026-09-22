@@ -24,7 +24,7 @@ export function ControlRoomBoard() {
   return (
     <ControlRoomLayout
       scopeLabel={SCOPE_LABEL}
-      variantLabel="시안 A · 3단 그리드"
+      variantLabel="시안 A · 요구사항 모두 충족한 버전"
       alertTone={data.alertTone}
       onSearch={() => setIsSearchOpen(true)}
       searchSummary={data.searchSummary}
