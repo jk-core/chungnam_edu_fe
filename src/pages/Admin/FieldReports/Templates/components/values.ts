@@ -28,11 +28,18 @@ export function toFormValues(template: ReportTemplate): TemplateFormValues {
 }
 
 /**
- * 문항이 실제로 바뀌었는지. 바뀐 때만 판이 오르고 개정 사유를 받는다 (SFR-021-14).
- * 기간만 고친 것은 다음 회차를 여는 일이지 양식을 고친 일이 아니다.
+ * 저장할 값이 지금 양식과 다른지. 다른 때만 버전이 오르고 개정 사유를 받는다 (SFR-021-14).
+ * 문항뿐 아니라 이름·유형·대상·기간까지 본다 — 어느 칸을 고쳐도 앞 버전과 다른 양식이 된다.
  */
-export function hasItemChange(checkList: TemplateFormValues['checkList'], template: ReportTemplate): boolean {
-  return JSON.stringify(toCheckNameList(checkList)) !== JSON.stringify(template.items);
+export function hasChange(values: Omit<TemplateFormValues, 'fixRemark'>, template: ReportTemplate): boolean {
+  const saved = toFormValues(template);
+
+  return values.templateName.trim() !== saved.templateName
+    || values.reportTypeName !== saved.reportTypeName
+    || values.targetTypeName !== saved.targetTypeName
+    || values.startDate !== saved.startDate
+    || values.endDate !== saved.endDate
+    || JSON.stringify(toCheckNameList(values.checkList)) !== JSON.stringify(template.items);
 }
 
 /** 빈 행은 문항으로 세지 않는다 — 비워 둔 채 저장한 행이 문항이 되면 점검자가 헛클릭한다 */
