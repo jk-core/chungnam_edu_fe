@@ -65,7 +65,6 @@ export function PlantDetailPanel({ plant, onOpen }: PlantDetailPanelProps) {
         <Sparkline
           values={series}
           tone={isAbnormal(plant.status) ? 'critical' : 'solar'}
-          width={248}
           height={52}
           animate={false}
           filled
