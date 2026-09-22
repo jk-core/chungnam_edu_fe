@@ -76,7 +76,7 @@ export function InverterTrendChart() {
 
   const meta = TREND_META[metric];
   // 분·초까지 적는다 — 수집 주기가 분 단위라 시각까지만 적으면 같은 시의 점들이 구분되지 않는다.
-  const labels = visible.map((point) => dayjs(point.gathDtm).format('MM월 DD일 HH:mm:ss'));
+  const labels = visible.map((point) => dayjs(point.gathDtm).format('MM.DD HH:mm:ss'));
 
   const readings = visible.map((point) => readTrend(point, metric));
   /*
@@ -115,7 +115,7 @@ export function InverterTrendChart() {
           : null;
 
         return trendTooltip({
-          title: dayjs(point.gathDtm).format('MM월 DD일 HH:mm:ss'),
+          title: dayjs(point.gathDtm).format('MM.DD HH:mm:ss'),
           rows: [
             { label: meta.label, value: metricText(reading.measured, meta.digits, meta.unit), strong: true },
             { label: '정상범위', value: `${metricText(reading.lower, meta.digits)} ~ ${metricText(reading.upper, meta.digits, meta.unit)}` },
