@@ -1,50 +1,62 @@
-import { useRef, useState } from 'react';
-import useAssetStore from '@/stores/assetStore';
-import { useLogin } from '@/stores/authStore';
+import axios from 'axios';
+import { useMutation } from '@tanstack/react-query';
+import { getUserInfo, postSignIn } from '@/service/auth';
+import { serverMessageOf } from '@/service/error';
+import { toAuthUser, useSetAuthUser, useSetSession } from '@/stores/authStore';
+import type { SignInParams } from '@/service/auth/type';
 
 export interface FormError {
   title: string;
   action: string;
 }
 
+/** 서버가 내려준 문구를 그대로 쓴다 — 실패 횟수·잠금 안내는 서버만이 정확히 안다 */
+function messageOf(error: unknown): FormError {
+  const serverMessage = serverMessageOf(error);
+
+  if (serverMessage) return { title: serverMessage, action: '입력한 내용을 다시 확인해 주세요.' };
+
+  if (axios.isAxiosError(error) && error.response?.status === 401) {
+    return {
+      title: '아이디 또는 비밀번호가 올바르지 않습니다.',
+      action: '대소문자를 구분합니다. 반복해서 실패하면 계정이 잠깁니다.',
+    };
+  }
+
+  return {
+    title: '로그인 중 문제가 생겼습니다.',
+    action: '잠시 후 다시 시도하고, 계속되면 소속 기관 담당자에게 문의하세요.',
+  };
+}
+
 /**
- * 로그인 시도 (SIF-001).
+ * 로그인 (SIF-001).
  *
- * 아이디를 직접 적어 들어오는 길과 데모 계정을 눌러 들어오는 길이 같은 실패 횟수를 나눠 쓴다.
- * 잠금 기준은 관리자 콘솔에서 저장한 로그인 정책을 그대로 따른다 (SFR-026).
+ * 토큰을 받은 뒤 곧바로 계정을 한 번 더 받는다 — `SignInResForm` 에는 이름도 등급도 없어
+ * 그것만으로는 헤더와 라우트 가드가 판정할 것이 없다. 둘이 모두 끝나야 로그인이 끝난 것이므로
+ * 한 뮤테이션 안에 묶는다: 중간에 멈추면 토큰만 쥔 채 아무 화면도 열지 못한다.
+ *
+ * 성공 뒤 이동은 `AuthLayout` 이 맡는다 — 여기서 navigate 를 부르면 그 리다이렉트와 경쟁한다.
  */
 export function useSignIn() {
-  const login = useLogin();
-  const policy = useAssetStore((state) => state.policy);
+  const setSession = useSetSession();
+  const setUser = useSetAuthUser();
 
-  const [error, setError] = useState<FormError | null>(null);
-  const [failCount, setFailCount] = useState(0);
-  // 연속 제출이 한 렌더에 묶여도 횟수가 어긋나지 않게 최신 값을 ref 로 들고 있는다.
-  const failRef = useRef(0);
+  const { mutate, isPending, error, reset } = useMutation({
+    mutationFn: async (params: SignInParams) => {
+      const session = await postSignIn(params);
 
-  const isLocked = failCount >= policy.maxFailCount;
+      setSession(session);
 
-  // 성공하면 AuthLayout 이 원래 가려던 곳으로 보내 준다. 여기서는 계정만 세운다.
-  const enter = (accountId: string) => {
-    if (login(accountId)) return;
+      return getUserInfo();
+    },
+    onSuccess: (info) => setUser(toAuthUser(info)),
+  });
 
-    failRef.current += 1;
-
-    const next = failRef.current;
-
-    setFailCount(next);
-    setError(
-      next >= policy.maxFailCount
-        ? {
-          title: `로그인 실패가 ${policy.maxFailCount}회를 넘어 입력이 잠겼습니다.`,
-          action: '소속 기관 담당자에게 계정 잠금 해제를 요청하세요.',
-        }
-        : {
-          title: '등록되지 않은 아이디입니다.',
-          action: `아이디를 다시 확인해 주세요. (실패 ${next}/${policy.maxFailCount}회)`,
-        },
-    );
+  return {
+    signIn: mutate,
+    isPending,
+    error: error ? messageOf(error) : null,
+    clearError: reset,
   };
-
-  return { policy, error, isLocked, enter, warn: setError };
 }

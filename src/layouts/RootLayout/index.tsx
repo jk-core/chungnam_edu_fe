@@ -8,11 +8,15 @@ import { SkipLink } from '@/components/layout/SkipLink';
 import { ToastViewport } from '@/components/common/Toast';
 import { useResetDepth } from '@/stores/plantStore';
 import { useScopeClamp } from '@/hooks/useScopeClamp';
+import { useScopeTree } from '@/hooks/useScopeTree';
 import styles from './RootLayout.module.scss';
 
 export default function RootLayout() {
   const { pathname } = useLocation();
   const resetDepth = useResetDepth();
+
+  // 설비 계층을 받아 스토어에 깐다 — 조회 대상 패널·트리·주소가 모두 그 위에서 돈다.
+  useScopeTree();
 
   // 교육기관 계정은 담당 발전소 밖을 볼 수 없다.
   useScopeClamp();

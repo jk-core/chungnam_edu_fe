@@ -5,11 +5,16 @@ import { ArrowUpRightIcon, PulseIcon } from '@/components/common/Icon';
 import { Button } from '@/components/common/Button';
 import { CountUp } from '@/components/common/CountUp';
 import { PATH } from '@/routes/routes';
-import { getAccumulatedAt, getOutputAt, SUNSET_HOUR } from '@/mocks/generation';
 import { REGION_TOTAL } from '@/mocks/regions';
 import { formatDate, formatEnergy, formatNumber, formatPercent, formatTime } from '@/utils/format';
+import { useHomeHero } from '../hooks/useHome';
+import { barsFromFlowChart, hourOfDate, hourOfDateTime } from '../utils/heroChart';
 import { SunArc } from './SunArc';
 import styles from './SunArcHero.module.scss';
+
+/** 데이터 없을 때 쓰는 충남 대략 일출·일몰 (소수 시간) */
+const FALLBACK_SUNRISE = 5.5;
+const FALLBACK_SUNSET = 19.6;
 
 /** 1분마다 갱신되는 현재 시각 */
 function useClock() {
@@ -26,13 +31,16 @@ function useClock() {
 
 export function SunArcHero() {
   const now = useClock();
-  const nowHour = now.getHours() + now.getMinutes() / 60;
-  const currentKw = getOutputAt(nowHour);
-  // 출력은 kW 절대값보다 "지금 설비를 얼마나 쓰고 있나"가 한눈에 읽힌다 — 총 설비용량 대비 비율로 낸다.
-  const currentRatio = REGION_TOTAL.capacityKw > 0 ? currentKw / REGION_TOTAL.capacityKw : 0;
-  const accumulated = getAccumulatedAt(nowHour);
-  const today = formatEnergy(accumulated);
-  const isAfterSunset = nowHour >= SUNSET_HOUR;
+  const nowHour = hourOfDate(now);
+  const { data } = useHomeHero();
+
+  const sunriseHour = data ? hourOfDateTime(data.sunriseTime) : FALLBACK_SUNRISE;
+  const sunsetHour = data ? hourOfDateTime(data.sunsetTime) : FALLBACK_SUNSET;
+  const bars = data ? barsFromFlowChart(data.flowChartData) : [];
+  const today = formatEnergy(data?.dayPower ?? 0);
+  /** API `outputRate` 는 % 단위 → formatPercent 는 0~1 비율을 받는다 */
+  const outputRatio = (data?.outputRate ?? 0) / 100;
+  const isAfterSunset = nowHour >= sunsetHour;
 
   return (
     <section className={styles.hero} aria-labelledby="hero-title">
@@ -92,7 +100,7 @@ export function SunArcHero() {
               <dt>현재 출력</dt>
               <dd>
                 <PulseIcon className={styles.hero__metaIcon} />
-                {isAfterSunset ? '일몰 · 발전 종료' : formatPercent(currentRatio, 1)}
+                {isAfterSunset ? '일몰 · 발전 종료' : formatPercent(outputRatio, 1)}
                 {isAfterSunset ? null : <span className={styles.hero__metaSub}>총 설비용량 대비</span>}
               </dd>
             </div>
@@ -118,7 +126,7 @@ export function SunArcHero() {
         </div>
 
         <div className={styles.hero__viz}>
-          <SunArc nowHour={nowHour} />
+          <SunArc nowHour={nowHour} sunriseHour={sunriseHour} sunsetHour={sunsetHour} bars={bars} />
           <p className={styles.hero__vizCaption}>
             점선은 오늘 해가 지나는 길이고, 막대는 그 시각에 실제로 낸 출력입니다.
             둘 사이가 벌어진 만큼은 구름에 가려 놓친 몫입니다.

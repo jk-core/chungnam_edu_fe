@@ -1,8 +1,9 @@
 import dayjs from 'dayjs';
+import { scopeTreeVersion } from '@/stores/scopeTreeStore';
 import type { DiagEfficiencyPoint, ModelMetrics, PredictionPoint } from '@/interface/diagnosisDetail';
 import type { OperationStatus } from '@/interface/status';
 import { NORMAL_BAND } from '@/configs/diagnosis';
-import { getNode } from './tree';
+import { getNode } from '@/stores/scopeTreeStore';
 import { FAULT_BY_STATUS } from './faultCodes';
 import { SUNRISE_HOUR, SUNSET_HOUR } from './generation';
 import { createRandom, hashSeed, pickNumber } from './random';
@@ -30,7 +31,8 @@ const predictionCache = new Map<string, PredictionPoint[]>();
  */
 export function getPredictionSeries(unitId: string, date: Date): PredictionPoint[] {
   const ymd = dayjs(date).format('YYYY-MM-DD');
-  const key = `${unitId}-${ymd}-pred`;
+  // 트리가 새로 깔리면 다시 짓는다 — 트리가 서기 전 상태로 만든 곡선이 굳지 않게 한다.
+  const key = `${scopeTreeVersion()}-${unitId}-${ymd}-pred`;
   const cached = predictionCache.get(key);
 
   if (cached) return cached;

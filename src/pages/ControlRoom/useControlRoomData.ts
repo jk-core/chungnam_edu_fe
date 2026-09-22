@@ -1,7 +1,9 @@
 import { useMemo, useState } from 'react';
 import { getCollectionStatus } from '@/mocks/collection';
 import { getQualityStatus, summarizeQuality } from '@/mocks/quality';
-import { getNode, ROOT_ID } from '@/mocks/tree';
+import { ROOT_ID } from '@/configs/scope';
+import { useNode } from '@/stores/scopeTreeStore';
+import { usePowerPlantList } from '@/hooks/usePowerPlantList';
 import { getNodeStat } from '@/mocks/nodeStats';
 import { liveTotalOutput } from '@/mocks/schoolOutput';
 import { NOW, TODAY } from '@/mocks/today';
@@ -9,7 +11,7 @@ import { isAbnormal, OPERATION_LABEL } from '@/mocks/status';
 import { formatNumber } from '@/utils/format';
 import { useAutoRefresh } from '@/hooks/useAutoRefresh';
 import { ALERT_RECORDS } from '@/mocks/alerts';
-import { CHUNGNAM_REGIONS } from '@/configs/regions';
+import { regionNameOfCode } from '@/configs/regions';
 import { ALL, EMPTY_FILTERS, matchPlants } from '@/components/plant/PlantSearchModal';
 import type { PlantFilters } from '@/components/plant/PlantSearchModal';
 import type { AlertRecord } from '@/interface/alert';
@@ -97,14 +99,15 @@ export function useControlRoomData(): ControlRoomData {
   );
 
   // 조건에 걸린 발전소를 이상부터 세운다 (SFR-004-13). 조건이 없으면 전체가 대상이다.
-  const rows = useMemo(() => matchPlants(filters), [filters]);
+  const { plants } = usePowerPlantList();
+  const rows = useMemo(() => matchPlants(plants, filters), [plants, filters]);
   const plantIds = useMemo(() => new Set(rows.map((row) => row.id)), [rows]);
 
   /** 검색창에 되짚어 줄 조건 요약 — 무엇으로 좁혀 놓았는지 한 줄로 적는다. */
   const searchSummary = useMemo(() => {
     const chips = [
       filters.keyword.trim() ? `"${filters.keyword.trim()}"` : null,
-      filters.region !== ALL ? CHUNGNAM_REGIONS.find((item) => item.code === filters.region)?.name ?? null : null,
+      filters.region !== ALL ? regionNameOfCode(filters.region) : null,
       filters.level !== ALL ? filters.level : null,
       filters.status !== ALL ? OPERATION_LABEL[filters.status as OperationStatus] : null,
     ].filter((chip): chip is string => Boolean(chip));
@@ -122,7 +125,9 @@ export function useControlRoomData(): ControlRoomData {
     yearKwh: rows.reduce((sum, school) => sum + school.yearKwh, 0),
   }), [rows]);
 
-  const stat = useMemo(() => getNodeStat(getNode(ROOT_ID), 'day', TODAY.toDate()), []);
+  // 트리가 도착하면 다시 셈한다 — 빈 트리로 한 번 셈하고 굳으면 상황판이 0 으로 멈춘다.
+  const root = useNode(ROOT_ID);
+  const stat = useMemo(() => getNodeStat(root, 'day', TODAY.toDate()), [root]);
   const abnormalCount = useMemo(() => rows.filter((school) => isAbnormal(school.status)).length, [rows]);
 
   /*

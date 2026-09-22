@@ -1,5 +1,5 @@
 import { useMemo } from 'react';
-import { isReviewRole } from '@/mocks/accounts';
+import { isReviewRole } from '@/configs/roles';
 import { mergePosts } from '@/stores/boardStore';
 import useBoardStore from '@/stores/boardStore';
 import type { BoardKind, BoardPost } from '@/interface/board';
@@ -13,13 +13,16 @@ export const WRITE_RESTRICTED: Record<BoardKind, boolean> = { notice: true, inqu
 
 /**
  * 이 글을 고치거나 지울 수 있는가 (SFR-025-01/04).
- * 교육청은 게시판을 관리하는 자리라 남의 글도 손댈 수 있고, 그 밖에는 제가 쓴 글만이다.
+ *
+ * 교육청은 게시판을 관리하는 자리라 남의 글도 손댄다. 「제가 쓴 글인가」는 지금 가릴 수 없다 —
+ * 글은 작성자를 소속 기관 이름(`author`)으로만 들고 있는데 v2.0 의 `/user/userInfo` 가
+ * 소속을 주지 않아 맞댈 것이 없다. 아무 글이나 손대게 두는 쪽이 더 나쁘므로 닫아 둔다.
+ * 게시판 API 가 작성자 식별자를 주면 그 값으로 되살린다.
  */
-export function canManagePost(post: BoardPost, user: { role: Role; orgName: string } | null): boolean {
+export function canManagePost(user: { role: Role } | null): boolean {
   if (!user) return false;
-  if (isReviewRole(user.role)) return true;
 
-  return !WRITE_RESTRICTED[post.kind] && post.author === user.orgName;
+  return isReviewRole(user.role);
 }
 
 export interface BoardNeighbors {

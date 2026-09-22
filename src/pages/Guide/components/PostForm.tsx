@@ -9,7 +9,7 @@ import { MSG } from '@/configs/messages';
 import { Reveal } from '@/components/common/Reveal';
 import { buildPath } from '@/routes/buildPath';
 import { daysAhead, NOW, TODAY } from '@/mocks/today';
-import { isReviewRole } from '@/mocks/accounts';
+import { isReviewRole } from '@/configs/roles';
 import { toast } from '@/stores/toastStore';
 import { useAuthUser } from '@/stores/authStore';
 import useBoardStore from '@/stores/boardStore';
@@ -62,7 +62,7 @@ export function PostForm({ kind }: { kind: BoardKind }) {
   }
 
   // 고칠 글이 없거나 남의 글이면 목록으로 돌려보낸다 — 주소를 직접 쳐서 들어와도 같다.
-  if (isEdit && (!target || !canManagePost(target, user))) {
+  if (isEdit && (!target || !canManagePost(user))) {
     return <Navigate to={buildPath.board(kind)} replace />;
   }
 
@@ -89,7 +89,7 @@ export function PostForm({ kind }: { kind: BoardKind }) {
       kind,
       title: draft.title.trim(),
       body: draft.body.trim(),
-      author: target?.author ?? user?.orgName ?? '작성자',
+      author: target?.author ?? user?.name ?? '작성자',
       // 고칠 때는 작성일시를 그대로 둔다 — 고쳤다고 목록 맨 위로 올라오면 새 글처럼 읽힌다.
       at: target?.at ?? NOW.format('YYYY-MM-DD HH:mm'),
       pinned: target?.pinned ?? false,

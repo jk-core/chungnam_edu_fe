@@ -2,7 +2,8 @@ import { useEffect } from 'react';
 import { AnimatePresence, motion } from 'motion/react';
 import { ChevronRightIcon } from '@/components/common/Icon';
 import { EquipmentIcon } from '@/components/plant/EquipmentIcon';
-import { getChildNodes, getNode, getNodePath, KIND_LABEL } from '@/mocks/tree';
+import { KIND_LABEL } from '@/configs/scope';
+import { getChildNodes, getNode, getNodePath } from '@/stores/scopeTreeStore';
 import { cn } from '@/utils/cn';
 import { formatNumber } from '@/utils/format';
 import {
@@ -12,7 +13,7 @@ import {
   useSelectNode,
   useToggleExpanded,
 } from '@/stores/plantStore';
-import type { NodeKind, ScopeNode } from '@/mocks/tree';
+import type { NodeKind, ScopeNode } from '@/interface/tree';
 import styles from './PlantTree.module.scss';
 
 interface RowProps {

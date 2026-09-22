@@ -4,7 +4,7 @@ import { buildEduStats } from '@/mocks/solarEdu';
 import { formatCapacity, formatNumber } from '@/utils/format';
 import { getDayWeather, getWeekWeather } from '@/mocks/weather';
 import { resolveEduLevel } from '@/mocks/eduContent';
-import { getNode } from '@/mocks/tree';
+import { getNode } from '@/stores/scopeTreeStore';
 import { getSchoolById, SCHOOLS } from '@/mocks/schools';
 import { TODAY } from '@/mocks/today';
 import { resolveForcedWeather } from '../components/WeatherPicker';

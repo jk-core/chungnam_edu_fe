@@ -1,6 +1,6 @@
 import { useMemo } from 'react';
 import { ADMIN_NAVIGATION, visibleNavigation } from '@/configs/navigation';
-import { isAdminRole } from '@/mocks/accounts';
+import { isAdminRole } from '@/configs/roles';
 import { useAuthUser } from '@/stores/authStore';
 import type { NavSection } from '@/configs/navigation';
 

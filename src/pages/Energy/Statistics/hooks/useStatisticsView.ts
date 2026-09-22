@@ -1,6 +1,6 @@
 import dayjs from 'dayjs';
 import { useMemo, useState } from 'react';
-import { childKindOf, getNodePath } from '@/mocks/tree';
+import { childKindOf, getNodePath } from '@/stores/scopeTreeStore';
 import { getChildStats, getNodeStat } from '@/mocks/nodeStats';
 import { getDetailTrend, PERIOD_META } from '@/mocks/generation';
 import { kwhToCarbon, kwhToHouseholdMonths, kwhToTrees } from '@/utils/eco';

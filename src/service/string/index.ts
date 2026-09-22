@@ -7,7 +7,7 @@ import type {
   ManageStringSaveParams,
 } from './type';
 
-/** 스트링 관리 API — 목록은 설비 단위, 저장은 설비 한 대를 통째로 교체한다 */
+/** 스트링 관리 API — 목록·상세는 설비(cid) 단위, 삭제만 stringId 단건이다 */
 export const getManageStringPage = async (params: ManageStringPageParams) => {
   const { data } = await apiClient.get<PagingResponse<ManageStringPage>>('/manage/string/page', { params });
 

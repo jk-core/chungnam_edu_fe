@@ -1,6 +1,6 @@
 import { Navigate, useParams } from 'react-router-dom';
 import { lazy } from 'react';
-import { ADMIN_ROLES } from '@/mocks/accounts';
+import { ADMIN_ROLES } from '@/configs/roles';
 import AuthLayout from '@/layouts/AuthLayout';
 import RootLayout from '@/layouts/RootLayout';
 import SubPageLayout from '@/layouts/SubPageLayout';

@@ -10,8 +10,7 @@ import {
   WEEKDAY_LABELS,
 } from '@/utils/date';
 import { cn } from '@/utils/cn';
-import { getMonthDays } from '@/mocks/weather';
-import { usePlantScope } from '@/hooks/usePlantScope';
+import { useCalendarData } from '@/components/common/DatePicker/hooks/useCalendarData';
 import { WeatherIcon } from '@/components/common/DataCalendar/WeatherIcon';
 import type { Granularity } from '@/utils/date';
 import styles from './Calendar.module.scss';
@@ -41,7 +40,7 @@ interface CalendarProps {
 export function Calendar({ mode, selected, range, preview, onPreview, onSelect }: CalendarProps) {
   const scrollRef = useRef<HTMLDivElement>(null);
   const anchorRef = useRef<HTMLDivElement>(null);
-  const { plant } = usePlantScope();
+  const { getDays } = useCalendarData();
 
   const months = useMemo(
     () => (mode === 'day' ? listMonths(DAY_CALENDAR_MIN, CALENDAR_MAX) : []),
@@ -119,8 +118,7 @@ export function Calendar({ mode, selected, range, preview, onPreview, onSelect }
               목업이 날짜별로 값을 캐시하므로 달마다 다시 만들어도 값이 흔들리지 않는다.
             */
             const weather = new Map(
-              getMonthDays(plant?.id ?? null, month.year, month.month)
-                .map((item) => [Number(item.date.slice(8, 10)), item.kind]),
+              getDays(month.year, month.month).map((item) => [Number(item.date.slice(8, 10)), item.kind]),
             );
 
             return (

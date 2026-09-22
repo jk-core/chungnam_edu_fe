@@ -25,4 +25,6 @@ export const postManageInverter = (data: ManageInverterAddParams) => apiClient.p
 
 export const putManageInverter = (data: ManageInverterModifyParams) => apiClient.put('/manage/inverter', data);
 
-export const deleteManageInverter = (inverterId: number) => apiClient.delete('/manage/inverter', { params: { inverterId } });
+export const deleteManageInverter = (inverterId: number) => apiClient.delete('/manage/inverter', {
+  params: { inverterId },
+});

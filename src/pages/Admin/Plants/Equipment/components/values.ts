@@ -1,10 +1,11 @@
-import { describeInverterProduct } from '@/mocks/deviceMaster';
 import { NOW } from '@/mocks/today';
-import type { EquipmentFormValues } from '@/service/equipment/type';
-import type { StringRow } from '@/service/string/type';
-import type { InverterProduct, ModuleProduct, StringMaster } from '@/interface/deviceMaster';
+import type { StringRow } from '@/schemas/stringRow';
+import type { StringMaster } from '@/interface/deviceMaster';
 import type { ManagedUser } from '@/interface/account';
+import type { ManageInverterPage } from '@/service/inverter/type';
 import type { PlantAsset } from '@/interface/asset';
+import type { SolaModuleDetail } from '@/service/module/type';
+import type { EquipmentFormValues } from './form';
 import type { EquipmentRow } from '../hooks/useEquipmentRows';
 
 /** AS 만료일 기본값 — 오늘로부터 다섯 해 */
@@ -21,7 +22,7 @@ export const EMPTY_VALUES: EquipmentFormValues = {
   rtuPort: null,
   inverterId: Number.NaN,
   inverterLabel: '',
-  inverterKind: '',
+  inverterTypeCode: null,
   moduleId: Number.NaN,
   moduleLabel: '',
   azimuth: 180,
@@ -42,8 +43,13 @@ export function userLabelOf(user: ManagedUser): string {
   return `${user.name} · ${user.loginId}`;
 }
 
-export function moduleLabelOf(product: ModuleProduct): string {
-  return `${product.maker} - ${product.name} (${product.moduleId})`;
+export function moduleLabelOf(product: SolaModuleDetail): string {
+  return `${product.moduleEnterpriseName} - ${product.moduleName} (${product.moduleId})`;
+}
+
+/** 목록·검색에 내보내는 인버터 제품 표기. 업체명으로도 찾을 수 있게 한 줄에 함께 담는다. */
+export function inverterLabelOf(product: ManageInverterPage | undefined): string {
+  return product ? `${product.inverterEnterpriseName} - ${product.inverterName} (${product.inverterId})` : '';
 }
 
 function toStringRows(strings: StringMaster[]): StringRow[] {
@@ -59,16 +65,16 @@ function toStringRows(strings: StringMaster[]): StringRow[] {
 interface Sources {
   users: ManagedUser[];
   plants: PlantAsset[];
-  inverters: InverterProduct[];
-  modules: ModuleProduct[];
+  inverters: ManageInverterPage[];
+  modules: SolaModuleDetail[];
   strings: StringMaster[];
 }
 
 export function toFormValues(target: EquipmentRow, sources: Sources): EquipmentFormValues {
   const user = sources.users.find((item) => item.userId === target.userId);
   const plant = sources.plants.find((item) => item.plantId === target.plantId);
-  const inverter = sources.inverters.find((item) => item.id === target.inverterProductId);
-  const module = sources.modules.find((item) => item.id === target.moduleProductId);
+  const inverter = sources.inverters.find((item) => item.inverterId === target.inverterProductId);
+  const module = sources.modules.find((item) => item.moduleId === target.moduleProductId);
 
   return {
     userId: target.userId ?? Number.NaN,
@@ -79,8 +85,8 @@ export function toFormValues(target: EquipmentRow, sources: Sources): EquipmentF
     rtuCommunicationId: target.rtuCommId,
     rtuPort: target.rtuPort,
     inverterId: inverter?.inverterId ?? Number.NaN,
-    inverterLabel: describeInverterProduct(inverter),
-    inverterKind: inverter?.kind ?? '',
+    inverterLabel: inverterLabelOf(inverter),
+    inverterTypeCode: inverter?.inverterTypeCode ?? null,
     moduleId: module?.moduleId ?? Number.NaN,
     moduleLabel: module ? moduleLabelOf(module) : '',
     azimuth: target.azimuth,

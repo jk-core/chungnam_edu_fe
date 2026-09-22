@@ -1,6 +1,6 @@
 import { daysAhead, TODAY } from '@/mocks/today';
-import type { TemplateFormValues } from '@/service/inspectionReport/type';
 import type { ReportTemplate } from '@/interface/fieldReport';
+import type { TemplateFormValues } from './form';
 
 /** 새 양식은 오늘 열어 한 달 뒤 닫는 것을 기본으로 둔다 */
 export const EMPTY_VALUES: TemplateFormValues = {

@@ -3,9 +3,10 @@ import { Badge } from '@/components/common/Badge';
 import { Button } from '@/components/common/Button';
 import { Modal } from '@/components/common/Modal';
 import { OPERATION_LABEL, OPERATION_ORDER, OPERATION_RANK, OPERATION_TONE } from '@/mocks/status';
-import { CHUNGNAM_REGIONS } from '@/configs/regions';
-import { getInvertersOf } from '@/mocks/equipment';
-import { SCHOOL_LEVELS, SCHOOLS } from '@/mocks/schools';
+import { isInRegion } from '@/configs/regions';
+import { useAreaOptions } from '@/hooks/useAreaOptions';
+import { SCHOOL_LEVELS } from '@/mocks/schools';
+import { usePowerPlantList } from '@/hooks/usePowerPlantList';
 import { Select } from '@/components/common/Select';
 import { TextField } from '@/components/common/Form';
 import { formatNumber } from '@/utils/format';
@@ -50,8 +51,10 @@ interface PlantSearchModalProps {
  */
 export function PlantSearchModal({ isOpen, filters, onClose, onApply, onSelect }: PlantSearchModalProps) {
   const [draft, setDraft] = useState<PlantFilters>(filters);
+  const { plants } = usePowerPlantList();
+  const areaOptions = useAreaOptions();
 
-  const results = useMemo(() => matchPlants(draft), [draft]);
+  const results = useMemo(() => matchPlants(plants, draft), [plants, draft]);
 
   const apply = () => {
     onApply(draft);
@@ -87,7 +90,7 @@ export function PlantSearchModal({ isOpen, filters, onClose, onApply, onSelect }
             label="지역"
             value={draft.region}
             onChange={(value) => setDraft({ ...draft, region: value })}
-            options={[{ value: ALL, label: '전체 지역' }, ...CHUNGNAM_REGIONS.map((item) => ({ value: item.code, label: item.name }))]}
+            options={[{ value: ALL, label: '전체 지역' }, ...areaOptions]}
           />
           <Select
             label="기관별"
@@ -138,27 +141,24 @@ export function PlantSearchModal({ isOpen, filters, onClose, onApply, onSelect }
   );
 }
 
-/** 조건에 걸리는 발전소. 이상 설비를 앞세운다 (SFR-004-13). */
-export function matchPlants(filters: PlantFilters): School[] {
+/**
+ * 조건에 걸리는 발전소. 이상 설비를 앞세운다 (SFR-004-13).
+ *
+ * 설비명으로 찾는 길(SFR-004-11)은 닫아 두었다 — 계층은 고른 발전소 한 곳만 받아 오므로
+ * 나머지 발전소의 인버터 이름을 알 길이 없다. 전체를 훑는 검색 API 가 오면 되살린다.
+ */
+export function matchPlants(plants: School[], filters: PlantFilters): School[] {
   const query = filters.keyword.trim().toLowerCase();
 
-  return SCHOOLS
-    .filter((school) => {
-      if (filters.region !== ALL && school.regionCode !== filters.region) return false;
-      if (filters.level !== ALL && school.level !== filters.level) return false;
-      if (filters.status !== ALL && school.status !== filters.status) return false;
+  return plants
+    .filter((plant) => {
+      if (filters.region !== ALL && !isInRegion(plant.regionCode, filters.region)) return false;
+      if (filters.level !== ALL && plant.level !== filters.level) return false;
+      if (filters.status !== ALL && plant.status !== filters.status) return false;
       if (!query) return true;
 
-      // 설비명으로도 찾는다 — 인버터 이름만 아는 상태로 오는 경우가 있다 (SFR-004-11).
-      const fields = [
-        school.name,
-        school.regionName,
-        school.address,
-        OPERATION_LABEL[school.status],
-        ...getInvertersOf(school.id).map((inverter) => inverter.name),
-      ];
-
-      return fields.some((field) => field.toLowerCase().includes(query));
+      return [plant.name, plant.regionName, plant.address, OPERATION_LABEL[plant.status]]
+        .some((field) => field.toLowerCase().includes(query));
     })
     .sort((a, b) => OPERATION_RANK[a.status] - OPERATION_RANK[b.status] || b.capacityKw - a.capacityKw);
 }

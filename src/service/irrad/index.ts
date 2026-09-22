@@ -1,6 +1,7 @@
 import apiClient from '@/service';
 import type { PagingResponse } from '@/service/common';
 import type {
+  IrradDropdown,
   ManageIrradAddParams,
   ManageIrradDetail,
   ManageIrradModifyParams,
@@ -26,3 +27,10 @@ export const postManageIrrad = (data: ManageIrradAddParams) => apiClient.post('/
 export const putManageIrrad = (data: ManageIrradModifyParams) => apiClient.put('/manage/irrad', data);
 
 export const deleteManageIrrad = (irradId: number) => apiClient.delete('/manage/irrad', { params: { irradId } });
+
+/** 발전소 폼의 일사량계 검색기가 쓴다 */
+export const getIrradDropdownList = async (name?: string) => {
+  const { data } = await apiClient.get<IrradDropdown[]>('/equipment/irrad/list/dropdown', { params: { name } });
+
+  return data;
+};

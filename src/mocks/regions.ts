@@ -1,5 +1,5 @@
 import type { Region } from '@/interface/energy';
-import { CHUNGNAM_REGIONS } from '@/configs/regions';
+import { SIGUNGU_REGIONS, sigunguCodeOf } from '@/configs/regions';
 import { PLANT_SEEDS } from './plantMaster';
 
 /**
@@ -16,22 +16,25 @@ import { PLANT_SEEDS } from './plantMaster';
  * 서해안이 내륙보다 일사량이 높고, 산지인 금산·청양이 가장 낮다.
  */
 export const REGION_HOURS: Record<string, number> = {
-  taean: 4.31,
-  boryeong: 4.24,
-  seocheon: 4.18,
-  dangjin: 4.12,
-  seosan: 4.09,
-  hongseong: 4.02,
-  buyeo: 3.96,
-  yesan: 3.91,
-  gyeryong: 3.86,
-  nonsan: 3.82,
-  asan: 3.78,
-  gongju: 3.74,
-  cheonan: 3.69,
-  cheongyang: 3.61,
-  geumsan: 3.54,
+  44825: 4.31,
+  44180: 4.24,
+  44770: 4.18,
+  44270: 4.12,
+  44210: 4.09,
+  44800: 4.02,
+  44760: 3.96,
+  44810: 3.91,
+  44250: 3.86,
+  44230: 3.82,
+  44200: 3.78,
+  44150: 3.74,
+  44130: 3.69,
+  44790: 3.61,
+  44710: 3.54,
 };
+
+/** 자치구로 내려온 발전소는 소속 시의 값을 쓴다 */
+export const regionHoursOf = (regionCode: string) => REGION_HOURS[sigunguCodeOf(regionCode)] ?? 3.8;
 
 /** 한 달 발전량은 금일값에 이 만큼을 곱해 잡는다 — 흐린 날을 덜어 낸 26.4일치. */
 const DAYS_IN_MONTH = 26.4;
@@ -39,14 +42,14 @@ const DAYS_IN_MONTH = 26.4;
 const NAME_ORDER = ['시', '군'];
 
 function buildRegions(): Region[] {
-  return CHUNGNAM_REGIONS
+  return SIGUNGU_REGIONS
     .map((region) => {
-      const seeds = PLANT_SEEDS.filter((seed) => seed.regionCode === region.code);
+      const seeds = PLANT_SEEDS.filter((seed) => sigunguCodeOf(seed.regionCode) === region.regionCode);
       const capacityKw = Math.round(seeds.reduce((sum, seed) => sum + seed.capacityKw, 0));
-      const todayKwh = Math.round(capacityKw * (REGION_HOURS[region.code] ?? 3.8));
+      const todayKwh = Math.round(capacityKw * regionHoursOf(region.regionCode));
 
       return {
-        code: region.code,
+        code: region.regionCode,
         name: region.name,
         schoolCount: seeds.length,
         capacityKw,

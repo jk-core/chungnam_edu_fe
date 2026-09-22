@@ -5,11 +5,11 @@
  * 교육 목적 값이라 한전·산림청 공식 계수를 다루는 utils/eco.ts 와는 따로 둔다.
  */
 
+import type { ScopeNode } from '@/interface/tree';
 import { getHourlyTrend } from './generation';
 import { getNodeStat } from './nodeStats';
 import { isProducing } from './status';
 import { NOW_HOUR, TODAY } from './today';
-import type { ScopeNode } from './tree';
 
 /**
  * 설치된 모듈 사양.

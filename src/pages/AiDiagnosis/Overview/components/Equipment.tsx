@@ -5,7 +5,7 @@ import { Badge } from '@/components/common/Badge';
 import { Card } from '@/components/common/Card';
 import { DIAG_EFFICIENCY_CRITICAL, DIAG_EFFICIENCY_WARN } from '@/configs/diagnosis';
 import { EmptyState } from '@/components/common/EmptyState';
-import { getChildNodes, getNodePath } from '@/mocks/tree';
+import { getChildNodes, getNodePath } from '@/stores/scopeTreeStore';
 import { getDiagEfficiencyPoints } from '@/mocks/prediction';
 import { getFaultCode } from '@/mocks/faultCodes';
 import { isAbnormal, OPERATION_LABEL, OPERATION_ORDER, OPERATION_RANK, OPERATION_TONE } from '@/mocks/status';

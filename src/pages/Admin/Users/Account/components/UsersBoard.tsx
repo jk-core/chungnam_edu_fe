@@ -2,10 +2,11 @@ import { useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/common/Button';
 import { createPath } from '@/pages/Admin/_shared/adminPath';
+import { useChangeHistory } from '@/pages/Admin/_shared/hooks/useChangeHistory';
 import { formatNumber } from '@/utils/format';
 import { PlusIcon } from '@/components/common/Icon';
 import { SearchInput } from '@/components/common/SearchInput';
-import useAssetStore, { mergeUsers, useUserChanges } from '@/stores/assetStore';
+import useAssetStore, { mergeUsers } from '@/stores/assetStore';
 import styles from '@/pages/Admin/Admin.module.scss';
 import { ChangeHistory } from '@/pages/Admin/_shared/ChangeHistory';
 import { UserTable } from './UserTable';
@@ -18,7 +19,7 @@ export function UsersBoard() {
   const userCreated = useAssetStore((state) => state.userCreated);
   const userPatched = useAssetStore((state) => state.userPatched);
   const userDeleted = useAssetStore((state) => state.userDeleted);
-  const changes = useUserChanges();
+  const { rows: changes } = useChangeHistory('USER');
   const navigate = useNavigate();
 
   const [keyword, setKeyword] = useState('');

@@ -1,11 +1,11 @@
 import { SCHOOL_LEVELS } from '@/mocks/schools';
 import { CHUNGNAM_REGIONS } from '@/configs/regions';
 import type { FileMeta } from '@/service/common';
-import type { PlantFormValues } from '@/service/plant/type';
 import type { ManagedUser } from '@/interface/account';
 import type { PlantAsset } from '@/interface/asset';
 import type { Pyranometer } from '@/interface/deviceMaster';
 import type { UploadFile } from '@/components/common/Form';
+import type { PlantFormValues } from './form';
 
 export const EMPTY_VALUES: PlantFormValues = {
   powerPlantName: '',

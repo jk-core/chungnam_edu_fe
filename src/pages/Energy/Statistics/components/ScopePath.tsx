@@ -1,5 +1,5 @@
 import { EquipmentIcon } from '@/components/plant/EquipmentIcon';
-import { KIND_LABEL } from '@/mocks/tree';
+import { KIND_LABEL } from '@/configs/scope';
 import { useSelectNode } from '@/stores/plantStore';
 import type { ScopeNode } from '@/interface/tree';
 import styles from '../Statistics.module.scss';

@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Card } from '@/components/common/Card';
-import { KIND_LABEL } from '@/mocks/tree';
+import { KIND_LABEL } from '@/configs/scope';
 import { Reveal } from '@/components/common/Reveal';
 import { SegmentedControl } from '@/components/common/SegmentedControl';
 import type { NodeKind } from '@/interface/tree';

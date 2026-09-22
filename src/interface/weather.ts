@@ -1,5 +1,18 @@
 export type WeatherKind = 'clear' | 'partlyCloudy' | 'cloudy' | 'rain' | 'snow';
 
+/**
+ * 날짜 선택 달력의 하루 칸.
+ *
+ * 그리는 것은 날씨뿐이다 — 아이콘은 다섯 벌로 접힌 `kind` 가 고르고, 이름은 서버가 준
+ * `label` 을 그대로 적는다(「비/눈」·「소나기」는 접힌 아이콘 위에서 이름으로만 남는다).
+ */
+export interface CalendarDayCell {
+  /** YYYY-MM-DD */
+  date: string;
+  kind: WeatherKind;
+  label: string;
+}
+
 /** 달력 한 칸에 얹는 하루치 값 (SFR-007-01/02) */
 export interface DayWeather {
   /** YYYY-MM-DD */

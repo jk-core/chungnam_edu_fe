@@ -1,6 +1,6 @@
 import { DETAIL_UNIT } from '@/mocks/generation';
 import { EChart } from '@/components/common/EChart';
-import { KIND_LABEL } from '@/mocks/tree';
+import { KIND_LABEL } from '@/configs/scope';
 import { AXIS_NAME_GAP, LEGEND_GRID_TOP, seriesPalette, topLegend } from '@/utils/chart';
 import { formatNumber } from '@/utils/format';
 import { useChartPalette } from '@/hooks/useChartPalette';

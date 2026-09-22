@@ -15,8 +15,8 @@ export const getManageUserPage = async (params: ManageUserPageParams) => {
   return data;
 };
 
-export const getManageUserDetail = async (userId: number) => {
-  const { data } = await apiClient.get<ManageUserDetail>('/manage/user/detail', { params: { userId } });
+export const getManageUserInfo = async (userId: number) => {
+  const { data } = await apiClient.get<ManageUserDetail>('/manage/user/info', { params: { userId } });
 
   return data;
 };
