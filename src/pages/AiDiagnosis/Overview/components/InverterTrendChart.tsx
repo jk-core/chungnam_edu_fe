@@ -3,8 +3,6 @@ import { useMemo, useState } from 'react';
 import { Card } from '@/components/common/Card';
 import { EChart } from '@/components/common/EChart';
 import { EmptyState } from '@/components/common/EmptyState';
-import { faultCodeLabel } from '@/mocks/faultCodes';
-import { getUnitTrend, readTrend, TREND_META } from '@/mocks/diagnosisTrend';
 import { Reveal } from '@/components/common/Reveal';
 import { SegmentedControl } from '@/components/common/SegmentedControl';
 import { AXIS_NAME_GAP, LEGEND_GRID_TOP, topLegend } from '@/utils/chart';
@@ -12,8 +10,12 @@ import { formatNumber } from '@/utils/format';
 import { useChartPalette } from '@/hooks/useChartPalette';
 import { useDiagnosisRange } from '@/stores/filterStore';
 import { useDiagnosisScope } from '@/hooks/useDiagnosisScope';
-import type { DiagTrendPoint, TrendMetric } from '@/mocks/diagnosisTrend';
+import type { DiagnosisRawPoint } from '@/service/diagnosis/type';
 import styles from '../../AiDiagnosis.module.scss';
+import { useDiagnosisRaw } from '../hooks/useDiagnosisRaw';
+import { metricText, readTrend, TREND_META } from './trendMetric';
+import { trendTooltip } from './trendTooltip';
+import type { TrendMetric } from './trendMetric';
 import type { EChartsOption } from 'echarts';
 
 type Density = 'summary' | 'detail';
@@ -29,22 +31,15 @@ const DENSITY_OPTIONS: { value: Density; label: string }[] = [
   { value: 'detail', label: '상세' },
 ];
 
-/** 기대값에서 이만큼 벗어나기 전까지는 정상으로 본다 (±%) */
-const NORMAL_MARGIN = 0.12;
-
 /**
  * 인버터 전력·전압·전류 추이 (SFR-013-09).
  *
  * 일자별 판정이 "어느 날 처졌다"를 알려 준다면, 이 그림은 기간 전체에서 어느 구간이
- * 기대값을 벗어났는지 한눈에 보여 준다. 정상 범위를 띠로 깔고 그 위에 측정값을 얹되,
- * AI 가 고장으로 분류한 구간만 붉게 끊어 그려 눈이 그리로 먼저 가게 한다.
+ * 정상범위를 벗어났는지 한눈에 보여 준다. 정상 범위는 **서버가 준 상·하한**을 띠로 깔고,
+ * 그 위에 측정값과 두 예측값(물리모델·머신러닝)을 얹는다 — 두 모델이 갈리는 지점이 진단의 단서다.
  *
  * 인버터나 스트링까지 좁혔을 때만 나온다 — 계측 추이는 그 두 계층에서만 나오는 값이라,
- * 발전소 전체를 보고 있을 때는 그릴 것이 없다. 낼지 말지를 이 부품이 스스로 정하므로 부르는
- * 쪽은 조회 대상을 알 필요가 없다.
- *
- * 고른 계층 자신의 값을 그린다 — 스트링을 골랐는데 상위 인버터를 그리면, 형제 스트링이
- * 섞인 값을 그 스트링의 것으로 읽게 된다.
+ * 발전소 전체를 보고 있을 때는 그릴 것이 없다.
  */
 export function InverterTrendChart() {
   const { target } = useDiagnosisScope();
@@ -53,47 +48,54 @@ export function InverterTrendChart() {
   const [metric, setMetric] = useState<TrendMetric>('power');
   const [density, setDensity] = useState<Density>('summary');
 
-  const unitId = target.kind === 'inverter' || target.kind === 'string' ? target.id : null;
-
-  const points = useMemo<DiagTrendPoint[]>(
-    () => (unitId ? getUnitTrend(unitId, range.start, range.end) : []),
-    [unitId, range.start, range.end],
+  const { points, outOfRangeDays, isLoading, supported } = useDiagnosisRaw(
+    target.id,
+    dayjs(range.start).format('YYYY-MM-DD'),
+    dayjs(range.end).format('YYYY-MM-DD'),
   );
 
   /*
-   * 요약은 하루의 정점만, 상세는 정시 값 전부를 그린다.
-   * 한 달을 상세로 펼치면 500 점이 넘어 모양이 뭉개진다 — 훑을 때와 파고들 때를 갈라 둔다.
+   * 요약은 하루의 정점만, 상세는 수집된 값 전부를 그린다.
+   * 한 달을 상세로 펼치면 수백 점이 넘어 모양이 뭉개진다 — 훑을 때와 파고들 때를 갈라 둔다.
+   * 정점은 전력 기준으로 고른다 — 같은 시점의 전압·전류를 함께 보아야 값이 서로 맞는다.
    */
   const visible = useMemo(() => {
     if (density === 'detail') return points;
 
-    const byDate = new Map<string, DiagTrendPoint>();
+    const byDate = new Map<string, DiagnosisRawPoint>();
 
     points.forEach((point) => {
-      const best = byDate.get(point.date);
+      const date = dayjs(point.gathDtm).format('YYYY-MM-DD');
+      const best = byDate.get(date);
 
-      if (!best || point.powerKw > best.powerKw) byDate.set(point.date, point);
+      if (!best || (point.pvPwr ?? 0) > (best.pvPwr ?? 0)) byDate.set(date, point);
     });
 
     return [...byDate.values()];
   }, [points, density]);
 
   const meta = TREND_META[metric];
-  const labels = visible.map((point) => (density === 'detail'
-    ? dayjs(point.time).format('M/D HH시')
-    : dayjs(point.date).format('M/D')));
+  // 분·초까지 적는다 — 수집 주기가 분 단위라 시각까지만 적으면 같은 시의 점들이 구분되지 않는다.
+  const labels = visible.map((point) => dayjs(point.gathDtm).format('MM.DD HH:mm:ss'));
 
-  const measured = visible.map((point) => readTrend(point, metric).measured);
-  const expected = visible.map((point) => readTrend(point, metric).expected);
-  // 정상 범위는 기대값 둘레의 띠다. 아래 선을 투명하게 깔고 그 위에 폭만큼 쌓아 색을 준다.
-  const bandLow = expected.map((value) => Math.round(value * (1 - NORMAL_MARGIN) * 10) / 10);
-  const bandWidth = expected.map((value) => Math.round(value * NORMAL_MARGIN * 2 * 10) / 10);
+  const readings = visible.map((point) => readTrend(point, metric));
+  /*
+    정상 범위는 상·하한 사이의 띠다. 아래 선을 투명하게 깔고 그 위에 폭만큼 쌓아 색을 준다.
+    한쪽이라도 안 왔으면 띠를 그리지 않는다 — 한 짝만으로는 범위가 되지 않는다.
+  */
+  const hasBand = readings.map((reading) => reading.lower !== null && reading.upper !== null);
+  const bandLow = readings.map((reading, index) => (hasBand[index] ? reading.lower : null));
+  const bandWidth = readings.map((reading, index) => (
+    hasBand[index] ? Math.max(0, (reading.upper ?? 0) - (reading.lower ?? 0)) : null
+  ));
   // 고장으로 분류된 구간만 남긴 선 — 나머지는 끊어 둔다.
-  const faulty = visible.map((point, index) => (point.faultCode > 0 ? measured[index] : null));
+  const faulty = visible.map((point, index) => (
+    point.faultCode !== null && point.faultCode > 0 ? readings[index].measured : null
+  ));
 
   const option: EChartsOption = {
     grid: { top: LEGEND_GRID_TOP, right: 56, bottom: 64, left: 58 },
-    legend: topLegend(palette, ['정상 범위', meta.label, '고장코드 이상', '일사량']),
+    legend: topLegend(palette, ['정상 범위', meta.label, '물리모델 예측', 'ML 예측', '고장코드 이상', '일사량']),
     tooltip: {
       trigger: 'axis',
       backgroundColor: palette.surface,
@@ -104,19 +106,31 @@ export function InverterTrendChart() {
         const list = Array.isArray(params) ? params : [params];
         const index = Number(list[0]?.dataIndex ?? 0);
         const point = visible[index];
+        const reading = readings[index];
 
-        if (!point) return '';
+        if (!point || !reading) return '';
 
-        const { measured: value, expected: guess } = readTrend(point, metric);
-        const gap = guess > 0 ? ((value - guess) / guess) * 100 : 0;
+        const gap = reading.measured !== null && reading.ml !== null && reading.ml > 0
+          ? ((reading.measured - reading.ml) / reading.ml) * 100
+          : null;
 
-        return [
-          `<strong>${dayjs(point.time).format('M월 D일 HH시')}</strong>`,
-          `측정 ${formatNumber(value, meta.digits)}${meta.unit} · 기대 ${formatNumber(guess, meta.digits)}${meta.unit}`,
-          `<span style="color:${gap < -10 ? palette.critical : palette.text}">편차 ${gap > 0 ? '+' : ''}${formatNumber(gap, 1)}%</span>`,
-          `일사량 ${formatNumber(point.irradianceWm2)}W/m²`,
-          `진단 ${faultCodeLabel(point.faultCode)}`,
-        ].join('<br/>');
+        return trendTooltip({
+          title: dayjs(point.gathDtm).format('MM.DD HH:mm:ss'),
+          rows: [
+            { label: meta.label, value: metricText(reading.measured, meta.digits, meta.unit), strong: true },
+            { label: '정상범위', value: `${metricText(reading.lower, meta.digits)} ~ ${metricText(reading.upper, meta.digits, meta.unit)}` },
+            { label: '물리모델', value: metricText(reading.phys, meta.digits, meta.unit) },
+            { label: 'ML 예측', value: metricText(reading.ml, meta.digits, meta.unit) },
+            {
+              label: 'ML 대비',
+              value: gap === null ? '—' : `${gap > 0 ? '+' : ''}${formatNumber(gap, 1)}%`,
+              color: gap !== null && gap < -10 ? palette.critical : undefined,
+            },
+            { label: '일사량', value: metricText(point.slpIrrad, 0, ' W/m²') },
+          ],
+          fault: { code: point.faultCode, name: point.faultCodeName },
+          palette,
+        });
       },
     },
     xAxis: {
@@ -159,6 +173,10 @@ export function InverterTrendChart() {
       },
     ],
     series: [
+      /*
+        띠는 배경이므로 모든 선 아래에 깐다 — line 계열의 기본 z 가 2 라, 그대로 두면
+        일사량(z:1)처럼 낮게 깐 선이 반투명한 띠에 덮여 흐릿하게 보인다.
+      */
       {
         name: '정상 범위 하단',
         type: 'line',
@@ -170,6 +188,7 @@ export function InverterTrendChart() {
         data: bandLow,
         tooltip: { show: false },
         legendHoverLink: false,
+        z: 0,
       },
       {
         name: '정상 범위',
@@ -181,6 +200,7 @@ export function InverterTrendChart() {
         areaStyle: { color: palette.okSoft, opacity: 0.9 },
         data: bandWidth,
         tooltip: { show: false },
+        z: 0,
       },
       {
         name: meta.label,
@@ -189,8 +209,28 @@ export function InverterTrendChart() {
         showSymbol: false,
         lineStyle: { color: palette.generation, width: 2 },
         itemStyle: { color: palette.generation },
-        data: measured,
+        data: readings.map((reading) => reading.measured),
         z: 3,
+      },
+      {
+        name: '물리모델 예측',
+        type: 'line',
+        smooth: true,
+        showSymbol: false,
+        lineStyle: { color: palette.axis, width: 1.4, type: 'dotted' },
+        itemStyle: { color: palette.axis },
+        data: readings.map((reading) => reading.phys),
+        z: 2,
+      },
+      {
+        name: 'ML 예측',
+        type: 'line',
+        smooth: true,
+        showSymbol: false,
+        lineStyle: { color: palette.compare, width: 1.6, type: 'dashed' },
+        itemStyle: { color: palette.compare },
+        data: readings.map((reading) => reading.ml),
+        z: 2,
       },
       {
         name: '고장코드 이상',
@@ -211,20 +251,22 @@ export function InverterTrendChart() {
         showSymbol: false,
         lineStyle: { color: palette.irradiance, width: 1.6, type: 'dashed' },
         itemStyle: { color: palette.irradiance },
-        data: visible.map((point) => point.irradianceWm2),
+        data: visible.map((point) => point.slpIrrad),
         z: 2,
       },
     ],
   };
 
   // 인버터·스트링까지 좁히지 않았으면 그릴 것이 없다.
-  if (!unitId) return null;
+  if (!supported) return null;
 
   return (
     <Reveal delay={0.04}>
       <Card
         title="전력 · 전압 · 전류 추이"
-        description="버튼으로 측정값을 바꿔 봅니다 · 초록 띠는 기대값 둘레의 정상 범위, 붉은 선은 AI가 고장으로 분류한 구간입니다"
+        description={outOfRangeDays > 0
+          ? `초록 띠는 서버가 준 정상 범위, 붉은 선은 AI가 고장으로 분류한 구간입니다 · 조회 기간 중 ${formatNumber(outOfRangeDays)}일이 정상범위를 벗어났습니다`
+          : '초록 띠는 서버가 준 정상 범위, 붉은 선은 AI가 고장으로 분류한 구간입니다'}
         action={(
           <div className={styles.dailyActions}>
             <SegmentedControl label="측정값" size="sm" options={METRIC_OPTIONS} value={metric} onChange={setMetric} />
@@ -234,15 +276,15 @@ export function InverterTrendChart() {
       >
         {visible.length === 0 ? (
           <EmptyState
-            title="계측 추이가 없습니다"
-            description="이 계층에는 예측 모델이 도는 인버터가 없습니다."
+            title={isLoading ? '계측 추이를 불러오는 중입니다' : '계측 추이가 없습니다'}
+            description={isLoading ? '' : '이 설비는 조회 기간에 수집된 값이 없습니다.'}
           />
         ) : (
           <>
             <EChart
               option={option}
               height={340}
-              summary={`${target.name}의 ${meta.label} 추이. 정상 범위는 기대값 ±${Math.round(NORMAL_MARGIN * 100)}%.`}
+              summary={`${target.name}의 ${meta.label} 추이. 초록 띠가 정상 범위다.`}
             />
             <p className={styles.trendHint}>아래 손잡이로 기간을 좁히거나 Shift + 마우스 휠로 확대합니다.</p>
           </>

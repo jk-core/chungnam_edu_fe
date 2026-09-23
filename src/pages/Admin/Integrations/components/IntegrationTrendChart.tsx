@@ -3,7 +3,8 @@ import { Card } from '@/components/common/Card';
 import { EChart } from '@/components/common/EChart';
 import { integrationTrend } from '@/mocks/integrationLog';
 import { Reveal } from '@/components/common/Reveal';
-import { formatNumber, formatPercent } from '@/utils/format';
+import { tooltipValue } from '@/utils/chart';
+import { formatPercent } from '@/utils/format';
 import { useChartPalette } from '@/hooks/useChartPalette';
 import { useIntegrationLogs } from '../hooks/useIntegrationLogs';
 import type { EChartsOption } from 'echarts';
@@ -28,7 +29,7 @@ export function IntegrationTrendChart() {
       borderColor: palette.border,
       borderWidth: 1,
       textStyle: { color: palette.text, fontSize: 12 },
-      valueFormatter: (value) => `${formatNumber(Number(value), 1)}%`,
+      valueFormatter: (value) => tooltipValue(value, 1, '%'),
     },
     xAxis: {
       type: 'category',

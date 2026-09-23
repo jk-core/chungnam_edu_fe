@@ -6,7 +6,7 @@ import { TemplateEditor } from './components/TemplateEditor';
 import { TemplateTable } from './components/TemplateTable';
 
 /**
- * 점검 양식 등록·편집과 판 관리 (SFR-021-14).
+ * 점검 양식 등록·편집과 버전 관리 (SFR-021-14).
  *
  * 초안(문항·개정 사유)은 편집기가 통째로 가진다 — 어느 양식을 고쳤는지는 주소가 쥔다.
  */

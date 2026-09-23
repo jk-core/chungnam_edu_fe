@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 import { createJSONStorage, persist } from 'zustand/middleware';
+import dayjs from 'dayjs';
 import { TODAY } from '@/mocks/today';
 import { fromIso, toIso } from '@/utils/date';
 import type { DateRangeValue } from '@/components/common/DateRangePicker';
@@ -22,14 +23,20 @@ interface FilterState {
 // 목업 기준일을 그대로 쓴다. 실시간 오늘을 쓰면 시드 데이터와 날짜가 어긋난다.
 const today = TODAY;
 
+/*
+  진단은 서버를 본다 — 목업 기준일로 열면 조회 기간이 실제 수집일과 어긋나 빈 화면이 된다.
+  아직 목업인 화면(알림·점검·보고서)은 위 `today` 를 그대로 쓴다.
+*/
+const serverToday = dayjs();
+
 const useFilterStore = create<FilterState>()(
   persist(
     (set) => ({
       statisticsDate: today.format('YYYY-MM-DD'),
       collectionDate: today.format('YYYY-MM-DD'),
       diagnosisRange: {
-        start: today.subtract(29, 'day').format('YYYY-MM-DD'),
-        end: today.format('YYYY-MM-DD'),
+        start: serverToday.subtract(29, 'day').format('YYYY-MM-DD'),
+        end: serverToday.format('YYYY-MM-DD'),
       },
       alertRange: {
         start: today.subtract(59, 'day').format('YYYY-MM-DD'),
@@ -43,6 +50,16 @@ const useFilterStore = create<FilterState>()(
     {
       name: 'cne-filters',
       storage: createJSONStorage(() => localStorage),
+      /*
+        1 판의 진단 기간은 목업 기준일로 잡혀 있다 — 그대로 읽으면 서버에 없는 기간을 조회해
+        화면이 비어 보인다. 그 칸만 버리고 기본값을 새로 받는다.
+      */
+      version: 1,
+      migrate: (persisted) => {
+        const { diagnosisRange, ...rest } = persisted as FilterState;
+
+        return rest as FilterState;
+      },
     },
   ),
 );

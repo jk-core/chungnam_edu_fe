@@ -50,7 +50,7 @@ export function TemplateTable() {
     },
     {
       key: 'version',
-      header: '판',
+      header: '버전',
       width: '120px',
       render: (row) => (
         <span className={styles.stackCell}>
@@ -92,7 +92,7 @@ export function TemplateTable() {
       <Reveal>
         <Card
           title="점검 양식"
-          description="문항을 고치면 새 판으로 나갑니다. 다음 회차는 문항을 그대로 두고 점검 기간만 고쳐 엽니다."
+          description="양식을 고치면 새 버전으로 나갑니다. 이미 쓴 보고서는 자기 문항을 그대로 들고 있어 바뀌지 않습니다."
         >
           <Table caption="점검 양식 목록" columns={columns} rows={templates} getRowKey={(row) => row.id} />
         </Card>

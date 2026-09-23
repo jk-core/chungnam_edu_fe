@@ -17,7 +17,7 @@ import useFieldReportStore from '@/stores/fieldReportStore';
 import type { ReportTemplate } from '@/interface/fieldReport';
 import styles from '@/pages/Admin/Admin.module.scss';
 import { CHECK_NAME_MAX, LABEL_MAX, REVISION_NOTE_MAX, templateFormSchema } from './form';
-import { EMPTY_VALUES, hasItemChange, toCheckNameList, toFormValues } from './values';
+import { EMPTY_VALUES, hasChange, toCheckNameList, toFormValues } from './values';
 import type { TemplateFormValues } from './form';
 
 const INSPECT_TYPES = [
@@ -35,11 +35,8 @@ interface TemplateEditorProps {
 /**
  * 점검 양식 등록·수정 (SFR-021-14/19).
  *
- * **문항을 고치면** 판 번호를 올려 새 판으로 낸다 — 이미 쓰인 보고서는 자기 문항을 통째로 들고
- * 있어 (`FieldReport.checklist`) 과거 보고서가 뒤늦게 바뀌는 일이 없다.
- *
- * **기간만 고치면 판은 그대로다.** 다음 회차를 여는 일이지 양식을 고친 일이 아니라서,
- * 판을 올리면 개정 이력이 「문항은 그대로인데 v5」로 채워져 무엇이 바뀌었는지 못 읽게 된다.
+ * **어느 칸이든 고치면** 버전 번호를 올려 새 버전으로 낸다 — 이미 쓰인 보고서는 자기 문항을
+ * 통째로 들고 있어 (`FieldReport.checklist`) 과거 보고서가 뒤늦게 바뀌는 일이 없다.
  *
  * 문항은 한 행에 하나씩 적는다 — 행마다 오류가 따로 붙고 빼기·추가가 그 자리에서 된다.
  */
@@ -63,7 +60,7 @@ export function TemplateEditor({ template }: TemplateEditorProps) {
       스키마를 밖에서 만들어 두면 그 판정을 못 하므로 검증 때마다 지금 값으로 세운다.
     */
     resolver: (data, context, options) => zodResolver(
-      templateFormSchema(isNew, template === null || hasItemChange(data.checkList, template)),
+      templateFormSchema(isNew, template === null || hasChange(data, template)),
     )(data, context, options),
     mode: 'onChange',
   });
@@ -71,11 +68,16 @@ export function TemplateEditor({ template }: TemplateEditorProps) {
     control: methods.control,
     name: 'checkList',
   });
-  const checkList = useWatch({ control: methods.control, name: 'checkList' });
+  // 한 칸이라도 고쳤는지 보아야 하므로 개정 사유를 뺀 나머지를 모두 구독한다.
+  const [templateName, reportTypeName, targetTypeName, startDate, endDate, checkList] = useWatch({
+    control: methods.control,
+    name: ['templateName', 'reportTypeName', 'targetTypeName', 'startDate', 'endDate', 'checkList'],
+  });
 
-  // 문항이 그대로면 낼 새 판이 없다 — 판 번호도 개정 사유도 그때만 걸린다.
-  const isRevising = template === null || hasItemChange(checkList, template);
-  const nextVersion = (template?.version ?? 0) + (isRevising ? 1 : 0);
+  // 고친 것이 없으면 낼 새 버전이 없다 — 저장 자체가 막히고 개정 사유도 그때만 받는다.
+  const isRevising = template === null
+    || hasChange({ templateName, reportTypeName, targetTypeName, startDate, endDate, checkList }, template);
+  const nextVersion = (template?.version ?? 0) + 1;
 
   const commit = (input: TemplateFormValues) => {
     const saved: ReportTemplate = {
@@ -84,14 +86,13 @@ export function TemplateEditor({ template }: TemplateEditorProps) {
       targetType: input.targetTypeName,
       label: input.templateName.trim(),
       version: nextVersion,
-      revisedAt: isRevising ? TODAY.format('YYYY-MM-DD') : template?.revisedAt ?? TODAY.format('YYYY-MM-DD'),
+      revisedAt: TODAY.format('YYYY-MM-DD'),
       startDate: input.startDate,
       dueDate: input.endDate,
       items: toCheckNameList(input.checkList),
     };
 
-    // 기간만 고쳤으면 이력에 남길 개정이 없다.
-    saveTemplate(saved, isRevising ? {
+    saveTemplate(saved, {
       id: `TR-${NOW.format('MMDDHHmm')}-${saved.id}`,
       templateId: saved.id,
       templateLabel: saved.label,
@@ -99,11 +100,9 @@ export function TemplateEditor({ template }: TemplateEditorProps) {
       at: NOW.format('YYYY-MM-DD HH:mm'),
       actor: actor?.name ?? '관리자',
       note: isNew ? '새 양식을 등록했습니다.' : input.fixRemark.trim(),
-    } : null, isNew);
+    }, isNew);
 
-    toast.success(isRevising
-      ? `${saved.label} v${nextVersion} 판을 냈습니다.`
-      : `${saved.label} 점검 기간을 ${saved.dueDate} 까지로 고쳤습니다.`);
+    toast.success(`${saved.label} v${nextVersion} 버전을 냈습니다.`);
     setPending(null);
     navigate(backTo);
   };
@@ -122,16 +121,16 @@ export function TemplateEditor({ template }: TemplateEditorProps) {
         <FormPage
           title={isNew ? '점검 양식 등록' : `${template.label} 편집`}
           description={isNew
-            ? '저장하면 v1 판으로 나갑니다. 이후 문항을 고칠 때마다 판 번호가 오릅니다.'
+            ? '저장하면 v1 버전으로 나갑니다. 이후 어느 칸이든 고칠 때마다 버전 번호가 오릅니다.'
             : isRevising
-              ? `현재 v${template.version} · 문항이 바뀌어 저장하면 v${nextVersion} 로 나갑니다.`
-              : `현재 v${template.version} · 기간만 고치면 판은 그대로입니다.`}
+              ? `현재 v${template.version} · 저장하면 v${nextVersion} 로 나갑니다.`
+              : `현재 v${template.version} · 고친 내용이 없어 낼 버전이 없습니다.`}
           backTo={backTo}
           danger={isNew ? null : <Button variant="solar" onClick={() => setIsDeleting(true)}>삭제</Button>}
           footer={(
             <>
               <Button variant="secondary" onClick={() => navigate(backTo)}>취소</Button>
-              <Form.Submit>{isNew ? '등록' : isRevising ? '새 판으로 저장' : '저장'}</Form.Submit>
+              <Form.Submit disabled={!isRevising}>{isNew ? '등록' : '새 버전으로 저장'}</Form.Submit>
             </>
           )}
         >
@@ -191,7 +190,7 @@ export function TemplateEditor({ template }: TemplateEditorProps) {
             </div>
           </FormSection>
 
-          {/* 새 양식에는 되돌아볼 앞 판이 없고, 기간만 고친 것은 남길 개정이 아니다. */}
+          {/* 새 양식에는 되돌아볼 앞 버전이 없고, 고친 것이 없으면 낼 버전 자체가 없다. */}
           {isNew || !isRevising ? null : (
             <FormSection legend="개정 사유" hint="이력에 그대로 남습니다. 무엇을 왜 고쳤는지 적어 주세요.">
               <Form.Area
@@ -210,13 +209,9 @@ export function TemplateEditor({ template }: TemplateEditorProps) {
         isOpen={pending !== null}
         title={isNew
           ? MSG.createConfirm('점검 양식')
-          : isRevising
-            ? `${template?.label ?? '양식'} v${nextVersion} 로 낼까요?`
-            : `${template?.label ?? '양식'} 점검 기간을 고칠까요?`}
-        description={isRevising
-          ? '새 판은 지금부터 작성하는 보고서에만 적용됩니다. 이미 쓴 보고서는 그대로입니다.'
-          : '문항은 그대로 두고 기간만 바꿉니다. 판 번호와 개정 이력은 움직이지 않습니다.'}
-        confirmLabel={isNew ? '등록' : isRevising ? '새 판으로 저장' : '저장'}
+          : `${template?.label ?? '양식'} v${nextVersion} 로 낼까요?`}
+        description="새 버전은 지금부터 작성하는 보고서에만 적용됩니다. 이미 쓴 보고서는 그대로입니다."
+        confirmLabel={isNew ? '등록' : '새 버전으로 저장'}
         onConfirm={() => pending && commit(pending)}
         onClose={() => setPending(null)}
       />

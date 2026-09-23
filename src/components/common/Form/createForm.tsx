@@ -336,11 +336,12 @@ export function createFields<T extends FieldValues>() {
     );
   }
 
-  function Submit({ children = '저장' }: { children?: ReactNode }) {
+  /** `disabled` 는 폼이 유효해도 낼 것이 없을 때 쓴다 — 고친 내용이 없는 편집 따위 */
+  function Submit({ children = '저장', disabled = false }: { children?: ReactNode; disabled?: boolean }) {
     const { formState } = useFormContext<T>();
 
     return (
-      <Button type="submit" disabled={!formState.isValid}>
+      <Button type="submit" disabled={disabled || !formState.isValid}>
         {children}
       </Button>
     );
